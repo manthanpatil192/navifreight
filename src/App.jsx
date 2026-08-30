@@ -128,13 +128,14 @@ export default function App() {
           currency={currency}
         />
 
-        {/* 6. Vessel Suitability & Port Feasibility Matrix */}
+        {/* 6. Vessel Suitability & Real-Time Port Match Optimizer */}
         <VesselOptimization
           selectedDestination={selectedDestination}
           cargoVolumeMT={cargoVolumeMT}
           currency={currency}
           onSelectVessel={setSelectedVessel}
           currentVesselId={selectedVessel}
+          onSelectPort={(portId) => setSelectedDestination(portId)}
         />
 
         {/* 6. Spot vs Multi-Voyage COA Financial Planner */}

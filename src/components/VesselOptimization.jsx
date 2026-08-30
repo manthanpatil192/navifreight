@@ -116,7 +116,7 @@ function getBadge(result) {
   return { label: 'SUBOPTIMAL', cls: 'bg-orange-100 text-orange-800 border-orange-200' };
 }
 
-export default function VesselOptimization({ selectedDestination, cargoVolumeMT, currency, onSelectVessel, currentVesselId }) {
+export default function VesselOptimization({ selectedDestination, cargoVolumeMT, currency, onSelectVessel, currentVesselId, onSelectPort }) {
   const isINR = currency === 'INR';
   const [expandedPort, setExpandedPort] = useState(null);
   const [activeTab, setActiveTab] = useState('optimizer'); // 'optimizer' | 'portswitcher'
@@ -425,19 +425,36 @@ export default function VesselOptimization({ selectedDestination, cargoVolumeMT,
                     </div>
                   </div>
 
-                  {/* Expanded details */}
+                  {/* Expanded details & Switch Action */}
                   {expanded && (
-                    <div className="border-t border-slate-200 px-3 py-2.5 grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px]">
-                      <div><span className="text-slate-400">Actual TPD: </span><span className="font-semibold">{item.live.actualTPD.toLocaleString()} MT/d</span> <span className="text-slate-400">({item.tpdEfficiency}% efficiency)</span></div>
-                      <div><span className="text-slate-400">Equipment: </span><span className="font-semibold">{item.live.conveyorStatus}</span></div>
-                      <div><span className="text-slate-400">Discharge: </span><span className="font-semibold">{(cargoVolumeMT / item.live.actualTPD).toFixed(1)} days</span> (live TPD)</div>
-                      <div><span className="text-slate-400">Draft clearance: </span>
-                        <span className={`font-semibold ${item.draftClear ? 'text-emerald-700' : item.draftTide ? 'text-amber-700' : 'text-red-700'}`}>
-                          {item.draftClear ? `✓ +${item.draftMargin}m` : item.draftTide ? '⚠ Tidal only' : `✗ ${item.draftMargin}m deficit`}
-                        </span>
+                    <div className="border-t border-slate-200 px-3 py-2.5 bg-slate-50/50">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[11px] mb-3">
+                        <div><span className="text-slate-400">Actual TPD: </span><span className="font-semibold">{item.live.actualTPD.toLocaleString()} MT/d</span> <span className="text-slate-400">({item.tpdEfficiency}% efficiency)</span></div>
+                        <div><span className="text-slate-400">Equipment: </span><span className="font-semibold">{item.live.conveyorStatus}</span></div>
+                        <div><span className="text-slate-400">Discharge: </span><span className="font-semibold">{(cargoVolumeMT / item.live.actualTPD).toFixed(1)} days</span> (live TPD)</div>
+                        <div><span className="text-slate-400">Draft clearance: </span>
+                          <span className={`font-semibold ${item.draftClear ? 'text-emerald-700' : item.draftTide ? 'text-amber-700' : 'text-red-700'}`}>
+                            {item.draftClear ? `✓ +${item.draftMargin}m` : item.draftTide ? '⚠ Tidal only' : `✗ ${item.draftMargin}m deficit`}
+                          </span>
+                        </div>
+                        <div><span className="text-slate-400">Queue vessels: </span><span className="font-semibold">{item.live.queueVessels} at anchorage</span></div>
+                        <div><span className="text-slate-400">30d windows: </span><span className={`font-semibold ${item.berthDays < 8 ? 'text-red-700' : 'text-emerald-700'}`}>{item.berthDays} berth-days</span></div>
                       </div>
-                      <div><span className="text-slate-400">Queue vessels: </span><span className="font-semibold">{item.live.queueVessels} at anchorage</span></div>
-                      <div><span className="text-slate-400">30d windows: </span><span className={`font-semibold ${item.berthDays < 8 ? 'text-red-700' : 'text-emerald-700'}`}>{item.berthDays} berth-days</span></div>
+
+                      {!isCurrent && !item.blocked && onSelectPort && (
+                        <div className="flex justify-end pt-2 border-t border-slate-200/80">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPort(item.portId);
+                            }}
+                            className="inline-flex items-center space-x-1.5 bg-maritime-800 hover:bg-maritime-900 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors shadow-sm"
+                          >
+                            <span>Switch Discharge to {item.port.name}</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
