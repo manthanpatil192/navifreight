@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marine Oil Spill Detection, Hindcasting & AIS Attribution — Technical Whitepaper</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    :root {
+      --primary: #0f172a;
+      --primary-accent: #0284c7;
+      --emerald: #059669;
+      --amber: #d97706;
+      --rose: #e11d48;
+      --purple: #7c3aed;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-600: #475569;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--slate-800);
+      background-color: #f1f5f9;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    /* Print Control Bar */
+    .print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0f172a;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-print {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-print:hover {
+      background: #0369a1;
+    }
+
+    .document-container {
+      max-width: 900px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 48px 56px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--slate-900);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+    h2 {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--slate-900);
+      border-bottom: 2px solid var(--slate-200);
+      padding-bottom: 6px;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--slate-900);
+      margin-top: 14px;
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .badge-green { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-amber { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-rose { background: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+
+    /* Meta Header */
+    .meta-grid {
+      display: grid;
+      grid-cols: 2;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      margin-bottom: 20px;
+      font-size: 11.5px;
+    }
+    .meta-item strong {
+      color: var(--slate-900);
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--slate-600);
+    }
+
+    /* Cards */
+    .issue-card {
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: #fff;
+      page-break-inside: avoid;
+    }
+    .issue-card:nth-child(even) {
+      background: #fafafa;
+    }
+    .issue-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--slate-900);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .issue-body {
+      font-size: 11.5px;
+      color: var(--slate-600);
+      margin-bottom: 6px;
+    }
+    .issue-solution {
+      background: #f0fdf4;
+      border-left: 3px solid var(--emerald);
+      padding: 6px 10px;
+      border-radius: 0 4px 4px 0;
+      font-size: 11px;
+      color: #064e3b;
+    }
+    .issue-solution strong {
+      color: #047857;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 10px 0 18px 0;
+    }
+    th, td {
+      border: 1px solid var(--slate-200);
+      padding: 7px 10px;
+      text-align: left;
+    }
+    th {
+      background: var(--slate-100);
+      font-weight: 700;
+      color: var(--slate-900);
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--slate-100);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10.5px;
+      color: var(--slate-900);
+    }
+
+    .pipeline-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      margin: 14px 0;
+      line-height: 1.6;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+        font-size: 10.5pt;
+      }
+      .print-bar {
+        display: none !important;
+      }
+      .document-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      h2 {
+        margin-top: 20pt;
+        page-break-after: avoid;
+      }
+      .issue-card {
+        border: 1pt solid #ccc;
+        page-break-inside: avoid;
+      }
+      @page {
+        size: A4;
+        margin: 14mm 14mm 14mm 14mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Hidden when printing to PDF) -->
+  <div class="print-bar">
+    <div>
+      <strong>Marine Oil Spill Detection & Attribution — Technical Whitepaper</strong>
+      <span style="font-size: 11px; opacity: 0.8; margin-left: 10px;">100% Open-Source & Free Public Dataset Stack</span>
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+      Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="document-container">
+    
+    <!-- Title Header -->
+    <div style="border-bottom: 3px solid #0f172a; padding-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="badge badge-blue">Smart India Hackathon Technical Whitepaper</span>
+        <span class="badge badge-green">100% Free Open Data Architecture</span>
+      </div>
+      <h1 style="margin-top: 8px;">Automated Satellite SAR Detection, Oceanographic Drift Hindcasting & AIS Culprit Attribution System</h1>
+      <p style="font-size: 11.5px; color: var(--slate-600); font-weight: 500;">
+        Solving Unattributed Marine Oil Pollution in Indian EEZ & Territorial Waters using Remote Sensing, Lagrangian Physics, and Spatio-Temporal Anomaly Analytics
+      </p>
+    </div>
+
+    <!-- Meta Info -->
+    <div class="meta-grid">
+      <div class="meta-item">
+        <strong>Domain & Target Stakeholders</strong>
+        Indian Coast Guard (NOS-DCP), DG Shipping (MARPOL Annex I), Ministry of Ports, Shipping & Waterways
+      </div>
+      <div class="meta-item">
+        <strong>Core ML / Algorithmic Stack</strong>
+        U-Net/DeepLabV3+ (SAR CV) + OpenDrift/PyGNOME (Lagrangian Metocean) + Spatio-Temporal KD-Tree (AIS)
+      </div>
+    </div>
+
+    <!-- Section 1: End-to-End Architecture -->
+    <h2>1. End-to-End Automated Pipeline Architecture</h2>
+    <div class="pipeline-box">
+[1. SATELLITE SAR ACQUISITION] ──► [2. U-NET SLICK SEGMENTATION] ──► [3. METOCEAN REVERSE HINDCAST]
+  • Sentinel-1 C-Band SAR GRD        • Filter Look-alikes (Algae)      • CMEMS Hourly Surface Currents
+  • VV-Polarisation Backscatter     • Extract Area (km²), Geometry    • ERA5 10m Wind Fields (3% Leeway)
+                                                                       • WaveWatch-III Stokes Wave Drift
+                                                                                    │
+                                                                                    ▼
+[6. LEGAL EVIDENCE DOSSIER]    ◄── [5. ANOMALY & ATTRIBUTION SCORE] ◄── [4. AIS RECONSTRUCTION]
+  • Timestamped GeoTIFF Proof        • Proximity + Heading Match        • NOAA / DMA Historical AIS
+  • Hindcast Origin Trajectory       • Speed Drops (14 -> 5 kts)        • Dark Vessel Gap Extrapolation
+  • DG Shipping MARPOL Report        • Vessel Risk Profile (Tanker)     • Spatial Window (25 NM, ±3 hrs)
+    </div>
+
+    <!-- Section 2: 100% Free Open-Source Dataset Ecosystem -->
+    <h2>2. Complete 100% Free Open-Source Dataset Stack</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Dataset Name</th>
+          <th>Provider / Authority</th>
+          <th>Parameters Ingested</th>
+          <th>Cost & License</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Layer 1</strong> (CV Benchmark)</td>
+          <td><strong>MOSP-SAR & Kaggle SAR Dataset</strong></td>
+          <td>Mendeley / IEEE DataPort</td>
+          <td>1,112+ pixel-annotated Sentinel-1 SAR oil spill masks</td>
+          <td><span class="badge badge-green">100% Free Open Data</span></td>
+        </tr>
+        <tr>
+          <td><strong>Layer 2</strong> (Raw Satellite)</td>
+          <td><strong>Copernicus Data Space (Sentinel-1 SAR)</strong></td>
+          <td>European Space Agency (ESA)</td>
+          <td>C-Band GRD VV+VH radar backscatter at 10m resolution</td>
+          <td><span class="badge badge-green">100% Free Public API</span></td>
+        </tr>
+        <tr>
+          <td><strong>Layer 3</strong> (Currents)</td>
+          <td><strong>Copernicus Marine (CMEMS Global PHY)</strong></td>
+          <td>Copernicus Marine Service</td>
+          <td>Hourly 3D ocean currents (U, V vectors) at 1/12° (~8 km)</td>
+          <td><span class="badge badge-green">100% Free Open Access</span></td>
+        </tr>
+        <tr>
+          <td><strong>Layer 4</strong> (Waves & Stokes)</td>
+          <td><strong>NOAA WaveWatch III (WW3)</strong></td>
+          <td>NOAA / NCEP</td>
+          <td>Wave swell height (Hs), peak period, Stokes drift velocity</td>
+          <td><span class="badge badge-green">100% Free Public Data</span></td>
+        </tr>
+        <tr>
+          <td><strong>Layer 5</strong> (10m Winds)</td>
+          <td><strong>ECMWF ERA5 & NOAA GFS</strong></td>
+          <td>ECMWF / NOAA</td>
+          <td>Hourly 10m surface wind U/V components & gusts</td>
+          <td><span class="badge badge-green">100% Free Open Access</span></td>
+        </tr>
+        <tr>
+          <td><strong>Layer 6</strong> (AIS Telemetry)</td>
+          <td><strong>NOAA Marine Cadastre & DMA Open AIS</strong></td>
+          <td>NOAA / Danish Maritime Authority</td>
+          <td>MMSI, Coordinates, SOG, COG, Heading, Vessel Type</td>
+          <td><span class="badge badge-green">100% Free Download</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 3: The 10 Core Engineering Challenges & Solutions -->
+    <h2>3. The 10 Core Technical & Maritime Challenges with Open Solutions</h2>
+
+    <!-- Group A -->
+    <h3>Group A: Satellite & Remote Sensing Challenges</h3>
+    
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>1. SAR Wind Speed "Blindspot Window" (&lt;3 m/s or &gt;12 m/s)</span>
+        <span class="badge badge-blue">Remote Sensing</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> SAR relies on capillary wave damping. In winds &lt;3 m/s (dead calm), the ocean acts as a mirror causing false dark spots everywhere. In winds &gt;12 m/s, rough waves submerge the oil film beneath the sea surface, erasing radar contrast.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Ingest hourly 10m wind fields from <strong>ECMWF ERA5 / NOAA GFS</strong> to dynamically mask and flag unreliable low/high wind spatial tiles prior to U-Net segmentation.
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>2. Satellite Revisit Gap & Temporal Latency (1 to 3 Days)</span>
+        <span class="badge badge-blue">Constellation Fusion</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Polar SAR satellites pass over a coordinate every 1–3 days. A spill at 02:00 AM might be imaged at 18:00 PM after drifting 30 km and evaporating 40% of its volume.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Multi-sensor constellation fusion combining <strong>Sentinel-1 SAR</strong> (all-weather night/day) + <strong>Sentinel-2 MSI</strong> (10m optical) + <strong>Landsat-8/9</strong> via the free Copernicus Data Space Ecosystem API.
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>3. Natural Seeps vs. Biogenic Algal Films (Look-Alike False Alarms)</span>
+        <span class="badge badge-blue">Classification</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Natural hydrocarbon seeps (e.g. Mumbai High basin) and decaying phytoplankton blooms release fatty acids that mimic mineral oil slicks on SAR radar imagery.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Integrate a hardcoded GIS layer of <strong>Known Offshore Hydrocarbon Seep Coordinates</strong> and calculate boundary fractal edge dimensions & gradient contrast ratios to filter out biogenic films.
+      </div>
+    </div>
+
+    <!-- Group B -->
+    <h3>Group B: Ocean Physics & Chemical Weathering Challenges</h3>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>4. "Chocolate Mousse" Emulsification (Non-Linear Drift Dynamics)</span>
+        <span class="badge badge-amber">Fluid Physics</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Within 6–24 hours, wave turbulence mixes seawater into crude oil, increasing volume by 300%–400%, raising viscosity by 1000x, and reducing leeway wind drift factor from 3% to 1.8%.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Deploy the open-source <strong>OpenDrift / NOAA PyGNOME</strong> framework with time-dependent ADIOS weathering equations to recalculate density, viscosity, and leeway coefficient dynamically over time (<i>t</i>).
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>5. Stokes Wave Drift vs. Pure Eulerian Ocean Current Error</span>
+        <span class="badge badge-amber">Wave Dynamics</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Standard hydrodynamic models (HYCOM, CMEMS) only output Eulerian mean currents. Ignoring wave-induced <strong>Stokes Drift</strong> introduces a 15–30 km spatial error over a 24-hour hindcast.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Extract wave swell height (<i>H<sub>s</sub></i>) and peak period (<i>T<sub>p</sub></i>) from <strong>NOAA WaveWatch-III (WW3)</strong> and compute Stokes mass transport velocity vectors (<i>U<sub>stokes</sub></i>) in the Lagrangian particle tracer.
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>6. Underwater Subsurface Bilge Discharge Lag</span>
+        <span class="badge badge-amber">Hydrodynamics</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Oily bilge water is discharged through sea-chest valves 6–12 meters below the waterline while steaming at 14 knots. Droplets take 15–45 minutes to rise to the surface, shifting the initial slick 5–10 NM down-current.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Implement a droplet rise-velocity buoyancy model based on oil density and seawater stratification to calculate vertical transit time (<i>&Delta;t<sub>rise</sub></i>).
+      </div>
+    </div>
+
+    <!-- Group C -->
+    <h3>Group C: AIS & Vessel Behavioral Evasion Challenges</h3>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>7. The "AIS Dark Gap" (Intentional Transponder Tampering)</span>
+        <span class="badge badge-rose">Maritime Evasion</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Vessels committing illegal MARPOL discharges deliberately shut off their Class-A AIS transponders for 3–5 hours, creating a blank GPS track over the spill zone.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Implement a <strong>Dead Reckoning & Dark Vessel Detector</strong> that identifies ships with unexplained AIS blackouts whose interpolated bounding corridor intersects the hindcasted origin zone.
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>8. Sea Lane Traffic Crossroads & Culprit Ambiguity</span>
+        <span class="badge badge-rose">Multi-Target Analytics</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> In busy corridors (e.g. off Gujarat/Goa), 20–40 vessels cross the same 5 NM corridor within a 4-hour window. Proximity alone cannot determine guilt.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Multi-factor attribution scoring matrix combining <strong>Engine Speed Drops (e.g. 15 kts &rarr; 6 kts for bilge pumping)</strong>, Course Over Ground (COG) heading alignment, and vessel type risk weights (Crude/Chemical Tanker vs Container).
+      </div>
+    </div>
+
+    <!-- Group D -->
+    <h3>Group D: Legal, Forensic & Verification Challenges</h3>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>9. Cloud Cover Blindness during Indian Southwest Monsoon</span>
+        <span class="badge badge-green">Monsoon Resilience</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> From June to September, coastal India has 80%–95% continuous cloud cover, rendering optical satellites (Sentinel-2, Landsat) 100% blind.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Enforce <strong>C-Band SAR (Sentinel-1)</strong> as the primary all-weather backbone, using microwave radar pulses that penetrate 100% through cloud layers and monsoonal precipitation.
+      </div>
+    </div>
+
+    <div class="issue-card">
+      <div class="issue-title">
+        <span>10. Legal Admissibility & Maritime Court Evidence (UNCLOS Standards)</span>
+        <span class="badge badge-green">Legal Forensics</span>
+      </div>
+      <div class="issue-body">
+        <strong>The Problem:</strong> Under UNCLOS and the Indian Merchant Shipping Act, foreign flag-of-convenience vessels (Panama, Liberia) challenge vague AI evidence in maritime courts.
+      </div>
+      <div class="issue-solution">
+        <strong>Open-Source Solution:</strong> Generate an <strong>Automated Forensic Evidence Package</strong> containing raw satellite GeoTIFF metadata, CMEMS ocean model IDs, and cryptographic timestamped AIS waypoint audit logs ready for DG Shipping port state control inspections.
+      </div>
+    </div>
+
+    <!-- Section 4: Ground-Truth Mumbai Ecosystem -->
+    <h2>4. Ground-Truth Field Validation (Mumbai & JNPT Ecosystem)</h2>
+    <div style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; padding: 14px 18px; font-size: 11.5px; line-height: 1.6;">
+      <p style="margin-bottom: 8px;">
+        <strong>1. Indian Coast Guard (Regional HQ West — Worli, Mumbai):</strong> The National Central Coordinating Authority under the <i>National Oil Spill Disaster Contingency Plan (NOS-DCP)</i>, operating pollution control vessels (ICGS Samudra Prahari) and Dornier SLAR surveillance aircraft.
+      </p>
+      <p style="margin-bottom: 8px;">
+        <strong>2. Directorate General of Shipping (DG Shipping — Kanjurmarg, Mumbai):</strong> Enforces <i>MARPOL 73/78 Annex I</i> compliance, audits vessel Oil Record Books (ORB), and levies port state control detention penalties on identified polluters.
+      </p>
+      <p>
+        <strong>3. Mumbai Port (Jawahar Dweep / Butcher Island) & JNPT (Navi Mumbai):</strong> Manages India's largest crude oil terminals, deployment booms, and Vessel Traffic Management Systems (VTMS) covering coastal Arabian Sea lanes.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--slate-200); display: flex; justify-content: space-between; font-size: 10px; color: var(--slate-600);">
+      <span>Smart India Hackathon 2026 • Maritime Intelligence Reference</span>
+      <span>100% Free Open Data Architecture</span>
+    </div>
+
+  </div>
+
+</body>
+</html>
