@@ -106,6 +106,14 @@ export default function App() {
           </div>
         </div>
 
+        {/* SIH26006 Problem Study Scenario Presets Bar (Always Accessible) */}
+        <ScenarioPresetsBar
+          selectedOrigin={selectedOrigin}
+          selectedDestination={selectedDestination}
+          selectedVessel={selectedVessel}
+          onApplyScenario={handleApplyScenario}
+        />
+
         {/* Problem Statement Part Navigation Tab Bar */}
         <div className="bg-white border border-slate-200 rounded-xl p-1.5 mb-6 shadow-subtle">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1">
@@ -161,14 +169,6 @@ export default function App() {
         {/* ================= PAGE 1: OVERVIEW & CORE OBJECTIVE ================= */}
         {(activeTab === 'overview' || activeTab === 'all') && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            {/* SIH26006 Problem Study Scenario Presets Bar */}
-            <ScenarioPresetsBar
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              selectedVessel={selectedVessel}
-              onApplyScenario={handleApplyScenario}
-            />
-
             {/* Top Metric Cards */}
             <MetricCards
               forecast={forecast}
