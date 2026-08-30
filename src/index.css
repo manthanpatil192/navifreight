@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-maritime-50: #f0f5fa;
+  --color-maritime-100: #e1ecf6;
+  --color-maritime-200: #c2d9ed;
+  --color-maritime-300: #94bfe0;
+  --color-maritime-400: #5f9dcf;
+  --color-maritime-500: #3a7ebd;
+  --color-maritime-600: #2a639e;
+  --color-maritime-700: #235080;
+  --color-maritime-800: #003366;
+  --color-maritime-900: #001e40;
+  --color-maritime-950: #001329;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbars for clean minimal white theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.shadow-subtle {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+.shadow-elevated {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
