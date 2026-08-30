@@ -11,6 +11,8 @@ import MarketNewsFeed from './components/InteractiveRouteMap';
 import LiveShipTrackerMap from './components/LiveShipTrackerMap';
 import SystemLogicRiskMatrix from './components/SystemLogicRiskMatrix';
 import DatasetExplorerModal from './components/DatasetExplorerModal';
+import ExecutiveReportModal from './components/ExecutiveReportModal';
+import ScenarioPresetsBar from './components/ScenarioPresetsBar';
 import { calculateFreightForecast } from './utils/forecastingEngine';
 import { PORT_CONGESTION_STATUS } from './data/weatherCongestionData';
 import { Ship, FileText, CheckCircle2 } from 'lucide-react';
@@ -26,7 +28,7 @@ export default function App() {
   const [volatilityIndex, setVolatilityIndex] = useState(1.0);
   const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
-  const [isReportExported, setIsReportExported] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Dynamic Freight Forecast Calculation
   const forecast = calculateFreightForecast({
@@ -40,12 +42,17 @@ export default function App() {
 
   const currentPortCongestion = PORT_CONGESTION_STATUS[selectedDestination];
 
+  const handleApplyScenario = (config) => {
+    setSelectedOrigin(config.origin);
+    setSelectedDestination(config.destination);
+    setSelectedVessel(config.vessel);
+    setCargoVolumeMT(config.cargoVolumeMT);
+    setContractHorizonMonths(config.horizon);
+    if (config.cargoType) setCargoType(config.cargoType);
+  };
+
   const handleExportReport = () => {
-    setIsReportExported(true);
-    setTimeout(() => {
-      window.print();
-      setIsReportExported(false);
-    }, 300);
+    setIsReportModalOpen(true);
   };
 
   return (
@@ -85,6 +92,14 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* SIH26006 Problem Study Scenario Presets Bar */}
+        <ScenarioPresetsBar
+          selectedOrigin={selectedOrigin}
+          selectedDestination={selectedDestination}
+          selectedVessel={selectedVessel}
+          onApplyScenario={handleApplyScenario}
+        />
 
         {/* 2. Top Metric Cards */}
         <MetricCards
@@ -176,6 +191,19 @@ export default function App() {
       <DatasetExplorerModal
         isOpen={isDatasetModalOpen}
         onClose={() => setIsDatasetModalOpen(false)}
+      />
+
+      {/* Executive Chartering Brief & Audit Report Modal */}
+      <ExecutiveReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        forecast={forecast}
+        selectedOrigin={selectedOrigin}
+        selectedDestination={selectedDestination}
+        selectedVessel={selectedVessel}
+        cargoVolumeMT={cargoVolumeMT}
+        contractHorizonMonths={contractHorizonMonths}
+        currency={currency}
       />
 
       {/* Footer */}
