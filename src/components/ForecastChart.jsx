@@ -228,25 +228,42 @@ export default function ForecastChart({ forecast, currency }) {
         </ResponsiveContainer>
       </div>
 
-      {/* Action Recommendation Banner */}
-      <div className="mt-4 bg-slate-50 border border-slate-200 rounded-md p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* Action Recommendation Banner — Dynamic Market Intelligence */}
+      <div className={`mt-4 border rounded-md p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+        forecast.percentageSavings >= 10 ? 'bg-emerald-50 border-emerald-200' : 
+        forecast.percentageSavings >= 5 ? 'bg-amber-50 border-amber-200' : 
+        'bg-slate-50 border-slate-200'
+      }`}>
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-            <CheckCircle2 className="w-4 h-4" />
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+            forecast.percentageSavings >= 10 ? 'bg-emerald-100 text-emerald-700' : 
+            forecast.percentageSavings >= 5 ? 'bg-amber-100 text-amber-700' : 
+            'bg-slate-100 text-slate-700'
+          }`}>
+            {forecast.percentageSavings >= 5 ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           </div>
           <div>
             <span className="text-xs font-bold text-slate-800">
-              Optimal Contract Entry Window: <span className="text-emerald-700">LOCK 3-MONTH / 6-MONTH COA NOW</span>
+              {forecast.percentageSavings >= 10 ? (
+                <>Optimal Contract Entry Window: <span className="text-emerald-700">{forecast.recommendationBadge}</span></>
+              ) : forecast.percentageSavings >= 5 ? (
+                <>Moderate Opportunity: <span className="text-amber-700">CONSIDER SHORT-TERM COA</span></>
+              ) : (
+                <>Market Stable: <span className="text-slate-700">{forecast.recommendationBadge}</span></>
+              )}
             </span>
             <p className="text-[11px] text-slate-500">
-              Spot rates forecast to rise +19.6% by Nov 2026 due to peak Indian steelmaking restocking and Pacific tonnage tightness.
+              {forecast.adviceRationale}
+              {' '}• Current Spot: {isINR ? `₹${(forecast.currentSpotRateUSD * 86.5).toFixed(0)}` : `$${forecast.currentSpotRateUSD}`}{unit.replace('/', '/')}
+              {' '}→ Projected: {isINR ? `₹${(forecast.projectedSpotRateUSD * 86.5).toFixed(0)}` : `$${forecast.projectedSpotRateUSD}`}{unit.replace('/', '/')}
+              {' '}({forecast.percentageSavings > 0 ? '+' : ''}{((forecast.projectedSpotRateUSD - forecast.currentSpotRateUSD) / forecast.currentSpotRateUSD * 100).toFixed(1)}% drift over {forecast.totalVoyageDays} voyage days).
             </p>
           </div>
         </div>
 
         <div className="text-right shrink-0">
           <span className="text-xs font-bold text-slate-800 tabular-nums">
-            Estimated Arbitrage: <span className="text-emerald-600">+{forecast.percentageSavings}% Net Freight Gain</span>
+            Estimated Arbitrage: <span className={forecast.percentageSavings >= 10 ? 'text-emerald-600' : forecast.percentageSavings >= 5 ? 'text-amber-600' : 'text-slate-600'}>+{forecast.percentageSavings}% Net Freight Gain</span>
           </span>
         </div>
       </div>

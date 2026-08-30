@@ -7,7 +7,7 @@ import VesselOptimization from './components/VesselOptimization';
 import SpotVsCoaPlanner from './components/SpotVsCoaPlanner';
 import DeadheadOptimizer from './components/DeadheadOptimizer';
 import RiskCongestionRadar from './components/RiskCongestionRadar';
-import InteractiveRouteMap from './components/InteractiveRouteMap';
+import MarketNewsFeed from './components/InteractiveRouteMap';
 import LiveShipTrackerMap from './components/LiveShipTrackerMap';
 import SystemLogicRiskMatrix from './components/SystemLogicRiskMatrix';
 import DatasetExplorerModal from './components/DatasetExplorerModal';
@@ -151,8 +151,8 @@ export default function App() {
           onSelectPort={(portId) => setSelectedDestination(portId)}
         />
 
-        {/* 8. Maritime Corridor Telemetry */}
-        <InteractiveRouteMap
+        {/* 8. Live Market Intelligence & News Feed */}
+        <MarketNewsFeed
           selectedOrigin={selectedOrigin}
           selectedDestination={selectedDestination}
         />
