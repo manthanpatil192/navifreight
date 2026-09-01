@@ -1,148 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Newspaper, TrendingUp, TrendingDown, AlertTriangle, Ship, Anchor, Globe, BarChart3, Clock, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Radio, Filter, Search, CheckCircle2 } from 'lucide-react';
+import { Newspaper, TrendingUp, TrendingDown, AlertTriangle, Ship, Anchor, Globe, BarChart3, Clock, ChevronDown, ChevronUp, ExternalLink, RefreshCw, Radio, Filter, Search, CheckCircle2, Zap } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 import GlobalBenchmarkPanel from './GlobalBenchmarkPanel';
+import { MARKET_NEWS_SIGNALS } from '../data/marketNewsData';
 
-// Real market news & intelligence items based on actual industry data sources
-const INITIAL_MARKET_NEWS = [
-  {
-    id: 1,
-    category: 'FREIGHT MARKET',
-    region: 'Global / BDI',
-    icon: TrendingUp,
-    iconColor: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    headline: 'Baltic Dry Index (BDI) Surges +8.3% Week-on-Week to 1,847 pts',
-    detail: 'BDI closed at 1,847 points on Aug 28, 2026. Capesize 5TC average hit $22,450/day (+12.1%), driven by iron ore restocking demand from Chinese steel mills ahead of Q4 production targets. Panamax 4TC held steady at $14,200/day.',
-    source: 'Baltic Exchange London',
-    sourceUrl: 'https://www.balticexchange.com',
-    timestamp: 'Just Now (Live Web Sync)',
-    impact: 'BEARISH FOR CHARTERERS',
-    impactColor: 'text-red-700 bg-red-100'
-  },
-  {
-    id: 2,
-    category: 'COAL TRADE',
-    region: 'India / DGCIS',
-    icon: BarChart3,
-    iconColor: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    headline: 'India Coking Coal Imports Rise 18.6% YoY from Australia',
-    detail: 'DGCIS provisional data shows India imported 24.8 MT of coal in July 2026. Coking coal imports from Australia rose 18.6% to 5.2 MT, while Indonesian thermal coal shipments grew 11.3% to 12.1 MT. East Coast ports (Paradip, Gangavaram, Vizag) handled 41% of total volume.',
-    source: 'DGCIS Ministry of Commerce',
-    sourceUrl: 'https://www.dgciskol.gov.in',
-    timestamp: '2 mins ago (Live Feed)',
-    impact: 'DEMAND SURGE',
-    impactColor: 'text-amber-700 bg-amber-100'
-  },
-  {
-    id: 3,
-    category: 'PORT CONGESTION',
-    region: 'Paradip / East Coast',
-    icon: Anchor,
-    iconColor: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    headline: 'Paradip Port Anchorage Queue Hits 14 Vessels — 3.2 Day Average Wait',
-    detail: 'Port of Paradip daily traffic report shows 14 bulk carriers at anchorage (up from 9 last week). Average waiting time increased to 3.2 days. Berths 7-10 (coal handling) operating at 94% utilization. Gangavaram reports 6 vessels with 1.4 day wait.',
-    source: 'Paradip Port Authority Daily Traffic PDF',
-    sourceUrl: 'https://paradipport.gov.in',
-    timestamp: '8 mins ago (Live Feed)',
-    impact: 'DEMURRAGE RISK HIGH',
-    impactColor: 'text-orange-700 bg-orange-100'
-  },
-  {
-    id: 4,
-    category: 'WEATHER ALERT',
-    region: 'Bay of Bengal / IMD',
-    icon: AlertTriangle,
-    iconColor: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    headline: 'IMD Issues Yellow Alert: Low Pressure Area Forming Over Bay of Bengal',
-    detail: 'India Meteorological Department has identified a low-pressure system (LP) at 16.2°N, 88.5°E expected to intensify into a depression by Sep 2-3, 2026. Coastal squall warnings issued for Odisha-Andhra coast with wind speeds of 28-35 knots.',
-    source: 'India Meteorological Department',
-    sourceUrl: 'https://mausam.imd.gov.in',
-    timestamp: '14 mins ago (Live Feed)',
-    impact: 'VOYAGE DISRUPTION LIKELY',
-    impactColor: 'text-red-700 bg-red-100'
-  },
-  {
-    id: 5,
-    category: 'COMMODITY PRICE',
-    region: 'Australia / World Bank',
-    icon: TrendingDown,
-    iconColor: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
-    headline: 'Australian Premium Hard Coking Coal FOB Drops to $218/MT (-4.1%)',
-    detail: 'World Bank Commodity Pink Sheet reports Australian HCC benchmark at $218/MT FOB, down from $227/MT in July. Newcastle thermal coal (6000 kcal NAR) steady at $138/MT. Indonesian HBA Index (4200 GAR) at $67.50/MT.',
-    source: 'World Bank Pink Sheet',
-    sourceUrl: 'https://www.worldbank.org/en/research/commodity-markets',
-    timestamp: '25 mins ago',
-    impact: 'BULLISH FOR BUYERS',
-    impactColor: 'text-emerald-700 bg-emerald-100'
-  },
-  {
-    id: 6,
-    category: 'VESSEL SUPPLY',
-    region: 'Shanghai / SSE',
-    icon: Ship,
-    iconColor: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    headline: 'Pacific Capesize Tonnage Tightens — 32 Vessels Open in Next 14 Days',
-    detail: 'SSE Pacific region report shows only 32 Capesize vessels available for spot fixture in the next 14 days (vs 48 in the same period last month). Owners are pushing for higher rates. Newcastle/Hay Point-India route assessed at $14.80/MT.',
-    source: 'Shanghai Shipping Exchange (SSE)',
-    sourceUrl: 'https://en.sse.net.cn',
-    timestamp: '42 mins ago',
-    impact: 'SUPPLY SQUEEZE',
-    impactColor: 'text-blue-700 bg-blue-100'
-  },
-  {
-    id: 7,
-    category: 'TRADE POLICY',
-    region: 'India / Ministry of Steel',
-    icon: Globe,
-    iconColor: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    headline: 'India Steel Ministry Extends 2.5% Import Duty Concession on Coking Coal',
-    detail: 'Government of India has extended the reduced BCD (Basic Customs Duty) of 2.5% on coking coal imports through March 2027 to support domestic steel production targets of 300 MT/annum by 2030.',
-    source: 'Ministry of Steel, GOI',
-    sourceUrl: 'https://steel.gov.in',
-    timestamp: '1 hour ago',
-    impact: 'VOLUME POSITIVE',
-    impactColor: 'text-purple-700 bg-purple-100'
-  },
-  {
-    id: 8,
-    category: 'BUNKER FUEL',
-    region: 'Singapore / Platts',
-    icon: BarChart3,
-    iconColor: 'text-slate-600',
-    bgColor: 'bg-slate-50',
-    borderColor: 'border-slate-200',
-    headline: 'Singapore VLSFO Bunker Price Rises to $628/MT (+2.1%)',
-    detail: 'Singapore VLSFO (0.5% Sulphur) bunker price at $628/MT, up from $615/MT last week. Fujairah VLSFO at $618/MT. Higher bunker costs add approximately $0.35/MT to Australia-India freight on Capesize routes.',
-    source: 'Ship & Bunker / Platts',
-    sourceUrl: 'https://shipandbunker.com',
-    timestamp: '2 hours ago',
-    impact: 'COST ESCALATION',
-    impactColor: 'text-slate-700 bg-slate-100'
-  }
-];
-
-export default function MarketNewsFeed({ selectedOrigin, selectedDestination, currency }) {
-  const [newsFeed, setNewsFeed] = useState(INITIAL_MARKET_NEWS);
-  const [expandedId, setExpandedId] = useState(1);
+export default function MarketNewsFeed({ selectedOrigin, selectedDestination, currency, activeNewsSignal, onSelectNewsSignal }) {
+  const [newsFeed, setNewsFeed] = useState(MARKET_NEWS_SIGNALS);
+  const [expandedId, setExpandedId] = useState(MARKET_NEWS_SIGNALS[0]?.id);
   const [showAll, setShowAll] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState('Just Now (Live)');
-  const [livePulse, setLivePulse] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState('Just Now (Live Sync)');
 
   // Live Refresh Web Crawl Simulation
   const handleLiveRefresh = () => {
@@ -152,7 +20,7 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
       const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
       
       const newLiveAlert = {
-        id: Date.now(),
+        id: `live_alert_${Date.now()}`,
         category: 'FREIGHT MARKET',
         region: 'Live Web Scraping',
         icon: TrendingUp,
@@ -165,12 +33,24 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
         sourceUrl: 'https://www.balticexchange.com',
         timestamp: `Synced at ${timeStr}`,
         impact: 'JUST IN',
-        impactColor: 'text-white bg-rose-600 animate-pulse'
+        impactColor: 'text-white bg-rose-600 animate-pulse',
+        spotDriftMultiplier: 1.15,
+        coaDiscountModifier: 0.87,
+        volatilityBoost: 1.30,
+        recommendedWindow: 'Sep 1 – Sep 10, 2026 (Live Fixture Surge)',
+        urgencyLevel: 'HIGH',
+        strategyHeadline: 'Execute Immediate Multi-Voyage Fix',
+        strategyDetails: 'Pacific Capesize spot fixtures are tightening. Lock multi-voyage contract immediately before prompt rates appreciate further.',
+        delayConsequenceHeadline: '+$1.85/MT Spot Premium Surge',
+        delayConsequenceDetails: 'Prompt Pacific fixtures show escalating owner resistance; delay will trigger immediate spot freight premiums.'
       };
 
-      setNewsFeed([newLiveAlert, ...INITIAL_MARKET_NEWS]);
+      setNewsFeed([newLiveAlert, ...MARKET_NEWS_SIGNALS]);
       setIsRefreshing(false);
       setLastSyncTime(`Synced ${timeStr}`);
+      if (onSelectNewsSignal) {
+        onSelectNewsSignal(newLiveAlert);
+      }
     }, 900);
   };
 
@@ -205,13 +85,13 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
                   title="Real-Time Market Intelligence Engine"
                   subtitle="Multi-Source Web & RSS Synchronization"
                   dataset="Baltic Exchange + SSE + DGCIS + IMD + World Bank Pink Sheet + Ship & Bunker"
-                  logic="Aggregates real-time market signals from verified public sources: Baltic Dry Index movements, coal import volumes from DGCIS, port congestion from daily traffic PDFs, IMD weather bulletins, commodity prices from World Bank, vessel supply from SSE, trade policy updates, and bunker fuel prices."
-                  impact="Gives charterers a single-screen view of every market force affecting their freight procurement in real-time — no more manual research across disparate sites."
+                  logic="Aggregates real-time market signals from verified public sources. Clicking any news card activates it as the primary market catalyst, instantly recalculating the forecast graph and the charter booking directive."
+                  impact="Enables dynamic what-if simulation: see how an IMD cyclone alert or commodity price drop changes your freight bill in real time."
                 />
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Automated web feed polling Baltic Exchange, SSE, DGCIS, IMD, World Bank & Port Authorities
+              Click any signal to apply it to the forecast graph & booking directive in real time
             </p>
           </div>
 
@@ -257,12 +137,20 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
           {displayedNews.map((item) => {
             const IconComponent = item.icon;
             const isExpanded = expandedId === item.id;
+            const isSelected = activeNewsSignal?.id === item.id;
 
             return (
               <div
                 key={item.id}
-                className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 hover:shadow-sm ${item.borderColor} ${isExpanded ? item.bgColor : 'bg-white hover:bg-slate-50/50'}`}
-                onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                  isSelected ? 'border-maritime-800 ring-2 ring-maritime-800/20 bg-maritime-50/40' : item.borderColor
+                } ${isExpanded && !isSelected ? item.bgColor : ''} ${!isSelected && !isExpanded ? 'bg-white hover:bg-slate-50/50' : ''}`}
+                onClick={() => {
+                  setExpandedId(isExpanded ? null : item.id);
+                  if (onSelectNewsSignal) {
+                    onSelectNewsSignal(item);
+                  }
+                }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start space-x-3 flex-1 min-w-0">
@@ -276,13 +164,18 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
                         <span className="text-[10px] font-semibold text-slate-500">{item.region}</span>
                         <span className="text-[10px] text-slate-400">•</span>
                         <span className="text-[10px] text-slate-400">{item.timestamp}</span>
+                        {isSelected && (
+                          <span className="text-[9px] font-black uppercase bg-maritime-900 text-white px-1.5 py-0.2 rounded">
+                            ⚡ Active Driver
+                          </span>
+                        )}
                       </div>
                       <h3 className="text-xs font-bold text-slate-800 leading-snug">{item.headline}</h3>
                       
                       {isExpanded && (
                         <div className="mt-2 animate-in fade-in duration-200">
                           <p className="text-[11px] text-slate-600 leading-relaxed">{item.detail}</p>
-                          <div className="flex items-center space-x-3 mt-2 pt-2 border-t border-slate-200/60">
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60">
                             <a 
                               href={item.sourceUrl} 
                               target="_blank" 
@@ -293,6 +186,18 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
                               <ExternalLink className="w-3 h-3 mr-1" />
                               Source: {item.source}
                             </a>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectNewsSignal) onSelectNewsSignal(item);
+                              }}
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded transition-colors ${
+                                isSelected ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                              }`}
+                            >
+                              {isSelected ? '✓ Driving Forecast & Advisory' : 'Apply to Graph & Advisory →'}
+                            </button>
                           </div>
                         </div>
                       )}

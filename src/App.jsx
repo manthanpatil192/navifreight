@@ -15,6 +15,7 @@ import ExecutiveReportModal from './components/ExecutiveReportModal';
 import ScenarioPresetsBar from './components/ScenarioPresetsBar';
 import { calculateFreightForecast } from './utils/forecastingEngine';
 import { PORT_CONGESTION_STATUS } from './data/weatherCongestionData';
+import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
 import { 
   Ship, FileText, CheckCircle2, Compass, TrendingUp, 
   RefreshCw, ShieldCheck, Layers, ArrowRight, BarChart3, Anchor
@@ -42,17 +43,19 @@ export default function App() {
   const [contractHorizonMonths, setContractHorizonMonths] = useState(3);
   const [volatilityIndex, setVolatilityIndex] = useState(1.0);
   const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
+  const [activeNewsSignal, setActiveNewsSignal] = useState(MARKET_NEWS_SIGNALS[0]);
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Dynamic Freight Forecast Calculation
+  // Dynamic Freight Forecast Calculation with Live News Signal Coupling
   const forecast = calculateFreightForecast({
     originId: selectedOrigin,
     destinationId: selectedDestination,
     vesselId: selectedVessel,
     cargoMT: cargoVolumeMT,
     horizonMonths: contractHorizonMonths,
-    marketVolatilityMultiplier: volatilityIndex
+    marketVolatilityMultiplier: volatilityIndex,
+    activeNewsSignal: activeNewsSignal
   });
 
   const currentPortCongestion = PORT_CONGESTION_STATUS[selectedDestination];
@@ -212,12 +215,15 @@ export default function App() {
               contractHorizonMonths={contractHorizonMonths}
               forecast={forecast}
               currency={currency}
+              activeNewsSignal={activeNewsSignal}
             />
 
             {/* Freight Forecasting Chart */}
             <ForecastChart
               forecast={forecast}
               currency={currency}
+              activeNewsSignal={activeNewsSignal}
+              onSelectNewsSignal={setActiveNewsSignal}
             />
 
             {/* Live Market Intelligence & News Feed + Multi-Region Global Benchmarks */}
@@ -225,6 +231,8 @@ export default function App() {
               selectedOrigin={selectedOrigin}
               selectedDestination={selectedDestination}
               currency={currency}
+              activeNewsSignal={activeNewsSignal}
+              onSelectNewsSignal={setActiveNewsSignal}
             />
           </div>
         )}

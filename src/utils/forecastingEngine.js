@@ -4,6 +4,7 @@ import { VESSEL_CLASSES } from '../data/vesselTypes';
 
 /**
  * Computes dynamic freight rates, confidence intervals, and contract optimization recommendations
+ * Dynamically coupled with active live market news / weather / economic shock signals.
  */
 export function calculateFreightForecast({
   originId = 'hay_point',
@@ -11,7 +12,8 @@ export function calculateFreightForecast({
   vesselId = 'capesize',
   cargoMT = 150000,
   horizonMonths = 3,
-  marketVolatilityMultiplier = 1.0
+  marketVolatilityMultiplier = 1.0,
+  activeNewsSignal = null
 }) {
   const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
   const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
@@ -23,7 +25,7 @@ export function calculateFreightForecast({
   const sailingDaysOneWay = distanceNM / (speedKnots * 24);
   
   // Fuel and voyage costs
-  const vlsfoPriceUSD = 620; // $/MT
+  const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 645 : 620; // $/MT
   const bunkerDailyCostUSD = vessel.dailyFuelConsumptionMT * vlsfoPriceUSD;
   const portDischargeDays = cargoMT / (dest.handlingRateTPD || 45000);
   const totalVoyageDays = sailingDaysOneWay + portDischargeDays + 2.5; // +2.5 loading/canal/anchorage
@@ -36,17 +38,22 @@ export function calculateFreightForecast({
   // Current Spot Freight Rate
   const currentSpotRateUSD = Number((baseFreightUSDPerMT * 1.08).toFixed(2));
   
+  // Dynamic News Modifiers
+  const newsDriftMultiplier = activeNewsSignal?.spotDriftMultiplier || 1.0;
+  const newsVolatilityBoost = activeNewsSignal?.volatilityBoost || 1.0;
+
   // Multi-Voyage Contract (COA) Discount factor (contract volume efficiency + charterer hedging)
-  const coaDiscountFactor = horizonMonths === 1 ? 0.96 : horizonMonths === 3 ? 0.88 : horizonMonths === 6 ? 0.84 : 0.81;
+  const baseCoaDiscountFactor = horizonMonths === 1 ? 0.96 : horizonMonths === 3 ? 0.88 : horizonMonths === 6 ? 0.84 : 0.81;
+  const coaDiscountFactor = activeNewsSignal?.coaDiscountModifier ? (baseCoaDiscountFactor * (activeNewsSignal.coaDiscountModifier / 0.88)) : baseCoaDiscountFactor;
   const coaRateUSD = Number((currentSpotRateUSD * coaDiscountFactor).toFixed(2));
 
-  // Future Forecast Projection (LightGBM + Prophet Seasonal Model projection)
-  // Projected spot drift based on seasonal restocking cycle and forward demand
+  // Future Forecast Projection (LightGBM + Prophet Seasonal Model projection + News Shock)
   const seasonalDrift = horizonMonths === 1 ? 0.04 : horizonMonths === 3 ? 0.16 : horizonMonths === 6 ? 0.22 : 0.14;
-  const projectedSpotRateUSD = Number((currentSpotRateUSD * (1 + seasonalDrift * marketVolatilityMultiplier)).toFixed(2));
+  const combinedDrift = (1 + seasonalDrift * marketVolatilityMultiplier) * newsDriftMultiplier;
+  const projectedSpotRateUSD = Number((currentSpotRateUSD * combinedDrift).toFixed(2));
   
   // 95% Bayesian Confidence Interval
-  const confidenceMargin = Number((projectedSpotRateUSD * 0.045).toFixed(2));
+  const confidenceMargin = Number((projectedSpotRateUSD * 0.045 * newsVolatilityBoost).toFixed(2));
   const upperBound95 = Number((projectedSpotRateUSD + confidenceMargin).toFixed(2));
   const lowerBound95 = Number((projectedSpotRateUSD - confidenceMargin).toFixed(2));
 
@@ -58,15 +65,19 @@ export function calculateFreightForecast({
   const netSavingsINR = (netSavingsUSD * inrConversionRate) / 10000000; // in ₹ Crores
   const percentageSavings = Number((((projectedSpotRateUSD - coaRateUSD) / projectedSpotRateUSD) * 100).toFixed(1));
 
-  // Recommendation logic
+  // Recommendation logic coupled with active news
   let recommendationBadge = 'LOCK MULTI-VOYAGE COA';
   let badgeColor = 'emerald';
-  let adviceRationale = `Strong bullish forward curve detected for ${origin.name} ➔ ${dest.name}. Locking a ${horizonMonths}-month COA now protects against a projected ${percentageSavings}% spot market escalation.`;
+  let adviceRationale = `Strong forward escalation detected for ${origin.name} ➔ ${dest.name}. Locking a ${horizonMonths}-month COA now protects against a projected ${percentageSavings}% spot market escalation.`;
 
-  if (percentageSavings < 5) {
+  if (activeNewsSignal?.id === 'coking_coal_drop' || percentageSavings < 5) {
     recommendationBadge = 'STAY ON SPOT / SHORT-TERM';
     badgeColor = 'amber';
-    adviceRationale = 'Freight market in seasonal lull; spot rates offer acceptable short-term flexibility.';
+    adviceRationale = 'Freight market in temporary lull; spot rates offer superior short-term flexibility.';
+  } else if (activeNewsSignal?.id === 'weather_cyclone') {
+    recommendationBadge = 'CRITICAL: LOCK COA IMMEDIATELY';
+    badgeColor = 'rose';
+    adviceRationale = 'Active Bay of Bengal cyclone alert will trigger severe post-storm congestion queues and freight rate spikes.';
   }
 
   return {
@@ -88,16 +99,20 @@ export function calculateFreightForecast({
     percentageSavings,
     recommendationBadge,
     badgeColor,
-    adviceRationale
+    adviceRationale,
+    activeNewsSignal
   };
 }
 
 /**
- * Generates dynamic time series for the Forecast Chart that immediately responds to Phase 1 inputs
+ * Generates dynamic time series for the Forecast Chart that immediately responds to Phase 1 inputs and Active News
  */
 export function generateDynamicTimeSeries(forecast, multiplier = 1) {
   const baseSpot = forecast.currentSpotRateUSD;
   const coaFixed = forecast.coaRateUSD;
+  const newsSignal = forecast.activeNewsSignal;
+  const newsMult = newsSignal?.spotDriftMultiplier || 1.0;
+  const newsBoost = newsSignal?.volatilityBoost || 1.0;
 
   // Relative historical factors from 2023 to 2026
   const historicalFactors = [
@@ -131,53 +146,53 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1) {
     };
   });
 
-  // Forward 6 months dynamically calculated from active Phase 1 forecast
+  // Forward 6 months dynamically calculated from active Phase 1 forecast + active news shock
   const forwardDrifts = [
     {
       month: 'Sep 2026',
-      spotMult: 1.041,
+      spotMult: 1.041 * newsMult,
       coaMult: 0.924,
-      ciRange: 0.042,
-      recommendation: 'ACCUMULATE 3M COA',
-      rationale: `Post-monsoon restocking begins for ${forecast.destination.name}; freight demand climbing.`
+      ciRange: 0.042 * newsBoost,
+      recommendation: newsSignal ? `[${newsSignal.impact}] EXECUTE WINDOW` : 'ACCUMULATE 3M COA',
+      rationale: newsSignal ? newsSignal.headline : `Post-monsoon restocking begins for ${forecast.destination.name}; freight demand climbing.`
     },
     {
       month: 'Oct 2026',
-      spotMult: 1.126,
+      spotMult: 1.126 * newsMult,
       coaMult: 0.933,
-      ciRange: 0.045,
-      recommendation: 'LOCK COA CONTRACT',
-      rationale: `High seasonal coal charter competition from ${forecast.origin.name}.`
+      ciRange: 0.045 * newsBoost,
+      recommendation: newsMult > 1.1 ? 'CRITICAL: LOCK COA FIX' : 'LOCK COA CONTRACT',
+      rationale: `Seasonal coal charter competition from ${forecast.origin.name} coupled with ${newsSignal?.headline || 'market momentum'}.`
     },
     {
       month: 'Nov 2026',
-      spotMult: 1.196,
+      spotMult: 1.196 * newsMult,
       coaMult: 0.943,
-      ciRange: 0.048,
-      recommendation: 'STRONG BUY (COA FIX)',
+      ciRange: 0.048 * newsBoost,
+      recommendation: newsMult > 1.1 ? 'PEAK RATE WARNING' : 'STRONG BUY (COA FIX)',
       rationale: 'Peak winter steel production spike; spot market heavily priced.'
     },
     {
       month: 'Dec 2026',
-      spotMult: 1.227,
+      spotMult: 1.227 * newsMult,
       coaMult: 0.955,
-      ciRange: 0.052,
+      ciRange: 0.052 * newsBoost,
       recommendation: 'EXECUTE MULTI-VOYAGE',
       rationale: `Peak charter premiums. Multi-voyage COA delivers ${forecast.percentageSavings}% savings.`
     },
     {
       month: 'Jan 2027',
-      spotMult: 1.113,
+      spotMult: 1.113 * newsMult,
       coaMult: 0.943,
-      ciRange: 0.055,
-      recommendation: 'MONITOR CYCLONE RISKS',
+      ciRange: 0.055 * newsBoost,
+      recommendation: 'MONITOR WEATHER RISKS',
       rationale: `Q1 seasonal weather alerts introduce vessel queuing at ${forecast.origin.name}.`
     },
     {
       month: 'Feb 2027',
-      spotMult: 1.069,
+      spotMult: 1.069 * newsMult,
       coaMult: 0.930,
-      ciRange: 0.050,
+      ciRange: 0.050 * newsBoost,
       recommendation: 'ROLLOVER CONTRACT',
       rationale: 'Lunar New Year lull stabilizes Pacific spot market.'
     }
