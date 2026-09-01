@@ -298,6 +298,7 @@ export default function App() {
             <DeadheadOptimizer
               selectedDestination={selectedDestination}
               currency={currency}
+              forecast={forecast}
             />
           </div>
         )}

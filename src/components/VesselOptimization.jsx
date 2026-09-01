@@ -479,71 +479,119 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
             
             {isLiveAisMode && (
               <div className="animate-in slide-in-from-top-2 duration-200 mt-3 pt-3 border-t border-slate-200">
-                {inboundShips.length > 0 ? (
-                  <div className="space-y-3">
+                <div className="flex gap-3 mb-3">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Select Destination Port</label>
                     <select 
-                      className="w-full text-sm p-2 border border-blue-200 rounded-md bg-blue-50/30 text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full text-sm p-2 border border-slate-200 rounded-md bg-white text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={selectedDestination}
+                      onChange={(e) => onPortSwitch(e.target.value)}
+                    >
+                      <option value="paradip">Paradip Port (PPT)</option>
+                      <option value="vizag">Visakhapatnam (VPT)</option>
+                      <option value="gangavaram">Gangavaram Port</option>
+                      <option value="dhamra">Dhamra Port</option>
+                      <option value="haldia">Haldia Dock Complex (HDC)</option>
+                      <option value="gopalpur">Gopalpur Port</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Select Inbound Vessel</label>
+                    <select 
+                      className="w-full text-sm p-2 border border-blue-200 rounded-md bg-blue-50/30 text-blue-900 font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                       value={selectedLiveShipMmsi}
                       onChange={(e) => setSelectedLiveShipMmsi(e.target.value)}
                     >
-                      {inboundShips.map(ship => (
+                      {inboundShips.length > 0 ? inboundShips.map(ship => (
                         <option key={ship.mmsi} value={ship.mmsi}>
-                          {ship.name} ({ship.vesselType}) — ETA: {ship.etaHours} hrs — Draft: {ship.currentDraughtMeters}m
+                          {ship.name} ({ship.vesselType}) — ETA: {ship.etaHours}h
                         </option>
-                      ))}
+                      )) : <option value="">No vessels en route</option>}
                     </select>
-                    
-                    {/* Live Signal Engine Panel */}
-                    {activeLiveShip && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                        {/* Congestion & ETA Alert */}
-                        {(() => {
-                          const waitDays = liveCurrent.waitDays;
-                          const etaDays = activeLiveShip.etaHours / 24;
-                          const arrivesEarly = etaDays < waitDays;
-                          
-                          // Check active weather alerts
-                          const weatherAlerts = IMD_WEATHER_ALERTS.filter(alert => alert.affectedPorts.some(p => p.toLowerCase().includes(currentPort.name.toLowerCase().split(' ')[0])));
-                          
-                          return (
-                            <>
-                              <div className={`p-3 rounded-md border text-xs ${arrivesEarly ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                                <div className="font-bold flex items-center mb-1">
-                                  {arrivesEarly ? <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />}
-                                  {arrivesEarly ? 'YELLOW ALERT: Early Arrival' : 'GREEN: On Schedule'}
-                                </div>
-                                <div className="text-slate-600 mb-1">ETA: {etaDays.toFixed(1)} days | Queue Wait: {waitDays} days</div>
-                                <div className={`font-semibold ${arrivesEarly ? 'text-amber-800' : 'text-emerald-800'}`}>
-                                  {arrivesEarly 
-                                    ? 'SUGGESTION: Sail Slow (Eco-Speed) to save bunker fuel; berth is occupied.' 
-                                    : 'SUGGESTION: Maintain service speed; berth slot is aligned.'}
-                                </div>
-                              </div>
-                              
-                              {/* Weather Alert */}
-                              <div className={`p-3 rounded-md border text-xs ${weatherAlerts.length > 0 ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
-                                <div className="font-bold flex items-center mb-1">
-                                  {weatherAlerts.length > 0 ? <Activity className="w-3.5 h-3.5 mr-1 text-rose-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-slate-500" />}
-                                  {weatherAlerts.length > 0 ? 'IMD METEOROLOGICAL ALERT' : 'Clear Weather'}
-                                </div>
-                                {weatherAlerts.length > 0 ? (
-                                  <>
-                                    <div className="text-slate-600 mb-1">{weatherAlerts[0].category} ({weatherAlerts[0].windSpeedKnots} kts)</div>
-                                    <div className="font-semibold text-rose-800">{weatherAlerts[0].recommendation}</div>
-                                  </>
-                                ) : (
-                                  <div className="text-slate-500">No active cyclone or squall warnings for {currentPort.name}.</div>
-                                )}
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <div className="text-sm text-slate-500 p-3 bg-slate-100 rounded-md">
-                    No live inbound AIS vessels detected for {currentPort.name}. Try selecting Paradip, Gangavaram, Vizag, or Dhamra.
+                </div>
+                
+                {/* Live Signal Engine Panel */}
+                {activeLiveShip && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    {/* Congestion & ETA Alert */}
+                    {(() => {
+                      const waitDays = liveCurrent.waitDays;
+                      const etaDays = activeLiveShip.etaHours / 24;
+                      const arrivesEarly = etaDays < waitDays;
+                      
+                      // Check active weather alerts
+                      const weatherAlerts = IMD_WEATHER_ALERTS.filter(alert => alert.affectedPorts.some(p => p.toLowerCase().includes(currentPort.name.toLowerCase().split(' ')[0])));
+                      const hasSevereWeather = weatherAlerts.length > 0;
+                      const isDraftBlocked = activeLiveShip.currentDraughtMeters > currentPort.maxDraftLaden;
+                      
+                      const requiresPortSwitch = hasSevereWeather || isDraftBlocked;
+                      
+                      return (
+                        <>
+                          <div className={`p-3 rounded-md border text-xs ${arrivesEarly ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                            <div className="font-bold flex items-center mb-1">
+                              {arrivesEarly ? <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />}
+                              {arrivesEarly ? 'YELLOW ALERT: Early Arrival' : 'GREEN: On Schedule'}
+                            </div>
+                            <div className="text-slate-600 mb-1">ETA: {etaDays.toFixed(1)} days | Queue Wait: {waitDays} days</div>
+                            <div className={`font-semibold ${arrivesEarly ? 'text-amber-800' : 'text-emerald-800'}`}>
+                              {arrivesEarly 
+                                ? 'SUGGESTION: Sail Slow (Eco-Speed) to save bunker fuel; berth is occupied.' 
+                                : 'SUGGESTION: Maintain service speed; berth slot is aligned.'}
+                            </div>
+                          </div>
+                          
+                          {/* Weather Alert */}
+                          <div className={`p-3 rounded-md border text-xs ${hasSevereWeather ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+                            <div className="font-bold flex items-center mb-1">
+                              {hasSevereWeather ? <Activity className="w-3.5 h-3.5 mr-1 text-rose-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-slate-500" />}
+                              {hasSevereWeather ? 'IMD METEOROLOGICAL ALERT' : 'Clear Weather'}
+                            </div>
+                            {hasSevereWeather ? (
+                              <>
+                                <div className="text-slate-600 mb-1">{weatherAlerts[0].category} ({weatherAlerts[0].windSpeedKnots} kts)</div>
+                                <div className="font-semibold text-rose-800">{weatherAlerts[0].recommendation}</div>
+                              </>
+                            ) : (
+                              <div className="text-slate-500">No active cyclone or squall warnings for {currentPort.name}.</div>
+                            )}
+                          </div>
+                          
+                          {/* Tide & Draft Constraint */}
+                          <div className={`p-3 rounded-md border text-xs ${isDraftBlocked ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                            <div className="font-bold flex items-center mb-1">
+                              <Anchor className={`w-3.5 h-3.5 mr-1 ${isDraftBlocked ? 'text-rose-600' : 'text-emerald-600'}`} />
+                              Tide & Draft Constraint
+                            </div>
+                            <div className="text-slate-600 mb-1">Vessel Draft: {activeLiveShip.currentDraughtMeters}m | Port Max: {currentPort.maxDraftLaden}m</div>
+                            <div className={`font-semibold ${isDraftBlocked ? 'text-rose-800' : 'text-emerald-800'}`}>
+                              {isDraftBlocked ? 'BLOCKED: Vessel exceeds safe navigable draft limit.' : 'CLEAR: Safe passage on current tide window.'}
+                            </div>
+                          </div>
+                          
+                          {/* Freight Trend & Final Operational Decision */}
+                          <div className={`p-3 rounded-md border text-xs ${requiresPortSwitch ? 'bg-rose-900 border-rose-700 text-rose-100' : 'bg-indigo-900 border-indigo-700 text-indigo-100'}`}>
+                            <div className="font-bold flex items-center mb-1 uppercase tracking-wider text-[10px] text-indigo-300">
+                              <Activity className="w-3 h-3 mr-1" />
+                              Operational Directive (Spot vs COA: -$3.40/MT)
+                            </div>
+                            <div className="text-sm font-bold mt-1">
+                              {requiresPortSwitch ? (
+                                <span className="text-rose-300 flex items-center"><AlertTriangle className="w-4 h-4 mr-1" /> INITIATE PORT SWITCH</span>
+                              ) : (
+                                <span className="text-emerald-400 flex items-center"><CheckCircle2 className="w-4 h-4 mr-1" /> PROCEED TO {currentPort.name.split(' ')[0]}</span>
+                              )}
+                            </div>
+                            <div className="mt-1 opacity-80">
+                              {requiresPortSwitch 
+                                ? `Redirect to Gangavaram or Dhamra to avoid ${hasSevereWeather ? 'cyclone risks' : 'draft penalties'}.` 
+                                : 'Conditions optimal. Lock in current freight rates and proceed.'}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
