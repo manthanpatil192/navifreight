@@ -132,7 +132,7 @@ function computePortScore(portId, vessel, cargoMT) {
   if (!loaClear) score -= 30;
   if (live.waitDays > 3) score -= 10;
   if (extraOverLaytime > 1.0) score -= 15;
-  if (berthDays < 7) score -= 12;
+  if (live.berthAvailDays < 7) score -= 12;
   score = Math.max(0, Math.min(100, score));
 
   const costPremium = +(vessel.costMultiplier - 0.72).toFixed(2);
