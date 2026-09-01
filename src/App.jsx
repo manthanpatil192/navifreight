@@ -20,6 +20,8 @@ import {
   RefreshCw, ShieldCheck, Layers, ArrowRight, BarChart3, Anchor
 } from 'lucide-react';
 
+import ActionableBookingDirective from './components/ActionableBookingDirective';
+
 const PS_TABS = [
   { id: 'overview', label: 'Executive Overview', sublabel: 'COA Procurement Strategy', badge: 'Core Objective', icon: Compass },
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
@@ -201,16 +203,28 @@ export default function App() {
               </span>
             </div>
 
+            {/* Dynamic AI Booking Directive Banner: WHEN TO BOOK, HOW TO BOOK, CONSEQUENCES OF DELAY */}
+            <ActionableBookingDirective
+              selectedOrigin={selectedOrigin}
+              selectedDestination={selectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+              forecast={forecast}
+              currency={currency}
+            />
+
             {/* Freight Forecasting Chart */}
             <ForecastChart
               forecast={forecast}
               currency={currency}
             />
 
-            {/* Live Market Intelligence & News Feed */}
+            {/* Live Market Intelligence & News Feed + Multi-Region Global Benchmarks */}
             <MarketNewsFeed
               selectedOrigin={selectedOrigin}
               selectedDestination={selectedDestination}
+              currency={currency}
             />
           </div>
         )}
