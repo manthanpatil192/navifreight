@@ -268,6 +268,7 @@ export default function App() {
 
             {/* Vessel Suitability & Real-Time Port Match Optimizer */}
             <VesselOptimization
+              selectedOrigin={selectedOrigin}
               selectedDestination={selectedDestination}
               cargoVolumeMT={cargoVolumeMT}
               currency={currency}

@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Ship, AlertTriangle, CheckCircle2, XCircle, TrendingDown,
-  Clock, Anchor, BarChart3, MapPin, RefreshCw, ChevronDown, ChevronUp, ArrowRight, Zap, Award, AlertCircle, Sparkles, DollarSign, Gift
+  Clock, Anchor, BarChart3, MapPin, RefreshCw, ChevronDown, ChevronUp, ArrowRight, Zap, Award, AlertCircle, Sparkles, DollarSign, Gift, Activity, Radio
 } from 'lucide-react';
-import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
+import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData';
+import { fetchLiveINCOISData } from '../api/incoisConnector';
+import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
+import { PORT_CONGESTION_STATUS, IMD_WEATHER_ALERTS } from '../data/weatherCongestionData';
 import InsightBulb from './InsightBulb';
 
 // Vessel classes with physical specs
@@ -56,19 +59,52 @@ const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalp
 const DEMURRAGE_RATE_INR_PER_DAY = 6500000; // ₹65L/day ($75k/day)
 const DISPATCH_RATE_INR_PER_DAY = 3250000;  // ₹32.5L/day (Standard 50% Dispatch Reward)
 
-function computePortScore(portId, vessel, cargoMT) {
+function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   const port = INDIAN_EAST_COAST_PORTS[portId];
+  const origin = ORIGIN_LOADING_PORTS[originId];
   const live = PORT_LIVE_CONDITIONS[portId];
-  if (!port || !live) return null;
+  if (!port || !origin || !live) return null;
 
-  // Draft check
-  const draftClear = vessel.ladenDraft <= port.maxDraftLaden;
-  const draftTide  = vessel.ladenDraft <= port.maxDraftHighTide;
-  const draftOk    = draftClear || draftTide;
-  const draftMargin = +(port.maxDraftLaden - vessel.ladenDraft).toFixed(1);
+  // Origin checks
+  const originDraftClear = vessel.ladenDraft <= origin.maxDraftLaden;
+  const originLoaClear = vessel.loaM <= origin.maxLOA;
+
+  // Destination Draft check
+  const destDraftClear = vessel.ladenDraft <= port.maxDraftLaden;
+  const destMaxDraft = incoisData ? incoisData.oceanographic.livePermissibleDraft : port.maxDraftHighTide;
+  const destDraftTide  = vessel.ladenDraft <= destMaxDraft;
+  const destDraftOk    = destDraftClear || destDraftTide;
+  const destLoaClear = vessel.loaM <= port.maxLOA;
+  
+  const loaClear = originLoaClear && destLoaClear;
+  const blocked = !destDraftOk || !loaClear;
+
+  let isLightLoaded = false;
+  let lightLoadingCapMT = vessel.typicalParcel;
+  let deadFreightPenaltyINRCr = 0;
+  let bindingConstraint = 'None';
+
+  if (!blocked) {
+    const availableOriginDraft = origin.maxDraftLaden;
+    const availableDestDraft = destDraftClear ? port.maxDraftLaden : destMaxDraft;
+    const maxAllowableDraft = Math.min(availableOriginDraft, availableDestDraft);
+    
+    if (vessel.ladenDraft > maxAllowableDraft) {
+      isLightLoaded = true;
+      lightLoadingCapMT = Math.round((maxAllowableDraft / vessel.ladenDraft) * vessel.typicalParcel * 0.94);
+      const shortCargoMT = vessel.typicalParcel - lightLoadingCapMT;
+      deadFreightPenaltyINRCr = +((shortCargoMT * 18.5 * 86.5) / 10000000).toFixed(2);
+      
+      if (availableOriginDraft < availableDestDraft) {
+        bindingConstraint = `Origin (${origin.name} max ${availableOriginDraft}m)`;
+      } else {
+        bindingConstraint = `Destination (${port.name} max ${availableDestDraft}m)`;
+      }
+    }
+  }
 
   // Trips required
-  const tripsRequired = Math.ceil(cargoMT / vessel.typicalParcel);
+  const tripsRequired = Math.ceil(cargoMT / lightLoadingCapMT);
 
   // Actual discharge days using live TPD
   const dischargeDays = +(cargoMT / (live.actualTPD * tripsRequired)).toFixed(1);
@@ -96,37 +132,30 @@ function computePortScore(portId, vessel, cargoMT) {
     dispatchBonusUSD = Math.round((dispatchBonusINRLakhs * 100000) / 86.5);
   }
 
-  // Light Loading Capacity & Dead Freight Penalty calculation
-  let allowableCargoPerTrip = vessel.typicalParcel;
-  let isLightLoaded = false;
-  let lightLoadingCapMT = vessel.typicalParcel;
-  let deadFreightPenaltyINRCr = 0;
-
-  if (!draftClear && draftTide) {
-    isLightLoaded = true;
-    lightLoadingCapMT = Math.round((port.maxDraftHighTide / vessel.ladenDraft) * vessel.typicalParcel * 0.94);
-    const shortCargoMT = vessel.typicalParcel - lightLoadingCapMT;
-    // Dead freight cost penalty: paying for full vessel charter while short-loaded
-    deadFreightPenaltyINRCr = +((shortCargoMT * 18.5 * 86.5) / 10000000).toFixed(2);
-  }
-
   // Traffic Light Verdict Generation
   let verdictBadge = { text: '', cls: '', icon: CheckCircle2 };
-  if (!draftOk) {
+  if (!loaClear) {
+    const blocker = !originLoaClear ? `Origin (${origin.name} max LOA ${origin.maxLOA}m)` : `Destination (${port.name} max LOA ${port.maxLOA}m)`;
     verdictBadge = {
-      text: `❌ Draft & LOA Insufficient (${vessel.ladenDraft}m vs ${port.maxDraftLaden}m) — Switch to Kamsarmax / Panamax`,
+      text: `❌ LOA Exceeded at ${blocker} — Switch to smaller vessel`,
       cls: 'bg-red-50 text-red-800 border-red-200',
       icon: XCircle
     };
-  } else if (!draftClear && draftTide) {
+  } else if (!destDraftOk) {
     verdictBadge = {
-      text: `⚠️ Fits at High Tide only (3.5h Window) — Light-loaded to ${lightLoadingCapMT.toLocaleString()} MT (Penalty: ₹${deadFreightPenaltyINRCr} Cr)`,
+      text: `❌ Destination Draft Insufficient (${vessel.ladenDraft}m vs ${port.maxDraftLaden}m) — Switch to smaller vessel`,
+      cls: 'bg-red-50 text-red-800 border-red-200',
+      icon: XCircle
+    };
+  } else if (isLightLoaded) {
+    verdictBadge = {
+      text: `⚠️ Light-loaded to ${lightLoadingCapMT.toLocaleString()} MT due to ${bindingConstraint} (Penalty: ₹${deadFreightPenaltyINRCr} Cr)`,
       cls: 'bg-amber-50 text-amber-900 border-amber-200',
       icon: AlertTriangle
     };
   } else {
     verdictBadge = {
-      text: `✅ Fits All Tides (100% Clearance) — Zero Draft Restriction at ${port.name}`,
+      text: `✅ Fits 100% at Origin & Destination — Zero Restrictions`,
       cls: 'bg-emerald-50 text-emerald-900 border-emerald-200',
       icon: CheckCircle2
     };
@@ -142,14 +171,10 @@ function computePortScore(portId, vessel, cargoMT) {
     tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ On schedule within free laytime (${allowedLaytimeDays} days). Zero demurrage.`;
   }
 
-  // Cargo fit check
-  const loaClear = vessel.loaM <= port.maxLOA;
-
   // Compute composite score /100
   let score = 100;
-  if (!draftClear && draftTide) score -= 20;   // tidal window penalty
-  if (!draftOk) score -= 60;                    // blocked completely
-  if (!loaClear) score -= 30;
+  if (isLightLoaded) score -= 20;   // light loading penalty
+  if (blocked) score -= 60;                    // blocked completely
   if (live.waitDays > 3) score -= 10;
   if (extraOverLaytime > 1.0) score -= 15;
   if (live.berthAvailDays < 7) score -= 12;
@@ -159,33 +184,99 @@ function computePortScore(portId, vessel, cargoMT) {
   const costPremium = +(vessel.costMultiplier - 0.72).toFixed(2);
 
   return {
-    portId, port, live,
+    originId, portId, port, live,
     vessel,
-    draftClear, draftTide, draftOk, draftMargin,
-    loaClear, tripsRequired, dischargeDays, allowedLaytimeDays, extraOverLaytime,
+    originDraftClear, destDraftClear, destDraftTide, destDraftOk,
+    originLoaClear, destLoaClear, loaClear, blocked,
+    tripsRequired, dischargeDays, allowedLaytimeDays, extraOverLaytime,
     demurrageINRCr, demurrageUSD,
     isDispatchEarned, dispatchBonusINRLakhs, dispatchBonusUSD,
-    isLightLoaded, lightLoadingCapMT, deadFreightPenaltyINRCr,
+    isLightLoaded, lightLoadingCapMT, deadFreightPenaltyINRCr, bindingConstraint,
     verdictBadge, tpdTranslationSentence,
-    score, costPremium,
-    blocked: !draftOk || !loaClear,
+    score, costPremium
   };
 }
 
-export default function VesselOptimization({ selectedDestination, cargoVolumeMT, currency, onSelectVessel, currentVesselId, onSelectPort }) {
+export default function VesselOptimization({ selectedOrigin, selectedDestination, cargoVolumeMT, currency, onSelectVessel, currentVesselId, onSelectPort }) {
   const isINR = currency === 'INR';
   const [activeTab, setActiveTab] = useState('optimizer'); // 'optimizer' | 'portswitcher'
+  const [incoisData, setIncoisData] = useState(null);
+  const [isLoadingIncois, setIsLoadingIncois] = useState(true);
+
+  // Live AIS Telemetry State
+  const [isLiveAisMode, setIsLiveAisMode] = useState(false);
+  const [selectedLiveShipMmsi, setSelectedLiveShipMmsi] = useState('');
+
+  // Get inbound ships for the selected destination
+  const inboundShips = useMemo(() => {
+    return LIVE_AIS_VESSELS.filter(ship => ship.destinationId === selectedDestination);
+  }, [selectedDestination]);
+
+  useEffect(() => {
+    if (isLiveAisMode && inboundShips.length > 0 && !selectedLiveShipMmsi) {
+      setSelectedLiveShipMmsi(inboundShips[0].mmsi);
+    }
+  }, [isLiveAisMode, inboundShips, selectedLiveShipMmsi]);
+
+  const activeLiveShip = useMemo(() => {
+    if (!isLiveAisMode || !selectedLiveShipMmsi) return null;
+    return inboundShips.find(s => s.mmsi === selectedLiveShipMmsi);
+  }, [isLiveAisMode, selectedLiveShipMmsi, inboundShips]);
+  
+  const activeCargoVolume = useMemo(() => {
+    if (activeLiveShip) {
+      const match = activeLiveShip.cargo.match(/([\d,]+)\s*MT/);
+      if (match) return parseInt(match[1].replace(/,/g, ''), 10);
+      return activeLiveShip.dwt; 
+    }
+    return cargoVolumeMT;
+  }, [activeLiveShip, cargoVolumeMT]);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingIncois(true);
+    fetchLiveINCOISData(selectedDestination).then(data => {
+      if (isMounted) {
+        setIncoisData(data);
+        setIsLoadingIncois(false);
+      }
+    });
+    
+    // Simulate real-time dashboard live polling
+    const interval = setInterval(() => {
+      fetchLiveINCOISData(selectedDestination).then(data => {
+        if (isMounted) setIncoisData(data);
+      });
+    }, 15000); // 15 seconds for fast hackathon demo updates
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [selectedDestination]);
 
   const currentPort = INDIAN_EAST_COAST_PORTS[selectedDestination];
   const liveCurrent = PORT_LIVE_CONDITIONS[selectedDestination];
 
   // Evaluate all vessels for the selected port
-  const vesselEvals = useMemo(() =>
-    VESSEL_CLASSES.map(v => computePortScore(selectedDestination, v, cargoVolumeMT))
+  const vesselEvals = useMemo(() => {
+    const liveClassMap = { 'Capesize': 'capesize', 'Kamsarmax': 'kamsarmax', 'Panamax': 'panamax', 'Supramax': 'supramax', 'Handymax': 'handysize' };
+    
+    return VESSEL_CLASSES.map(baseVessel => {
+      let vesselToEval = { ...baseVessel };
+      if (activeLiveShip) {
+        const shipClass = activeLiveShip.vesselType.split(' ')[0];
+        if (liveClassMap[shipClass] === baseVessel.id) {
+          vesselToEval.ladenDraft = activeLiveShip.currentDraughtMeters;
+          vesselToEval.loaM = activeLiveShip.loaMeters;
+          vesselToEval.name = `${activeLiveShip.name} (Live AIS Data)`;
+        }
+      }
+      return computePortScore(selectedOrigin, selectedDestination, vesselToEval, activeCargoVolume, incoisData);
+    })
       .filter(Boolean)
-      .sort((a, b) => b.score - a.score),
-    [selectedDestination, cargoVolumeMT]
-  );
+      .sort((a, b) => b.score - a.score);
+  }, [selectedOrigin, selectedDestination, activeCargoVolume, incoisData, activeLiveShip]);
 
   // Auto-Recommended Optimal Vessel Class
   const recommendedVesselEval = vesselEvals.find(v => !v.blocked) || vesselEvals[0];
@@ -200,18 +291,22 @@ export default function VesselOptimization({ selectedDestination, cargoVolumeMT,
 
   // Port switch recommendations — find which port is cheapest for chosen vessel
   const activeVesselObj = VESSEL_CLASSES.find(v => v.id === currentVesselId) || VESSEL_CLASSES[0];
-  const portComparisons = useMemo(() =>
-    ALL_CANDIDATE_PORTS
-      .map(pid => computePortScore(pid, activeVesselObj, cargoVolumeMT))
+  const portComparisons = useMemo(() => {
+    let vesselObj = { ...activeVesselObj };
+    if (activeLiveShip) {
+      vesselObj.ladenDraft = activeLiveShip.currentDraughtMeters;
+      vesselObj.loaM = activeLiveShip.loaMeters;
+    }
+    return ALL_CANDIDATE_PORTS
+      .map(pid => computePortScore(selectedOrigin, pid, vesselObj, activeCargoVolume, null))
       .filter(Boolean)
-      .sort((a, b) => b.score - a.score),
-    [currentVesselId, cargoVolumeMT]
-  );
+      .sort((a, b) => b.score - a.score);
+  }, [selectedOrigin, currentVesselId, activeCargoVolume, activeLiveShip, activeVesselObj]);
 
   // Plain-English Executive Summary Header text
   const executiveSummaryHeader = recommendedVesselEval.isLightLoaded
-    ? `Executive Directive: ${recommendedVesselEval.vessel.name} fits ${currentPort.name} only during high-tide window (3.5h); book harbor pilotage 2hrs before ETA or switch to ${vesselEvals.find(v => v.draftClear)?.vessel.name || 'Kamsarmax'} to save ₹${penaltyDeltaINRCr} Cr in dead-freight penalties.`
-    : `Executive Directive: ${recommendedVesselEval.vessel.name} is the optimal 100% fit for ${currentPort.name}. Zero draft restriction; discharge speed ${recommendedVesselEval.isDispatchEarned ? 'qualifies for Dispatch Reward Bonus' : 'fits laytime allowance cleanly'}.`;
+    ? `Executive Directive: ${recommendedVesselEval.vessel.name} is constrained by ${recommendedVesselEval.bindingConstraint}; book early to manage light-loading or switch to ${vesselEvals.find(v => !v.isLightLoaded && !v.blocked)?.vessel.name || 'smaller class'} to save ₹${penaltyDeltaINRCr} Cr in dead-freight penalties.`
+    : `Executive Directive: ${recommendedVesselEval.vessel.name} is the optimal 100% fit for ${currentPort.name} and loading origin. Zero draft restriction; discharge speed ${recommendedVesselEval.isDispatchEarned ? 'qualifies for Dispatch Reward Bonus' : 'fits laytime allowance cleanly'}.`;
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-subtle mb-6">
@@ -304,7 +399,7 @@ export default function VesselOptimization({ selectedDestination, cargoVolumeMT,
               <div className="space-y-1.5 text-xs mt-2 tabular-nums">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Draft Status:</span>
-                  <span className="font-bold text-emerald-800">{recommendedVesselEval.draftClear ? '100% All-Tide Fit' : 'High-Tide Fit'}</span>
+                  <span className="font-bold text-emerald-800">{(!recommendedVesselEval.isLightLoaded && !recommendedVesselEval.blocked) ? '100% Dual-Port Fit' : (recommendedVesselEval.isLightLoaded ? 'Light-loaded' : 'Blocked')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Dead-Freight Penalty:</span>
@@ -366,6 +461,141 @@ export default function VesselOptimization({ selectedDestination, cargoVolumeMT,
       {/* === TAB 1: VESSEL MATCH LIST === */}
       {activeTab === 'optimizer' && (
         <div>
+          {/* LIVE AIS MODE TOGGLE & DROPDOWN */}
+          <div className="mb-4 bg-slate-50 border border-slate-200 rounded-lg p-3 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <Radio className={`w-4 h-4 ${isLiveAisMode ? 'text-blue-600 animate-pulse' : 'text-slate-400'}`} />
+                <span className="text-sm font-bold text-slate-800">Live AIS Telemetry Ingestion</span>
+              </div>
+              <label className="flex items-center cursor-pointer">
+                <div className="relative">
+                  <input type="checkbox" className="sr-only" checked={isLiveAisMode} onChange={(e) => setIsLiveAisMode(e.target.checked)} />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${isLiveAisMode ? 'bg-blue-600' : 'bg-slate-300'}`}></div>
+                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isLiveAisMode ? 'translate-x-4' : ''}`}></div>
+                </div>
+              </label>
+            </div>
+            
+            {isLiveAisMode && (
+              <div className="animate-in slide-in-from-top-2 duration-200 mt-3 pt-3 border-t border-slate-200">
+                {inboundShips.length > 0 ? (
+                  <div className="space-y-3">
+                    <select 
+                      className="w-full text-sm p-2 border border-blue-200 rounded-md bg-blue-50/30 text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={selectedLiveShipMmsi}
+                      onChange={(e) => setSelectedLiveShipMmsi(e.target.value)}
+                    >
+                      {inboundShips.map(ship => (
+                        <option key={ship.mmsi} value={ship.mmsi}>
+                          {ship.name} ({ship.vesselType}) — ETA: {ship.etaHours} hrs — Draft: {ship.currentDraughtMeters}m
+                        </option>
+                      ))}
+                    </select>
+                    
+                    {/* Live Signal Engine Panel */}
+                    {activeLiveShip && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                        {/* Congestion & ETA Alert */}
+                        {(() => {
+                          const waitDays = liveCurrent.waitDays;
+                          const etaDays = activeLiveShip.etaHours / 24;
+                          const arrivesEarly = etaDays < waitDays;
+                          
+                          // Check active weather alerts
+                          const weatherAlerts = IMD_WEATHER_ALERTS.filter(alert => alert.affectedPorts.some(p => p.toLowerCase().includes(currentPort.name.toLowerCase().split(' ')[0])));
+                          
+                          return (
+                            <>
+                              <div className={`p-3 rounded-md border text-xs ${arrivesEarly ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                                <div className="font-bold flex items-center mb-1">
+                                  {arrivesEarly ? <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />}
+                                  {arrivesEarly ? 'YELLOW ALERT: Early Arrival' : 'GREEN: On Schedule'}
+                                </div>
+                                <div className="text-slate-600 mb-1">ETA: {etaDays.toFixed(1)} days | Queue Wait: {waitDays} days</div>
+                                <div className={`font-semibold ${arrivesEarly ? 'text-amber-800' : 'text-emerald-800'}`}>
+                                  {arrivesEarly 
+                                    ? 'SUGGESTION: Sail Slow (Eco-Speed) to save bunker fuel; berth is occupied.' 
+                                    : 'SUGGESTION: Maintain service speed; berth slot is aligned.'}
+                                </div>
+                              </div>
+                              
+                              {/* Weather Alert */}
+                              <div className={`p-3 rounded-md border text-xs ${weatherAlerts.length > 0 ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+                                <div className="font-bold flex items-center mb-1">
+                                  {weatherAlerts.length > 0 ? <Activity className="w-3.5 h-3.5 mr-1 text-rose-600" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-slate-500" />}
+                                  {weatherAlerts.length > 0 ? 'IMD METEOROLOGICAL ALERT' : 'Clear Weather'}
+                                </div>
+                                {weatherAlerts.length > 0 ? (
+                                  <>
+                                    <div className="text-slate-600 mb-1">{weatherAlerts[0].category} ({weatherAlerts[0].windSpeedKnots} kts)</div>
+                                    <div className="font-semibold text-rose-800">{weatherAlerts[0].recommendation}</div>
+                                  </>
+                                ) : (
+                                  <div className="text-slate-500">No active cyclone or squall warnings for {currentPort.name}.</div>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-500 p-3 bg-slate-100 rounded-md">
+                    No live inbound AIS vessels detected for {currentPort.name}. Try selecting Paradip, Gangavaram, Vizag, or Dhamra.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* INCOIS API Live Feed Mock Widget */}
+          {incoisData && (
+            <div className="mb-4 rounded-md border border-sky-200 bg-sky-50/50 overflow-hidden text-xs">
+              <div className="bg-sky-100 text-sky-800 px-3 py-1.5 font-black uppercase tracking-wider flex items-center justify-between border-b border-sky-200">
+                <div className="flex items-center space-x-2">
+                  <span className="relative flex h-2 w-2 mr-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                  </span>
+                  INCOIS LIVE OCEAN-MET FEED — {currentPort.name}
+                </div>
+                <div className="text-[10px] text-sky-600 font-semibold flex items-center">
+                  <RefreshCw className={`w-3 h-3 mr-1 ${isLoadingIncois ? 'animate-spin' : ''}`} />
+                  Updated: {new Date(incoisData.meta.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+              <div className="p-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-slate-500 mb-0.5 text-[10px] uppercase font-bold tracking-wide">Tide State</div>
+                  <div className={`font-black text-sm flex items-center ${incoisData.oceanographic.tideState.includes('FLOODING') ? 'text-sky-700' : 'text-amber-700'}`}>
+                    {incoisData.oceanographic.tideIndicator} {incoisData.oceanographic.tideState}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-slate-500 mb-0.5 text-[10px] uppercase font-bold tracking-wide">Live Draft Limit</div>
+                  <div className="font-black text-sm text-sky-900">
+                    {incoisData.oceanographic.livePermissibleDraft.toFixed(2)}m <span className="text-sky-500 font-medium text-[11px]">({incoisData.oceanographic.currentTideHeight > 0 ? '+' : ''}{incoisData.oceanographic.currentTideHeight.toFixed(2)}m tide)</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-slate-500 mb-0.5 text-[10px] uppercase font-bold tracking-wide">Next High Water</div>
+                  <div className="font-bold text-slate-800 flex items-center">
+                    <Clock className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                    {incoisData.oceanographic.nextHighWaterTime} ({incoisData.oceanographic.nextHighWaterDraft.toFixed(2)}m)
+                  </div>
+                </div>
+                <div>
+                  <div className="text-slate-500 mb-0.5 text-[10px] uppercase font-bold tracking-wide">Met / Wind</div>
+                  <div className="font-bold text-slate-800">
+                    {incoisData.meteorological.windDirection} at {incoisData.meteorological.windSpeedKnots} kts, Swell: {incoisData.meteorological.swellCondition}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Live Port Status Bar */}
           {liveCurrent && currentPort && (
             <div className={`mb-4 rounded-md border p-3 text-xs flex flex-wrap gap-4 items-center ${
