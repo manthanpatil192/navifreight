@@ -3,12 +3,24 @@ import { Layers, CheckCircle2, ArrowRight, ShieldCheck, DollarSign, Percent, Tre
 import { formatUSD, formatINR } from '../utils/financialCalculators';
 import InsightBulb from './InsightBulb';
 
-export default function SpotVsCoaPlanner({ forecast, cargoVolumeMT, contractHorizonMonths, currency }) {
+export default function SpotVsCoaPlanner({ 
+  forecast, 
+  cargoVolumeMT, 
+  contractHorizonMonths, 
+  currency,
+  coaSplitPercent: controlledSplit,
+  onCoaSplitChange
+}) {
   const isINR = currency === 'INR';
   const baseInrRate = 86.5;
 
-  // 1. Volume Hedging Split State (Default: 70% Safe Contract / 30% Live Market)
-  const [coaSplitPercent, setCoaSplitPercent] = useState(70);
+  // 1. Volume Hedging Split State (Controlled or Local State)
+  const [internalSplit, setInternalSplit] = useState(70);
+  const coaSplitPercent = controlledSplit !== undefined ? controlledSplit : internalSplit;
+  const setCoaSplitPercent = (val) => {
+    if (onCoaSplitChange) onCoaSplitChange(val);
+    setInternalSplit(val);
+  };
   const spotSplitPercent = 100 - coaSplitPercent;
 
   // 2. FX Sensitivity State

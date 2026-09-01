@@ -44,6 +44,7 @@ export default function App() {
   const [volatilityIndex, setVolatilityIndex] = useState(1.0);
   const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
   const [activeNewsSignal, setActiveNewsSignal] = useState(MARKET_NEWS_SIGNALS[0]);
+  const [coaSplitPercent, setCoaSplitPercent] = useState(70);
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -187,6 +188,8 @@ export default function App() {
               cargoVolumeMT={cargoVolumeMT}
               contractHorizonMonths={contractHorizonMonths}
               currency={currency}
+              coaSplitPercent={coaSplitPercent}
+              onCoaSplitChange={setCoaSplitPercent}
             />
           </div>
         )}
@@ -216,6 +219,7 @@ export default function App() {
               forecast={forecast}
               currency={currency}
               activeNewsSignal={activeNewsSignal}
+              coaSplitPercent={coaSplitPercent}
             />
 
             {/* Freight Forecasting Chart */}
@@ -224,6 +228,16 @@ export default function App() {
               currency={currency}
               activeNewsSignal={activeNewsSignal}
               onSelectNewsSignal={setActiveNewsSignal}
+            />
+
+            {/* Smart Cargo Splitter (Fixed Contract vs Live Spot Market) */}
+            <SpotVsCoaPlanner
+              forecast={forecast}
+              cargoVolumeMT={cargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+              currency={currency}
+              coaSplitPercent={coaSplitPercent}
+              onCoaSplitChange={setCoaSplitPercent}
             />
 
             {/* Live Market Intelligence & News Feed + Multi-Region Global Benchmarks */}
