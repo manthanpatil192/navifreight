@@ -139,25 +139,21 @@ export default function SystemLogicRiskMatrix({
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
-              <span>3. Cyclone & Weather Risk</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${isCycloneSeason ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                {isCycloneSeason ? 'HIGH RISK (Wet Coal)' : 'CLEAR'}
+              <span>3. Cyclone Risk</span>
+              <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
+                BAD (Active Track)
               </span>
             </div>
             <div className="text-base font-bold text-slate-900 flex items-center space-x-1.5">
-              <Wind className={`w-4 h-4 ${isCycloneSeason ? 'text-rose-600' : 'text-emerald-600'}`} />
-              <span>{isCycloneSeason ? 'Heavy Rains / Squall' : 'Calm Seas'}</span>
+              <Wind className="w-4 h-4 text-rose-600" />
+              <span>28 kts Squall</span>
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
               Source: <strong>IMD Live GeoJSON API</strong>
             </p>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-200/60 text-[10px] text-slate-600 leading-snug">
-            {isCycloneSeason ? (
-              <><strong className="text-rose-700">MONSOON PENALTY:</strong> Heavy rain causes "Wet Coal" effect. Coal absorbs water, becoming heavy/sticky. Expected crane discharge rate drops by 40%.</>
-            ) : (
-              'Favorable weather for continuous grab-crane discharge operations.'
-            )}
+          <div className="mt-3 pt-2 border-t border-slate-200/60 text-[10px] text-slate-600">
+            Active low-pressure track off Odisha / Bengal coast in 3 weeks.
           </div>
         </div>
 
@@ -165,25 +161,21 @@ export default function SystemLogicRiskMatrix({
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
-              <span>4. Port Draft Constraints</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${selectedDestination === 'haldia' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                {selectedDestination === 'haldia' ? 'RESTRICTED (River)' : 'COMPATIBLE'}
+              <span>4. Port Constraints</span>
+              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
+                COMPATIBLE
               </span>
             </div>
             <div className="text-base font-bold text-slate-900 flex items-center space-x-1.5">
-              <Layers className={`w-4 h-4 ${selectedDestination === 'haldia' ? 'text-amber-600' : 'text-emerald-600'}`} />
-              <span>{selectedDestination === 'haldia' ? 'Freshwater Draft Warning' : 'Draft & LOA OK'}</span>
+              <Layers className="w-4 h-4 text-emerald-600" />
+              <span>Draft & LOA OK</span>
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
-              Source: <strong>Physics Engine / INCOIS</strong>
+              Source: <strong>Hardcoded Port Matrix</strong>
             </p>
           </div>
-          <div className="mt-3 pt-2 border-t border-slate-200/60 text-[10px] text-slate-600 leading-snug">
-            {selectedDestination === 'haldia' ? (
-              <><strong className="text-amber-700">SANDBAR EXPLOIT:</strong> River port (Specific Gravity 1.005). Must short-load by 2,500 MT at origin to prevent sinking deeper and grounding in fresh water.</>
-            ) : (
-              'Deepwater berth available. Standard saltwater load limits apply.'
-            )}
+          <div className="mt-3 pt-2 border-t border-slate-200/60 text-[10px] text-slate-600">
+            Discharge capacity: 45,000 MT/day. High tide window required for Cape.
           </div>
         </div>
 
