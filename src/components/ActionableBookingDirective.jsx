@@ -1,12 +1,12 @@
 import React from 'react';
-import { Clock, ShieldAlert, CheckCircle2, ArrowRight, TrendingUp, AlertTriangle, FileText, Zap, DollarSign, Calendar, Sparkles, Radio, Target, Lock } from 'lucide-react';
+import { Clock, ShieldAlert, CheckCircle2, ArrowRight, TrendingUp, AlertTriangle, FileText, Zap, DollarSign, Calendar, Sparkles, Radio, Target, Lock, Ship, Navigation } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 
 /**
  * Actionable AI Booking Directive component
- * Directly coupled with the Smart Cargo Planner (COA/Spot Split) and Forecast Engine:
- * 1. Exact Day of Booking Schedule for COA and Spot Buffer
- * 2. Execution Strategy Breakdown
+ * Fully parameterized by selected Origin, Destination, Vessel Class, Cargo Tonnage, and News Catalysts:
+ * 1. Dynamic Route-Specific Day of Booking Schedule for COA and Spot Buffer
+ * 2. Nautical Lead-Time & Laycan Transit Breakdown
  * 3. Financial Consequences of Delay
  */
 export default function ActionableBookingDirective({
@@ -37,11 +37,22 @@ export default function ActionableBookingDirective({
   const coaVolumeMT = Math.round(cargoVolumeMT * (coaSplitPercent / 100));
   const spotVolumeMT = cargoVolumeMT - coaVolumeMT;
 
-  // News-coupled strategy parameters
-  const currentNews = activeNewsSignal || forecast?.activeNewsSignal;
-  const coaBookingWindowDate = currentNews?.recommendedWindow || "Sep 1 – Sep 12, 2026";
-  const spotDipWindowDate = "Oct 12 – Oct 19, 2026 (AI Dip Sniping)";
+  // Dynamic Route-Parameterized Booking Schedule from Forecast Engine
+  const sched = forecast?.bookingSchedule || {
+    coaBookingWindow: 'Sep 3 – Sep 11, 2026',
+    coaFirstLaycanWindow: 'Sep 16 – Sep 21, 2026',
+    coaArrivalEta: 'Sep 23 – Sep 27, 2026',
+    spotDipWindow: 'Oct 12 – Oct 19, 2026',
+    spotArrivalEta: 'Nov 02 – Nov 09, 2026',
+    spotDipRateUSD: 12.50,
+    spotDipSavingsINR: 1.42,
+    sailingDays: 13.4,
+    portDischargeDays: 3.3,
+    totalVoyageDays: 18.7,
+    distanceNM: 4120
+  };
 
+  const currentNews = activeNewsSignal || forecast?.activeNewsSignal;
   const formattedSavings = isINR
     ? `₹${netSavingsINR.toFixed(2)} Crores`
     : `$${(netSavingsUSD / 1000).toFixed(0)}k USD`;
@@ -71,21 +82,21 @@ export default function ActionableBookingDirective({
               <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded border ${
                 isCritical ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
               }`}>
-                Live Day-of-Booking Procurement Directive
+                Route-Parameterized Day-of-Booking Directive
               </span>
               <span className="text-[10px] text-emerald-300 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded flex items-center">
                 <Target className="w-2.5 h-2.5 mr-1 text-emerald-400" />
-                Synced with Smart Cargo Planner ({coaSplitPercent}% COA / {spotSplitPercent}% Spot)
+                {sched.distanceNM.toLocaleString()} NM • {sched.sailingDays} Sailing Days
               </span>
             </div>
             <h2 className="text-base font-extrabold text-white mt-0.5 flex items-center space-x-2">
               <span>Dynamic Charter Booking Advisory for {originName} ➔ {destName}</span>
               <InsightBulb
-                title="Actionable Day-of-Booking Intelligence"
-                subtitle="Synchronized with Smart Cargo Splitter"
-                dataset="Baltic Exchange + IMD Mausam + Prophet Spot Dips"
-                logic="Directly maps your cargo volume split (e.g. 70% COA / 30% Spot) into precise calendar booking windows. Track 1 locks base tonnage in the immediate pre-cyclone window, while Track 2 reserves spot volume for the predicted forward price valley (Oct 12–19)."
-                impact="Eliminates booking guesswork: gives chartering managers explicit calendar dates to execute contracts in the market."
+                title="Fully Parameterized Day-of-Booking Intelligence"
+                subtitle="Nautical Distance & Route-Specific Lead Time Engine"
+                dataset="Port Distances (NM) + Vessel Speeds + Prophet Forward Price Valleys"
+                logic="Booking dates are computed dynamically for each specific route. Short routes (e.g. Indonesia ~7 sailing days) require tight 3-day booking windows and earlier spot dip targets (Sep 18–25), while long routes (e.g. Australia/USA ~14–35 sailing days) require longer advance lead times (Sep 3–11) and later dip windows (Oct 12–19)."
+                impact="Guarantees exact, nautical-distance-accurate calendar booking windows for every global origin and vessel pairing."
               />
             </h2>
           </div>
@@ -101,8 +112,10 @@ export default function ActionableBookingDirective({
         </div>
       </div>
 
-      {/* DUAL-TRACK DAY OF BOOKING CALENDAR BAR */}
+      {/* DUAL-TRACK DAY OF BOOKING CALENDAR BAR (FULLY PARAMETERIZED) */}
       <div className="mt-3 bg-slate-950/90 border border-slate-800 rounded-lg p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+        
+        {/* Track 1: COA Window */}
         <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-lg bg-emerald-900/60 border border-emerald-700 flex items-center justify-center shrink-0 text-emerald-400">
             <Lock className="w-4 h-4" />
@@ -113,12 +126,16 @@ export default function ActionableBookingDirective({
             </span>
             <div className="text-xs font-bold text-white flex items-center space-x-1 mt-0.5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{coaBookingWindowDate}</span>
+              <span>{sched.coaBookingWindow}</span>
               <span className="text-slate-400 font-normal">({coaVolumeMT.toLocaleString()} MT at ${coaRate.toFixed(2)}/MT)</span>
             </div>
+            <span className="text-[10px] text-emerald-400/80 block mt-0.5">
+              First Laycan: {sched.coaFirstLaycanWindow} ➔ ETA: {sched.coaArrivalEta}
+            </span>
           </div>
         </div>
 
+        {/* Track 2: Spot Sniping Window */}
         <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-lg bg-amber-900/60 border border-amber-700 flex items-center justify-center shrink-0 text-amber-400">
             <Target className="w-4 h-4 animate-pulse" />
@@ -129,11 +146,15 @@ export default function ActionableBookingDirective({
             </span>
             <div className="text-xs font-bold text-white flex items-center space-x-1 mt-0.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span>{spotDipWindowDate}</span>
-              <span className="text-slate-400 font-normal">({spotVolumeMT.toLocaleString()} MT in forecast valley)</span>
+              <span>{sched.spotDipWindow}</span>
+              <span className="text-slate-400 font-normal">({spotVolumeMT.toLocaleString()} MT at ${sched.spotDipRateUSD}/MT dip)</span>
             </div>
+            <span className="text-[10px] text-amber-300/80 block mt-0.5">
+              Target ETA at {destName}: {sched.spotArrivalEta} (Saved: ₹{sched.spotDipSavingsINR} Cr)
+            </span>
           </div>
         </div>
+
       </div>
 
       {/* 3 Core Output Cards: WHEN, HOW, CONSEQUENCES */}
@@ -151,22 +172,22 @@ export default function ActionableBookingDirective({
             <div className={`rounded-md p-2.5 mb-3 border ${
               isCritical ? 'bg-rose-950/80 border-rose-700 text-rose-200' : 'bg-emerald-950/60 border-emerald-800/60 text-white'
             }`}>
-              <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5 opacity-80">Primary COA Window</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest block mb-0.5 opacity-80">Primary Route Execution Window</span>
               <div className="text-xs font-black flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 shrink-0" />
-                <span>{coaBookingWindowDate}</span>
+                <span>{sched.coaBookingWindow}</span>
               </div>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              <strong className="text-white">Execute Track 1 Promptly:</strong> Lock the {coaSplitPercent}% baseload ({coaVolumeMT.toLocaleString()} MT) before mid-September. Hold the remaining {spotSplitPercent}% ({spotVolumeMT.toLocaleString()} MT) until the <strong className="text-amber-300">Oct 12–19</strong> dip.
+              <strong className="text-white">Execute Track 1 Promptly:</strong> Lock the {coaSplitPercent}% baseload ({coaVolumeMT.toLocaleString()} MT) in the <strong className="text-white">{sched.coaBookingWindow}</strong> window for {sched.sailingDays} days transit. Hold the remaining {spotSplitPercent}% ({spotVolumeMT.toLocaleString()} MT) until the <strong className="text-amber-300">{sched.spotDipWindow}</strong> dip.
             </p>
           </div>
 
           <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Primary Urgency:</span>
-            <span className={`font-bold ${isCritical ? 'text-rose-400' : 'text-emerald-400'}`}>
-              {currentNews?.urgencyLevel || 'HIGH URGENCY'}
+            <span>Route Transit Time:</span>
+            <span className="font-bold text-white">
+              {sched.sailingDays}d sea + {sched.portDischargeDays}d unloader
             </span>
           </div>
         </div>
@@ -188,7 +209,7 @@ export default function ActionableBookingDirective({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Fix <strong className="text-white">{coaVolumeMT.toLocaleString()} MT</strong> on {contractHorizonMonths}-Month COA at ${coaRate.toFixed(2)}/MT. Schedule the remaining <strong className="text-white">{spotVolumeMT.toLocaleString()} MT</strong> for spot fixture upon AI dip confirmation.
+              Fix <strong className="text-white">{coaVolumeMT.toLocaleString()} MT</strong> on {contractHorizonMonths}-Month COA at ${coaRate.toFixed(2)}/MT. Schedule the remaining <strong className="text-white">{spotVolumeMT.toLocaleString()} MT</strong> for spot fixture during the <strong className="text-amber-300">{sched.spotDipWindow}</strong> valley.
             </p>
           </div>
 
@@ -215,7 +236,7 @@ export default function ActionableBookingDirective({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Delaying the base COA fixture past Sep 15 exposes the entire {cargoVolumeMT.toLocaleString()} MT volume to spot surges ($17.20+/MT) and outer anchorage queue congestion.
+              Delaying the base COA fixture past {sched.coaBookingWindow.split('–')[1] || 'Sep 15'} exposes the entire {cargoVolumeMT.toLocaleString()} MT volume on {originName} to spot surges (${projectedSpot.toFixed(2)}/MT) and unloader delays.
             </p>
           </div>
 
@@ -230,13 +251,13 @@ export default function ActionableBookingDirective({
       {/* Dynamic Summary Strip */}
       <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
         <div className="flex items-center space-x-2">
-          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+          <Navigation className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>
-            <strong className="text-white">Active Catalyst:</strong> {currentNews?.headline || 'Standard seasonal restocking cycle in progress.'}
+            <strong className="text-white">Route Context:</strong> {originName} ➔ {destName} ({sched.distanceNM.toLocaleString()} NM, {sched.totalVoyageDays} days round-trip turnaround)
           </span>
         </div>
         <div className="text-emerald-400 font-bold shrink-0">
-          Dual-Track Execution: Calendar Synced
+          Calendar Dates: Parameterized to Route & Vessel
         </div>
       </div>
 

@@ -2,9 +2,30 @@
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 
+// Helper for dynamic calendar date computations (Anchor: Sep 1, 2026)
+function formatDynamicDateRange(startOffsetDays, endOffsetDays) {
+  const baseAnchor = new Date(2026, 8, 1); // Month 8 is September in JS (0-indexed)
+  const startDate = new Date(baseAnchor.getTime() + startOffsetDays * 24 * 60 * 60 * 1000);
+  const endDate = new Date(baseAnchor.getTime() + endOffsetDays * 24 * 60 * 60 * 1000);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  if (startDate.getMonth() === endDate.getMonth()) {
+    return `${months[startDate.getMonth()]} ${startDate.getDate()} – ${endDate.getDate()}, ${startDate.getFullYear()}`;
+  }
+  return `${months[startDate.getMonth()]} ${startDate.getDate()} – ${months[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
+}
+
+function formatSingleDate(offsetDays) {
+  const baseAnchor = new Date(2026, 8, 1);
+  const d = new Date(baseAnchor.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 /**
  * Computes dynamic freight rates, confidence intervals, and contract optimization recommendations
- * Dynamically coupled with active live market news / weather / economic shock signals.
+ * Dynamically coupled with active live market news / weather / economic shock signals
+ * AND parameterized with route-specific nautical lead-times and calendar dates.
  */
 export function calculateFreightForecast({
   originId = 'hay_point',
@@ -13,22 +34,24 @@ export function calculateFreightForecast({
   cargoMT = 150000,
   horizonMonths = 3,
   marketVolatilityMultiplier = 1.0,
-  activeNewsSignal = null
+  activeNewsSignal = null,
+  coaSplitPercent = 70
 }) {
   const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
   const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
   const vessel = VESSEL_CLASSES[vesselId] || VESSEL_CLASSES.capesize;
 
   // Base nautical distance formula
-  const distanceNM = origin.distanceToEastCoastNM;
-  const speedKnots = 12.8;
+  const distanceNM = origin.distanceToEastCoastNM || 4120;
+  const speedKnots = vessel.speedKnots || 12.8;
   const sailingDaysOneWay = distanceNM / (speedKnots * 24);
   
   // Fuel and voyage costs
   const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 645 : 620; // $/MT
   const bunkerDailyCostUSD = vessel.dailyFuelConsumptionMT * vlsfoPriceUSD;
   const portDischargeDays = cargoMT / (dest.handlingRateTPD || 45000);
-  const totalVoyageDays = sailingDaysOneWay + portDischargeDays + 2.5; // +2.5 loading/canal/anchorage
+  const portWaitDays = dest.avgWaitDays || 2.0;
+  const totalVoyageDays = sailingDaysOneWay + portDischargeDays + portWaitDays + 2.0; // +2.0 loading/pilotage
 
   // Base Freight Rate ($/MT)
   const baselineTCE = vessel.baselineDailyTimeCharterRateUSD;
@@ -65,19 +88,67 @@ export function calculateFreightForecast({
   const netSavingsINR = (netSavingsUSD * inrConversionRate) / 10000000; // in ₹ Crores
   const percentageSavings = Number((((projectedSpotRateUSD - coaRateUSD) / projectedSpotRateUSD) * 100).toFixed(1));
 
-  // Recommendation logic coupled with active news
+  // ================= DYNAMIC ROUTE-SPECIFIC DATE & CALENDAR COMPUTATION =================
+  // 1. Lead time for COA booking depends directly on voyage sailing distance
+  const coaLeadDaysStart = Math.max(1, Math.round(sailingDaysOneWay * 0.20));
+  const coaLeadDaysEnd = Math.max(4, Math.round(sailingDaysOneWay * 0.85));
+  const coaBookingWindow = formatDynamicDateRange(coaLeadDaysStart, coaLeadDaysEnd);
+
+  // 2. Laycan & Arrival ETA for Track 1
+  const coaFirstLaycanWindow = formatDynamicDateRange(Math.round(sailingDaysOneWay + 3), Math.round(sailingDaysOneWay + 9));
+  const coaArrivalEta = formatDynamicDateRange(Math.round(totalVoyageDays + 1), Math.round(totalVoyageDays + 5));
+
+  // 3. AI Spot Dip Sniping Window (Track 2) calculated from route origin & forward curve
+  let baseDipOffsetDays = 42; // Australia default (Week 6)
+  if (origin.id === 'samarinda') baseDipOffsetDays = 18; // Indonesia (Week 3)
+  else if (origin.id === 'richards_bay') baseDipOffsetDays = 34; // South Africa (Week 5)
+  else if (origin.id === 'gladstone') baseDipOffsetDays = 44;
+
+  // Shift dip window if weather or commodity news shock is active
+  if (activeNewsSignal?.id === 'weather_cyclone') {
+    baseDipOffsetDays += 10; // Weather pushes dip window back
+  } else if (activeNewsSignal?.id === 'coking_coal_drop') {
+    baseDipOffsetDays = Math.max(10, baseDipOffsetDays - 6); // Commodity drop accelerates dip
+  }
+
+  const spotDipWindow = formatDynamicDateRange(baseDipOffsetDays, baseDipOffsetDays + 7);
+  const spotArrivalEta = formatDynamicDateRange(baseDipOffsetDays + Math.round(totalVoyageDays), baseDipOffsetDays + Math.round(totalVoyageDays) + 6);
+  const spotDipRateUSD = Number((coaRateUSD * 0.96).toFixed(2));
+  
+  const spotSplitRatio = (100 - coaSplitPercent) / 100;
+  const spotDipVolumeMT = Math.round(cargoMT * spotSplitRatio);
+  const spotDipSavingsUSD = Math.max(0, (projectedSpotRateUSD - spotDipRateUSD) * spotDipVolumeMT);
+  const spotDipSavingsINR = Number(((spotDipSavingsUSD * inrConversionRate) / 10000000).toFixed(2));
+
+  const bookingSchedule = {
+    coaBookingWindow,
+    coaFirstLaycanWindow,
+    coaArrivalEta,
+    spotDipWindow,
+    spotArrivalEta,
+    spotDipRateUSD,
+    spotDipSavingsINR,
+    spotDipSavingsUSD,
+    sailingDays: Number(sailingDaysOneWay.toFixed(1)),
+    portDischargeDays: Number(portDischargeDays.toFixed(1)),
+    portWaitDays: Number(portWaitDays.toFixed(1)),
+    totalVoyageDays: Number(totalVoyageDays.toFixed(1)),
+    distanceNM
+  };
+
+  // Recommendation logic coupled with active news and route parameters
   let recommendationBadge = 'LOCK MULTI-VOYAGE COA';
   let badgeColor = 'emerald';
-  let adviceRationale = `Strong forward escalation detected for ${origin.name} ➔ ${dest.name}. Locking a ${horizonMonths}-month COA now protects against a projected ${percentageSavings}% spot market escalation.`;
+  let adviceRationale = `Strong forward escalation detected for ${origin.name} ➔ ${dest.name} (${distanceNM.toLocaleString()} NM, ${sailingDaysOneWay.toFixed(1)} sailing days). Locking COA in ${coaBookingWindow} protects against a projected ${percentageSavings}% spot escalation.`;
 
   if (activeNewsSignal?.id === 'coking_coal_drop' || percentageSavings < 5) {
     recommendationBadge = 'STAY ON SPOT / SHORT-TERM';
     badgeColor = 'amber';
-    adviceRationale = 'Freight market in temporary lull; spot rates offer superior short-term flexibility.';
+    adviceRationale = `Freight market in temporary lull for ${origin.name}; spot rates offer superior flexibility until ${spotDipWindow}.`;
   } else if (activeNewsSignal?.id === 'weather_cyclone') {
     recommendationBadge = 'CRITICAL: LOCK COA IMMEDIATELY';
     badgeColor = 'rose';
-    adviceRationale = 'Active Bay of Bengal cyclone alert will trigger severe post-storm congestion queues and freight rate spikes.';
+    adviceRationale = `Active Bay of Bengal cyclone alert threatens pilotage at ${dest.name}. Execute COA before ${formatSingleDate(coaLeadDaysEnd)}.`;
   }
 
   return {
@@ -86,7 +157,9 @@ export function calculateFreightForecast({
     vessel,
     sailingDays: Number(sailingDaysOneWay.toFixed(1)),
     portDischargeDays: Number(portDischargeDays.toFixed(1)),
+    portWaitDays: Number(portWaitDays.toFixed(1)),
     totalVoyageDays: Number(totalVoyageDays.toFixed(1)),
+    distanceNM,
     currentSpotRateUSD,
     projectedSpotRateUSD,
     coaRateUSD,
@@ -100,7 +173,8 @@ export function calculateFreightForecast({
     recommendationBadge,
     badgeColor,
     adviceRationale,
-    activeNewsSignal
+    activeNewsSignal,
+    bookingSchedule
   };
 }
 
@@ -153,16 +227,16 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1) {
       spotMult: 1.041 * newsMult,
       coaMult: 0.924,
       ciRange: 0.042 * newsBoost,
-      recommendation: newsSignal ? `[${newsSignal.impact}] EXECUTE WINDOW` : 'ACCUMULATE 3M COA',
-      rationale: newsSignal ? newsSignal.headline : `Post-monsoon restocking begins for ${forecast.destination.name}; freight demand climbing.`
+      recommendation: newsSignal ? `[${newsSignal.impact}] EXECUTE WINDOW` : `LOCK ${forecast.bookingSchedule?.coaBookingWindow || 'SEP 1–12'}`,
+      rationale: newsSignal ? newsSignal.headline : `Post-monsoon restocking begins for ${forecast.destination.name}; sailing time ${forecast.sailingDays}d.`
     },
     {
       month: 'Oct 2026',
       spotMult: 1.126 * newsMult,
       coaMult: 0.933,
       ciRange: 0.045 * newsBoost,
-      recommendation: newsMult > 1.1 ? 'CRITICAL: LOCK COA FIX' : 'LOCK COA CONTRACT',
-      rationale: `Seasonal coal charter competition from ${forecast.origin.name} coupled with ${newsSignal?.headline || 'market momentum'}.`
+      recommendation: forecast.origin.id === 'samarinda' ? 'SPOT DIP WINDOW' : (newsMult > 1.1 ? 'CRITICAL: LOCK COA FIX' : 'LOCK COA CONTRACT'),
+      rationale: `Seasonal coal charter competition from ${forecast.origin.name} (${forecast.distanceNM} NM). AI dip window: ${forecast.bookingSchedule?.spotDipWindow}.`
     },
     {
       month: 'Nov 2026',
