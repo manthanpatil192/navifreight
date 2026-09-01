@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, Ship, Clock } from 'lucide-react';
+import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, CloudRain, Waves } from 'lucide-react';
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
@@ -261,33 +261,33 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
           </div>
         </div>
 
-        {/* Virtual Arrival (Weaponizing Congestion) */}
+        {/* Monsoon "Wet Coal" Penalty */}
         <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
           <div className="flex items-center text-sky-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <Clock className="w-4 h-4 mr-1.5" />
-            Virtual Arrival (Eco-Speed)
+            <CloudRain className="w-4 h-4 mr-1.5" />
+            Monsoon "Wet Coal" Penalty
           </div>
           <p className="text-xs text-sky-900/80 mb-3 leading-relaxed">
-            If the destination port has a queue, ships traditionally anchor and burn fuel waiting. NaviFreight tells the ship to slow down mid-ocean, arriving just-in-time while saving massive bunker costs.
+            Heavy monsoon rains cause coal to absorb water, becoming heavy and sticky. This drastically slows down grab-crane discharge rates, causing severe port queues.
           </p>
           <div className="bg-white/60 p-2.5 rounded border border-sky-100 text-[11px] font-mono text-sky-900">
-            <span className="font-bold text-sky-700">CONGESTION DETECTED:</span><br/>
-            {selectedLivePort} has a 5-day queue. Suggestion: Drop speed to 9 knots. Arrive 3 days later to secure same berth slot, saving $40,000 in VLSFO fuel during voyage.
+            <span className="font-bold text-sky-700">IMD WEATHER ALERT:</span><br/>
+            Heavy rainfall forecasted at {selectedLivePort}. Automatically downgrading expected port discharge rate by 40%. Expect +3 days of demurrage risk for arriving vessels.
           </div>
         </div>
 
-        {/* Predictive Cabotage Exploit */}
+        {/* Haldia Sandbar Exploit */}
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <div className="flex items-center text-amber-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <Ship className="w-4 h-4 mr-1.5" />
-            Predictive Cabotage Waivers
+            <Waves className="w-4 h-4 mr-1.5" />
+            Freshwater Draft Adjustments
           </div>
           <p className="text-xs text-amber-900/80 mb-3 leading-relaxed">
-            Coastal cargo requires Indian-flagged ships. Foreign ships often deadhead. Our engine predicts when a legal waiver will be granted based on the absence of local tonnage.
+            River ports (like Haldia) have fresh water, which is less dense than the ocean. A fully loaded ship entering fresh water will sink deeper, risking catastrophic grounding.
           </p>
           <div className="bg-white/60 p-2.5 rounded border border-amber-100 text-[11px] font-mono text-amber-900">
-            <span className="font-bold text-amber-700">PREDICTIVE WAIVER ALERT:</span><br/>
-            Zero Indian-flagged bulkers within 500 NM of {selectedLivePort}. 99% probability of government cabotage waiver tomorrow. Wait 24 hours to secure lucrative coastal cargo to Ennore.
+            <span className="font-bold text-amber-700">PHYSICS ENGINE TRIGGERED:</span><br/>
+            Destination is a river port (Specific Gravity 1.005). Must short-load cargo by 2,500 MT at origin to prevent exceeding draft limits upon entering the river channel.
           </div>
         </div>
 
