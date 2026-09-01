@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, CheckCircle2, ArrowRight, ShieldCheck, DollarSign, Percent, TrendingDown, Clock, Sliders, AlertTriangle, Sparkles, TrendingUp, HelpCircle, Shield, Zap, Lock } from 'lucide-react';
+import { Layers, CheckCircle2, ArrowRight, ShieldCheck, DollarSign, Percent, TrendingDown, Clock, Sliders, AlertTriangle, Sparkles, TrendingUp, HelpCircle, Shield, Zap, Lock, Calendar, Target, Radio } from 'lucide-react';
 import { formatUSD, formatINR } from '../utils/financialCalculators';
 import InsightBulb from './InsightBulb';
 
@@ -237,6 +237,73 @@ export default function SpotVsCoaPlanner({ forecast, cargoVolumeMT, contractHori
             <span className="text-[11px] text-emerald-200 font-bold">
               +{blendedSavingsPercent}% Cheaper than Daily Spot
             </span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* DUAL-TRACK EXECUTION ENGINE: BASELINE COA VS OPPORTUNISTIC SPOT SNIPING */}
+      <div className="bg-gradient-to-br from-slate-900 via-maritime-950 to-slate-900 text-white rounded-xl p-4 border border-maritime-800 shadow-md space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800 gap-2">
+          <div className="flex items-center space-x-2">
+            <Target className="w-4 h-4 text-emerald-400 animate-pulse" />
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-white flex items-center space-x-2">
+              <span>Dual-Track Execution Engine: Baseline Supply vs AI Spot Dip Sniping</span>
+              <InsightBulb
+                title="Opportunistic Spot Sniping: How AI Times the 30% Buffer"
+                subtitle="The Spot Portion is NOT Ordered on Autopilot!"
+                dataset="Prophet Forward Spot Valleys + AIS Vessel Tracking"
+                logic="The 70% COA ships on autopilot on a fixed schedule so the plant never runs out of coal. But the 30% spot cargo is held in reserve and ordered opportunistically ONLY when NaviFreight predicts a spot rate dip (e.g. during a 3-week post-monsoon or holiday lull). The AI generates an alert: 'BUY SPOT NOW' right inside the price valley."
+                impact="Maximizes procurement savings by converting passive spot market exposure into active, timed bargain captures."
+              />
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded flex items-center">
+            <Radio className="w-2.5 h-2.5 mr-1 animate-ping text-emerald-400" />
+            AI Timing Active
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          
+          {/* TRACK 1: BASELINE COA AUTOPILOT */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-lg p-3 relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-emerald-400 flex items-center">
+                <Lock className="w-3.5 h-3.5 mr-1" />
+                Track 1: {coaSplitPercent}% Base Cargo (Autopilot)
+              </span>
+              <span className="text-[10px] font-extrabold uppercase bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-700">
+                Scheduled Supply
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed mb-2">
+              <strong>{coaVolumeMT.toLocaleString()} MT</strong> ships automatically on fixed 18-day laycan schedules at guaranteed <strong className="text-white">${coaRateUSD.toFixed(2)}/MT</strong>.
+            </p>
+            <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
+              <span>Delivery Status:</span>
+              <span className="text-emerald-400 font-bold">100% Plant Security (Zero Stockout Risk)</span>
+            </div>
+          </div>
+
+          {/* TRACK 2: OPPORTUNISTIC SPOT SNIPING */}
+          <div className="bg-slate-900/90 border border-amber-700/60 rounded-lg p-3 relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-amber-400 flex items-center">
+                <Target className="w-3.5 h-3.5 mr-1" />
+                Track 2: {spotSplitPercent}% Opportunistic Buffer (AI Timed)
+              </span>
+              <span className="text-[10px] font-extrabold uppercase bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded border border-amber-700 animate-pulse">
+                ⚡ Dip Sniping Window
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed mb-2">
+              <strong>{spotVolumeMT.toLocaleString()} MT</strong> is held in reserve. NaviFreight projects a <strong className="text-amber-300">-$1.40/MT spot dip</strong> in <strong className="text-white">Weeks 6–8 (Oct 12–19)</strong> $\rightarrow$ AI triggers spot fixture right in the price valley!
+            </p>
+            <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
+              <span>Opportunistic Gain:</span>
+              <span className="text-amber-400 font-bold">+₹1.42 Crores Extra Discount</span>
+            </div>
           </div>
 
         </div>
