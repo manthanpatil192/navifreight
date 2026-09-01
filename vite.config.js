@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: '/navifreight/',
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/navifreight/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -21,4 +21,4 @@ export default defineConfig({
     strictPort: true,
     cors: true,
   }
-})
+}))
