@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// Relative base configuration ensures assets load under any subpath or domain (localhost, /navifreight/, GitHub Pages, Vercel)
-export default defineConfig({
-  base: './',
+// Base path configuration: '/navifreight/' for production GitHub Pages build, '/' for local dev server
+export default defineConfig(({ command }) => ({
+  base: process.env.NODE_ENV === 'production' || command === 'build' ? '/navifreight/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -21,4 +21,4 @@ export default defineConfig({
     strictPort: true,
     cors: true,
   }
-})
+}))
