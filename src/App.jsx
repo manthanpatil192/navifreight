@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import ActionableBookingDirective from './components/ActionableBookingDirective';
+import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
 
 const PS_TABS = [
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
@@ -193,41 +194,30 @@ export default function App() {
               portCongestion={currentPortCongestion}
             />
 
-            {/* Dynamic AI Booking Directive Banner: WHEN TO BOOK, HOW TO BOOK, CONSEQUENCES OF DELAY */}
-            <ActionableBookingDirective
+            {/* IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
+            <WebTerminalModelTrainer
+              onRunScenario={(params) => {
+                if (params.origin) setSelectedOrigin(params.origin);
+                if (params.destination) setSelectedDestination(params.destination);
+                if (params.vessel) setSelectedVessel(params.vessel);
+                if (params.volume) setCargoVolumeMT(params.volume);
+                if (params.horizon) setContractHorizonMonths(params.horizon);
+                if (params.volatility) setVolatilityIndex(params.volatility);
+                if (params.newsSignal !== undefined) setActiveNewsSignal(params.newsSignal);
+                if (params.coaSplit) setCoaSplitPercent(params.coaSplit);
+              }}
+              currency={currency}
+              currentForecast={forecast}
               selectedOrigin={selectedOrigin}
               selectedDestination={selectedDestination}
               selectedVessel={selectedVessel}
               cargoVolumeMT={cargoVolumeMT}
               contractHorizonMonths={contractHorizonMonths}
-              forecast={forecast}
-              currency={currency}
-              activeNewsSignal={activeNewsSignal}
-              coaSplitPercent={coaSplitPercent}
             />
 
-            {/* Freight Forecasting Chart */}
+            {/* Freight Forecasting Chart - Automatically moves as per terminal execution */}
             <ForecastChart
               forecast={forecast}
-              currency={currency}
-              activeNewsSignal={activeNewsSignal}
-              onSelectNewsSignal={setActiveNewsSignal}
-            />
-
-            {/* Smart Cargo Splitter (Fixed Contract vs Live Spot Market) */}
-            <SpotVsCoaPlanner
-              forecast={forecast}
-              cargoVolumeMT={cargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              currency={currency}
-              coaSplitPercent={coaSplitPercent}
-              onCoaSplitChange={setCoaSplitPercent}
-            />
-
-            {/* Live Market Intelligence & News Feed + Multi-Region Global Benchmarks */}
-            <MarketNewsFeed
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
               currency={currency}
               activeNewsSignal={activeNewsSignal}
               onSelectNewsSignal={setActiveNewsSignal}
