@@ -31,12 +31,12 @@ PORTS = {
 }
 
 DESTINATIONS = {
-    '1': {'id': 'paradip', 'name': 'Paradip Port (Odisha)', 'draft_limit': 17.5, 'demurrage_per_day': 25000, 'region': 'India'},
-    '2': {'id': 'vizag', 'name': 'Visakhapatnam Port (Andhra Pradesh)', 'draft_limit': 16.5, 'demurrage_per_day': 22000, 'region': 'India'},
-    '3': {'id': 'haldia', 'name': 'Haldia Dock Complex (West Bengal)', 'draft_limit': 8.5, 'demurrage_per_day': 18000, 'region': 'India'},
-    '4': {'id': 'dhamra', 'name': 'Dhamra Port (Odisha)', 'draft_limit': 18.5, 'demurrage_per_day': 26000, 'region': 'India'},
-    '5': {'id': 'rotterdam', 'name': 'Rotterdam (Netherlands)', 'draft_limit': 24.0, 'demurrage_per_day': 30000, 'region': 'Europe'},
-    '6': {'id': 'qingdao', 'name': 'Qingdao Port (China)', 'draft_limit': 21.0, 'demurrage_per_day': 28000, 'region': 'Asia'},
+    '1': {'id': 'paradip', 'name': 'Paradip Port (Odisha)', 'draft_limit': 16.0, 'berth_note': '14.5m MCHP / 16.0m KICT High-Tide (16.0m Official Max)', 'demurrage_per_day': 25000, 'region': 'India'},
+    '2': {'id': 'vizag', 'name': 'Visakhapatnam Port (VPA)', 'draft_limit': 14.0, 'berth_note': '14.0m Inner Harbour (2025 Trade Circular) / 16.5m Outer VGCB', 'demurrage_per_day': 22000, 'region': 'India'},
+    '3': {'id': 'haldia', 'name': 'Haldia Dock Complex (West Bengal)', 'draft_limit': 8.5, 'berth_note': '8.0m Neap / 9.1m Max Spring Tide (SMPK Tidal Window)', 'demurrage_per_day': 18000, 'region': 'India'},
+    '4': {'id': 'dhamra', 'name': 'Dhamra Port (Odisha)', 'draft_limit': 18.0, 'berth_note': '18.0m All-Weather Berth / 18.5m High Tide', 'demurrage_per_day': 26000, 'region': 'India'},
+    '5': {'id': 'rotterdam', 'name': 'Rotterdam (Netherlands)', 'draft_limit': 24.0, 'berth_note': '24.0m Maasvlakte EMO Terminal', 'demurrage_per_day': 30000, 'region': 'Europe'},
+    '6': {'id': 'qingdao', 'name': 'Qingdao Port (China)', 'draft_limit': 21.0, 'berth_note': '21.0m Dongjiakou Ore Terminal', 'demurrage_per_day': 28000, 'region': 'Asia'},
 }
 
 VESSELS = {

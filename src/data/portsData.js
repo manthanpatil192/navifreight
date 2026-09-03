@@ -27,24 +27,25 @@ export const INDIAN_EAST_COAST_PORTS = {
   },
   vizag: {
     id: 'vizag',
-    name: 'Visakhapatnam Port (VPT)',
+    name: 'Visakhapatnam Port (VPT/VPA)',
     state: 'Andhra Pradesh',
     coordinates: [17.6868, 83.2185],
-    maxDraftLaden: 18.1, // Outer Harbour VGCB (Vizag General Cargo Berth)
-    maxDraftHighTide: 18.5,
+    maxDraftLaden: 14.0, // Official 2025 VPA Trade Circular for Inner Harbour Berths (EQ-1, WQ-1)
+    maxDraftHighTide: 14.5,
+    outerHarbourDraft: 18.1, // Outer Harbour VGCB (Vizag General Cargo Berth)
     maxLOA: 300,
     maxBeam: 50.0,
-    maxDWT: 200000, // Full Capesize at Outer Harbour
-    recommendedVessels: ['Capesize', 'Kamsarmax', 'Panamax', 'Supramax'],
+    maxDWT: 200000, // Full Capesize at Outer Harbour, Panamax at Inner Harbour
+    recommendedVessels: ['Capesize (Outer)', 'Kamsarmax', 'Panamax', 'Supramax'],
     handlingRateTPD: 60000,
     primaryCargoes: ['Coking Coal', 'Thermal Coal', 'Petcoke', 'Manganese Ore', 'Pellets'],
     demurragePerDayINR: 7200000, // ₹72 Lakhs / day ($83,000 USD)
     avgWaitDays: 1.4,
     congestionLevel: 'LOW',
     tidalRangeMeters: 1.2,
-    transshipmentRequiredFor: [],
-    officialSource: 'Visakhapatnam Port Authority Outer Harbour Tariff Gazette 2025 (VGCB Berth)',
-    description: 'Outer harbour accommodates fully laden 200,000 DWT Capesize bulk carriers with high-speed gantry unloaders.'
+    transshipmentRequiredFor: ['Capesize at Inner Harbour berths (>14.0m draft)'],
+    officialSource: 'Visakhapatnam Port Authority Trade Circular No. 168 (2025) & Outer Harbour Gazette',
+    description: 'Dual-harbour configuration: 14.0m permissible draft at Inner Harbour, and 18.1m deep-water berth at Outer Harbour (VGCB).'
   },
   gangavaram: {
     id: 'gangavaram',
@@ -72,8 +73,8 @@ export const INDIAN_EAST_COAST_PORTS = {
     name: 'Dhamra Port (DPCL)',
     state: 'Odisha',
     coordinates: [20.8294, 86.9744],
-    maxDraftLaden: 18.4, // Deep draught coal berths
-    maxDraftHighTide: 18.8,
+    maxDraftLaden: 18.0, // All-weather Capesize Bulk Berths 1 & 2
+    maxDraftHighTide: 18.5, // High-tide window allowance
     maxLOA: 310,
     maxBeam: 50.0,
     maxDWT: 180000, // Capesize
