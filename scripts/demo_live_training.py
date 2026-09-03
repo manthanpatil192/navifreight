@@ -37,13 +37,16 @@ def print_banner():
     print("   Empirical Walk-Forward Validation on Real Freight Futures (BDRY)   ")
     print("=" * 70 + "\n")
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_DIR = os.path.join(BASE_DIR, 'scripts', 'data_cache')
+CSV_PATH = os.path.join(CACHE_DIR, 'bdry_real_history.csv')
+
 def fetch_live_data():
     print("[STEP 1/4] INGESTING LIVE MARKET DATASETS...")
     start_time = time.time()
     
-    csv_path = 'scripts/data_cache/bdry_real_history.csv'
-    if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
+    if os.path.exists(CSV_PATH):
+        df = pd.read_csv(CSV_PATH, index_col=0, parse_dates=True)
         source = "Local Verified Cache (Yahoo Finance Daily OHLC)"
     else:
         import yfinance as yf
@@ -53,8 +56,8 @@ def fetch_live_data():
         b_vol = bdry['Volume']['BDRY'] if isinstance(bdry.columns, pd.MultiIndex) else bdry['Volume']
         br_close = brent['Close']['BZ=F'] if isinstance(brent.columns, pd.MultiIndex) else brent['Close']
         df = pd.DataFrame({'bdry_close': b_close, 'bdry_volume': b_vol, 'brent_close': br_close}).dropna()
-        os.makedirs('scripts/data_cache', exist_ok=True)
-        df.to_csv(csv_path)
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        df.to_csv(CSV_PATH)
         source = "Live Yahoo Finance API Stream"
         
     elapsed = time.time() - start_time
