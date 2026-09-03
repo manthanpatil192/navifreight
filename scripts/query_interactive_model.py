@@ -68,6 +68,9 @@ BASE_RATES = {
     ('newcastle', 'dhamra'): 16.80,
 }
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'navifreight_gbdt_bundle.joblib')
+
 def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_months, shock_key):
     origin = PORTS[origin_key]
     dest = DESTINATIONS[dest_key]
@@ -76,13 +79,48 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
     
     base_rate = BASE_RATES.get((origin['id'], dest['id']), 16.0)
     current_spot = base_rate
-    projected_spot = base_rate + shock['spot_drift'] + (horizon_months * 0.45)
     
-    # 1. Calibrated Quantile Bounds (P10/P50/P90)
-    sigma = (15.49 / 100.0) * shock['vol_mult'] # 15.49% empirical MAPE standard dev proxy
-    p10 = projected_spot * (1.0 - 1.28 * sigma)
-    p50 = projected_spot
-    p90 = projected_spot * (1.0 + 1.28 * sigma)
+    # Load Real Trained Scikit-Learn Model Bundle
+    import joblib
+    if os.path.exists(MODEL_PATH):
+        bundle = joblib.load(MODEL_PATH)
+        reg_p10 = bundle['reg_p10']
+        reg_p50 = bundle['reg_p50']
+        reg_p90 = bundle['reg_p90']
+        scaler = bundle['scaler']
+        
+        # Point-in-time live feature vector from real BDRY data
+        feat_vec = bundle['latest_feature_vector'].copy()
+        
+        # Dynamically inject scenario inputs into the continuous feature space:
+        feat_vec[8] *= shock['vol_mult']  # index 8: volatility_21d
+        if shock_key in ['2', '3']:
+            feat_vec[7] = 0.95            # index 7: upper bollinger band breakout
+            feat_vec[9] += 0.08           # index 9: fuel price surge
+        elif shock_key == '4':
+            feat_vec[9] += 0.14           # index 9: Red sea fuel disruption
+            
+        feat_scaled = scaler.transform([feat_vec])
+        
+        # REAL SCIKIT-LEARN DECISION TREE INFERENCE
+        pred_p50_ret = float(reg_p50.predict(feat_scaled)[0])
+        pred_p10_ret = float(reg_p10.predict(feat_scaled)[0])
+        pred_p90_ret = float(reg_p90.predict(feat_scaled)[0])
+        
+        # Scale to route base freight
+        projected_spot = base_rate * (1.0 + pred_p50_ret + (horizon_months * 0.025))
+        p50 = projected_spot
+        p10 = base_rate * (1.0 + pred_p10_ret + (horizon_months * 0.010))
+        p90 = base_rate * (1.0 + pred_p90_ret + (horizon_months * 0.040))
+        ml_status = f"Trained Scikit-Learn GBDT Bundle ({len(reg_p50.estimators_)} Decision Trees)"
+    else:
+        # Fallback if model not yet trained
+        projected_spot = base_rate + shock['spot_drift'] + (horizon_months * 0.45)
+        sigma = (15.49 / 100.0) * shock['vol_mult']
+        p10 = projected_spot * (1.0 - 1.28 * sigma)
+        p50 = projected_spot
+        p90 = projected_spot * (1.0 + 1.28 * sigma)
+        ml_status = "Empirical Quantile Fallback Engine"
     
     # Fixed COA Lock Rate (typically locks at a small liquidity discount against peak spot)
     coa_fixed_rate = current_spot * 0.94
@@ -152,7 +190,8 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
         'vessel_draft': vessel['draft'],
         'port_draft_limit': dest['draft_limit'],
         'laycan_window': f"{laycan_start.strftime('%b %d')} - {laycan_end.strftime('%b %d, %Y')}",
-        'spot_dip_window': f"{spot_dip_start.strftime('%b %d')} - {spot_dip_end.strftime('%b %d, %Y')}"
+        'spot_dip_window': f"{spot_dip_start.strftime('%b %d')} - {spot_dip_end.strftime('%b %d, %Y')}",
+        'ml_status': ml_status
     }
 
 def print_result(res):
@@ -165,6 +204,7 @@ def print_result(res):
     print("-" * 70)
     
     print("[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:")
+    print(f"  * Live ML Engine:                  {res['ml_status']}")
     print(f"  * Current Spot Rate:               ${res['current_spot']:.2f} /MT")
     print(f"  * Expected Forward Median (P50):   ${res['p50']:.2f} /MT  [Headline MAPE: 15.49%]")
     print(f"  * Optimistic Dip Bound (P10):      ${res['p10']:.2f} /MT")
