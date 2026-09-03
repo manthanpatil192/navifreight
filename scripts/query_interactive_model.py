@@ -47,7 +47,7 @@ VESSELS = {
 
 SHOCKS = {
     '1': {'name': 'Baseline Normal (Calm Sea, Seasonal Monsoon)', 'vol_mult': 1.0, 'spot_drift': 0.0, 'congestion_days': 2.5},
-    '2': {'name': 'Bay of Bengal Cyclone Warning (IMD Red Alert)', 'vol_mult': 1.6, 'spot_drift': 2.8, 'congestion_days': 7.5},
+    '2': {'name': 'Queensland Cyclone Alert (Severe Tropical Cyclone Jasper)', 'vol_mult': 1.6, 'spot_drift': 2.8, 'congestion_days': 7.5},
     '3': {'name': 'Queensland Australian Port Strike / Floods', 'vol_mult': 1.45, 'spot_drift': 3.5, 'congestion_days': 11.0},
     '4': {'name': 'Red Sea Geopolitical Shock (Cape of Good Hope Rerouting)', 'vol_mult': 1.40, 'spot_drift': 5.5, 'congestion_days': 14.0},
 }

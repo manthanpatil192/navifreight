@@ -196,7 +196,7 @@ export default function WebTerminalModelTrainer({
 ======================================================================
   Route:             Gladstone (Australia) -> Visakhapatnam Port (Andhra Pradesh)
   Vessel & Cargo:    Panamax | 75,000 MT Coking Coal (1-Month Horizon)
-  Market Scenario:   Bay of Bengal Cyclone Warning (IMD Red Alert)
+  Market Scenario:   Queensland Cyclone Alert (Severe Tropical Cyclone Jasper)
 ----------------------------------------------------------------------
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
@@ -741,7 +741,7 @@ export default function WebTerminalModelTrainer({
             className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded font-semibold border border-slate-700 transition-all disabled:opacity-50"
           >
             <CloudRain className="w-3.5 h-3.5 text-amber-400" />
-            <span>Test 2: Cyclone Shock</span>
+            <span>Test 2: Cyclone Jasper (Queensland)</span>
           </button>
 
           <button
