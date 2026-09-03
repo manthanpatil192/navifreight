@@ -36,7 +36,7 @@ export default function Navbar({ onOpenDatasets, currency, setCurrency, onExport
             <div className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-slate-600 font-medium">ML Model:</span>
-              <span className="font-semibold text-slate-900">Ensemble v4.2 (94.8% Acc)</span>
+              <span className="font-semibold text-slate-900">Quantile GBDT (89.9% 90%CI)</span>
             </div>
 
             <div className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 text-xs">

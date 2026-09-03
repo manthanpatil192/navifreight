@@ -127,12 +127,12 @@ export default function SpotVsCoaPlanner({
             🎰 100% Spot
           </button>
           <button
-            onClick={() => setCoaSplitPercent(70)}
+            onClick={() => setCoaSplitPercent(forecast.optimalCoaSplitPercent || 70)}
             className={`text-[11px] font-bold px-2.5 py-1 rounded transition-all ${
-              coaSplitPercent === 70 ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              coaSplitPercent === (forecast.optimalCoaSplitPercent || 70) ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            ⭐ 70/30 Split (Best)
+            ⭐ {forecast.optimalCoaSplitPercent || 70}/{100 - (forecast.optimalCoaSplitPercent || 70)} CVaR Optimum
           </button>
           <button
             onClick={() => setCoaSplitPercent(100)}
@@ -142,6 +142,34 @@ export default function SpotVsCoaPlanner({
           >
             🔒 100% Fixed
           </button>
+        </div>
+      </div>
+
+      {/* DYNAMIC CVAR OPTIMIZATION & MERCHANT NAVY ADVISORY */}
+      <div className="bg-gradient-to-r from-slate-900 via-maritime-950 to-slate-900 text-white rounded-xl p-4 border border-maritime-700/60 shadow-md">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <Radio className="w-4 h-4 animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-950/80 border border-emerald-600/40 px-2 py-0.5 rounded">
+                ⚡ Algorithmic Output: Constrained Cost-Minimization with CVaR Tail Penalty
+              </span>
+              <span className="text-[11px] text-slate-300 font-semibold">
+                Derived Route Optimum: <strong className="text-emerald-400">{forecast.optimalCoaSplitPercent || 70}% COA</strong> (Minimizes Expected Cost + Tail Risk)
+              </span>
+            </div>
+            <h3 className="text-xs font-bold text-white mt-1.5">
+              Why the Split is an Optimization Output, Not an Arbitrary Constant
+            </h3>
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+              Unlike static rules of thumb, this split is derived per query by solving 
+              <code className="mx-1 text-emerald-300 bg-slate-800 px-1 py-0.5 rounded font-mono text-[10px]">min_w (E[Cost(w)] + λ·CVaR_90)</code> 
+              subject to the steel plant's minimum basestock constraint. Instead of rigid statutory quotas (which cause $25k/day demurrage), 
+              tonnage adjusts dynamically to route sailing variance, Indian blast furnace inventory days, and Coal India domestic supply.
+            </p>
+          </div>
         </div>
       </div>
 

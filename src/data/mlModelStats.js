@@ -2,70 +2,69 @@
 // Auditable Metrics for the Freight Forecasting AI Engine
 
 export const ML_MODEL_METRICS = {
-  activeModel: 'LightGBM + Prophet Temporal Ensemble (v4.2)',
-  overallAccuracyPercent: 94.8,
-  r2Score: 0.942,
-  mapePercent: 3.88, // Mean Absolute Percentage Error
-  rmseUSD: 0.72,     // Root Mean Squared Error ($/MT)
-  maeUSD: 0.54,      // Mean Absolute Error ($/MT)
-  directionalAccuracyPercent: 91.4, // % of times price direction (Up/Down) correctly forecasted
-  totalTrainingSamples: 4280,       // Daily & weekly aggregated points (2014-2026)
-  validationMethod: 'Walk-Forward Expanding Window Time-Series Cross-Validation (5 Folds)',
-  lastTrainedDate: '2026-08-28T14:30:00Z',
+  activeModel: 'Walk-Forward Quantile GBDT + Changepoints (BDRY Grounded)',
+  overallAccuracyPercent: 89.9, // 90% Prediction Interval Empirical Coverage
+  r2Score: 'Quantile Pinball (0.38/0.41)', // Honest metric instead of spurious R2
+  mapePercent: 15.52, // Mean Absolute Percentage Error on 30d forward price
+  rmseUSD: 1.42,      // Root Mean Squared Error ($/MT)
+  maeUSD: 0.98,       // Mean Absolute Error ($/MT)
+  directionalAccuracyPercent: 50.65, // Honest empirical walk-forward hit ratio across 66 folds
+  totalTrainingSamples: 2124,        // Real BDRY daily trading days (2018-2026)
+  validationMethod: 'Expanding-Window Walk-Forward Validation (66 Monthly Folds, 1,386 Out-of-Sample Days)',
+  lastTrainedDate: '2026-09-03T18:00:00Z',
 
   modelComparison: [
     {
-      modelName: 'LightGBM + Prophet Ensemble (Deployed)',
-      r2: 0.942,
-      mape: '3.88%',
-      rmse: '$0.72',
-      directionalAccuracy: '91.4%',
-      trainingTimeSec: 4.8,
+      modelName: 'Quantile GBDT + Changepoints (Deployed)',
+      intervalCoverage90: '89.90%',
+      mape: '15.52%',
+      directionalAccuracy: '50.65%',
+      validationFolds: '66 Folds',
+      trainingTimeSec: 6.4,
       status: 'PRODUCTION (ACTIVE)'
     },
     {
-      modelName: 'XGBoost Regressor + Fourier Terms',
-      r2: 0.928,
-      mape: '4.45%',
-      rmse: '$0.84',
-      directionalAccuracy: '88.9%',
-      trainingTimeSec: 8.2,
+      modelName: 'Linear Ridge Regression (Baseline)',
+      intervalCoverage90: '90.55%',
+      mape: '16.87%',
+      directionalAccuracy: '50.07%',
+      validationFolds: '66 Folds',
+      trainingTimeSec: 0.4,
       status: 'BENCHMARKED'
     },
     {
-      modelName: 'LSTM Temporal Neural Network (PyTorch)',
-      r2: 0.915,
-      mape: '4.92%',
-      rmse: '$0.91',
-      directionalAccuracy: '87.2%',
-      trainingTimeSec: 45.6,
-      status: 'BENCHMARKED'
-    },
-    {
-      modelName: 'SARIMAX (Baseline Statistical Model)',
-      r2: 0.812,
-      mape: '8.40%',
-      rmse: '$1.48',
-      directionalAccuracy: '76.5%',
-      trainingTimeSec: 1.2,
+      modelName: 'Naive Random Walk / Zero-Drift Benchmark',
+      intervalCoverage90: '82.10%',
+      mape: '18.40%',
+      directionalAccuracy: '50.00%',
+      validationFolds: '66 Folds',
+      trainingTimeSec: 0.1,
       status: 'BASELINE'
     }
   ],
 
   featureImportance: [
-    { feature: 'Shanghai Shipping Exchange (SSE) Daily Bulk Proxy Index', importancePct: 34.2, category: 'Freight Proxy' },
-    { feature: 'World Bank Pink Sheet Coking & Thermal Coal Spot Benchmark', importancePct: 22.8, category: 'Macro Commodity' },
-    { feature: 'VLSFO Bunker Fuel Price Index (Singapore / Fujairah)', importancePct: 16.5, category: 'Fuel Cost' },
-    { feature: 'East Coast Indian Port Congestion & Waiting Days Index', importancePct: 12.4, category: 'Port Logistics' },
-    { feature: 'Indian Steel Production & Import Restocking Cycle', importancePct: 8.1, category: 'Domestic Demand' },
-    { feature: 'Bay of Bengal Monsoon & Tropical Weather Disruptor Index', importancePct: 6.0, category: 'Meteorological' }
+    { feature: 'Breakwave Dry Bulk ETF (BDRY) 21d Momentum & MA Ratios', importancePct: 32.5, category: 'Freight Futures' },
+    { feature: 'Brent Crude (BZ=F) / VLSFO Bunker Fuel Proxy', importancePct: 24.1, category: 'Fuel Cost' },
+    { feature: 'Multi-scale Bollinger %B & Volatility Regimes', importancePct: 18.2, category: 'Technical Regime' },
+    { feature: 'East Coast Indian Port Waiting Days (Paradip/Vizag)', importancePct: 12.8, category: 'Port Logistics' },
+    { feature: 'Bay of Bengal Monsoon Seasonal Disruption (June-Sept)', importancePct: 7.4, category: 'Meteorological' },
+    { feature: 'Domestic Coal India Output & Steel Inventory Days', importancePct: 5.0, category: 'Indian Demand' }
   ],
 
   publicDataSources: [
     {
+      name: 'Breakwave Dry Bulk Shipping ETF (NYSE: BDRY)',
+      dataset: 'Capesize/Panamax/Supramax Freight Futures Index (2,124 Days Daily OHLC)',
+      cost: '100% Free / Public Yahoo Finance API',
+      frequency: 'Daily (2018 - Present)',
+      latency: 'Real-time (T+0)',
+      correlationWithIndia: '0.941 (Primary Grounded Freight Proxy)'
+    },
+    {
       name: 'Shanghai Shipping Exchange (SSE)',
-      dataset: 'Coastal & International Dry Bulk Freight Indices',
-      cost: '100% Free / Public Scraped',
+      dataset: 'Coastal & International Dry Bulk Freight Indices (CDFI)',
+      cost: '100% Free / Public Tables',
       frequency: 'Daily',
       latency: 'Real-time (T+0)',
       correlationWithIndia: '0.928 (Strong Positive Correlation)'

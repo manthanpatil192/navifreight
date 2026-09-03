@@ -128,7 +128,7 @@ export default function ExecutiveReportModal({
                   <span>1. Freight Rate & Timing</span>
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  94.8% ML Accuracy
+                  89.9% 90%CI Coverage
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1 tabular-nums">

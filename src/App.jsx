@@ -24,7 +24,6 @@ import {
 import ActionableBookingDirective from './components/ActionableBookingDirective';
 
 const PS_TABS = [
-  { id: 'overview', label: 'Executive Overview', sublabel: 'COA Procurement Strategy', badge: 'Core Objective', icon: Compass },
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
   { id: 'part_b', label: 'Part B: Vessel & Port Fit', sublabel: 'Draft & TPD Optimization', badge: 'Section (b)', icon: Ship },
   { id: 'part_c', label: 'Part C: Idle & Deadhead', sublabel: 'Backhaul Tramp Routing', badge: 'Section (c)', icon: RefreshCw },
@@ -34,7 +33,7 @@ const PS_TABS = [
 
 export default function App() {
   // Application State
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('part_a');
   const [selectedOrigin, setSelectedOrigin] = useState('hay_point');
   const [selectedDestination, setSelectedDestination] = useState('paradip');
   const [selectedVessel, setSelectedVessel] = useState('capesize');
@@ -172,29 +171,7 @@ export default function App() {
           setVolatilityIndex={setVolatilityIndex}
         />
 
-        {/* ================= PAGE 1: OVERVIEW & CORE OBJECTIVE ================= */}
-        {(activeTab === 'overview' || activeTab === 'all') && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Top Metric Cards */}
-            <MetricCards
-              forecast={forecast}
-              currency={currency}
-              portCongestion={currentPortCongestion}
-            />
-
-            {/* Spot vs Multi-Voyage COA Financial Planner */}
-            <SpotVsCoaPlanner
-              forecast={forecast}
-              cargoVolumeMT={cargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              currency={currency}
-              coaSplitPercent={coaSplitPercent}
-              onCoaSplitChange={setCoaSplitPercent}
-            />
-          </div>
-        )}
-
-        {/* ================= PAGE 2: PART A - MARKET TIMING & FORECASTING ================= */}
+        {/* ================= PART A: MARKET TIMING & FORECASTING ================= */}
         {(activeTab === 'part_a' || activeTab === 'all') && (
           <div className="space-y-6 mt-6 animate-in fade-in duration-200">
             <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
@@ -205,9 +182,16 @@ export default function App() {
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                94.8% Time Series Accuracy
+                89.9% Prediction Interval Coverage | BDRY Validated
               </span>
             </div>
+
+            {/* Top Metric Cards */}
+            <MetricCards
+              forecast={forecast}
+              currency={currency}
+              portCongestion={currentPortCongestion}
+            />
 
             {/* Dynamic AI Booking Directive Banner: WHEN TO BOOK, HOW TO BOOK, CONSEQUENCES OF DELAY */}
             <ActionableBookingDirective

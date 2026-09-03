@@ -47,23 +47,23 @@ export default function MetricCards({ forecast, currency, portCongestion }) {
       {/* 2. Forecast ML Accuracy Card */}
       <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-subtle hover:border-slate-300 transition-all">
         <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
-          <span>AI Forecast Accuracy</span>
-          <div className="flex items-center space-x-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-bold">
-            <Award className="w-3 h-3" />
-            <span>95% CI</span>
+          <span>Forward 30-Day Error (MAPE)</span>
+          <div className="flex items-center space-x-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
+            <ShieldCheck className="w-3 h-3" />
+            <span>89.9% 90%CI</span>
           </div>
         </div>
         <div className="flex items-baseline space-x-2">
           <span className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
-            94.8%
+            15.5%
           </span>
           <span className="text-xs font-medium text-slate-500">
-            (MAPE 3.88%)
+            MAPE (BDRY Benchmark)
           </span>
         </div>
         <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Model Benchmark:</span>
-          <span className="font-semibold text-slate-800">R² = 0.942 (LightGBM)</span>
+          <span>Entry Timing Resolution:</span>
+          <span className="font-semibold text-emerald-800">Calibrated P10–P90 Risk Cones</span>
         </div>
       </div>
 

@@ -1,0 +1,25 @@
+{
+  "model_architecture": "Expanding-Window Walk-Forward Gradient Boosted Decision Trees (GBDT)",
+  "target_ticker": "BDRY (Breakwave Dry Bulk Shipping ETF - Capesize/Panamax Futures)",
+  "training_period": "2019-01-07 to 2026-08-04",
+  "validation_methodology": "Strict walk-forward expanding window (no shuffling, no lookahead bias)",
+  "backtest_metrics": {
+    "directional_accuracy_percent": 50.65,
+    "mape_percent": 15.52,
+    "prediction_interval_coverage_90pct": 89.9,
+    "total_test_windows": 66,
+    "total_out_of_sample_observations": 1386,
+    "benchmark_alpha": "+0.6% above random coin-toss on 30-day fixtures"
+  },
+  "data_sources": {
+    "primary_asset": "BDRY (Breakwave Dry Bulk ETF - Yahoo Finance API)",
+    "energy_regressor": "Brent Crude (BZ=F) / VLSFO Bunker Fuel Proxy",
+    "macro_features": "Multi-scale momentum (5d, 21d, 63d, 126d), MA20/50/200 ratios, Bollinger %B, Volatility, Indian Monsoon"
+  },
+  "optimization_engine": {
+    "method": "Constrained Cost-Minimization with Conditional Value at Risk (CVaR_90)",
+    "objective": "min_w E[Cost(w)] + lambda * CVaR_90(Cost(w))",
+    "basestock_constraint": "w >= Plant_Minimum_Basestock_Requirement",
+    "derived_split": "Computed per query based on route volatility and user risk tolerance"
+  }
+}
