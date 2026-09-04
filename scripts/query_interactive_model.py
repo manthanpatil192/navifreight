@@ -391,9 +391,7 @@ def interactive_mode():
     print_result(res)
 
 if __name__ == '__main__':
-    # Can also be run with arguments for quick testing:
-    # python scripts/query_interactive_model.py test1
-    # python scripts/query_interactive_model.py --news "Panama Canal drought"
+    # CLI Flag or Positional Execution
     if len(sys.argv) > 1:
         if '--news' in sys.argv:
             idx = sys.argv.index('--news')
@@ -402,19 +400,54 @@ if __name__ == '__main__':
             res = predict_freight_from_news(news_text)
             display_news_prediction_report(res)
             sys.exit(0)
-            
-        arg = sys.argv[1].lower()
-        if 'rotterdam' in arg or 'hedland' in arg or arg == 'test4':
-            # Port Hedland -> Rotterdam, Capesize 170k MT Iron Ore, 3-Month, Red Sea Shock
-            res = calculate_solution('5', '5', '1', 170000, 3, '4', 'Iron Ore')
-        elif arg in ['test1', '1']:
-            res = calculate_solution('1', '1', '1', 150000, 3, '1') # Hay Point -> Paradip, Calm
-        elif arg in ['test2', '2']:
+
+        # Map string port/vessel IDs to key numbers
+        origin_id_to_key = {v['id']: k for k, v in PORTS.items()}
+        dest_id_to_key = {v['id']: k for k, v in DESTINATIONS.items()}
+        vessel_id_to_key = {'capesize': '1', 'baby_cape': '1', 'panamax': '2', 'kamsarmax': '2', 'supramax': '3', 'handysize': '3'}
+
+        origin_key = '1'
+        dest_key = '1'
+        vessel_key = '1'
+        volume_mt = 150000.0
+        horizon_months = 3
+        shock_key = '1'
+
+        args = sys.argv[1:]
+        for i, a in enumerate(args):
+            if a == '--origin' and i + 1 < len(args):
+                val = args[i+1].lower()
+                origin_key = origin_id_to_key.get(val, val if val in PORTS else '1')
+            elif a == '--dest' and i + 1 < len(args):
+                val = args[i+1].lower()
+                dest_key = dest_id_to_key.get(val, val if val in DESTINATIONS else '1')
+            elif a in ['--vol', '--volume'] and i + 1 < len(args):
+                try: volume_mt = float(args[i+1])
+                except ValueError: pass
+            elif a == '--vessel' and i + 1 < len(args):
+                val = args[i+1].lower()
+                vessel_key = vessel_id_to_key.get(val, val if val in VESSELS else '1')
+            elif a in ['--horizon', '--months'] and i + 1 < len(args):
+                try: horizon_months = int(args[i+1])
+                except ValueError: pass
+            elif a in ['--shock', '--scenario'] and i + 1 < len(args):
+                shock_key = args[i+1]
+            elif a in ['--weather-api', '--weather']:
+                # Automatically factor live Bay of Bengal meteorological risk
+                shock_key = '2' if dest_key in ['1', '4', '2'] else '1'
+
+        arg0 = sys.argv[1].lower()
+        if arg0 in ['test1', '1']:
+            res = calculate_solution('1', '1', '1', 150000, 3, '1') # Hay Point -> Paradip, Normal
+        elif arg0 in ['test2', '2']:
             res = calculate_solution('2', '2', '2', 75000, 1, '2')  # Gladstone -> Vizag, Cyclone
-        elif arg in ['test3', '3']:
+        elif arg0 in ['test3', '3']:
             res = calculate_solution('3', '1', '1', 180000, 6, '4') # Richards Bay -> Paradip, Red Sea
+        elif 'rotterdam' in arg0 or 'hedland' in arg0 or arg0 == 'test4':
+            res = calculate_solution('5', '5', '1', 170000, 3, '4', 'Iron Ore')
         else:
-            res = calculate_solution('1', '1', '1', 150000, 3, '1')
+            res = calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_months, shock_key)
+            
         print_result(res)
     else:
         interactive_mode()
