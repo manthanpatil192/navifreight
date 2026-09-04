@@ -223,13 +223,21 @@ export function calculateFreightForecast({
 
 /**
  * Generates dynamic time series for the Forecast Chart that immediately responds to Phase 1 inputs and Active News
+ * Directly couples with Web Terminal ML Quantile Engine (P10 Dip, P50 Median, P90 Tail-Risk)
  */
-export function generateDynamicTimeSeries(forecast, multiplier = 1) {
+export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetrics = null) {
   const baseSpot = forecast.currentSpotRateUSD;
   const coaFixed = forecast.coaRateUSD;
   const newsSignal = forecast.activeNewsSignal;
   const newsMult = newsSignal?.spotDriftMultiplier || 1.0;
   const newsBoost = newsSignal?.volatilityBoost || 1.0;
+
+  // Use terminal metrics if available, otherwise fallback to forecast engine quantile bounds
+  const terminalSpotUSD = terminalMetrics?.spotUSD || baseSpot;
+  const terminalP50USD = terminalMetrics?.p50USD || forecast.projectedSpotRateUSD || Number((baseSpot * 1.14).toFixed(2));
+  const terminalP10USD = terminalMetrics?.p10USD || forecast.p10 || Number((baseSpot * 0.88).toFixed(2));
+  const terminalP90USD = terminalMetrics?.p90USD || forecast.p90 || Number((baseSpot * 1.28).toFixed(2));
+  const terminalCoaUSD = terminalMetrics?.coaUSD || coaFixed;
 
   // Relative historical factors from 2023 to 2026
   const historicalFactors = [
@@ -253,6 +261,9 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1) {
     return {
       time: item.date,
       spotRate: spot,
+      p50: spot,
+      p10: null,
+      p90: null,
       coaRate: coa,
       upperBound: null,
       lowerBound: null,
@@ -263,72 +274,74 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1) {
     };
   });
 
-  // Forward 6 months dynamically calculated from active Phase 1 forecast + active news shock
+  // Forward 6 months dynamically coupled with Terminal P10, P50, and P90 predictions
   const forwardDrifts = [
     {
       month: 'Sep 2026',
       spotMult: 1.041 * newsMult,
-      coaMult: 0.924,
-      ciRange: 0.042 * newsBoost,
-      recommendation: newsSignal ? `[${newsSignal.impact}] EXECUTE WINDOW` : `LOCK ${forecast.bookingSchedule?.coaBookingWindow || 'SEP 1–12'}`,
-      rationale: newsSignal ? newsSignal.headline : `Post-monsoon restocking begins for ${forecast.destination.name}; sailing time ${forecast.sailingDays}d.`
+      p10Factor: 0.93,
+      p90Factor: 1.16,
+      recommendation: 'INITIAL RESTOCKING',
+      rationale: `Lead restocking window for ${forecast.destination.name}; sailing time ${forecast.sailingDays}d.`
     },
     {
       month: 'Oct 2026',
-      spotMult: 1.126 * newsMult,
-      coaMult: 0.933,
-      ciRange: 0.045 * newsBoost,
-      recommendation: forecast.origin.id === 'samarinda' ? 'SPOT DIP WINDOW' : (newsMult > 1.1 ? 'CRITICAL: LOCK COA FIX' : 'LOCK COA CONTRACT'),
-      rationale: `Seasonal coal charter competition from ${forecast.origin.name} (${forecast.distanceNM} NM). AI dip window: ${forecast.bookingSchedule?.spotDipWindow}.`
+      spotMult: (terminalP50USD * 0.96) / baseSpot,
+      p10Factor: terminalP10USD / (terminalP50USD * 0.96),
+      p90Factor: 1.20,
+      recommendation: '🟢 STRIKE WINDOW (P10 DIP)',
+      rationale: `Expected seasonal local minimum (${forecast.bookingSchedule?.spotDipWindow || 'Oct 12-19'}). Optimal entry to execute 3M/6M COA.`
     },
     {
       month: 'Nov 2026',
-      spotMult: 1.196 * newsMult,
-      coaMult: 0.943,
-      ciRange: 0.048 * newsBoost,
-      recommendation: newsMult > 1.1 ? 'PEAK RATE WARNING' : 'STRONG BUY (COA FIX)',
-      rationale: 'Peak winter steel production spike; spot market heavily priced.'
+      spotMult: (terminalP50USD * 1.08) / baseSpot,
+      p10Factor: 0.90,
+      p90Factor: terminalP90USD / (terminalP50USD * 1.08),
+      recommendation: '🔴 BLACKOUT WINDOW (P90 SURGE)',
+      rationale: 'Post-monsoon restocking surge & Bay of Bengal cyclone squalls. DO NOT enter spot; rely on pre-locked COA.'
     },
     {
       month: 'Dec 2026',
-      spotMult: 1.227 * newsMult,
-      coaMult: 0.955,
-      ciRange: 0.052 * newsBoost,
+      spotMult: 1.15 * newsMult,
+      p10Factor: 0.88,
+      p90Factor: 1.24,
       recommendation: 'EXECUTE MULTI-VOYAGE',
-      rationale: `Peak charter premiums. Multi-voyage COA delivers ${forecast.percentageSavings}% savings.`
+      rationale: `Peak winter production. Multi-voyage COA delivers ${forecast.percentageSavings}% savings.`
     },
     {
       month: 'Jan 2027',
-      spotMult: 1.113 * newsMult,
-      coaMult: 0.943,
-      ciRange: 0.055 * newsBoost,
+      spotMult: 1.08 * newsMult,
+      p10Factor: 0.89,
+      p90Factor: 1.20,
       recommendation: 'MONITOR WEATHER RISKS',
       rationale: `Q1 seasonal weather alerts introduce vessel queuing at ${forecast.origin.name}.`
     },
     {
       month: 'Feb 2027',
-      spotMult: 1.069 * newsMult,
-      coaMult: 0.930,
-      ciRange: 0.050 * newsBoost,
+      spotMult: 1.03 * newsMult,
+      p10Factor: 0.91,
+      p90Factor: 1.16,
       recommendation: 'ROLLOVER CONTRACT',
       rationale: 'Lunar New Year lull stabilizes Pacific spot market.'
     }
   ];
 
   const formattedForecast = forwardDrifts.map(item => {
-    const spotVal = Number((baseSpot * item.spotMult * multiplier).toFixed(1));
-    const coaVal = Number((coaFixed * multiplier).toFixed(1));
-    const ciMargin = spotVal * item.ciRange;
-    const upperBound = Number((spotVal + ciMargin).toFixed(1));
-    const lowerBound = Number((spotVal - ciMargin).toFixed(1));
+    const p50Val = Number((baseSpot * item.spotMult * multiplier).toFixed(1));
+    const p10Val = Number((p50Val * item.p10Factor).toFixed(1));
+    const p90Val = Number((p50Val * item.p90Factor).toFixed(1));
+    const coaVal = Number((terminalCoaUSD * multiplier).toFixed(1));
 
     return {
       time: item.month,
-      spotRate: spotVal,
+      spotRate: p50Val,
+      p50: p50Val,
+      p10: p10Val,
+      p90: p90Val,
       coaRate: coaVal,
-      upperBound: upperBound,
-      lowerBound: lowerBound,
-      sseIndex: Math.round(spotVal * 78),
+      upperBound: p90Val,
+      lowerBound: p10Val,
+      sseIndex: Math.round(p50Val * 78),
       dgcisActual: null,
       isForecast: true,
       recommendation: item.recommendation,
@@ -338,6 +351,10 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1) {
 
   return {
     historical: formattedHistorical,
-    forecast: formattedForecast
+    forecast: formattedForecast,
+    terminalP10: Number((terminalP10USD * multiplier).toFixed(1)),
+    terminalP50: Number((terminalP50USD * multiplier).toFixed(1)),
+    terminalP90: Number((terminalP90USD * multiplier).toFixed(1)),
+    terminalCoa: Number((terminalCoaUSD * multiplier).toFixed(1))
   };
 }

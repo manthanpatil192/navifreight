@@ -281,23 +281,49 @@ export default function WebTerminalModelTrainer({
     const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
     const demurrageTotalINR_Lakhs = ((demurrageTotalUSD * baseFxRate) / 100000).toFixed(2);
 
-    // Sync global App state
-    onRunScenario({
-      origin: manualOrigin,
-      destination: manualDest,
-      vessel: manualVessel,
-      volume: manualVolume,
-      horizon: manualHorizon,
-      volatility: volatilityMult,
-      newsSignal: weatherData?.severity !== 'NORMAL' ? {
-        id: 'imd_weather',
-        title: `IMD Bay of Bengal Alert: ${weatherData?.stage || 'Marine Warning'}`,
-        impact: `+${laycanBufferHours}h Laycan Delay`,
+    const terminalMetricsPayload = {
+      spotUSD: baseRate,
+      spotINR: spotRateINR,
+      p50USD: estSpot,
+      p50INR: estSpotINR,
+      p10USD: estP10,
+      p10INR: estP10INR,
+      p90USD: estP90,
+      p90INR: estP90INR,
+      coaUSD: coaFixed,
+      coaINR: coaFixedINR,
+      blendedUSD: blended,
+      blendedINR: blendedINR,
+      savingsUSD: savingsUSD,
+      savingsINR_Cr: savingsINR_Cr,
+      unhedgedINR_Cr: unhedgedINR_Cr,
+      optINR_Cr: optINR_Cr,
+      forwardFxRate: forwardFxRate,
+      totalCongestionDays: totalCongestionDays,
+      weatherDelayDays: weatherDelayDays,
+      source: 'terminal_dispatch'
+    };
+
+    // Sync global App state & couple live graph
+    if (onRunScenario) {
+      onRunScenario({
+        origin: manualOrigin,
+        destination: manualDest,
+        vessel: manualVessel,
+        volume: manualVolume,
+        horizon: manualHorizon,
         volatility: volatilityMult,
-        sentiment: 'bullish'
-      } : null,
-      coaSplit: coaSplit
-    });
+        newsSignal: weatherData?.severity !== 'NORMAL' ? {
+          id: 'imd_weather',
+          title: `IMD Bay of Bengal Alert: ${weatherData?.stage || 'Marine Warning'}`,
+          impact: `+${laycanBufferHours}h Laycan Delay`,
+          volatility: volatilityMult,
+          sentiment: 'bullish'
+        } : null,
+        coaSplit: coaSplit,
+        terminalMetrics: terminalMetricsPayload
+      });
+    }
 
     setTimeout(() => {
       setTerminalHistory(prev => [

@@ -12,7 +12,6 @@ import LiveShipTrackerMap from './components/LiveShipTrackerMap';
 import SystemLogicRiskMatrix from './components/SystemLogicRiskMatrix';
 import DatasetExplorerModal from './components/DatasetExplorerModal';
 import ExecutiveReportModal from './components/ExecutiveReportModal';
-import ScenarioPresetsBar from './components/ScenarioPresetsBar';
 import { calculateFreightForecast } from './utils/forecastingEngine';
 import { PORT_CONGESTION_STATUS } from './data/weatherCongestionData';
 import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
@@ -46,6 +45,7 @@ export default function App() {
   const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
   const [activeNewsSignal, setActiveNewsSignal] = useState(MARKET_NEWS_SIGNALS[0]);
   const [coaSplitPercent, setCoaSplitPercent] = useState(70);
+  const [terminalMetrics, setTerminalMetrics] = useState(null);
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
@@ -57,7 +57,8 @@ export default function App() {
     cargoMT: cargoVolumeMT,
     horizonMonths: contractHorizonMonths,
     marketVolatilityMultiplier: volatilityIndex,
-    activeNewsSignal: activeNewsSignal
+    activeNewsSignal: activeNewsSignal,
+    coaSplitPercent: coaSplitPercent
   });
 
   const currentPortCongestion = PORT_CONGESTION_STATUS[selectedDestination];
@@ -113,13 +114,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* SIH26006 Problem Study Scenario Presets Bar (Always Accessible) */}
-        <ScenarioPresetsBar
-          selectedOrigin={selectedOrigin}
-          selectedDestination={selectedDestination}
-          selectedVessel={selectedVessel}
-          onApplyScenario={handleApplyScenario}
-        />
 
         {/* Problem Statement Part Navigation Tab Bar */}
         <div className="bg-white border border-slate-200 rounded-xl p-1.5 mb-6 shadow-subtle">
@@ -217,6 +211,7 @@ export default function App() {
                 if (params.volatility) setVolatilityIndex(params.volatility);
                 if (params.newsSignal !== undefined) setActiveNewsSignal(params.newsSignal);
                 if (params.coaSplit) setCoaSplitPercent(params.coaSplit);
+                if (params.terminalMetrics) setTerminalMetrics(params.terminalMetrics);
               }}
               currency={currency}
               currentForecast={forecast}
@@ -227,12 +222,11 @@ export default function App() {
               contractHorizonMonths={contractHorizonMonths}
             />
 
-            {/* Freight Forecasting Chart - Automatically moves as per terminal execution */}
+            {/* Freight Forecasting Chart - Automatically coupled with terminal execution */}
             <ForecastChart
               forecast={forecast}
               currency={currency}
-              activeNewsSignal={activeNewsSignal}
-              onSelectNewsSignal={setActiveNewsSignal}
+              terminalMetrics={terminalMetrics}
             />
           </div>
         )}
