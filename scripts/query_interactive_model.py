@@ -123,6 +123,11 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
     current_spot = base_rate
     is_red_sea = (shock_key == '4')
     
+    daily_demurrage = dest['demurrage_per_day']
+    congestion_days = shock['congestion_days']
+    total_demurrage_risk_usd = congestion_days * daily_demurrage
+    draft_ok = vessel['draft'] <= dest['draft_limit']
+    
     # Specific Port Hedland -> Rotterdam (Red Sea Cape Rerouting) Benchmark
     if origin['id'] == 'port_hedland' and dest['id'] == 'rotterdam' and is_red_sea:
         current_spot = 22.50
@@ -196,21 +201,33 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
         unhedged_spot_cost = round(volume_mt * projected_spot, 2)
         optimized_cost = round(volume_mt * blended_rate, 2)
         freight_savings_usd = round(unhedged_spot_cost - optimized_cost, 2)
-        freight_savings_inr_cr = (freight_savings_usd * 86.5) / 10000000.0
-        freight_savings_eur = freight_savings_usd * 0.92
+        freight_savings_eur = round(freight_savings_usd * 0.92, 2)
+        # Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
+        base_fx_rate = 86.50
+        fx_drift_pct = (horizon_months / 12.0) * 0.025
+        forward_fx_rate = round(base_fx_rate * (1.0 + fx_drift_pct), 2)
+        blended_fx_rate = round((optimal_coa_pct / 100.0 * base_fx_rate) + (optimal_spot_pct / 100.0 * forward_fx_rate), 2)
+
+        spot_rate_inr = round(current_spot * base_fx_rate, 2)
+        p50_inr = round(p50 * forward_fx_rate, 2)
+        p10_inr = round(p10 * forward_fx_rate, 2)
+        p90_inr = round(p90 * forward_fx_rate, 2)
+        coa_inr = round(coa_fixed_rate * base_fx_rate, 2)
+        blended_inr = round(blended_rate * blended_fx_rate, 2)
+        rate_savings_inr = round(p50_inr - blended_inr, 2)
+
+        unhedged_inr_cr = round((unhedged_spot_cost * forward_fx_rate) / 10000000.0, 2)
+        optimized_inr_cr = round((optimized_cost * blended_fx_rate) / 10000000.0, 2)
+        freight_savings_inr_cr = round(unhedged_inr_cr - optimized_inr_cr, 2)
+        total_demurrage_inr_cr = round((total_demurrage_risk_usd * base_fx_rate) / 10000000.0, 2)
+        total_demurrage_inr_lakhs = round((total_demurrage_risk_usd * base_fx_rate) / 100000.0, 2)
         mape = 15.49
         coverage = 89.9
         today = datetime.now()
         laycan_window = f"{(today + timedelta(days=2)).strftime('%b %d')} - {(today + timedelta(days=9)).strftime('%b %d, %Y')}"
         spot_dip_window = f"{(today + timedelta(days=38)).strftime('%b %d')} - {(today + timedelta(days=45)).strftime('%b %d, %Y')}"
         port_subname = dest['name'].split('(')[0].strip()
-        
-    daily_demurrage = dest['demurrage_per_day']
-    congestion_days = shock['congestion_days']
-    total_demurrage_risk_usd = congestion_days * daily_demurrage
-    total_demurrage_inr_cr = (total_demurrage_risk_usd * 86.5) / 10000000.0
-    draft_ok = vessel['draft'] <= dest['draft_limit']
-    
+
     return {
         'origin': origin['name'],
         'destination': dest['name'],
@@ -236,6 +253,7 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
         'congestion_days': congestion_days,
         'total_demurrage_risk_usd': total_demurrage_risk_usd,
         'total_demurrage_inr_cr': total_demurrage_inr_cr,
+        'total_demurrage_inr_lakhs': total_demurrage_inr_lakhs,
         'draft_ok': draft_ok,
         'vessel_draft': vessel['draft'],
         'port_draft_limit': dest['draft_limit'],
@@ -246,47 +264,61 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
         'coverage': coverage,
         'is_red_sea': is_red_sea,
         'region': dest.get('region', 'India'),
-        'port_subname': port_subname
+        'port_subname': port_subname,
+        'base_fx_rate': base_fx_rate,
+        'forward_fx_rate': forward_fx_rate,
+        'blended_fx_rate': blended_fx_rate,
+        'spot_rate_inr': spot_rate_inr,
+        'p50_inr': p50_inr,
+        'p10_inr': p10_inr,
+        'p90_inr': p90_inr,
+        'coa_inr': coa_inr,
+        'blended_inr': blended_inr,
+        'rate_savings_inr': rate_savings_inr,
+        'unhedged_inr_cr': unhedged_inr_cr,
+        'optimized_inr_cr': optimized_inr_cr
     }
 
 def print_result(res):
-    print("\n" + "=" * 70)
-    print("           NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE             ")
-    print("=" * 70)
+    print("\n" + "=" * 74)
+    print("      NAVIFREIGHT INDIAN MARKET QUANTITATIVE PROCUREMENT DIRECTIVE        ")
+    print("=" * 74)
     print(f"  Route:             {res['origin']} -> {res['destination']}")
     print(f"  Vessel & Cargo:    {res['vessel']} | {res['volume_mt']:,} MT {res['cargo_type']} ({res['horizon_months']}-Month Horizon)")
     print(f"  Market Scenario:   {res['shock_name']}")
-    print("-" * 70)
+    print(f"  Forex Trend:       1 USD = ₹{res['base_fx_rate']:.2f} Spot -> ₹{res['forward_fx_rate']:.2f} Forward ({res['horizon_months']}-Mo Trend)")
+    print("-" * 74)
     
-    print("[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:")
-    print(f"  * Current Spot Rate:               ${res['current_spot']:.2f} /MT")
-    print(f"  * Expected Forward Median (P50):   ${res['p50']:.2f} /MT  [Headline MAPE: {res['mape']:.2f}%]")
-    print(f"  * Optimistic Dip Bound (P10):      ${res['p10']:.2f} /MT")
-    print(f"  * Stress Tail-Risk Bound (P90):    ${res['p90']:.2f} /MT  [{res['coverage']:.1f}% 90%CI Coverage]")
-    print(f"  * COA Fixed Contract Lock:         ${res['coa_fixed_rate']:.2f} /MT")
-    print("-" * 70)
+    print("[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):")
+    print(f"  * Current Spot Rate:               ₹{res['spot_rate_inr']:,.2f} /MT   (${res['current_spot']:.2f} /MT)")
+    print(f"  * Expected Forward Median (P50):   ₹{res['p50_inr']:,.2f} /MT   (${res['p50']:.2f} /MT @ Forward FX)  [MAPE: {res['mape']:.2f}%]")
+    print(f"  * Optimistic Dip Bound (P10):      ₹{res['p10_inr']:,.2f} /MT   (${res['p10']:.2f} /MT @ Forward FX)")
+    print(f"  * Stress Tail-Risk Bound (P90):    ₹{res['p90_inr']:,.2f} /MT   (${res['p90']:.2f} /MT @ Forward FX)  [{res['coverage']:.1f}% 90%CI]")
+    print(f"  * COA Fixed Contract Lock:         ₹{res['coa_inr']:,.2f} /MT   (${res['coa_fixed_rate']:.2f} /MT @ Spot FX)  [Locked Long-Term]")
+    print("-" * 74)
     
     print("[2] ALGORITHMIC CVaR CARGO ALLOCATION:")
-    coa_note = "Mitigates Extreme Geopolitical Tail-Risk" if res['is_red_sea'] else "Guarantees Plant Basestock"
+    coa_note = "Mitigates Extreme Geopolitical Shock" if res['is_red_sea'] else "Guarantees Blast Furnace Basestock"
     spot_note = "Retains minor downside flexibility" if res['is_red_sea'] else "Captures P10 Dip Windows"
     print(f"  * Recommended COA Weight:          {res['optimal_coa_pct']:.0f}% ({coa_note})")
     print(f"  * Recommended Spot Weight:         {res['optimal_spot_pct']:.0f}% ({spot_note})")
-    print(f"  * Blended Landed Freight Rate:     ${res['blended_rate']:.2f} /MT")
-    print("-" * 70)
+    print(f"  * Blended Landed Freight Rate:     ₹{res['blended_inr']:,.2f} /MT   (${res['blended_rate']:.2f} /MT)")
+    print(f"  * Net Landed Savings vs Spot:      ₹{res['rate_savings_inr']:,.2f} /MT saved on every metric ton delivered!")
+    print("-" * 74)
     
-    print("[3] FINANCIAL IMPACT & RISK AVOIDANCE:")
-    print(f"  * Unhedged 100% Spot Cost:         ${res['unhedged_spot_cost']:,.0f}")
-    print(f"  * NaviFreight Optimized Cost:      ${res['optimized_cost']:,.0f}")
+    print("[3] FINANCIAL PROCUREMENT IMPACT & RISK ARBITRAGE:")
+    print(f"  * Unhedged 100% Spot Cost:         ₹{res['unhedged_inr_cr']:.2f} Crore   (${res['unhedged_spot_cost']:,.0f} USD)")
+    print(f"  * NaviFreight Optimized Cost:      ₹{res['optimized_inr_cr']:.2f} Crore   (${res['optimized_cost']:,.0f} USD)")
     if res['region'] == 'Europe' or 'Rotterdam' in res['destination']:
         print(f"  * Net Freight Cost Savings:        ${res['freight_savings_usd']:,.0f} (Approx. €{res['freight_savings_eur']:,.0f})")
     else:
-        print(f"  * Net Freight Cost Savings:        ${res['freight_savings_usd']:,.0f} (INR {res['freight_savings_inr_cr']:.2f} Crore)")
+        print(f"  * NET FREIGHT COST SAVINGS:        ₹{res['freight_savings_inr_cr']:.2f} Crore SAVED!  (${res['freight_savings_usd']:,.0f} USD)")
         
     if res['is_red_sea']:
         print(f"  * Supply Chain Disruption:         14 Days Added Transit (Stock-out Risk Averted via COA)")
     else:
-        print(f"  * Demurrage Exposure:              {res['congestion_days']:.1f} Days Wait ($ {res['total_demurrage_risk_usd']:,.0f} / INR {res['total_demurrage_inr_cr']:.2f} Cr)")
-    print("-" * 70)
+        print(f"  * Demurrage Exposure:              ₹{res['total_demurrage_inr_lakhs']:.2f} Lakhs  ({res['congestion_days']:.1f} Days Wait / ${res['total_demurrage_risk_usd']:,.0f} USD)")
+    print("-" * 74)
     
     print("[4] OPERATIONAL TIMING & VESSEL FIT:")
     print(f"  * Primary COA Laycan Window:       {res['laycan_window']}")

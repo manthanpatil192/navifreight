@@ -232,19 +232,31 @@ export default function WebTerminalModelTrainer({
     const coaSplit = (manualScenario === 'cyclone' || manualScenario === 'red_sea') ? 80 : 70;
     const blended = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
 
-    // Financial totals (USD and INR side by side)
+    // Financial totals (USD and INR based on Forward Forex Trend)
     const unhedgedUSD = Math.round(estSpot * manualVolume);
-    const unhedgedINR_Cr = ((unhedgedUSD * 86.5) / 10000000).toFixed(2);
-
     const optUSD = Math.round(blended * manualVolume);
-    const optINR_Cr = ((optUSD * 86.5) / 10000000).toFixed(2);
-
     const savingsUSD = unhedgedUSD - optUSD;
-    const savingsINR_Cr = ((savingsUSD * 86.5) / 10000000).toFixed(2);
-
     const demurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
     const demurrageTotalUSD = Math.round(baseCongestionDays * demurrageDailyUSD);
-    const demurrageTotalINR_Cr = ((demurrageTotalUSD * 86.5) / 10000000).toFixed(2);
+
+    // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
+    const baseFxRate = 86.50;
+    const fxDriftPct = (manualHorizon / 12) * 0.025;
+    const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
+    const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
+
+    const spotRateINR = Math.round(baseRate * baseFxRate);
+    const estSpotINR = Math.round(estSpot * forwardFxRate);
+    const estP10INR = Math.round(estP10 * forwardFxRate);
+    const estP90INR = Math.round(estP90 * forwardFxRate);
+    const coaFixedINR = Math.round(coaFixed * baseFxRate);
+    const blendedINR = Math.round(blended * blendedFxRate);
+    const rateSavingsINR = estSpotINR - blendedINR;
+
+    const unhedgedINR_Cr = ((unhedgedUSD * forwardFxRate) / 10000000).toFixed(2);
+    const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
+    const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
+    const demurrageTotalINR_Lakhs = ((demurrageTotalUSD * baseFxRate) / 100000).toFixed(2);
 
     // Sync global App state
     onRunScenario({
@@ -268,30 +280,32 @@ export default function WebTerminalModelTrainer({
         {
           type: 'success',
           text: `======================================================================
-           NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE             
+      NAVIFREIGHT INDIAN MARKET QUANTITATIVE PROCUREMENT DIRECTIVE        
 ======================================================================
   Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
   Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
   Market Scenario:   ${scenarioName}
   Tidal Condition:   ${tideDescription}
+  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Drift)
 ----------------------------------------------------------------------
-[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
-  * Current Spot Rate:               $${baseRate.toFixed(2)} /MT  (₹${Math.round(baseRate * 86.5).toLocaleString()} /MT)
-  * Expected Forward Median (P50):   $${estSpot.toFixed(2)} /MT  (₹${Math.round(estSpot * 86.5).toLocaleString()} /MT)  [Headline MAPE: 13.40%]
-  * Optimistic Dip Bound (P10):      $${estP10.toFixed(2)} /MT  (₹${Math.round(estP10 * 86.5).toLocaleString()} /MT)
-  * Stress Tail-Risk Bound (P90):    $${estP90.toFixed(2)} /MT  (₹${Math.round(estP90 * 86.5).toLocaleString()} /MT)  [90.8% 90%CI Coverage]
-  * COA Fixed Contract Lock:         $${coaFixed.toFixed(2)} /MT  (₹${Math.round(coaFixed * 86.5).toLocaleString()} /MT)  (Hedged Long-Term Rate)
+[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
+  * Current Spot Rate:               ₹${spotRateINR.toLocaleString()} /MT   ($${baseRate.toFixed(2)} /MT)
+  * Expected Forward Median (P50):   ₹${estSpotINR.toLocaleString()} /MT   ($${estSpot.toFixed(2)} /MT @ Forward FX)  [Headline MAPE: 13.40%]
+  * Optimistic Dip Bound (P10):      ₹${estP10INR.toLocaleString()} /MT   ($${estP10.toFixed(2)} /MT @ Forward FX)
+  * Stress Tail-Risk Bound (P90):    ₹${estP90INR.toLocaleString()} /MT   ($${estP90.toFixed(2)} /MT @ Forward FX)  [90.8% 90%CI Coverage]
+  * COA Fixed Contract Lock:         ₹${coaFixedINR.toLocaleString()} /MT   ($${coaFixed.toFixed(2)} /MT @ Spot FX)  [Locked Long-Term]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA Weight:          ${coaSplit}% (Guarantees Blast Furnace Basestock Feed)
   * Recommended Spot Weight:         ${100 - coaSplit}% (Captures P10 Dip Windows)
-  * Blended Landed Freight Rate:     $${blended.toFixed(2)} /MT  (₹${Math.round(blended * 86.5).toLocaleString()} /MT)  (Saves $${(estSpot - blended).toFixed(2)}/MT vs Spot)
+  * Blended Landed Freight Rate:     ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT)
+  * Net Landed Savings vs Spot:      ₹${rateSavingsINR.toLocaleString()} /MT saved on every metric ton!
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost:         $${unhedgedUSD.toLocaleString()}  (₹${unhedgedINR_Cr} Crore)
-  * NaviFreight Optimized Cost:      $${optUSD.toLocaleString()}  (₹${optINR_Cr} Crore)
-  * Net Direct Freight Savings:      $${savingsUSD.toLocaleString()}  (INR ${savingsINR_Cr} Crore)
-  * Demurrage Exposure:              ${baseCongestionDays.toFixed(1)} Days Wait ($${demurrageTotalUSD.toLocaleString()} / INR ${demurrageTotalINR_Cr} Crore)
+[3] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
+  * Unhedged 100% Spot Cost:         ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD)
+  * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
+  * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
+  * Demurrage Exposure:              ₹${demurrageTotalINR_Lakhs} Lakhs  (${baseCongestionDays.toFixed(1)} Days Wait / $${demurrageTotalUSD.toLocaleString()} USD)
 ----------------------------------------------------------------------
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Within next 7-14 days
@@ -1056,13 +1070,23 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         const estSpot = (baseRate * (1.0 + (parsedHorizon * 0.035) * parsedVolatility)).toFixed(2);
         const estP10 = (estSpot * 0.88).toFixed(2);
         const estP90 = (estSpot * 1.28).toFixed(2);
-        const coaFixed = (baseRate * 0.94).toFixed(2);
-        const blended = ((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estSpot)).toFixed(2);
-        const unhedgedCost = (estSpot * parsedVolume).toFixed(0);
-        const optCost = (blended * parsedVolume).toFixed(0);
-        const savingsUSD = (unhedgedCost - optCost).toFixed(0);
-        const savingsEUR = (savingsUSD * 0.92).toFixed(0);
-        const savingsINR = ((savingsUSD * 86.5) / 10000000).toFixed(2);
+        // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
+        const baseFxRate = 86.50;
+        const fxDriftPct = (parsedHorizon / 12) * 0.025;
+        const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
+        const blendedFxRate = Number(((parsedCoaSplit/100 * baseFxRate) + ((100-parsedCoaSplit)/100 * forwardFxRate)).toFixed(2));
+
+        const spotRateINR = Math.round(baseRate * baseFxRate);
+        const estSpotINR = Math.round(Number(estSpot) * forwardFxRate);
+        const estP10INR = Math.round(Number(estP10) * forwardFxRate);
+        const estP90INR = Math.round(Number(estP90) * forwardFxRate);
+        const coaFixedINR = Math.round(Number(coaFixed) * baseFxRate);
+        const blendedINR = Math.round(Number(blended) * blendedFxRate);
+        const rateSavingsINR = estSpotINR - blendedINR;
+
+        const unhedgedINR_Cr = ((Number(unhedgedCost) * forwardFxRate) / 10000000).toFixed(2);
+        const optINR_Cr = ((Number(optCost) * blendedFxRate) / 10000000).toFixed(2);
+        const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
 
         const originName = parsedOrigin.toUpperCase().replace('_', ' ');
         const destName = parsedDest.toUpperCase();
@@ -1076,28 +1100,30 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
           {
             type: 'output',
             text: `======================================================================
-           NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE             
+      NAVIFREIGHT INDIAN MARKET QUANTITATIVE PROCUREMENT DIRECTIVE        
 ======================================================================
   Route:             ${originName} -> ${destName}
   Vessel & Cargo:    ${vesselName} | ${parsedVolume.toLocaleString()} MT ${parsedCargo} (${parsedHorizon}-Month Horizon)
   Market Scenario:   ${scenarioName}
+  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${parsedHorizon}-Month RBI Drift)
 ----------------------------------------------------------------------
-[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
-  * Current Spot Rate:               $${baseRate.toFixed(2)} /MT  (₹${Math.round(baseRate * 86.5).toLocaleString()} /MT)
-  * Expected Forward Median (P50):   $${estSpot} /MT  (₹${Math.round(estSpot * 86.5).toLocaleString()} /MT)  [Headline MAPE: 13.40%]
-  * Optimistic Dip Bound (P10):      $${estP10} /MT  (₹${Math.round(estP10 * 86.5).toLocaleString()} /MT)
-  * Stress Tail-Risk Bound (P90):    $${estP90} /MT  (₹${Math.round(estP90 * 86.5).toLocaleString()} /MT)  [90.8% 90%CI Coverage]
-  * COA Fixed Contract Lock:         $${coaFixed} /MT  (₹${Math.round(coaFixed * 86.5).toLocaleString()} /MT)
+[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
+  * Current Spot Rate:               ₹${spotRateINR.toLocaleString()} /MT   ($${baseRate.toFixed(2)} /MT)
+  * Expected Forward Median (P50):   ₹${estSpotINR.toLocaleString()} /MT   ($${estSpot} /MT @ Forward FX)  [Headline MAPE: 13.40%]
+  * Optimistic Dip Bound (P10):      ₹${estP10INR.toLocaleString()} /MT   ($${estP10} /MT @ Forward FX)
+  * Stress Tail-Risk Bound (P90):    ₹${estP90INR.toLocaleString()} /MT   ($${estP90} /MT @ Forward FX)  [90.8% 90%CI Coverage]
+  * COA Fixed Contract Lock:         ₹${coaFixedINR.toLocaleString()} /MT   ($${coaFixed} /MT @ Spot FX)  [Locked Long-Term]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA Weight:          ${parsedCoaSplit}% (${coaNote})
   * Recommended Spot Weight:         ${100 - parsedCoaSplit}%
-  * Blended Landed Freight Rate:     $${blended} /MT  (₹${Math.round(blended * 86.5).toLocaleString()} /MT)
+  * Blended Landed Freight Rate:     ₹${blendedINR.toLocaleString()} /MT   ($${blended} /MT)
+  * Net Landed Savings vs Spot:      ₹${rateSavingsINR.toLocaleString()} /MT saved on every metric ton delivered!
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost:         $${parseInt(unhedgedCost, 10).toLocaleString()}  (₹${((unhedgedCost * 86.5) / 10000000).toFixed(2)} Crore)
-  * NaviFreight Optimized Cost:      $${parseInt(optCost, 10).toLocaleString()}  (₹${((optCost * 86.5) / 10000000).toFixed(2)} Crore)
-  * Net Freight Cost Savings:        $${parseInt(savingsUSD, 10).toLocaleString()}  (${parsedDest === 'rotterdam' ? `Approx. €${parseInt(savingsEUR, 10).toLocaleString()}` : `INR ${savingsINR} Crore`})
+[3] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
+  * Unhedged 100% Spot Cost:         ₹${unhedgedINR_Cr} Crore   ($${parseInt(unhedgedCost, 10).toLocaleString()} USD)
+  * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${parseInt(optCost, 10).toLocaleString()} USD)
+  * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED!   (${parsedDest === 'rotterdam' ? `Approx. €${parseInt(savingsEUR, 10).toLocaleString()}` : `$${parseInt(savingsUSD, 10).toLocaleString()} USD`})
 ----------------------------------------------------------------------
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Within next 7-14 days
