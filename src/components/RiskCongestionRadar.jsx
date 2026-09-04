@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
-import { Wind, AlertTriangle, ShieldCheck, Clock, CloudLightning, Compass, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wind, AlertTriangle, ShieldCheck, Clock, CloudLightning, Compass, DollarSign, RefreshCw, Radio, Waves } from 'lucide-react';
 import { IMD_WEATHER_ALERTS, PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
+import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 import { formatUSD, formatINR } from '../utils/financialCalculators';
 import InsightBulb from './InsightBulb';
 
 export default function RiskCongestionRadar({ selectedDestination, currency }) {
   const [customDailyDemurrageLakhs, setCustomDailyDemurrageLakhs] = useState(65); // ₹65 Lakhs default
+  const [activeSector, setActiveSector] = useState(selectedDestination || 'paradip');
+  const [liveWeather, setLiveWeather] = useState(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const isINR = currency === 'INR';
   const multiplier = isINR ? 86.5 : 1;
 
-  const currentPortCongestion = PORT_CONGESTION_STATUS[selectedDestination] || PORT_CONGESTION_STATUS.paradip;
+  const loadWeather = async (sectorKey = activeSector) => {
+    setIsLoadingWeather(true);
+    const data = await fetchLiveBayOfBengalWeather(sectorKey);
+    setLiveWeather(data);
+    setIsLoadingWeather(false);
+  };
+
+  useEffect(() => {
+    const target = selectedDestination || 'paradip';
+    setActiveSector(target);
+    loadWeather(target);
+  }, [selectedDestination]);
+
+  const handleSectorChange = (sectorId) => {
+    setActiveSector(sectorId);
+    loadWeather(sectorId);
+  };
+
+  const currentPortCongestion = PORT_CONGESTION_STATUS[activeSector] || PORT_CONGESTION_STATUS.paradip;
   const estimatedDemurrageINR = (currentPortCongestion.avgAnchorageWaitDays * (customDailyDemurrageLakhs * 100000)) / 10000000; // in ₹ Cr
   const estimatedDemurrageUSD = (estimatedDemurrageINR * 10000000) / 86.5;
 
@@ -32,15 +54,146 @@ export default function RiskCongestionRadar({ selectedDestination, currency }) {
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time feeds from India Meteorological Department (IMD) Bulletins & Local Port Daily Traffic PDFs
+            Real-time telemetry from India Meteorological Department (IMD) Bulletins & Bay of Bengal Maritime Feeds
           </p>
         </div>
 
-        <span className="inline-flex items-center text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-md">
-          <Wind className="w-3.5 h-3.5 mr-1 text-maritime-700" />
-          IMD Coastal Cyclone Alert Status: ACTIVE
-        </span>
+        <div className="flex items-center space-x-2">
+          {/* Sector Quick Switcher */}
+          <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-md text-[11px] font-medium text-slate-600">
+            <button
+              onClick={() => handleSectorChange('paradip')}
+              className={`px-2 py-0.5 rounded ${activeSector === 'paradip' || activeSector === 'dhamra' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
+              title="NW Bay: Paradip & Dhamra"
+            >
+              NW Bay (Paradip)
+            </button>
+            <button
+              onClick={() => handleSectorChange('vizag')}
+              className={`px-2 py-0.5 rounded ${activeSector === 'vizag' || activeSector === 'gangavaram' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
+              title="Central Bay: Vizag & Gangavaram"
+            >
+              Central (Vizag)
+            </button>
+            <button
+              onClick={() => handleSectorChange('haldia')}
+              className={`px-2 py-0.5 rounded ${activeSector === 'haldia' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
+              title="Head Bay: Haldia & Hooghly"
+            >
+              Head Bay (Haldia)
+            </button>
+            <button
+              onClick={() => handleSectorChange('krishnapatnam')}
+              className={`px-2 py-0.5 rounded ${activeSector === 'krishnapatnam' || activeSector === 'kamarajar' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
+              title="SW Bay: Krishnapatnam & Kamarajar"
+            >
+              SW Bay
+            </button>
+          </div>
+
+          <button
+            onClick={() => loadWeather(activeSector)}
+            disabled={isLoadingWeather}
+            className="inline-flex items-center space-x-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-md transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${isLoadingWeather ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+
+          <span className="inline-flex items-center text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-md">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5"></span>
+            IMD Radar: {liveWeather?.isLive ? 'LIVE' : 'ACTIVE'}
+          </span>
+        </div>
       </div>
+
+      {/* Live IMD Bay of Bengal Real-Time Marine Telemetry Card */}
+      {liveWeather && (
+        <div className="mb-4 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-lg p-3.5 text-white border border-blue-900/60 shadow-md">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-blue-800/40">
+            <div className="flex items-center space-x-2">
+              <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <div>
+                <span className="text-xs font-bold tracking-wide uppercase text-slate-200">
+                  {liveWeather.sectorName || 'Bay of Bengal Live Telemetry'} ({liveWeather.coordinates})
+                </span>
+                <p className="text-[10px] text-blue-300">
+                  Authority: {liveWeather.cwcAuthority || liveWeather.source} • Synced: {liveWeather.observedAt} • Bulletin: {liveWeather.cwcBulletin}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-1.5">
+              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                liveWeather.severity === 'CRITICAL' || liveWeather.severity === 'HIGH'
+                  ? 'bg-rose-950 text-rose-300 border-rose-700'
+                  : liveWeather.severity === 'MODERATE'
+                  ? 'bg-amber-950 text-amber-300 border-amber-700'
+                  : 'bg-emerald-950 text-emerald-300 border-emerald-700'
+              }`}>
+                {liveWeather.stage}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 text-xs">
+            <div className="bg-slate-950/60 p-2 rounded border border-blue-900/40">
+              <span className="text-[10px] text-slate-400 block flex items-center space-x-1">
+                <Wind className="w-3 h-3 text-cyan-400 inline mr-1" />
+                Sustained Wind Speed
+              </span>
+              <span className="text-sm font-bold text-cyan-300 font-mono">
+                {liveWeather.windSpeedKnots} kts <span className="text-[10px] text-slate-400 font-sans">({liveWeather.windSpeedKmh} km/h)</span>
+              </span>
+              <span className="text-[9px] text-slate-500 block">Gusts: {liveWeather.windGustsKnots} kts</span>
+            </div>
+
+            <div className="bg-slate-950/60 p-2 rounded border border-blue-900/40">
+              <span className="text-[10px] text-slate-400 block flex items-center space-x-1">
+                <Waves className="w-3 h-3 text-blue-400 inline mr-1" />
+                Significant Wave Height
+              </span>
+              <span className="text-sm font-bold text-blue-300 font-mono">
+                {liveWeather.waveHeightMeters} m
+              </span>
+              <span className="text-[9px] text-slate-500 block">Period: {liveWeather.wavePeriodSeconds}s</span>
+            </div>
+
+            <div className="bg-slate-950/60 p-2 rounded border border-blue-900/40">
+              <span className="text-[10px] text-slate-400 block flex items-center space-x-1">
+                <Compass className="w-3 h-3 text-amber-400 inline mr-1" />
+                Barometric Pressure
+              </span>
+              <span className="text-sm font-bold text-amber-300 font-mono">
+                {liveWeather.surfacePressureHpa} hPa
+              </span>
+              <span className="text-[9px] text-slate-500 block">Air Temp: {liveWeather.temperatureC}°C</span>
+            </div>
+
+            <div className="bg-slate-950/60 p-2 rounded border border-blue-900/40">
+              <span className="text-[10px] text-slate-400 block flex items-center space-x-1">
+                <AlertTriangle className="w-3 h-3 text-rose-400 inline mr-1" />
+                Official Port Signal
+              </span>
+              <span className="text-xs font-bold text-rose-300 truncate block" title={liveWeather.signal}>
+                {liveWeather.signal}
+              </span>
+              <span className="text-[9px] text-emerald-400 block font-semibold">Laycan Buffer: +{liveWeather.laycanBufferHours}h</span>
+            </div>
+          </div>
+
+          <div className="mt-2.5 pt-2 border-t border-blue-800/40 text-[11px] text-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span>
+              <strong className="text-white">IMD Advisory:</strong> {liveWeather.operationalAdvice}
+            </span>
+            {liveWeather.laycanBufferHours > 0 && (
+              <span className="text-amber-300 font-semibold text-[10px] bg-amber-950/70 border border-amber-800/80 px-2 py-0.5 rounded self-start sm:self-auto">
+                Unhedged Exposure: ${liveWeather.demurrageUSD?.toLocaleString()} (₹{liveWeather.demurrageINRCrore} Cr)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         

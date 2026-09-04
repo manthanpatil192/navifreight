@@ -28,6 +28,10 @@ PORTS = {
     '4': {'id': 'newcastle', 'name': 'Newcastle (Australia)', 'type': 'origin'},
     '5': {'id': 'port_hedland', 'name': 'Port Hedland (Australia)', 'type': 'origin'},
     '6': {'id': 'tubarao', 'name': 'Tubarao (Brazil)', 'type': 'origin'},
+    '7': {'id': 'hampton_roads', 'name': 'Hampton Roads / Norfolk (USA)', 'type': 'origin'},
+    '8': {'id': 'maputo', 'name': 'Maputo / Matola TCM (Mozambique)', 'type': 'origin'},
+    '9': {'id': 'samarinda', 'name': 'Samarinda (Indonesia)', 'type': 'origin'},
+    '10': {'id': 'taboneo', 'name': 'Taboneo Anchorage (Indonesia)', 'type': 'origin'},
 }
 
 DESTINATIONS = {
@@ -35,8 +39,12 @@ DESTINATIONS = {
     '2': {'id': 'vizag', 'name': 'Visakhapatnam Port (VPA)', 'draft_limit': 14.0, 'berth_note': '14.0m Inner Harbour (2025 Trade Circular) / 16.5m Outer VGCB', 'demurrage_per_day': 22000, 'region': 'India'},
     '3': {'id': 'haldia', 'name': 'Haldia Dock Complex (West Bengal)', 'draft_limit': 8.5, 'berth_note': '8.0m Neap / 9.1m Max Spring Tide (SMPK Tidal Window)', 'demurrage_per_day': 18000, 'region': 'India'},
     '4': {'id': 'dhamra', 'name': 'Dhamra Port (Odisha)', 'draft_limit': 18.0, 'berth_note': '18.0m All-Weather Berth / 18.5m High Tide', 'demurrage_per_day': 26000, 'region': 'India'},
-    '5': {'id': 'rotterdam', 'name': 'Rotterdam (Netherlands)', 'draft_limit': 24.0, 'berth_note': '24.0m Maasvlakte EMO Terminal', 'demurrage_per_day': 30000, 'region': 'Europe'},
-    '6': {'id': 'qingdao', 'name': 'Qingdao Port (China)', 'draft_limit': 21.0, 'berth_note': '21.0m Dongjiakou Ore Terminal', 'demurrage_per_day': 28000, 'region': 'Asia'},
+    '5': {'id': 'gangavaram', 'name': 'Gangavaram Port (GPL)', 'draft_limit': 19.5, 'berth_note': '19.5m Super-Capesize Deep Draft / Conveyor to RINL', 'demurrage_per_day': 26000, 'region': 'India'},
+    '6': {'id': 'krishnapatnam', 'name': 'Krishnapatnam Port (KPCL)', 'draft_limit': 18.0, 'berth_note': '18.0m Deep Berth / 18.5m High Tide Capesize Hub', 'demurrage_per_day': 25000, 'region': 'India'},
+    '7': {'id': 'gopalpur', 'name': 'Gopalpur Port (Odisha)', 'draft_limit': 13.5, 'berth_note': '13.5m Draft / Geared Panamax & Supramax Terminal', 'demurrage_per_day': 19000, 'region': 'India'},
+    '8': {'id': 'kamarajar', 'name': 'Kamarajar Port (Ennore)', 'draft_limit': 16.0, 'berth_note': '16.0m Dedicated Coal & Bulk Berths (Tamil Nadu)', 'demurrage_per_day': 24000, 'region': 'India'},
+    '9': {'id': 'rotterdam', 'name': 'Rotterdam (Netherlands)', 'draft_limit': 24.0, 'berth_note': '24.0m Maasvlakte EMO Terminal', 'demurrage_per_day': 30000, 'region': 'Europe'},
+    '10': {'id': 'qingdao', 'name': 'Qingdao Port (China)', 'draft_limit': 21.0, 'berth_note': '21.0m Dongjiakou Ore Terminal', 'demurrage_per_day': 28000, 'region': 'Asia'},
 }
 
 VESSELS = {
@@ -58,14 +66,20 @@ BASE_RATES = {
     ('hay_point', 'vizag'): 16.20,
     ('hay_point', 'haldia'): 19.50,
     ('hay_point', 'dhamra'): 15.40,
+    ('hay_point', 'gangavaram'): 16.10,
+    ('hay_point', 'krishnapatnam'): 16.30,
     ('gladstone', 'paradip'): 16.00,
     ('gladstone', 'vizag'): 16.40,
     ('gladstone', 'haldia'): 19.80,
     ('gladstone', 'dhamra'): 15.60,
+    ('gladstone', 'gangavaram'): 16.30,
+    ('gladstone', 'krishnapatnam'): 16.50,
     ('richards_bay', 'paradip'): 14.20,
     ('richards_bay', 'vizag'): 14.80,
     ('richards_bay', 'haldia'): 18.10,
     ('richards_bay', 'dhamra'): 13.90,
+    ('richards_bay', 'krishnapatnam'): 14.30,
+    ('richards_bay', 'kamarajar'): 14.50,
     ('newcastle', 'paradip'): 17.10,
     ('newcastle', 'vizag'): 17.50,
     ('newcastle', 'haldia'): 21.00,
@@ -75,6 +89,19 @@ BASE_RATES = {
     ('port_hedland', 'paradip'): 14.80,
     ('tubarao', 'rotterdam'): 18.40,
     ('tubarao', 'qingdao'): 24.80,
+    ('hampton_roads', 'paradip'): 32.50,
+    ('hampton_roads', 'dhamra'): 32.00,
+    ('hampton_roads', 'vizag'): 32.80,
+    ('maputo', 'paradip'): 13.60,
+    ('maputo', 'dhamra'): 13.40,
+    ('maputo', 'vizag'): 13.90,
+    ('samarinda', 'paradip'): 8.90,
+    ('samarinda', 'vizag'): 8.70,
+    ('samarinda', 'haldia'): 9.40,
+    ('taboneo', 'paradip'): 8.60,
+    ('taboneo', 'vizag'): 8.40,
+    ('taboneo', 'dhamra'): 8.50,
+    ('taboneo', 'krishnapatnam'): 8.30,
 }
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -314,7 +341,18 @@ def interactive_mode():
     print("\nSelect Market & Weather Condition:")
     for k, v in SHOCKS.items():
         print(f"  [{k}] {v['name']}")
-    shock_key = input("Enter Choice (1-4) [default 1]: ").strip() or '1'
+    print("  [5] Custom Global News Headline (Live NLP & ML Quantile Inference)")
+    shock_key = input("Enter Choice (1-5) [default 1]: ").strip() or '1'
+    
+    if shock_key == '5':
+        from predict_from_global_news import predict_freight_from_news, display_news_prediction_report
+        custom_news = input("\nEnter Global News Headline:\n> ").strip()
+        if not custom_news:
+            custom_news = "Panama Canal drought forces bulk carriers into 14-day detour"
+        res = predict_freight_from_news(custom_news, base_rate=BASE_RATES.get((PORTS[origin_key]['id'], DESTINATIONS[dest_key]['id']), 15.80), volume_mt=volume_mt, horizon_months=horizon_months)
+        display_news_prediction_report(res)
+        return
+
     if shock_key not in SHOCKS: shock_key = '1'
     
     res = calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_months, shock_key)
@@ -323,8 +361,16 @@ def interactive_mode():
 if __name__ == '__main__':
     # Can also be run with arguments for quick testing:
     # python scripts/query_interactive_model.py test1
-    # python scripts/query_interactive_model.py rotterdam
+    # python scripts/query_interactive_model.py --news "Panama Canal drought"
     if len(sys.argv) > 1:
+        if '--news' in sys.argv:
+            idx = sys.argv.index('--news')
+            news_text = " ".join(sys.argv[idx+1:]) if idx + 1 < len(sys.argv) else "Panama Canal transit restrictions"
+            from predict_from_global_news import predict_freight_from_news, display_news_prediction_report
+            res = predict_freight_from_news(news_text)
+            display_news_prediction_report(res)
+            sys.exit(0)
+            
         arg = sys.argv[1].lower()
         if 'rotterdam' in arg or 'hedland' in arg or arg == 'test4':
             # Port Hedland -> Rotterdam, Capesize 170k MT Iron Ore, 3-Month, Red Sea Shock

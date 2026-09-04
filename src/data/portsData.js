@@ -151,6 +151,48 @@ export const INDIAN_EAST_COAST_PORTS = {
     transshipmentRequiredFor: [],
     officialSource: 'Kolkata Port Trust Sandheads Offshore Transshipment Gazette',
     description: 'Open sea transshipment hub where Capesize vessels discharge partial parcels into daughter barges bound for Haldia/Kolkata.'
+  },
+  krishnapatnam: {
+    id: 'krishnapatnam',
+    name: 'Krishnapatnam Port (KPCL)',
+    state: 'Andhra Pradesh',
+    coordinates: [14.2500, 80.1200],
+    maxDraftLaden: 18.0,
+    maxDraftHighTide: 18.5,
+    maxLOA: 310,
+    maxBeam: 50.0,
+    maxDWT: 200000, // Capesize / Newcastlemax
+    recommendedVessels: ['Capesize', 'Kamsarmax', 'Panamax'],
+    handlingRateTPD: 65000,
+    primaryCargoes: ['Coking Coal', 'Thermal Coal', 'Iron Ore', 'Fertilizers'],
+    demurragePerDayINR: 7000000,
+    avgWaitDays: 1.8,
+    congestionLevel: 'LOW',
+    tidalRangeMeters: 1.2,
+    transshipmentRequiredFor: [],
+    officialSource: 'Adani Ports Krishnapatnam Port Co. Ltd. (KPCL) Marine Circular 2025',
+    description: 'Privately operated deep-water port in southern Andhra Pradesh with 18.0m draft accommodating Capesize vessels for southern and central steel corridors.'
+  },
+  kamarajar: {
+    id: 'kamarajar',
+    name: 'Kamarajar Port (Ennore / KPL)',
+    state: 'Tamil Nadu',
+    coordinates: [13.2572, 80.3347],
+    maxDraftLaden: 16.0,
+    maxDraftHighTide: 16.5,
+    maxLOA: 290,
+    maxBeam: 45.0,
+    maxDWT: 150000,
+    recommendedVessels: ['Baby Cape', 'Kamsarmax', 'Panamax', 'Supramax'],
+    handlingRateTPD: 50000,
+    primaryCargoes: ['Thermal Coal', 'Coking Coal', 'Petcoke', 'Limestone'],
+    demurragePerDayINR: 6400000,
+    avgWaitDays: 2.4,
+    congestionLevel: 'LOW',
+    tidalRangeMeters: 1.1,
+    transshipmentRequiredFor: ['Fully Laden Capesize (>16.0m draft)'],
+    officialSource: 'Kamarajar Port Limited (KPL) Berth Manual & Marine Regulations 2025',
+    description: 'Corporatized major port north of Chennai with dedicated mechanized bulk and coal berths supporting industrial and thermal energy corridors.'
   }
 };
 
@@ -179,6 +221,30 @@ export const ORIGIN_LOADING_PORTS = {
     distanceToEastCoastNM: 4250,
     officialSource: 'Gladstone Ports Corporation Operations Manual'
   },
+  hampton_roads: {
+    id: 'hampton_roads',
+    name: 'Hampton Roads / Norfolk (USA)',
+    country: 'United States',
+    coordinates: [36.9500, -76.3300],
+    maxDraftLaden: 15.5,
+    maxLOA: 305,
+    handlingRateTPD: 65000,
+    primaryCargoes: ['High-Vol Met Coal', 'Low-Vol Met Coal', 'PCI Coal'],
+    distanceToEastCoastNM: 9800, // via Suez (~13,200 via Cape of Good Hope)
+    officialSource: 'Norfolk Southern Lamberts Point & Pier IX Coal Terminal Gazette'
+  },
+  maputo: {
+    id: 'maputo',
+    name: 'Maputo / Matola TCM (Mozambique)',
+    country: 'Mozambique',
+    coordinates: [-25.9667, 32.5833],
+    maxDraftLaden: 15.4,
+    maxLOA: 275,
+    handlingRateTPD: 40000,
+    primaryCargoes: ['Moatize Coking Coal', 'Thermal Coal', 'Magnetite'],
+    distanceToEastCoastNM: 4150,
+    officialSource: 'Terminal de Carvão da Matola (TCM) Port Guidelines'
+  },
   samarinda: {
     id: 'samarinda',
     name: 'Muara Berau / Samarinda (Indonesia)',
@@ -190,6 +256,18 @@ export const ORIGIN_LOADING_PORTS = {
     primaryCargoes: ['Sub-bituminous Thermal Coal'],
     distanceToEastCoastNM: 2450,
     officialSource: 'Indonesian Directorate General of Sea Transportation'
+  },
+  taboneo: {
+    id: 'taboneo',
+    name: 'Taboneo Anchorage (South Kalimantan, Indonesia)',
+    country: 'Indonesia',
+    coordinates: [-3.6000, 114.4833],
+    maxDraftLaden: 18.0, // Open sea anchorage loading with high-capacity floating cranes
+    maxLOA: 330,
+    handlingRateTPD: 50000,
+    primaryCargoes: ['Sub-bituminous Coal', 'Thermal Coal'],
+    distanceToEastCoastNM: 2380,
+    officialSource: 'Banjarmasin Port Authority & Taboneo Floating Crane Regulations'
   },
   richards_bay: {
     id: 'richards_bay',
