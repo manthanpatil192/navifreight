@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
-import MetricCards from './components/MetricCards';
-import RouteSelector from './components/RouteSelector';
 import ForecastChart from './components/ForecastChart';
 import VesselOptimization from './components/VesselOptimization';
 import SpotVsCoaPlanner from './components/SpotVsCoaPlanner';
@@ -149,45 +147,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Global Configurator Bar (Always Visible across all views) */}
-        <RouteSelector
-          selectedOrigin={selectedOrigin}
-          setSelectedOrigin={setSelectedOrigin}
-          selectedDestination={selectedDestination}
-          setSelectedDestination={setSelectedDestination}
-          selectedVessel={selectedVessel}
-          setSelectedVessel={setSelectedVessel}
-          cargoType={cargoType}
-          setCargoType={setCargoType}
-          cargoVolumeMT={cargoVolumeMT}
-          setCargoVolumeMT={setCargoVolumeMT}
-          contractHorizonMonths={contractHorizonMonths}
-          setContractHorizonMonths={setContractHorizonMonths}
-          volatilityIndex={volatilityIndex}
-          setVolatilityIndex={setVolatilityIndex}
-        />
-
         {/* ================= PART A: MARKET TIMING & FORECASTING ================= */}
         {(activeTab === 'part_a' || activeTab === 'all') && (
           <div className="space-y-6 mt-6 animate-in fade-in duration-200">
-            <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="w-4 h-4 text-blue-700" />
-                <span className="text-xs font-bold text-blue-900">
-                  PS Part (a): Optimal Market Entry Timing & Machine Learning Freight Price Forecasting
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                89.9% Prediction Interval Coverage | BDRY Validated
-              </span>
-            </div>
-
-            {/* Top Metric Cards */}
-            <MetricCards
-              forecast={forecast}
-              currency={currency}
-              portCongestion={currentPortCongestion}
-            />
 
             {/* OPTIMAL MARKET ENTRY TIMING & CONTRACT HORIZON DECISION MATRIX (PS PART A CORE) */}
             <CharterTimingDecisionMatrix
