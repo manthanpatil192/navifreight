@@ -23,6 +23,7 @@ import {
 
 import ActionableBookingDirective from './components/ActionableBookingDirective';
 import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
+import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
 
 const PS_TABS = [
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
@@ -192,6 +193,17 @@ export default function App() {
               forecast={forecast}
               currency={currency}
               portCongestion={currentPortCongestion}
+            />
+
+            {/* OPTIMAL MARKET ENTRY TIMING & CONTRACT HORIZON DECISION MATRIX (PS PART A CORE) */}
+            <CharterTimingDecisionMatrix
+              selectedOrigin={selectedOrigin}
+              selectedDestination={selectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+              onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
+              currency={currency}
             />
 
             {/* IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
