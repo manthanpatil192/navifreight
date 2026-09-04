@@ -31,24 +31,8 @@ export default function Navbar({ onOpenDatasets, currency, setCurrency, onExport
             </div>
           </div>
 
-          {/* Real-time Status Badges */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <div className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-slate-600 font-medium">ML Model:</span>
-              <span className="font-semibold text-slate-900">Quantile GBDT (89.9% 90%CI)</span>
-            </div>
-
-            <div className="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200 text-xs">
-              <Database className="w-3.5 h-3.5 text-maritime-700" />
-              <span className="text-slate-600 font-medium">Open Data:</span>
-              <span className="font-semibold text-slate-900">SSE + World Bank + IMD + DGCIS</span>
-            </div>
-          </div>
-
-          {/* Action Buttons & Currency Switcher */}
+          {/* Currency Switcher */}
           <div className="flex items-center space-x-3">
-            {/* Currency Toggle */}
             <div className="flex items-center bg-slate-100 p-0.5 rounded-md border border-slate-200 text-xs font-semibold">
               <button
                 onClick={() => setCurrency('INR')}
@@ -71,25 +55,6 @@ export default function Navbar({ onOpenDatasets, currency, setCurrency, onExport
                 $ USD
               </button>
             </div>
-
-            {/* Inspect Datasets Button */}
-            <button
-              onClick={onOpenDatasets}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 text-xs font-medium rounded-md shadow-xs transition-colors"
-            >
-              <Database className="w-3.5 h-3.5 text-maritime-700" />
-              <span className="hidden sm:inline">Datasets & ML Metrics</span>
-              <span className="sm:hidden">Data</span>
-            </button>
-
-            {/* Export Report Button */}
-            <button
-              onClick={onExportReport}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-maritime-900 hover:bg-maritime-800 text-white text-xs font-semibold rounded-md shadow-xs transition-colors"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Export Report</span>
-            </button>
           </div>
 
         </div>

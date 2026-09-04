@@ -10,6 +10,7 @@ import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
+import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 
 export default function WebTerminalModelTrainer({ 
   onRunScenario, 
@@ -33,6 +34,16 @@ export default function WebTerminalModelTrainer({
   const [manualCargo, setManualCargo] = useState('Coking Coal');
   const [manualHorizon, setManualHorizon] = useState(contractHorizonMonths || 3);
   const [showManualControls, setShowManualControls] = useState(true);
+
+  // Dynamic Part B Vessel Type Optimization based on current terminal inputs
+  const currentVesselOptimization = React.useMemo(() => {
+    return optimizeVesselType({
+      originId: manualOrigin,
+      destinationId: manualDest,
+      cargoVolumeMT: manualVolume,
+      cargoType: manualCargo
+    });
+  }, [manualOrigin, manualDest, manualVolume, manualCargo]);
 
   // Live Real-Time Bay of Bengal IMD Weather State (Direct API Ingestion)
   const [liveBobWeather, setLiveBobWeather] = useState(null);
@@ -173,14 +184,14 @@ export default function WebTerminalModelTrainer({
       demurragePerDayINR: 6500000,
       avgWaitDays: 2.5
     };
-    const vesselObj = VESSEL_CLASSES[manualVessel] || { 
-      name: manualVessel, 
-      ladenDraftMeters: 18.0, 
-      dwt: 180000, 
-      loaMeters: 292,
-      baselineDailyTimeCharterRateUSD: 24500,
-      demurrageRatePerDayUSD: 25000
-    };
+    const vesselOptimization = optimizeVesselType({
+      originId: manualOrigin,
+      destinationId: manualDest,
+      cargoVolumeMT: manualVolume,
+      cargoType: manualCargo
+    });
+    const recommendedVesselKey = vesselOptimization.recommendedVesselId;
+    const vesselObj = VESSEL_CLASSES[recommendedVesselKey] || VESSEL_CLASSES.panamax;
 
     // Live Bay of Bengal IMD Weather API Ingestion
     let weatherData = liveBobWeather;
@@ -304,12 +315,12 @@ export default function WebTerminalModelTrainer({
       source: 'terminal_dispatch'
     };
 
-    // Sync global App state & couple live graph
+    // Sync global App state & couple live graph & Part B optimizer
     if (onRunScenario) {
       onRunScenario({
         origin: manualOrigin,
         destination: manualDest,
-        vessel: manualVessel,
+        vessel: recommendedVesselKey,
         volume: manualVolume,
         horizon: manualHorizon,
         volatility: volatilityMult,
@@ -362,14 +373,23 @@ export default function WebTerminalModelTrainer({
   * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
   * Demurrage Exposure:              ₹${demurrageTotalINR_Lakhs} Lakhs  (${totalCongestionDays.toFixed(1)} Days Total Wait / $${demurrageTotalUSD.toLocaleString()} USD)
 ----------------------------------------------------------------------
-[4] REAL-TIME BAY OF BENGAL IMD TELEMETRY & VESSEL FIT:
+[4] PS PART (B) VESSEL TYPE OPTIMIZATION DIRECTIVE:
+  * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
+  * PORT DRAFT RESTRICTION FIT:      Origin ${originObj.name}: ${originObj.maxDraftLaden}m Draft [PASSED]
+                                     Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
+  * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin` : `[RESTRICTED] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
+  * LOA & BERTH SUITABILITY:         Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [CLEAR]
+  * HANDLING CAPABILITY TURNAROUND:  ${vesselOptimization.recommendedVessel.totalDischargeDays} Days (@ ${destObj.handlingRateTPD.toLocaleString()} TPD at ${destObj.name})
+  * IDLE TIME PREVENTED:             Avoided ${vesselOptimization.idleDaysSaved} Days Idle Demurrage (Saved ₹${vesselOptimization.demurrageSavedINR_Lakhs} Lakhs vs Misallocated Vessel)
+----------------------------------------------------------------------
+[5] REAL-TIME BAY OF BENGAL IMD TELEMETRY & VESSEL FIT:
   * Live Buoy Observations:          Wind ${weatherData?.windSpeedKnots || 24.5} kts | Significant Wave ${weatherData?.waveHeightMeters || 2.2}m | Pressure ${weatherData?.surfacePressureHpa || 1006.8} hPa
   * Operational Weather Cushion:     +${laycanBufferHours}h Laycan Extension Clause (Auto-calculated in Result)
   * Primary COA Laycan Window:       Within next 7-14 days
   * Secondary Spot Sniping Window:   30-45 days forward
   * Draft Clearance:                 ${draftClearanceText}
 ======================================================================
-[GRAPH & APP SYNCED] Real-time IMD Bay of Bengal weather telemetry automatically factored into freight optimization!`
+[GRAPH & APP SYNCED] Terminal inputs coupled with Part B Vessel Recommendation & real-time IMD marine telemetry!`
         }
       ]);
       setIsExecuting(false);
@@ -1366,24 +1386,25 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </div>
               </div>
 
-              {/* 4. Ship Type / Vessel Class */}
+              {/* 4. AI-Recommended Vessel Class (PS Part B Connected) */}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
-                  <Ship className="w-3 h-3 text-purple-400" />
-                  <span>Ship Type (Vessel Class)</span>
+                  <Ship className="w-3 h-3 text-emerald-400" />
+                  <span>Optimal Vessel (PS Part B)</span>
                 </label>
-                <select
-                  value={manualVessel}
-                  onChange={(e) => setManualVessel(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs"
-                >
-                  <option value="capesize">Capesize (180k DWT | 18.2m Draft)</option>
-                  <option value="baby_cape">Baby Cape (115k DWT | 15.1m Draft)</option>
-                  <option value="kamsarmax">Kamsarmax (82k DWT | 14.4m Draft)</option>
-                  <option value="panamax">Panamax (75k DWT | 14.5m Draft)</option>
-                  <option value="supramax">Supramax (58k DWT | 12.8m Draft)</option>
-                  <option value="handysize">Handysize (35k DWT | 10.0m Draft)</option>
-                </select>
+                <div className="w-full bg-slate-900 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-xs shadow-inner">
+                  <div className="flex items-center space-x-1.5 truncate">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                    <span className="font-bold text-emerald-300 truncate">
+                      {currentVesselOptimization.recommendedVessel.name} ({Math.round(currentVesselOptimization.recommendedVessel.dwt / 1000)}k DWT)
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-300 font-mono font-bold shrink-0 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-700/60">
+                    {currentVesselOptimization.recommendedVessel.draftMargin >= 0 
+                      ? `+${currentVesselOptimization.recommendedVessel.draftMargin}m Draft`
+                      : 'Lighterage'}
+                  </span>
+                </div>
               </div>
 
             </div>

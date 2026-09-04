@@ -208,6 +208,28 @@ export default function App() {
               </span>
             </div>
 
+            {/* IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE (CONNECTED WITH PART B INPUTS) */}
+            <WebTerminalModelTrainer
+              onRunScenario={(params) => {
+                if (params.origin) setSelectedOrigin(params.origin);
+                if (params.destination) setSelectedDestination(params.destination);
+                if (params.vessel) setSelectedVessel(params.vessel);
+                if (params.volume) setCargoVolumeMT(params.volume);
+                if (params.horizon) setContractHorizonMonths(params.horizon);
+                if (params.volatility) setVolatilityIndex(params.volatility);
+                if (params.newsSignal !== undefined) setActiveNewsSignal(params.newsSignal);
+                if (params.coaSplit) setCoaSplitPercent(params.coaSplit);
+                if (params.terminalMetrics) setTerminalMetrics(params.terminalMetrics);
+              }}
+              currency={currency}
+              currentForecast={forecast}
+              selectedOrigin={selectedOrigin}
+              selectedDestination={selectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+            />
+
             {/* Vessel Suitability & Real-Time Port Match Optimizer */}
             <VesselOptimization
               selectedOrigin={selectedOrigin}
