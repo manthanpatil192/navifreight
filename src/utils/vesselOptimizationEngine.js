@@ -133,13 +133,13 @@ export function optimizeVesselType({
       deadfreightPenaltyINR_Cr = Number(((deadfreightMT * 16.5 * 86.5) / 10000000).toFixed(2));
     }
 
-    // 3. Handling capability & turnaround time
+    // 3. Handling capability & turnaround time (Strictly sum of named components)
     const voyagesNeeded = Math.max(1, Math.ceil(cargoVolumeMT / Math.min(cargoVolumeMT, vessel.capacityMT)));
     const actualDischargeRateTPD = dest.handlingRateTPD || 45000;
-    const pureDischargeDays = Number((Math.min(cargoVolumeMT, vessel.capacityMT) / actualDischargeRateTPD).toFixed(2));
-    const portManeuverBufferDays = 1.0; // Inward/outward pilotage, berthing maneuver & draft survey
-    const dischargeDaysPerVoyage = Number((pureDischargeDays + portManeuverBufferDays).toFixed(1));
-    const totalDischargeDays = Number((dischargeDaysPerVoyage * voyagesNeeded).toFixed(1));
+    // Net discharge is strictly cargo tonnage / daily discharge rate
+    const pureDischargeDays = Number((cargoVolumeMT / actualDischargeRateTPD).toFixed(2));
+    const portManeuverBufferDays = 1.00; // Pilotage inward/outward, tug assistance & draft survey
+    const berthOnlyTurnaroundDays = Number((pureDischargeDays + portManeuverBufferDays).toFixed(2));
 
     // 4. Idle time & Demurrage calculation
     const baseWaitDays = dest.avgWaitDays || 2.5;
@@ -148,9 +148,15 @@ export function optimizeVesselType({
     if (isLightLoaded && !lighterageRequired) idleDays += 0.8; // Waiting for spring high tide window
     if (isHardBlocked) idleDays += 10.0; // Refused entry penalty
 
-    const demurrageDailyUSD = vessel.demurragePerDayUSD;
-    const demurrageTotalUSD = Math.round(idleDays * demurrageDailyUSD * voyagesNeeded);
-    const demurrageTotalINR_Lakhs = Number(((demurrageTotalUSD * 86.5) / 100000).toFixed(1));
+    const queueWaitDays = Number(idleDays.toFixed(2));
+    // Total turnaround is strictly defined as the explicit sum of its named components
+    const totalTurnaroundDays = Number((pureDischargeDays + portManeuverBufferDays + queueWaitDays).toFixed(2));
+
+    // Canonical charter party demurrage rate for this vessel
+    const demurrageDailyUSD = vessel.demurragePerDayUSD || 25000;
+    const demurrageDailyINR_Lakhs = Number(((demurrageDailyUSD * 86.5) / 100000).toFixed(2));
+    const demurrageTotalUSD = Math.round(idleDays * demurrageDailyUSD);
+    const demurrageTotalINR_Lakhs = Number(((idleDays * demurrageDailyINR_Lakhs)).toFixed(2));
     const demurrageTotalINR_Cr = Number((demurrageTotalINR_Lakhs / 100).toFixed(2));
 
     // 5. Freight cost calculation per MT
@@ -257,8 +263,12 @@ export function optimizeVesselType({
 
   // Compare top vessel vs worst feasible or blocked vessel for savings quantification
   const subOptimalVessel = evaluations.find(e => e.id !== topVessel.id && (e.lighterageRequired || e.isHardBlocked || e.score < 60)) || evaluations[evaluations.length - 1];
-  const idleDaysSaved = Math.max(0, Number((subOptimalVessel.idleDays - topVessel.idleDays).toFixed(1)));
-  const demurrageSavedINR_Lakhs = Math.max(0, Number((subOptimalVessel.demurrageTotalINR_Lakhs - topVessel.demurrageTotalINR_Lakhs).toFixed(1)));
+  const idleDaysSaved = Math.max(0, Number((subOptimalVessel.idleDays - topVessel.idleDays).toFixed(2)));
+  const canonicalDemurrageDailyUSD = topVessel.demurrageDailyUSD;
+  const canonicalDemurrageDailyINR_Lakhs = topVessel.demurrageDailyINR_Lakhs;
+  // Strictly derived from single canonical day-rate
+  const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+  const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
   const freightSavedINR_Cr = Math.max(0, Number((subOptimalVessel.totalFreightINR_Cr - topVessel.totalFreightINR_Cr).toFixed(2)));
 
   return {
@@ -270,7 +280,10 @@ export function optimizeVesselType({
     recommendedVessel: topVessel,
     subOptimalVessel,
     idleDaysSaved,
+    canonicalDemurrageDailyUSD,
+    canonicalDemurrageDailyINR_Lakhs,
     demurrageSavedINR_Lakhs,
+    demurrageSavedUSD,
     freightSavedINR_Cr,
     evaluations,
     psComplianceNotice: 'Evaluated under SIH26006 Part (b) parameters: loading/discharge draft limits, LOA, TPD handling turnaround, and idle demurrage elimination.'

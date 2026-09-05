@@ -309,15 +309,15 @@ export default function WebTerminalModelTrainer({
     const currentSpotUSD = Math.round(baseRate * manualVolume); // Today's spot baseline
     const optUSD = Math.round(blended * manualVolume);
     const optP10USD = Math.round(blendedP10 * manualVolume);
-    const savingsUSD = unhedgedUSD - optUSD;
-    const demurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
-    const demurrageTotalUSD = Math.round(totalCongestionDays * demurrageDailyUSD);
-
     // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
     const baseFxRate = 86.50;
     const fxDriftPct = (manualHorizon / 12) * 0.025;
     const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
     const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
+
+    // Canonical demurrage rate from vessel charter party (single shared variable)
+    const canonicalDemurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
+    const canonicalDemurrageDailyINR_Lakhs = Number(((canonicalDemurrageDailyUSD * baseFxRate) / 100000).toFixed(2));
 
     const spotRateINR = Math.round(baseRate * baseFxRate);
     const currentSpotINR_Cr = ((currentSpotUSD * baseFxRate) / 10000000).toFixed(2);
@@ -334,8 +334,21 @@ export default function WebTerminalModelTrainer({
     const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
     const optP10INR_Cr = ((optP10USD * blendedFxRate) / 10000000).toFixed(2);
     const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
-    const demurrageDailyINR_Lakhs = ((demurrageDailyUSD * baseFxRate) / 100000).toFixed(1);
-    const demurrageTotalINR_Lakhs = ((demurrageTotalUSD * baseFxRate) / 100000).toFixed(2);
+
+    // Turnaround time: strictly defined as the explicit sum of named components
+    const destHandlingTPD = destObj.handlingRateTPD || 45000;
+    const netDischargeDays = Number((manualVolume / destHandlingTPD).toFixed(2));
+    const pilotageMooringDays = 1.00; // Pilotage inward/outward, tug assist & draft survey
+    const queueWaitDays = Number(totalCongestionDays.toFixed(2)); // Anchorage congestion + weather delay
+    const totalPortTurnaroundDays = Number((netDischargeDays + pilotageMooringDays + queueWaitDays).toFixed(2));
+    const berthOnlyDays = Number((netDischargeDays + pilotageMooringDays).toFixed(2));
+
+    // Demurrage: strictly derived from canonicalDemurrageDailyINR_Lakhs
+    const demurrageExposureUSD = Math.round(queueWaitDays * canonicalDemurrageDailyUSD);
+    const demurrageExposureINR_Lakhs = Number((queueWaitDays * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+    const idleDaysSaved = Number((vesselOptimization.idleDaysSaved || 0).toFixed(2));
+    const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
+    const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
 
     // Dynamic Buy / Strike & Hold / Wait Directives
     const buyStrikeDirectiveText = isExtremeDemand
@@ -346,7 +359,7 @@ export default function WebTerminalModelTrainer({
     if (!originProper) {
       holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Severe weather at source [${originObj.name}]. ${originWeather?.cancellationWarning || 'Contract cancellation risk!'} WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides, or DIVERT to alternate loading port ${originWeather?.alternatePort?.portName || 'Gladstone'}.`;
     } else if (!destProper) {
-      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Bay of Bengal squalls at destination [${destObj.name}] (${destWeather?.stage || 'Depression'}). Anchorage delay +${destDelayDays}d adds ₹${((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1)}L demurrage. WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for calm pilotage window.`;
+      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Bay of Bengal squalls at destination [${destObj.name}] (${destWeather?.stage || 'Depression'}). Anchorage delay +${destDelayDays}d adds ₹${(destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1)}L demurrage. WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for calm pilotage window.`;
     } else {
       holdWaitDirectiveText = `🔴 HOLD / WAIT DIRECTIVE: Current spot freight ($${baseRate.toFixed(2)} /MT) is trending upward. Avoid daily spot spikes. WAIT TILL forward P10 dip window to save ₹${savingsINR_Cr} Crore.`;
     }
@@ -397,8 +410,8 @@ export default function WebTerminalModelTrainer({
         windSpeedKnots: destWeather?.windSpeedKnots || 24.5,
         recommendedWaitDate: destWeather?.recommendedWaitDate || 'Sep 15, 2026',
         waitDays: destWeather?.waitDays || 0,
-        demurrageINR_Lakhs: ((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1),
-        demurrageUSD: Math.round(destDelayDays * demurrageDailyUSD)
+        demurrageINR_Lakhs: (destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1),
+        demurrageUSD: Math.round(destDelayDays * canonicalDemurrageDailyUSD)
       },
       isExtremeDemand,
       buyStrikeDirectiveText,
@@ -462,7 +475,7 @@ ${!originProper ? `    - CANCELLATION:  ⚠️ CONTRACT MAY BE CANCELLED DUE TO 
     - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | ${destWeather?.stage || 'Normal'}
     - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] All-weather 24/7 deepwater pilotage operating normally.' : `🔴 [IMPROPER SEA WEATHER - ${destWeather?.signal || 'Signal III'}] Pilotage restricted during high swells.`}
 ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitDate} when Bay of Bengal depression clears.
-    - DEMURRAGE EXPOSURE: +${destDelayDays} Days weather delay -> Unbudgeted Demurrage ₹${((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1)} Lakhs ($${Math.round(destDelayDays * demurrageDailyUSD).toLocaleString()} USD)!` : ''}
+    - DEMURRAGE EXPOSURE: +${destDelayDays} Days weather delay -> Unbudgeted Demurrage ₹${(destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1)} Lakhs ($${Math.round(destDelayDays * canonicalDemurrageDailyUSD).toLocaleString()} USD)!` : ''}
 ----------------------------------------------------------------------
 [2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
   * BUY / STRIKE:    ${buyStrikeDirectiveText}
@@ -482,21 +495,32 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
   * Blended Rate (P10 Dip Target):   ₹${blendedP10INR.toLocaleString()} /MT   ($${blendedP10.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P10 Dip @ ₹${estP10INR}]
   * Net Landed Savings vs P50 Spot:  ₹${rateSavingsINR.toLocaleString()} /MT (₹${rateSavingsP10INR.toLocaleString()} /MT if P10 Dip sniped)
 ----------------------------------------------------------------------
-[5] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
+[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
   * Unhedged Forward Spot (P50):     ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD @ Forward FX)
   * Current Spot Baseline (Today):   ₹${currentSpotINR_Cr} Crore   ($${currentSpotUSD.toLocaleString()} USD @ Spot FX)
   * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
-  * NET SAVINGS VS UNHEDGED P50:     ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
-  * Demurrage Exposure (Per Voyage): ₹${demurrageTotalINR_Lakhs} Lakhs  (${totalCongestionDays.toFixed(1)} Days Wait @ ₹${demurrageDailyINR_Lakhs}L/day [$${demurrageDailyUSD.toLocaleString()} USD/day])
+  * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED vs Unhedged Forward Spot!
+  * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${queueWaitDays.toFixed(2)} Days Actual Wait × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
 ----------------------------------------------------------------------
-[6] PS PART (B) VESSEL TYPE OPTIMIZATION DIRECTIVE:
+[6] PS PART (B) VESSEL TYPE & PORT TURNAROUND DECOMPOSITION:
   * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
   * PORT DRAFT RESTRICTION FIT:      Origin ${originObj.name}: ${originObj.maxDraftLaden}m Draft [PASSED]
                                      Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
   * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin` : `[RESTRICTED] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
   * LOA & BERTH SUITABILITY:         Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [CLEAR]
-  * HANDLING CAPABILITY TURNAROUND:  ${vesselOptimization.recommendedVessel.totalDischargeDays} Days (${vesselOptimization.recommendedVessel.pureDischargeDays || (manualVolume / destObj.handlingRateTPD).toFixed(1)}d Net Discharge @ ${destObj.handlingRateTPD.toLocaleString()} TPD + ${vesselOptimization.recommendedVessel.portManeuverBufferDays || '1.0'}d Pilotage, Mooring & Draft Survey)
-  * IDLE TIME PREVENTED:             Avoided ${vesselOptimization.idleDaysSaved} Days Idle Demurrage (Saved ₹${vesselOptimization.demurrageSavedINR_Lakhs} Lakhs across ${vesselOptimization.subOptimalVessel.voyagesNeeded || 1} parcel voyage(s) vs Misallocated Vessel)
+  ------------------------------------------------------------------
+  * HANDLING & PORT TURNAROUND TIME BREAKDOWN:
+    [+] Net Cargo Discharge:         ${netDischargeDays.toFixed(2)} Days  (${manualVolume.toLocaleString()} MT ÷ ${destHandlingTPD.toLocaleString()} TPD at ${destObj.name})
+    [+] Berth Pilotage & Survey:     ${pilotageMooringDays.toFixed(2)} Days  (Inward/Outward Pilotage, Tugs & Draft Survey)
+    [+] Pre-Berthing Queue Wait:     ${queueWaitDays.toFixed(2)} Days  (Anchorage Congestion & Marine Sea-State Wait)
+    ------------------------------------------------------------------
+    [=] TOTAL PORT TURNAROUND:       ${totalPortTurnaroundDays} Days  (Explicit Sum: ${netDischargeDays.toFixed(2)}d + ${pilotageMooringDays.toFixed(2)}d + ${queueWaitDays.toFixed(2)}d)
+        [Berth Working Occupancy:    ${berthOnlyDays.toFixed(2)} Days]
+  ------------------------------------------------------------------
+  * CANONICAL CHARTER DEMURRAGE RECONCILIATION:
+    - Canonical Charter Rate:        ₹${canonicalDemurrageDailyINR_Lakhs} Lakhs/Day ($${canonicalDemurrageDailyUSD.toLocaleString()} USD/Day)
+    - Demurrage Exposure:            ₹${demurrageExposureINR_Lakhs} Lakhs  (${queueWaitDays.toFixed(2)} Days Wait × ₹${canonicalDemurrageDailyINR_Lakhs}L/day)
+    - Idle Time Prevented (Savings): Avoided ${idleDaysSaved.toFixed(2)} Days Idle (Saved ₹${demurrageSavedINR_Lakhs} Lakhs [${idleDaysSaved.toFixed(2)}d × ₹${canonicalDemurrageDailyINR_Lakhs}L/day] vs Misallocated Vessel)
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
         }
