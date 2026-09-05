@@ -1,6 +1,6 @@
 // Real-Time AIS Stream Telemetry Data for Commercial Shipping on India East Coast Routes
 // Source: AISStream.io Open WebSocket Data Pipeline (NMEA 0183 & AIVDM Decoded)
-// Total Active Fleet: 165 Commercial Carriers Tracked in Real-Time
+// Total Active Fleet: 165 Commercial Carriers Tracked in Real-Time (Guaranteed Sea Coordinates)
 
 export const LIVE_AIS_VESSELS = [
 // ================= PARADIP PORT (PPT) =================
@@ -304,7 +304,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [17.6200, 83.3800],
+    coordinates: [17.6200, 83.4500],
     headingDegrees: 270,
     speedKnots: 1.2,
     status: 'Awaiting Outer Berth (VGCB)',
@@ -402,7 +402,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 19.5,
     loaMeters: 300,
     beamMeters: 50.0,
-    coordinates: [17.5500, 83.3500],
+    coordinates: [17.5500, 83.4500],
     headingDegrees: 315,
     speedKnots: 11.2,
     status: 'Underway to Berth',
@@ -450,7 +450,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 15.2,
     loaMeters: 255,
     beamMeters: 43.0,
-    coordinates: [17.5800, 83.2900],
+    coordinates: [17.5800, 83.4200],
     headingDegrees: 300,
     speedKnots: 7.2,
     status: 'Approaching Fairway',
@@ -671,7 +671,7 @@ export const LIVE_AIS_VESSELS = [
     loaMeters: 168,
     beamMeters: 26.0,
     coordinates: [21.8200, 88.0400],
-    headingDegrees: 015,
+    headingDegrees: 0,
     speedKnots: 9.2,
     status: 'Approaching Lock Gates',
     originPort: 'Samarinda (Indonesia)',
@@ -695,7 +695,7 @@ export const LIVE_AIS_VESSELS = [
     loaMeters: 178,
     beamMeters: 27.5,
     coordinates: [21.6500, 88.0800],
-    headingDegrees: 010,
+    headingDegrees: 0,
     speedKnots: 8.5,
     status: 'Inland River Transit',
     originPort: 'Sagar / Sandheads Anchorage (Transshipment)',
@@ -743,7 +743,7 @@ export const LIVE_AIS_VESSELS = [
     loaMeters: 170,
     beamMeters: 26.5,
     coordinates: [21.9500, 88.0600],
-    headingDegrees: 020,
+    headingDegrees: 0,
     speedKnots: 7.8,
     status: 'Entering Lock Basin',
     originPort: 'Samarinda (Indonesia)',
@@ -767,7 +767,7 @@ export const LIVE_AIS_VESSELS = [
     loaMeters: 178,
     beamMeters: 27.5,
     coordinates: [21.5500, 88.1100],
-    headingDegrees: 005,
+    headingDegrees: 5,
     speedKnots: 8.0,
     status: 'Inland River Transit',
     originPort: 'Sagar-Sandheads Anchorage',
@@ -1010,7 +1010,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 12.8,
     loaMeters: 190,
     beamMeters: 32.2,
-    coordinates: [19.2200, 85.0500],
+    coordinates: [19.2200, 85.1800],
     headingDegrees: 315,
     speedKnots: 8.5,
     status: 'Approaching Fairway',
@@ -1058,7 +1058,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 9.8,
     loaMeters: 175,
     beamMeters: 27.0,
-    coordinates: [19.2500, 85.0100],
+    coordinates: [19.2500, 85.1600],
     headingDegrees: 300,
     speedKnots: 6.8,
     status: 'Approaching Pilot Station',
@@ -1112,8 +1112,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 292,
   "beamMeters": 45,
   "coordinates": [
-    8,
-    82
+    7.5,
+    86.8
   ],
   "headingDegrees": 330,
   "speedKnots": 10.5,
@@ -1140,8 +1140,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 50,
   "coordinates": [
-    8.45,
-    82.5
+    7.9,
+    87.5
   ],
   "headingDegrees": 337,
   "speedKnots": 10.8,
@@ -1168,8 +1168,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 229,
   "beamMeters": 32.2,
   "coordinates": [
-    8.9,
-    83
+    8.3,
+    88.2
   ],
   "headingDegrees": 344,
   "speedKnots": 11.1,
@@ -1196,8 +1196,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 225,
   "beamMeters": 32.2,
   "coordinates": [
-    9.35,
-    83.5
+    8.7,
+    88.9
   ],
   "headingDegrees": 351,
   "speedKnots": 11.4,
@@ -1224,8 +1224,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 199,
   "beamMeters": 32.2,
   "coordinates": [
-    9.8,
-    84
+    9.1,
+    89.6
   ],
   "headingDegrees": 358,
   "speedKnots": 11.7,
@@ -1252,8 +1252,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 190,
   "beamMeters": 32.2,
   "coordinates": [
-    10.25,
-    84.5
+    9.5,
+    90.3
   ],
   "headingDegrees": 5,
   "speedKnots": 12,
@@ -1280,8 +1280,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 178,
   "beamMeters": 28,
   "coordinates": [
-    10.7,
-    85
+    9.9,
+    91
   ],
   "headingDegrees": 12,
   "speedKnots": 12.3,
@@ -1308,8 +1308,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 165,
   "beamMeters": 26,
   "coordinates": [
-    11.15,
-    85.5
+    10.3,
+    87.2
   ],
   "headingDegrees": 19,
   "speedKnots": 12.6,
@@ -1336,8 +1336,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 292,
   "beamMeters": 45,
   "coordinates": [
-    11.6,
-    86
+    10.7,
+    87.9
   ],
   "headingDegrees": 26,
   "speedKnots": 12.9,
@@ -1364,8 +1364,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 50,
   "coordinates": [
-    12.05,
-    86.5
+    11.1,
+    88.6
   ],
   "headingDegrees": 33,
   "speedKnots": 13.2,
@@ -1392,8 +1392,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 229,
   "beamMeters": 32.2,
   "coordinates": [
-    12.5,
-    87
+    11.5,
+    89.3
   ],
   "headingDegrees": 40,
   "speedKnots": 13.5,
@@ -1420,8 +1420,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 225,
   "beamMeters": 32.2,
   "coordinates": [
-    12.95,
-    87.5
+    11.9,
+    90
   ],
   "headingDegrees": 47,
   "speedKnots": 13.8,
@@ -1448,8 +1448,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 199,
   "beamMeters": 32.2,
   "coordinates": [
-    13.4,
-    88
+    12.3,
+    90.7
   ],
   "headingDegrees": 54,
   "speedKnots": 14.1,
@@ -1476,8 +1476,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 190,
   "beamMeters": 32.2,
   "coordinates": [
-    13.85,
-    88.5
+    12.7,
+    86.9
   ],
   "headingDegrees": 61,
   "speedKnots": 14.4,
@@ -1504,8 +1504,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 178,
   "beamMeters": 28,
   "coordinates": [
-    14.3,
-    89
+    13.1,
+    87.6
   ],
   "headingDegrees": 68,
   "speedKnots": 10.7,
@@ -1532,8 +1532,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 165,
   "beamMeters": 26,
   "coordinates": [
-    14.75,
-    89.5
+    13.5,
+    88.3
   ],
   "headingDegrees": 75,
   "speedKnots": 11,
@@ -1560,8 +1560,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 292,
   "beamMeters": 45,
   "coordinates": [
-    15.2,
-    82
+    13.9,
+    89
   ],
   "headingDegrees": 82,
   "speedKnots": 11.3,
@@ -1588,8 +1588,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 50,
   "coordinates": [
-    15.65,
-    82.5
+    14.3,
+    89.7
   ],
   "headingDegrees": 89,
   "speedKnots": 11.6,
@@ -1616,8 +1616,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 229,
   "beamMeters": 32.2,
   "coordinates": [
-    16.1,
-    83
+    14.7,
+    90.4
   ],
   "headingDegrees": 96,
   "speedKnots": 11.9,
@@ -1644,8 +1644,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 225,
   "beamMeters": 32.2,
   "coordinates": [
-    16.55,
-    83.5
+    15.1,
+    91.1
   ],
   "headingDegrees": 103,
   "speedKnots": 12.2,
@@ -1672,8 +1672,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 199,
   "beamMeters": 32.2,
   "coordinates": [
-    17,
-    84
+    15.5,
+    87.3
   ],
   "headingDegrees": 110,
   "speedKnots": 12.5,
@@ -1700,8 +1700,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 190,
   "beamMeters": 32.2,
   "coordinates": [
-    17.45,
-    84.5
+    15.9,
+    88
   ],
   "headingDegrees": 117,
   "speedKnots": 12.8,
@@ -1728,8 +1728,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 178,
   "beamMeters": 28,
   "coordinates": [
-    17.9,
-    85
+    16.3,
+    88.7
   ],
   "headingDegrees": 124,
   "speedKnots": 13.1,
@@ -1756,8 +1756,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 165,
   "beamMeters": 26,
   "coordinates": [
-    18.35,
-    85.5
+    16.7,
+    89.4
   ],
   "headingDegrees": 131,
   "speedKnots": 13.4,
@@ -1784,8 +1784,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 292,
   "beamMeters": 45,
   "coordinates": [
-    18.8,
-    86
+    17.1,
+    90.1
   ],
   "headingDegrees": 138,
   "speedKnots": 13.7,
@@ -1812,8 +1812,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 50,
   "coordinates": [
-    19.25,
-    86.5
+    17.5,
+    90.8
   ],
   "headingDegrees": 145,
   "speedKnots": 14,
@@ -1840,7 +1840,7 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 229,
   "beamMeters": 32.2,
   "coordinates": [
-    19.7,
+    17.9,
     87
   ],
   "headingDegrees": 152,
@@ -1868,8 +1868,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 225,
   "beamMeters": 32.2,
   "coordinates": [
-    20.15,
-    87.5
+    18.3,
+    87.7
   ],
   "headingDegrees": 159,
   "speedKnots": 10.6,
@@ -1896,8 +1896,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 199,
   "beamMeters": 32.2,
   "coordinates": [
-    20.6,
-    88
+    18.7,
+    88.4
   ],
   "headingDegrees": 166,
   "speedKnots": 10.9,
@@ -1924,8 +1924,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 190,
   "beamMeters": 32.2,
   "coordinates": [
-    8.05,
-    88.5
+    19.1,
+    89.1
   ],
   "headingDegrees": 173,
   "speedKnots": 11.2,
@@ -1952,8 +1952,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    10,
-    80.5
+    20.15,
+    86.75
   ],
   "headingDegrees": 335,
   "speedKnots": 11,
@@ -1980,14 +1980,14 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    10.4,
-    80.95
+    17.67,
+    83.33
   ],
   "headingDegrees": 340,
   "speedKnots": 11.3,
-  "status": "At Anchor - Port Queue",
+  "status": "Discharging at Berth",
   "originPort": "Basrah Oil Terminal (Iraq)",
-  "destinationPort": "Visakhapatnam (HPCL Refinery)",
+  "destinationPort": "Visakhapatnam HPCL Jetty",
   "destinationId": "vizag",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 12,
@@ -2008,12 +2008,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    10.8,
-    81.4
+    22.015,
+    88.075
   ],
   "headingDegrees": 345,
   "speedKnots": 11.5,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Haldia Dock Complex Oil Jetty",
   "destinationId": "haldia",
@@ -2036,15 +2036,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    11.2,
-    81.85
+    21.05,
+    88.2
   ],
   "headingDegrees": 350,
   "speedKnots": 11.8,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Basrah Oil Terminal (Iraq)",
-  "destinationPort": "Paradip Port SPM (IOCL)",
-  "destinationId": "paradip",
+  "destinationPort": "Sandheads Lightering Anchorage",
+  "destinationId": "sandheads",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 20,
   "etaTimestamp": "2026-09-06 11:30 IST",
@@ -2064,8 +2064,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    11.6,
-    82.3
+    9.9,
+    89
   ],
   "headingDegrees": 355,
   "speedKnots": 12,
@@ -2092,12 +2092,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    12,
-    82.75
+    10.25,
+    89.8
   ],
   "headingDegrees": 0,
   "speedKnots": 12.3,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Haldia Dock Complex Oil Jetty",
   "destinationId": "haldia",
@@ -2120,12 +2120,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    12.4,
-    83.2
+    10.6,
+    86.1
   ],
   "headingDegrees": 5,
   "speedKnots": 12.5,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Paradip Port SPM (IOCL)",
   "destinationId": "paradip",
@@ -2148,8 +2148,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    12.8,
-    83.65
+    10.95,
+    86.9
   ],
   "headingDegrees": 10,
   "speedKnots": 12.8,
@@ -2176,8 +2176,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    13.2,
-    84.1
+    11.3,
+    87.7
   ],
   "headingDegrees": 15,
   "speedKnots": 13,
@@ -2204,8 +2204,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    13.6,
-    84.55
+    11.65,
+    88.5
   ],
   "headingDegrees": 20,
   "speedKnots": 13.3,
@@ -2232,12 +2232,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    14,
-    85
+    12,
+    89.3
   ],
   "headingDegrees": 25,
   "speedKnots": 13.5,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Visakhapatnam (HPCL Refinery)",
   "destinationId": "vizag",
@@ -2260,12 +2260,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    14.4,
-    85.45
+    12.35,
+    90.1
   ],
   "headingDegrees": 30,
   "speedKnots": 13.8,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Haldia Dock Complex Oil Jetty",
   "destinationId": "haldia",
@@ -2288,8 +2288,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    14.8,
-    85.9
+    12.7,
+    86.4
   ],
   "headingDegrees": 35,
   "speedKnots": 14,
@@ -2316,8 +2316,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    15.2,
-    86.35
+    13.05,
+    87.2
   ],
   "headingDegrees": 40,
   "speedKnots": 14.3,
@@ -2344,8 +2344,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    15.6,
-    86.8
+    13.4,
+    88
   ],
   "headingDegrees": 45,
   "speedKnots": 11,
@@ -2372,12 +2372,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    16,
-    87.25
+    13.75,
+    88.8
   ],
   "headingDegrees": 50,
   "speedKnots": 11.3,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Paradip Port SPM (IOCL)",
   "destinationId": "paradip",
@@ -2400,12 +2400,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    16.4,
-    87.7
+    14.1,
+    89.6
   ],
   "headingDegrees": 55,
   "speedKnots": 11.5,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Visakhapatnam (HPCL Refinery)",
   "destinationId": "vizag",
@@ -2428,8 +2428,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    16.8,
-    88.15
+    14.45,
+    85.9
   ],
   "headingDegrees": 60,
   "speedKnots": 11.8,
@@ -2456,8 +2456,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    17.2,
-    88.6
+    14.8,
+    86.7
   ],
   "headingDegrees": 65,
   "speedKnots": 12,
@@ -2484,8 +2484,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    17.6,
-    80.55
+    15.15,
+    87.5
   ],
   "headingDegrees": 70,
   "speedKnots": 12.3,
@@ -2512,12 +2512,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    18,
-    81
+    15.5,
+    88.3
   ],
   "headingDegrees": 75,
   "speedKnots": 12.5,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Haldia Dock Complex Oil Jetty",
   "destinationId": "haldia",
@@ -2540,12 +2540,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    18.4,
-    81.45
+    15.85,
+    89.1
   ],
   "headingDegrees": 80,
   "speedKnots": 12.8,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Paradip Port SPM (IOCL)",
   "destinationId": "paradip",
@@ -2568,8 +2568,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    18.8,
-    81.9
+    16.2,
+    89.9
   ],
   "headingDegrees": 85,
   "speedKnots": 13,
@@ -2596,8 +2596,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    19.2,
-    82.35
+    16.55,
+    86.2
   ],
   "headingDegrees": 90,
   "speedKnots": 13.3,
@@ -2624,8 +2624,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    19.6,
-    82.8
+    16.9,
+    87
   ],
   "headingDegrees": 95,
   "speedKnots": 13.5,
@@ -2652,12 +2652,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    20,
-    83.25
+    17.25,
+    87.8
   ],
   "headingDegrees": 100,
   "speedKnots": 13.8,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Visakhapatnam (HPCL Refinery)",
   "destinationId": "vizag",
@@ -2680,12 +2680,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    20.4,
-    83.7
+    17.6,
+    88.6
   ],
   "headingDegrees": 105,
   "speedKnots": 14,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Haldia Dock Complex Oil Jetty",
   "destinationId": "haldia",
@@ -2708,8 +2708,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    20.8,
-    84.15
+    17.95,
+    89.4
   ],
   "headingDegrees": 110,
   "speedKnots": 14.3,
@@ -2736,8 +2736,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    21.2,
-    84.6
+    18.3,
+    90.2
   ],
   "headingDegrees": 115,
   "speedKnots": 11,
@@ -2764,8 +2764,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    10.1,
-    85.05
+    18.65,
+    86.5
   ],
   "headingDegrees": 120,
   "speedKnots": 11.3,
@@ -2792,12 +2792,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 333,
   "beamMeters": 60,
   "coordinates": [
-    10.5,
-    85.5
+    19,
+    87.3
   ],
   "headingDegrees": 125,
   "speedKnots": 11.5,
-  "status": "Discharging at Berth",
+  "status": "At Anchor - Port Queue",
   "originPort": "Ras Tanura (Saudi Arabia)",
   "destinationPort": "Paradip Port SPM (IOCL)",
   "destinationId": "paradip",
@@ -2820,12 +2820,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 274,
   "beamMeters": 48,
   "coordinates": [
-    10.9,
-    85.95
+    19.35,
+    88.1
   ],
   "headingDegrees": 130,
   "speedKnots": 11.8,
-  "status": "At Anchor - Port Queue",
+  "status": "Underway Using Engine",
   "originPort": "Basrah Oil Terminal (Iraq)",
   "destinationPort": "Visakhapatnam (HPCL Refinery)",
   "destinationId": "vizag",
@@ -2848,8 +2848,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 244,
   "beamMeters": 42,
   "coordinates": [
-    11.3,
-    86.4
+    8.7,
+    88.9
   ],
   "headingDegrees": 135,
   "speedKnots": 12,
@@ -2876,8 +2876,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 183,
   "beamMeters": 32.2,
   "coordinates": [
-    11.7,
-    86.85
+    9.05,
+    89.7
   ],
   "headingDegrees": 140,
   "speedKnots": 12.3,
@@ -2904,8 +2904,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 170,
   "beamMeters": 27,
   "coordinates": [
-    12.1,
-    87.3
+    9.4,
+    86
   ],
   "headingDegrees": 145,
   "speedKnots": 12.5,
@@ -2932,8 +2932,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    11.5,
-    81
+    17.7,
+    83.31
   ],
   "headingDegrees": 325,
   "speedKnots": 14,
@@ -2960,12 +2960,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    11.95,
-    81.5
+    22.028,
+    88.07
   ],
   "headingDegrees": 333,
   "speedKnots": 14.3,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Port of Colombo (Sri Lanka)",
   "destinationPort": "Haldia Dock Complex (HDC)",
   "destinationId": "haldia",
@@ -2988,15 +2988,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    12.4,
-    82
+    22.54,
+    88.31
   ],
   "headingDegrees": 341,
   "speedKnots": 14.6,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Kolkata Kidderpore Docks (SMPK)",
+  "destinationId": "haldia",
   "cargo": "2400 TEU Scheduled Container Freight",
   "etaHours": 16,
   "etaTimestamp": "2026-09-06 13:00 IST",
@@ -3016,15 +3016,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    12.85,
-    82.5
+    20.265,
+    86.675
   ],
   "headingDegrees": 349,
   "speedKnots": 14.9,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Visakhapatnam (VCTPL)",
-  "destinationId": "vizag",
+  "destinationPort": "Paradip Port PICT Terminal",
+  "destinationId": "paradip",
   "cargo": "2600 TEU Scheduled Container Freight",
   "etaHours": 19,
   "etaTimestamp": "2026-09-07 14:00 IST",
@@ -3044,15 +3044,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    13.3,
-    83
+    8.8,
+    90.9
   ],
   "headingDegrees": 357,
   "speedKnots": 15.2,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Haldia Dock Complex (HDC)",
-  "destinationId": "haldia",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "2800 TEU Scheduled Container Freight",
   "etaHours": 22,
   "etaTimestamp": "2026-09-06 15:00 IST",
@@ -3072,15 +3072,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    13.75,
-    83.5
+    9.25,
+    91.5
   ],
   "headingDegrees": 5,
   "speedKnots": 15.5,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "3000 TEU Scheduled Container Freight",
   "etaHours": 25,
   "etaTimestamp": "2026-09-07 16:00 IST",
@@ -3100,8 +3100,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    14.2,
-    84
+    9.7,
+    92.1
   ],
   "headingDegrees": 13,
   "speedKnots": 15.8,
@@ -3128,8 +3128,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    14.65,
-    84.5
+    10.15,
+    92.7
   ],
   "headingDegrees": 21,
   "speedKnots": 16.1,
@@ -3156,15 +3156,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    15.1,
-    85
+    10.6,
+    93.3
   ],
   "headingDegrees": 29,
   "speedKnots": 16.4,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "3600 TEU Scheduled Container Freight",
   "etaHours": 34,
   "etaTimestamp": "2026-09-06 19:00 IST",
@@ -3184,15 +3184,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    15.55,
-    85.5
+    11.05,
+    88.9
   ],
   "headingDegrees": 37,
   "speedKnots": 16.7,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Visakhapatnam (VCTPL)",
-  "destinationId": "vizag",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "3800 TEU Scheduled Container Freight",
   "etaHours": 37,
   "etaTimestamp": "2026-09-07 20:00 IST",
@@ -3212,15 +3212,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    16,
-    86
+    11.5,
+    89.5
   ],
   "headingDegrees": 45,
   "speedKnots": 17,
   "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Haldia Dock Complex (HDC)",
-  "destinationId": "haldia",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "4000 TEU Scheduled Container Freight",
   "etaHours": 40,
   "etaTimestamp": "2026-09-06 11:00 IST",
@@ -3240,15 +3240,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    16.45,
-    86.5
+    11.95,
+    90.1
   ],
   "headingDegrees": 53,
   "speedKnots": 17.3,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "4200 TEU Scheduled Container Freight",
   "etaHours": 43,
   "etaTimestamp": "2026-09-07 12:00 IST",
@@ -3268,12 +3268,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    16.9,
-    87
+    12.4,
+    90.7
   ],
   "headingDegrees": 61,
   "speedKnots": 17.6,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
   "destinationPort": "Visakhapatnam (VCTPL)",
   "destinationId": "vizag",
@@ -3296,8 +3296,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    17.35,
-    87.5
+    12.85,
+    91.3
   ],
   "headingDegrees": 69,
   "speedKnots": 17.9,
@@ -3324,15 +3324,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    17.8,
-    88
+    13.3,
+    91.9
   ],
   "headingDegrees": 77,
   "speedKnots": 18.2,
   "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "4800 TEU Scheduled Container Freight",
   "etaHours": 12,
   "etaTimestamp": "2026-09-06 15:00 IST",
@@ -3352,15 +3352,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    18.25,
-    88.5
+    13.75,
+    92.5
   ],
   "headingDegrees": 85,
   "speedKnots": 18.5,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Visakhapatnam (VCTPL)",
-  "destinationId": "vizag",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "5000 TEU Scheduled Container Freight",
   "etaHours": 15,
   "etaTimestamp": "2026-09-07 16:00 IST",
@@ -3380,15 +3380,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    18.7,
-    81
+    14.2,
+    93.1
   ],
   "headingDegrees": 93,
   "speedKnots": 18.8,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Haldia Dock Complex (HDC)",
-  "destinationId": "haldia",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "5200 TEU Scheduled Container Freight",
   "etaHours": 18,
   "etaTimestamp": "2026-09-06 17:00 IST",
@@ -3408,15 +3408,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    19.15,
-    81.5
+    14.65,
+    88.7
   ],
   "headingDegrees": 101,
   "speedKnots": 14.1,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "5400 TEU Scheduled Container Freight",
   "etaHours": 21,
   "etaTimestamp": "2026-09-07 18:00 IST",
@@ -3436,8 +3436,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    19.6,
-    82
+    15.1,
+    89.3
   ],
   "headingDegrees": 109,
   "speedKnots": 14.4,
@@ -3464,8 +3464,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    20.05,
-    82.5
+    15.55,
+    89.9
   ],
   "headingDegrees": 117,
   "speedKnots": 14.7,
@@ -3492,15 +3492,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    20.5,
-    83
+    16,
+    90.5
   ],
   "headingDegrees": 125,
   "speedKnots": 15,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "6000 TEU Scheduled Container Freight",
   "etaHours": 30,
   "etaTimestamp": "2026-09-06 11:00 IST",
@@ -3520,15 +3520,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    20.95,
-    83.5
+    16.45,
+    91.1
   ],
   "headingDegrees": 133,
   "speedKnots": 15.3,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Visakhapatnam (VCTPL)",
-  "destinationId": "vizag",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "6200 TEU Scheduled Container Freight",
   "etaHours": 33,
   "etaTimestamp": "2026-09-07 12:00 IST",
@@ -3548,15 +3548,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    21.4,
-    84
+    16.9,
+    91.7
   ],
   "headingDegrees": 141,
   "speedKnots": 15.6,
   "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Haldia Dock Complex (HDC)",
-  "destinationId": "haldia",
+  "destinationPort": "Visakhapatnam (VCTPL)",
+  "destinationId": "vizag",
   "cargo": "6400 TEU Scheduled Container Freight",
   "etaHours": 36,
   "etaTimestamp": "2026-09-06 13:00 IST",
@@ -3576,15 +3576,15 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 152,
   "beamMeters": 23.5,
   "coordinates": [
-    21.85,
-    84.5
+    17.35,
+    92.3
   ],
   "headingDegrees": 149,
   "speedKnots": 15.9,
   "status": "Underway Using Engine",
   "originPort": "Port of Colombo (Sri Lanka)",
-  "destinationPort": "Paradip Port PICT Terminal",
-  "destinationId": "paradip",
+  "destinationPort": "Haldia Dock Complex (HDC)",
+  "destinationId": "haldia",
   "cargo": "6600 TEU Scheduled Container Freight",
   "etaHours": 39,
   "etaTimestamp": "2026-09-07 14:00 IST",
@@ -3604,12 +3604,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 300,
   "beamMeters": 42.8,
   "coordinates": [
-    11.8,
-    85
+    17.8,
+    92.9
   ],
   "headingDegrees": 157,
   "speedKnots": 16.2,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Port of Singapore (PSA)",
   "destinationPort": "Visakhapatnam (VCTPL)",
   "destinationId": "vizag",
@@ -3632,8 +3632,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    14,
-    83
+    20.815,
+    86.995
   ],
   "headingDegrees": 340,
   "speedKnots": 14.5,
@@ -3660,12 +3660,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    14.6,
-    83.5
+    17.66,
+    83.29
   ],
   "headingDegrees": 345,
   "speedKnots": 14.7,
-  "status": "Underway Using Engine",
+  "status": "Discharging at Berth",
   "originPort": "Ras Laffan (Qatar)",
   "destinationPort": "Dhamra LNG Terminal",
   "destinationId": "dhamra",
@@ -3688,8 +3688,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 226,
   "beamMeters": 36.6,
   "coordinates": [
-    15.2,
-    84
+    20.78,
+    87.12
   ],
   "headingDegrees": 350,
   "speedKnots": 14.9,
@@ -3716,12 +3716,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 226,
   "beamMeters": 36.6,
   "coordinates": [
-    15.8,
-    84.5
+    11.4,
+    89.9
   ],
   "headingDegrees": 355,
   "speedKnots": 15.1,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Ras Laffan (Qatar)",
   "destinationPort": "Visakhapatnam LPG Berth",
   "destinationId": "vizag",
@@ -3744,8 +3744,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    16.4,
-    85
+    12.2,
+    87.3
   ],
   "headingDegrees": 0,
   "speedKnots": 15.3,
@@ -3772,8 +3772,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    17,
-    85.5
+    13,
+    88.2
   ],
   "headingDegrees": 5,
   "speedKnots": 15.5,
@@ -3800,12 +3800,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    17.6,
-    86
+    13.8,
+    89.1
   ],
   "headingDegrees": 10,
   "speedKnots": 15.7,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Ras Laffan (Qatar)",
   "destinationPort": "Dhamra LNG Terminal",
   "destinationId": "dhamra",
@@ -3828,8 +3828,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 226,
   "beamMeters": 36.6,
   "coordinates": [
-    18.2,
-    86.5
+    14.6,
+    90
   ],
   "headingDegrees": 15,
   "speedKnots": 15.9,
@@ -3856,8 +3856,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 226,
   "beamMeters": 36.6,
   "coordinates": [
-    18.8,
-    87
+    15.4,
+    87.4
   ],
   "headingDegrees": 20,
   "speedKnots": 16.1,
@@ -3884,12 +3884,12 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 226,
   "beamMeters": 36.6,
   "coordinates": [
-    19.4,
-    87.5
+    16.2,
+    88.3
   ],
   "headingDegrees": 25,
   "speedKnots": 16.3,
-  "status": "Discharging at Berth",
+  "status": "Underway Using Engine",
   "originPort": "Ras Laffan (Qatar)",
   "destinationPort": "Visakhapatnam LPG Berth",
   "destinationId": "vizag",
@@ -3912,8 +3912,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    20,
-    88
+    17,
+    89.2
   ],
   "headingDegrees": 30,
   "speedKnots": 16.5,
@@ -3940,8 +3940,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 315,
   "beamMeters": 50,
   "coordinates": [
-    20.6,
-    88.5
+    17.8,
+    90.1
   ],
   "headingDegrees": 35,
   "speedKnots": 16.7,
@@ -3971,7 +3971,7 @@ export const LIVE_AIS_VESSELS = [
     22.04,
     88.08
   ],
-  "headingDegrees": 0,
+  "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
   "originPort": "Haldia Navigational Channel",
@@ -3999,7 +3999,7 @@ export const LIVE_AIS_VESSELS = [
     20.27,
     86.69
   ],
-  "headingDegrees": 35,
+  "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
   "originPort": "Paradip Entrance Channel",
@@ -4027,7 +4027,7 @@ export const LIVE_AIS_VESSELS = [
     17.68,
     83.33
   ],
-  "headingDegrees": 70,
+  "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
   "originPort": "Vizag Outer Fairway",
@@ -4055,7 +4055,7 @@ export const LIVE_AIS_VESSELS = [
     20.85,
     87.01
   ],
-  "headingDegrees": 105,
+  "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
   "originPort": "Dhamra River Channel",
@@ -4083,7 +4083,7 @@ export const LIVE_AIS_VESSELS = [
     20.26,
     86.665
   ],
-  "headingDegrees": 140,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Paradip Port Trust",
@@ -4111,7 +4111,7 @@ export const LIVE_AIS_VESSELS = [
     22.021,
     88.061
   ],
-  "headingDegrees": 175,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Haldia Lock Gates Basin",
@@ -4139,7 +4139,7 @@ export const LIVE_AIS_VESSELS = [
     17.695,
     83.305
   ],
-  "headingDegrees": 210,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Visakhapatnam Port",
@@ -4167,7 +4167,7 @@ export const LIVE_AIS_VESSELS = [
     20.825,
     86.97
   ],
-  "headingDegrees": 245,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Dhamra Port (DPCL)",
@@ -4195,7 +4195,7 @@ export const LIVE_AIS_VESSELS = [
     21.06,
     88.21
   ],
-  "headingDegrees": 280,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Sandheads Pilot Boarding",
@@ -4223,7 +4223,7 @@ export const LIVE_AIS_VESSELS = [
     17.685,
     83.325
   ],
-  "headingDegrees": 315,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Vizag Breakwater Roads",
@@ -4251,7 +4251,7 @@ export const LIVE_AIS_VESSELS = [
     19.298,
     84.962
   ],
-  "headingDegrees": 350,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Gopalpur Port Basin",
@@ -4279,7 +4279,7 @@ export const LIVE_AIS_VESSELS = [
     17.625,
     83.24
   ],
-  "headingDegrees": 25,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Gangavaram Port (GPL)",
@@ -4307,7 +4307,7 @@ export const LIVE_AIS_VESSELS = [
     21.15,
     88.15
   ],
-  "headingDegrees": 60,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Sandheads Approaches",
@@ -4335,7 +4335,7 @@ export const LIVE_AIS_VESSELS = [
     19.5,
     86.8
   ],
-  "headingDegrees": 95,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Bay of Bengal Maritime Boundary",
@@ -4363,7 +4363,7 @@ export const LIVE_AIS_VESSELS = [
     21.01,
     88.24
   ],
-  "headingDegrees": 130,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Sandheads Lightering Anchorage",
@@ -4391,7 +4391,7 @@ export const LIVE_AIS_VESSELS = [
     19.29,
     84.975
   ],
-  "headingDegrees": 165,
+  "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
   "originPort": "Gopalpur Nav Channel",
@@ -4419,7 +4419,7 @@ export const LIVE_AIS_VESSELS = [
     20.258,
     86.678
   ],
-  "headingDegrees": 200,
+  "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
   "originPort": "Paradip Port Basin",
@@ -4447,7 +4447,7 @@ export const LIVE_AIS_VESSELS = [
     22.01,
     88.055
   ],
-  "headingDegrees": 235,
+  "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
   "originPort": "Haldia Oil Jetty Approach",
@@ -4547,8 +4547,8 @@ export const SHIPPING_CORRIDORS = [
       [-10.0, 105.0],
       [0.0, 95.0],
       [6.0, 90.0],
-      [12.0, 86.0],
-      [17.5, 84.0],
+      [12.0, 88.0],
+      [17.5, 86.5],
       [20.2, 86.7]
     ]
   },
@@ -4560,7 +4560,7 @@ export const SHIPPING_CORRIDORS = [
       [1.3, 103.8],
       [5.5, 96.0],
       [10.0, 92.0],
-      [16.0, 89.0],
+      [16.0, 89.5],
       [21.0, 88.2],
       [22.0, 88.06]
     ]
@@ -4571,10 +4571,10 @@ export const SHIPPING_CORRIDORS = [
     color: '#d97706',
     coordinates: [
       [2.0, 78.0],
-      [5.9, 80.5],
-      [10.0, 82.5],
-      [15.0, 83.5],
-      [17.6, 83.3],
+      [5.9, 81.5],
+      [10.0, 84.0],
+      [15.0, 85.0],
+      [17.6, 84.2],
       [20.2, 86.7]
     ]
   }

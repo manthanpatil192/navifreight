@@ -291,18 +291,44 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
     const interval = setInterval(() => {
       setVessels(prevVessels =>
         prevVessels.map(v => {
-          if (v.status.includes('Anchor') || v.status.includes('Berth')) return v;
+          if (v.status.includes('Anchor') || v.status.includes('Berth') || v.status.includes('Moored')) return v;
 
           const speedKnots = v.speedKnots * simulationSpeed;
-          const latDelta = (Math.cos((v.headingDegrees * Math.PI) / 180) * speedKnots * 0.00025);
-          const lngDelta = (Math.sin((v.headingDegrees * Math.PI) / 180) * speedKnots * 0.00025);
+          let latDelta = (Math.cos((v.headingDegrees * Math.PI) / 180) * speedKnots * 0.00025);
+          let lngDelta = (Math.sin((v.headingDegrees * Math.PI) / 180) * speedKnots * 0.00025);
+
+          let nextLat = Number((v.coordinates[0] + latDelta).toFixed(4));
+          let nextLng = Number((v.coordinates[1] + lngDelta).toFixed(4));
+          let nextHeading = v.headingDegrees;
+
+          // Strict East Coast coastline safe water boundary check
+          let minSeaLng = 80.5;
+          if (nextLat < 8.0) minSeaLng = 77.5;
+          else if (nextLat < 10.0) minSeaLng = 80.0;
+          else if (nextLat < 13.5) minSeaLng = 80.45;
+          else if (nextLat < 15.5) minSeaLng = 80.30;
+          else if (nextLat < 17.0) minSeaLng = 82.50;
+          else if (nextLat < 18.0) minSeaLng = 83.40;
+          else if (nextLat < 19.5) minSeaLng = 85.10;
+          else if (nextLat < 20.5) minSeaLng = 86.75;
+          else if (nextLat < 21.5) minSeaLng = 87.10;
+          else minSeaLng = 87.90;
+
+          // Designated river fairway exception (Haldia & Sandheads approaches)
+          const isRiverFairway = (nextLat >= 21.50 && nextLat <= 22.10 && nextLng >= 88.02 && nextLng <= 88.18) ||
+                                (nextLat >= 22.50 && nextLat <= 22.58 && nextLng >= 88.28 && nextLng <= 88.35);
+
+          // If vessel reaches close to the shoreline, steer it safely back towards open sea
+          if (!isRiverFairway && (nextLng <= minSeaLng + 0.05 || nextLat >= 22.05 || nextLng >= 95.5 || nextLat <= 5.5)) {
+            nextHeading = (nextHeading + 180) % 360;
+            nextLng = Math.max(nextLng, minSeaLng + 0.15);
+            if (nextLat > 22.0) nextLat = 21.85;
+          }
 
           return {
             ...v,
-            coordinates: [
-              Number((v.coordinates[0] + latDelta).toFixed(4)),
-              Number((v.coordinates[1] + lngDelta).toFixed(4))
-            ]
+            headingDegrees: nextHeading,
+            coordinates: [nextLat, nextLng]
           };
         })
       );
