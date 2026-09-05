@@ -297,11 +297,18 @@ export default function WebTerminalModelTrainer({
     const estP90 = Number((estSpot * 1.28).toFixed(2));
     const coaFixed = Number((baseRate * 0.94).toFixed(2));
 
-    const blended = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
+    // Blended rate computations:
+    // 1. Conservative Baseline (Spot leg at P50 Median Forward Rate)
+    const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
+    // 2. Tactical Dip Capture (Spot leg executed at P10 Forward Dip)
+    const blendedP10 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estP10)).toFixed(2));
+    const blended = blendedP50; // Active benchmark for conservative portfolio baseline
 
     // Financial totals (USD and INR based on Forward Forex Trend)
-    const unhedgedUSD = Math.round(estSpot * manualVolume);
+    const unhedgedUSD = Math.round(estSpot * manualVolume); // Forward P50 unhedged
+    const currentSpotUSD = Math.round(baseRate * manualVolume); // Today's spot baseline
     const optUSD = Math.round(blended * manualVolume);
+    const optP10USD = Math.round(blendedP10 * manualVolume);
     const savingsUSD = unhedgedUSD - optUSD;
     const demurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
     const demurrageTotalUSD = Math.round(totalCongestionDays * demurrageDailyUSD);
@@ -313,16 +320,21 @@ export default function WebTerminalModelTrainer({
     const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
 
     const spotRateINR = Math.round(baseRate * baseFxRate);
+    const currentSpotINR_Cr = ((currentSpotUSD * baseFxRate) / 10000000).toFixed(2);
     const estSpotINR = Math.round(estSpot * forwardFxRate);
     const estP10INR = Math.round(estP10 * forwardFxRate);
     const estP90INR = Math.round(estP90 * forwardFxRate);
     const coaFixedINR = Math.round(coaFixed * baseFxRate);
     const blendedINR = Math.round(blended * blendedFxRate);
+    const blendedP10INR = Math.round(blendedP10 * blendedFxRate);
     const rateSavingsINR = estSpotINR - blendedINR;
+    const rateSavingsP10INR = estSpotINR - blendedP10INR;
 
     const unhedgedINR_Cr = ((unhedgedUSD * forwardFxRate) / 10000000).toFixed(2);
     const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
+    const optP10INR_Cr = ((optP10USD * blendedFxRate) / 10000000).toFixed(2);
     const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
+    const demurrageDailyINR_Lakhs = ((demurrageDailyUSD * baseFxRate) / 100000).toFixed(1);
     const demurrageTotalINR_Lakhs = ((demurrageTotalUSD * baseFxRate) / 100000).toFixed(2);
 
     // Dynamic Buy / Strike & Hold / Wait Directives
@@ -465,15 +477,17 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
 ----------------------------------------------------------------------
 [4] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA Weight:          ${coaSplit}% (Hedging Blast Furnace Feed vs Weather & Spot Volatility)
-  * Recommended Spot Weight:         ${100 - coaSplit}% (Captures P10 Dip Windows)
-  * Blended Landed Freight Rate:     ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT)
-  * Net Landed Savings vs Spot:      ₹${rateSavingsINR.toLocaleString()} /MT saved on every metric ton!
+  * Recommended Spot Weight:         ${100 - coaSplit}% (Tactical Window Allocation)
+  * Blended Rate (P50 Median Base):  ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P50 Spot @ ₹${estSpotINR}]
+  * Blended Rate (P10 Dip Target):   ₹${blendedP10INR.toLocaleString()} /MT   ($${blendedP10.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P10 Dip @ ₹${estP10INR}]
+  * Net Landed Savings vs P50 Spot:  ₹${rateSavingsINR.toLocaleString()} /MT (₹${rateSavingsP10INR.toLocaleString()} /MT if P10 Dip sniped)
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
-  * Unhedged 100% Spot Cost:         ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD)
+  * Unhedged Forward Spot (P50):     ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD @ Forward FX)
+  * Current Spot Baseline (Today):   ₹${currentSpotINR_Cr} Crore   ($${currentSpotUSD.toLocaleString()} USD @ Spot FX)
   * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
-  * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
-  * Demurrage Exposure:              ₹${demurrageTotalINR_Lakhs} Lakhs  (${totalCongestionDays.toFixed(1)} Days Total Wait / $${demurrageTotalUSD.toLocaleString()} USD)
+  * NET SAVINGS VS UNHEDGED P50:     ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
+  * Demurrage Exposure (Per Voyage): ₹${demurrageTotalINR_Lakhs} Lakhs  (${totalCongestionDays.toFixed(1)} Days Wait @ ₹${demurrageDailyINR_Lakhs}L/day [$${demurrageDailyUSD.toLocaleString()} USD/day])
 ----------------------------------------------------------------------
 [6] PS PART (B) VESSEL TYPE OPTIMIZATION DIRECTIVE:
   * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
@@ -481,8 +495,8 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
                                      Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
   * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin` : `[RESTRICTED] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
   * LOA & BERTH SUITABILITY:         Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [CLEAR]
-  * HANDLING CAPABILITY TURNAROUND:  ${vesselOptimization.recommendedVessel.totalDischargeDays} Days (@ ${destObj.handlingRateTPD.toLocaleString()} TPD at ${destObj.name})
-  * IDLE TIME PREVENTED:             Avoided ${vesselOptimization.idleDaysSaved} Days Idle Demurrage (Saved ₹${vesselOptimization.demurrageSavedINR_Lakhs} Lakhs vs Misallocated Vessel)
+  * HANDLING CAPABILITY TURNAROUND:  ${vesselOptimization.recommendedVessel.totalDischargeDays} Days (${vesselOptimization.recommendedVessel.pureDischargeDays || (manualVolume / destObj.handlingRateTPD).toFixed(1)}d Net Discharge @ ${destObj.handlingRateTPD.toLocaleString()} TPD + ${vesselOptimization.recommendedVessel.portManeuverBufferDays || '1.0'}d Pilotage, Mooring & Draft Survey)
+  * IDLE TIME PREVENTED:             Avoided ${vesselOptimization.idleDaysSaved} Days Idle Demurrage (Saved ₹${vesselOptimization.demurrageSavedINR_Lakhs} Lakhs across ${vesselOptimization.subOptimalVessel.voyagesNeeded || 1} parcel voyage(s) vs Misallocated Vessel)
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
         }

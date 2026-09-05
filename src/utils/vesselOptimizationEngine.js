@@ -136,7 +136,9 @@ export function optimizeVesselType({
     // 3. Handling capability & turnaround time
     const voyagesNeeded = Math.max(1, Math.ceil(cargoVolumeMT / Math.min(cargoVolumeMT, vessel.capacityMT)));
     const actualDischargeRateTPD = dest.handlingRateTPD || 45000;
-    const dischargeDaysPerVoyage = Number((Math.min(cargoVolumeMT, vessel.capacityMT) / actualDischargeRateTPD).toFixed(1));
+    const pureDischargeDays = Number((Math.min(cargoVolumeMT, vessel.capacityMT) / actualDischargeRateTPD).toFixed(2));
+    const portManeuverBufferDays = 1.0; // Inward/outward pilotage, berthing maneuver & draft survey
+    const dischargeDaysPerVoyage = Number((pureDischargeDays + portManeuverBufferDays).toFixed(1));
     const totalDischargeDays = Number((dischargeDaysPerVoyage * voyagesNeeded).toFixed(1));
 
     // 4. Idle time & Demurrage calculation
@@ -229,6 +231,8 @@ export function optimizeVesselType({
       lighterageRequired,
       isLightLoaded,
       voyagesNeeded,
+      pureDischargeDays,
+      portManeuverBufferDays,
       dischargeDaysPerVoyage,
       totalDischargeDays,
       idleDays,
