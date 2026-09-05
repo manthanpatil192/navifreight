@@ -46,6 +46,14 @@ export default function CharterTimingDecisionMatrix({
   };
   const baseSpotRate = baseRateMatrix[routeKey] || 15.80;
 
+  // Weather and extreme demand statuses from Window Terminal
+  const isOriginImproper = terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper;
+  const isDestImproper = terminalMetrics?.destWeather && !terminalMetrics.destWeather.isWeatherProper;
+  const isExtremeDemand = terminalMetrics?.isExtremeDemand ?? false;
+  const activeWeatherWaitDate = isOriginImproper 
+    ? terminalMetrics?.originWeather?.recommendedWaitDate 
+    : (isDestImproper ? terminalMetrics?.destWeather?.recommendedWaitDate : null);
+
   // Compute forward horizons (1-Month Spot, 3-Month COA, 6-Month COA)
   // Dynamic Contract Horizon Decision Engine (PS Part A Core)
   // Evaluates realistic commercial suitability:
@@ -143,14 +151,6 @@ export default function CharterTimingDecisionMatrix({
   const promptLaycanWindowDate = 'Sep 08 – Sep 15, 2026'; // Prompt September Execution Window
   const forwardDipWindowDate = 'Oct 12 – Oct 19, 2026'; // Forward P10 Dip Valley (~38 days ahead)
   const blackoutWindowDate = 'Nov 01 – Nov 18, 2026'; // Seasonal Pre-Winter Volatility Spike
-
-  // Weather and extreme demand statuses from Window Terminal
-  const isOriginImproper = terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper;
-  const isDestImproper = terminalMetrics?.destWeather && !terminalMetrics.destWeather.isWeatherProper;
-  const isExtremeDemand = terminalMetrics?.isExtremeDemand ?? false;
-  const activeWeatherWaitDate = isOriginImproper 
-    ? terminalMetrics?.originWeather?.recommendedWaitDate 
-    : (isDestImproper ? terminalMetrics?.destWeather?.recommendedWaitDate : null);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-subtle p-5 mb-6 text-slate-800">

@@ -530,24 +530,39 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
   * Current Spot Rate:               ₹${spotRateINR.toLocaleString()} /MT   ($${baseRate.toFixed(2)} /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate cargo vessel right now]
   * Expected Forward Median (P50):   ₹${estSpotINR.toLocaleString()} /MT   ($${estSpot.toFixed(2)} /MT @ Forward FX)  [Headline MAPE: 13.40%]
+    ↳ [Meaning: Most likely future price in 3–6 months (50% chance higher, 50% lower)]
   * Optimistic Dip Bound (P10):      ₹${estP10INR.toLocaleString()} /MT   ($${estP10.toFixed(2)} /MT @ Forward FX)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress Tail-Risk Bound (P90):    ₹${estP90INR.toLocaleString()} /MT   ($${estP90.toFixed(2)} /MT @ Forward FX)  [90.8% 90%CI Coverage]
+    ↳ [Meaning: Worst-case surge price during crises, storms, or spikes (90th percentile ceiling)]
   * COA Fixed Contract Lock:         ₹${coaFixedINR.toLocaleString()} /MT   ($${coaFixed.toFixed(2)} /MT @ Spot FX)  [Locked Long-Term]
+    ↳ [Meaning: Pre-negotiated fixed wholesale bulk contract rate (locks in cheap price)]
 ----------------------------------------------------------------------
 [4] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA Weight:          ${coaSplit}% (Hedging Blast Furnace Feed vs Weather & Spot Volatility)
+    ↳ [Meaning: % of cargo locked in fixed contract so blast furnace never runs out of coal]
   * Recommended Spot Weight:         ${100 - coaSplit}% (Tactical Window Allocation)
+    ↳ [Meaning: % of cargo left open in daily market to catch lucky price dips]
   * Blended Rate (P50 Median Base):  ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P50 Spot @ ₹${estSpotINR}]
+    ↳ [Meaning: Combined weighted average price paid per ton across both contracts]
   * Blended Rate (P10 Dip Target):   ₹${blendedP10INR.toLocaleString()} /MT   ($${blendedP10.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P10 Dip @ ₹${estP10INR}]
+    ↳ [Meaning: Target combined average price if we successfully catch the bargain dip]
   * Net Landed Savings vs P50 Spot:  ₹${rateSavingsINR.toLocaleString()} /MT (₹${rateSavingsP10INR.toLocaleString()} /MT if P10 Dip sniped)
+    ↳ [Meaning: Actual cash saved per ton compared to buying blindly in the future]
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
   * Unhedged Forward Spot (P50):     ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD @ Forward FX)
+    ↳ [Meaning: Total bill with zero planning if paying full future market rate]
   * Current Spot Baseline (Today):   ₹${currentSpotINR_Cr} Crore   ($${currentSpotUSD.toLocaleString()} USD @ Spot FX)
+    ↳ [Meaning: Total bill if whole cargo sailed today at current spot price]
   * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
+    ↳ [Meaning: Total bill achieved using our AI's 70% COA + 30% timing strategy]
   * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED vs Unhedged Forward Spot!
+    ↳ [Meaning: Pure corporate money saved for your company on this shipment]
   * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage [Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d] × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
 ----------------------------------------------------------------------
 [6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
   * DISCHARGE PORT TRAFFIC AUDIT [${destObj.name}]:
@@ -662,21 +677,33 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
   * Current Spot:     $15.80 /MT  (₹1,367 /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
   * Expected P50:     $17.32 /MT  (₹1,498 /MT)  [Headline MAPE: 15.49%]
+    ↳ [Meaning: Most likely future price in 3 months (50% chance higher, 50% lower)]
   * Optimistic P10:   $14.85 /MT  (₹1,285 /MT)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress P90:       $21.18 /MT  (₹1,832 /MT)  [89.9% 90%CI Coverage]
+    ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $14.85 /MT  (₹1,285 /MT)
+    ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  70% (Guarantees Plant Basestock)
+    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
+    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
   * Blended Rate:     $15.59 /MT  (₹1,349 /MT)  (Saves $1.73/MT vs Spot)
+    ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
+    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
   * NaviFreight Optimized:   $2,338,500  (₹20.23 Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
   * Net Freight Cost Savings:  $258,768  (INR 2.24 Crore)
+    ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        2.5 Days Wait ($62,500 / INR 0.54 Cr)
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
 ----------------------------------------------------------------------
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
@@ -801,21 +828,33 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
   * Current Spot:     $16.40 /MT  (₹1,419 /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
   * Expected P50:     $19.65 /MT  (₹1,700 /MT)  [Headline MAPE: 15.49%]
+    ↳ [Meaning: Most likely future price in 1 month (50% chance higher, 50% lower)]
   * Optimistic P10:   $14.52 /MT  (₹1,256 /MT)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress P90:       $25.88 /MT  (₹2,239 /MT)  [89.9% 90%CI Coverage - High Asymmetry]
+    ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $15.42 /MT  (₹1,334 /MT)
+    ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [4] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  85% (Protects Blast Furnace against Peak Spike)
+    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 15% (Strictly Limited Spot Exposure)
+    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
   * Blended Rate:     $16.05 /MT  (₹1,388 /MT)  (Saves $3.60/MT vs Spot)
+    ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $1,473,750  (₹12.75 Crore)
+    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
   * NaviFreight Optimized:   $1,203,750  (₹10.41 Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart 85-15 allocation]
   * Net Freight Cost Savings:  $270,000  (INR 2.34 Crore)
+    ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        7.5 Days Wait ($165,000 / INR 1.43 Cr)
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
 ----------------------------------------------------------------------
 [6] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
@@ -912,21 +951,33 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
   * Current Spot:     $14.20 /MT  (₹1,228 /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
   * Expected P50:     $21.10 /MT  (₹1,825 /MT)  [Headline MAPE: 15.49%]
+    ↳ [Meaning: Most likely future price in 6 months (50% chance higher, 50% lower)]
   * Optimistic P10:   $16.80 /MT  (₹1,453 /MT)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress P90:       $27.05 /MT  (₹2,340 /MT)  [89.9% 90%CI Coverage]
+    ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $13.35 /MT  (₹1,155 /MT)
+    ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  80% (Locks Long-Term Capacity Before Squeeze)
+    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 20%
+    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
   * Blended Rate:     $14.90 /MT  (₹1,289 /MT)  (Saves $6.20/MT vs Spot Peak)
+    ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $3,798,000  (₹32.85 Crore)
+    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
   * NaviFreight Optimized:   $2,682,000  (₹23.20 Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart 80-20 allocation]
   * Net Freight Cost Savings:  $1,116,000  (INR 9.65 Crore)
+    ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        4.0 Days Wait ($100,000 / INR 0.86 Cr)
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
 ----------------------------------------------------------------------
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Laycan Booking Window:     Sep 06 - Sep 13, 2026
