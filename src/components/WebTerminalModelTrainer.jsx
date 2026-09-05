@@ -10,6 +10,7 @@ import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
+import { fetchLiveOriginWeather, evaluateAlternateOriginPort } from '../services/originWeatherService';
 import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 
 export default function WebTerminalModelTrainer({ 
@@ -45,8 +46,9 @@ export default function WebTerminalModelTrainer({
     });
   }, [manualOrigin, manualDest, manualVolume, manualCargo]);
 
-  // Live Real-Time Bay of Bengal IMD Weather State (Direct API Ingestion)
+  // Live Real-Time Source & Destination Marine Weather Telemetry State
   const [liveBobWeather, setLiveBobWeather] = useState(null);
+  const [liveOriginWeather, setLiveOriginWeather] = useState(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
 
   // Auto-fetch real-time IMD Marine telemetry for the selected Indian discharge port
@@ -65,6 +67,20 @@ export default function WebTerminalModelTrainer({
       });
     return () => { isMounted = false; };
   }, [manualDest]);
+
+  // Auto-fetch real-time marine weather telemetry for the selected origin loading port
+  useEffect(() => {
+    let isMounted = true;
+    const vesselDraft = VESSEL_CLASSES[manualVessel]?.ladenDraftMeters || 16.0;
+    fetchLiveOriginWeather(manualOrigin, manualCargo, vesselDraft)
+      .then(data => {
+        if (isMounted) {
+          setLiveOriginWeather(data);
+        }
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, [manualOrigin, manualCargo, manualVessel]);
 
   const [activeTab, setActiveTab] = useState('terminal');
   const [terminalHistory, setTerminalHistory] = useState([
@@ -193,44 +209,62 @@ export default function WebTerminalModelTrainer({
     const recommendedVesselKey = vesselOptimization.recommendedVesselId;
     const vesselObj = VESSEL_CLASSES[recommendedVesselKey] || VESSEL_CLASSES.panamax;
 
-    // Live Bay of Bengal IMD Weather API Ingestion
-    let weatherData = liveBobWeather;
-    if (!weatherData || weatherData.sectorId !== manualDest) {
-      try {
-        weatherData = await fetchLiveBayOfBengalWeather(manualDest);
-        setLiveBobWeather(weatherData);
-      } catch (e) {
-        weatherData = liveBobWeather;
-      }
+    // Live Dual-Port Weather API Ingestion (Source Loading Port + Destination Discharge Port)
+    let destWeather = liveBobWeather;
+    let originWeather = liveOriginWeather;
+
+    try {
+      const vesselDraft = vesselObj.ladenDraftMeters || 16.0;
+      const [oW, dW] = await Promise.all([
+        fetchLiveOriginWeather(manualOrigin, manualCargo, vesselDraft),
+        fetchLiveBayOfBengalWeather(manualDest)
+      ]);
+      originWeather = oW;
+      destWeather = dW;
+      setLiveOriginWeather(oW);
+      setLiveBobWeather(dW);
+    } catch (e) {
+      if (!originWeather) originWeather = await fetchLiveOriginWeather(manualOrigin, manualCargo, 16.0);
+      if (!destWeather) destWeather = await fetchLiveBayOfBengalWeather(manualDest);
     }
 
-    const laycanBufferHours = weatherData?.laycanBufferHours || 0;
-    const weatherDelayDays = Number((laycanBufferHours / 24.0).toFixed(1));
+    const destLaycanBufferHours = destWeather?.laycanBufferHours || 0;
+    const destDelayDays = Number((destLaycanBufferHours / 24.0).toFixed(1));
+    const originDelayDays = Number((originWeather?.laycanDelayDays || 0).toFixed(1));
+    const weatherDelayDays = Number((destDelayDays + originDelayDays).toFixed(1));
     const baseWaitDays = destObj.avgWaitDays || 2.5;
     const totalCongestionDays = Number((baseWaitDays + weatherDelayDays).toFixed(1));
 
-    // Volatility and CVaR split dynamically driven by live IMD telemetry
+    // Sea weather proper checks
+    const originProper = originWeather?.isWeatherProper ?? true;
+    const destProper = destWeather?.isWeatherProper ?? true;
+    const bothWeatherProper = originProper && destProper;
+
+    // Volatility and CVaR split dynamically driven by dual-port weather telemetry
     let volatilityMult = 1.0;
     let coaSplit = 70;
     let weatherImpactNote = "Normal Synoptic State";
 
-    if (weatherData?.severity === 'CRITICAL') {
-      volatilityMult = 1.65;
+    if (destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL') {
+      volatilityMult = 1.70;
       coaSplit = 85;
-      weatherImpactNote = `Extreme Cyclonic Warning (${weatherData.stage}) - 85% COA Hedge Applied`;
-    } else if (weatherData?.severity === 'HIGH') {
+      weatherImpactNote = `Critical Maritime Hazard (${originWeather?.severity === 'CRITICAL' ? originWeather.portName : destWeather?.stage}) - 85% COA Hedge Applied`;
+    } else if (destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH') {
       volatilityMult = 1.45;
       coaSplit = 80;
-      weatherImpactNote = `High Seas & Squally Weather (${weatherData.stage}) - 80% COA Hedge Applied`;
-    } else if (weatherData?.severity === 'MODERATE') {
+      weatherImpactNote = `High Seas & Squally Weather (${destWeather?.stage || 'Swell Alert'}) - 80% COA Hedge Applied`;
+    } else if (destWeather?.severity === 'MODERATE' || originWeather?.severity === 'MODERATE') {
       volatilityMult = 1.25;
       coaSplit = 75;
-      weatherImpactNote = `Convective Low Pressure (${weatherData.stage}) - 75% COA Cushion`;
+      weatherImpactNote = `Convective Low Pressure (${destWeather?.stage || 'Advisory'}) - 75% COA Cushion`;
     } else {
       volatilityMult = 1.05;
       coaSplit = 70;
-      weatherImpactNote = `Calm Synoptic Berthing (${weatherData?.stage || 'Normal'})`;
+      weatherImpactNote = `Calm Synoptic Berthing (${destWeather?.stage || 'Normal'})`;
     }
+
+    // Extreme Demand Logic
+    const isExtremeDemand = (volatilityMult >= 1.35) || (manualVolume >= 120000 && destObj.avgWaitDays >= 2.5) || (!originProper && !destProper);
 
     // Tide & Berth Draft Bathymetry (Auto-evaluated from port bathymetry)
     const effectivePortDraft = destObj.maxDraftLaden || 16.0;
@@ -247,15 +281,14 @@ export default function WebTerminalModelTrainer({
     // Freight calculations
     const routeKey = `${manualOrigin}-${manualDest}`;
     const baseRateMatrix = {
-      'hay_point-dhamra': 15.40, 'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-gangavaram': 16.10, 'hay_point-krishnapatnam': 16.30,
-      'gladstone-dhamra': 15.60, 'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-gangavaram': 16.30, 'gladstone-krishnapatnam': 16.50,
-      'richards_bay-dhamra': 13.90, 'richards_bay-paradip': 14.20, 'richards_bay-vizag': 14.80, 'richards_bay-krishnapatnam': 14.30, 'richards_bay-kamarajar': 14.50,
-      'hampton_roads-dhamra': 32.00, 'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80,
-      'maputo-dhamra': 13.40, 'maputo-paradip': 13.60, 'maputo-vizag': 13.90,
-      'samarinda-dhamra': 8.80, 'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70, 'samarinda-haldia': 9.40,
-      'taboneo-dhamra': 8.50, 'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40, 'taboneo-krishnapatnam': 8.30,
-      'port_hedland-rotterdam': 22.50, 'port_hedland-qingdao': 11.20, 'port_hedland-paradip': 14.80,
-      'tubarao-rotterdam': 18.40, 'tubarao-qingdao': 24.80
+      'hay_point-dhamra': 15.40, 'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-gangavaram': 16.10, 'hay_point-gopalpur': 16.00, 'hay_point-sandheads': 15.90, 'hay_point-haldia': 16.60,
+      'gladstone-dhamra': 15.60, 'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-gangavaram': 16.30, 'gladstone-gopalpur': 16.20, 'gladstone-sandheads': 16.10, 'gladstone-haldia': 16.80,
+      'newcastle-dhamra': 15.90, 'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70, 'newcastle-gangavaram': 16.60, 'newcastle-gopalpur': 16.50, 'newcastle-sandheads': 16.40, 'newcastle-haldia': 17.10,
+      'hampton_roads-dhamra': 32.00, 'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80, 'hampton_roads-gangavaram': 32.70, 'hampton_roads-gopalpur': 32.40, 'hampton_roads-sandheads': 32.60, 'hampton_roads-haldia': 33.50,
+      'maputo-dhamra': 13.40, 'maputo-paradip': 13.60, 'maputo-vizag': 13.90, 'maputo-gangavaram': 13.80, 'maputo-gopalpur': 13.50, 'maputo-sandheads': 13.70, 'maputo-haldia': 14.30,
+      'samarinda-dhamra': 8.80, 'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70, 'samarinda-gangavaram': 8.65, 'samarinda-gopalpur': 8.75, 'samarinda-sandheads': 8.85, 'samarinda-haldia': 9.40,
+      'taboneo-dhamra': 8.50, 'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40, 'taboneo-gangavaram': 8.35, 'taboneo-gopalpur': 8.45, 'taboneo-sandheads': 8.55, 'taboneo-haldia': 9.10,
+      'vostochny-dhamra': 18.20, 'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70, 'vostochny-gangavaram': 18.60, 'vostochny-gopalpur': 18.40, 'vostochny-sandheads': 18.50, 'vostochny-haldia': 19.20
     };
     const baseRate = baseRateMatrix[routeKey] || 16.20;
     const forwardDrift = (manualHorizon * 0.038 * volatilityMult) + ((weatherDelayDays * 0.4) / baseRate);
@@ -292,6 +325,24 @@ export default function WebTerminalModelTrainer({
     const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
     const demurrageTotalINR_Lakhs = ((demurrageTotalUSD * baseFxRate) / 100000).toFixed(2);
 
+    // Dynamic Buy / Strike & Hold / Wait Directives
+    const buyStrikeDirectiveText = isExtremeDemand
+      ? `🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target corridor ₹${estP10INR.toLocaleString()} ($${estP10.toFixed(2)}) to ₹${estSpotINR.toLocaleString()} ($${estSpot.toFixed(2)}) /MT. Do not hold out only for P10 as supply may sell out. Lock ${coaSplit}% under Fixed COA to protect blast furnace from P90 spike (₹${estP90INR.toLocaleString()}/MT).`
+      : `🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Calm sea window confirmed. Strike 3-Month COA tender at forward P10 target ₹${estP10INR.toLocaleString()} /MT ($${estP10.toFixed(2)} /MT). Saves ₹${rateSavingsINR.toLocaleString()} /MT vs spot!`;
+
+    let holdWaitDirectiveText = "";
+    if (!originProper) {
+      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Severe weather at source [${originObj.name}]. ${originWeather?.cancellationWarning || 'Contract cancellation risk!'} WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides, or DIVERT to alternate loading port ${originWeather?.alternatePort?.portName || 'Gladstone'}.`;
+    } else if (!destProper) {
+      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Bay of Bengal squalls at destination [${destObj.name}] (${destWeather?.stage || 'Depression'}). Anchorage delay +${destDelayDays}d adds ₹${((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1)}L demurrage. WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for calm pilotage window.`;
+    } else {
+      holdWaitDirectiveText = `🔴 HOLD / WAIT DIRECTIVE: Current spot freight ($${baseRate.toFixed(2)} /MT) is trending upward. Avoid daily spot spikes. WAIT TILL forward P10 dip window to save ₹${savingsINR_Cr} Crore.`;
+    }
+
+    const primaryWaitDate = !originProper 
+      ? originWeather?.recommendedWaitDate 
+      : (!destProper ? destWeather?.recommendedWaitDate : 'Oct 12 – Oct 19, 2026');
+
     const terminalMetricsPayload = {
       spotUSD: baseRate,
       spotINR: spotRateINR,
@@ -312,6 +363,36 @@ export default function WebTerminalModelTrainer({
       forwardFxRate: forwardFxRate,
       totalCongestionDays: totalCongestionDays,
       weatherDelayDays: weatherDelayDays,
+      // Dual-Port Weather
+      originWeather: {
+        portName: originObj.name,
+        isWeatherProper: originProper,
+        severity: originWeather?.severity || 'NORMAL',
+        waveHeightMeters: originWeather?.waveHeightMeters || 1.6,
+        windSpeedKnots: originWeather?.windSpeedKnots || 18.0,
+        weatherHazardDescription: originWeather?.weatherHazardDescription || 'Calm waters',
+        recommendedWaitDate: originWeather?.recommendedWaitDate || 'Sep 12, 2026',
+        contractCancellationRisk: !originProper,
+        cancellationWarning: originWeather?.cancellationWarning,
+        alternatePort: originWeather?.alternatePort
+      },
+      destWeather: {
+        portName: destObj.name,
+        isWeatherProper: destProper,
+        severity: destWeather?.severity || 'NORMAL',
+        stage: destWeather?.stage || 'Normal Synoptic',
+        waveHeightMeters: destWeather?.waveHeightMeters || 2.2,
+        windSpeedKnots: destWeather?.windSpeedKnots || 24.5,
+        recommendedWaitDate: destWeather?.recommendedWaitDate || 'Sep 15, 2026',
+        waitDays: destWeather?.waitDays || 0,
+        demurrageINR_Lakhs: ((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1),
+        demurrageUSD: Math.round(destDelayDays * demurrageDailyUSD)
+      },
+      isExtremeDemand,
+      buyStrikeDirectiveText,
+      holdWaitDirectiveText,
+      recommendedWaitDate: primaryWaitDate,
+      bothWeatherProper,
       source: 'terminal_dispatch'
     };
 
@@ -324,10 +405,10 @@ export default function WebTerminalModelTrainer({
         volume: manualVolume,
         horizon: manualHorizon,
         volatility: volatilityMult,
-        newsSignal: weatherData?.severity !== 'NORMAL' ? {
-          id: 'imd_weather',
-          title: `IMD Bay of Bengal Alert: ${weatherData?.stage || 'Marine Warning'}`,
-          impact: `+${laycanBufferHours}h Laycan Delay`,
+        newsSignal: (destWeather?.severity !== 'NORMAL' || originWeather?.severity !== 'NORMAL') ? {
+          id: 'dual_port_weather',
+          title: `Marine Weather Alert: ${!originProper ? originObj.name : destWeather?.stage}`,
+          impact: `+${weatherDelayDays}d Operational Delay`,
           volatility: volatilityMult,
           sentiment: 'bullish'
         } : null,
@@ -341,7 +422,7 @@ export default function WebTerminalModelTrainer({
         ...prev,
         { 
           type: 'prompt', 
-          text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${manualOrigin} --dest ${manualDest} --vol ${manualVolume} --vessel ${manualVessel} --weather-api imd_live` 
+          text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${manualOrigin} --dest ${manualDest} --vol ${manualVolume} --vessel ${manualVessel} --dual-weather-api` 
         },
         {
           type: 'success',
@@ -350,30 +431,51 @@ export default function WebTerminalModelTrainer({
 ======================================================================
   Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
   Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
-  Bay of Bengal:     ${weatherData?.source || 'IMD Real-Time Marine Radar'}
-  IMD Sea Bulletin:  ${weatherData?.stage || 'Normal Synoptic'} | ${weatherData?.signal || 'Signal No. I'}
+  Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
+  Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED' : '⚖️ BALANCED COMMERCIAL MARKET'}
   Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Trend)
 ----------------------------------------------------------------------
-[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
+[1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
+  * SOURCE PORT [${originObj.name}]:
+    - Meteorology:   ${originWeather?.authority || 'BOM Marine Telemetry'}
+    - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Press ${originWeather?.surfacePressureHpa || 1014.0} hPa
+    - Berthing/Load: ${originProper ? '🟢 [PROPER SEA WEATHER] Loading berths & stackers operating normally.' : `🔴 [IMPROPER SEA WEATHER - ${originWeather?.severity || 'HIGH'}] ${originWeather?.operationalStatus || 'Restricted'}`}
+${!originProper ? `    - CANCELLATION:  ⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!
+    - WAIT DIRECTIVE: WAIT TILL ${originWeather?.recommendedWaitDate} when sea swell drops below safe threshold.
+    - ALTERNATE PORT: RECOMMENDED DIVERSION -> ${originWeather?.alternatePort?.portName}
+                      (${originWeather?.alternatePort?.reason})` : ''}
+
+  * DESTINATION PORT [${destObj.name}]:
+    - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Bhubaneswar'}
+    - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | ${destWeather?.stage || 'Normal'}
+    - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] All-weather 24/7 deepwater pilotage operating normally.' : `🔴 [IMPROPER SEA WEATHER - ${destWeather?.signal || 'Signal III'}] Pilotage restricted during high swells.`}
+${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitDate} when Bay of Bengal depression clears.
+    - DEMURRAGE EXPOSURE: +${destDelayDays} Days weather delay -> Unbudgeted Demurrage ₹${((destDelayDays * demurrageDailyUSD * baseFxRate) / 100000).toFixed(1)} Lakhs ($${Math.round(destDelayDays * demurrageDailyUSD).toLocaleString()} USD)!` : ''}
+----------------------------------------------------------------------
+[2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
+  * BUY / STRIKE:    ${buyStrikeDirectiveText}
+  * HOLD / WAIT:     ${holdWaitDirectiveText}
+----------------------------------------------------------------------
+[3] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
   * Current Spot Rate:               ₹${spotRateINR.toLocaleString()} /MT   ($${baseRate.toFixed(2)} /MT)
   * Expected Forward Median (P50):   ₹${estSpotINR.toLocaleString()} /MT   ($${estSpot.toFixed(2)} /MT @ Forward FX)  [Headline MAPE: 13.40%]
   * Optimistic Dip Bound (P10):      ₹${estP10INR.toLocaleString()} /MT   ($${estP10.toFixed(2)} /MT @ Forward FX)
   * Stress Tail-Risk Bound (P90):    ₹${estP90INR.toLocaleString()} /MT   ($${estP90.toFixed(2)} /MT @ Forward FX)  [90.8% 90%CI Coverage]
   * COA Fixed Contract Lock:         ₹${coaFixedINR.toLocaleString()} /MT   ($${coaFixed.toFixed(2)} /MT @ Spot FX)  [Locked Long-Term]
 ----------------------------------------------------------------------
-[2] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA Weight:          ${coaSplit}% (Hedging Blast Furnace Feed vs Bay of Bengal Weather Risk)
+[4] ALGORITHMIC CVaR CARGO ALLOCATION:
+  * Recommended COA Weight:          ${coaSplit}% (Hedging Blast Furnace Feed vs Weather & Spot Volatility)
   * Recommended Spot Weight:         ${100 - coaSplit}% (Captures P10 Dip Windows)
   * Blended Landed Freight Rate:     ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT)
   * Net Landed Savings vs Spot:      ₹${rateSavingsINR.toLocaleString()} /MT saved on every metric ton!
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
+[5] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):
   * Unhedged 100% Spot Cost:         ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD)
   * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
   * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED!  ($${savingsUSD.toLocaleString()} USD)
   * Demurrage Exposure:              ₹${demurrageTotalINR_Lakhs} Lakhs  (${totalCongestionDays.toFixed(1)} Days Total Wait / $${demurrageTotalUSD.toLocaleString()} USD)
 ----------------------------------------------------------------------
-[4] PS PART (B) VESSEL TYPE OPTIMIZATION DIRECTIVE:
+[6] PS PART (B) VESSEL TYPE OPTIMIZATION DIRECTIVE:
   * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
   * PORT DRAFT RESTRICTION FIT:      Origin ${originObj.name}: ${originObj.maxDraftLaden}m Draft [PASSED]
                                      Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
@@ -381,15 +483,8 @@ export default function WebTerminalModelTrainer({
   * LOA & BERTH SUITABILITY:         Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [CLEAR]
   * HANDLING CAPABILITY TURNAROUND:  ${vesselOptimization.recommendedVessel.totalDischargeDays} Days (@ ${destObj.handlingRateTPD.toLocaleString()} TPD at ${destObj.name})
   * IDLE TIME PREVENTED:             Avoided ${vesselOptimization.idleDaysSaved} Days Idle Demurrage (Saved ₹${vesselOptimization.demurrageSavedINR_Lakhs} Lakhs vs Misallocated Vessel)
-----------------------------------------------------------------------
-[5] REAL-TIME BAY OF BENGAL IMD TELEMETRY & VESSEL FIT:
-  * Live Buoy Observations:          Wind ${weatherData?.windSpeedKnots || 24.5} kts | Significant Wave ${weatherData?.waveHeightMeters || 2.2}m | Pressure ${weatherData?.surfacePressureHpa || 1006.8} hPa
-  * Operational Weather Cushion:     +${laycanBufferHours}h Laycan Extension Clause (Auto-calculated in Result)
-  * Primary COA Laycan Window:       Within next 7-14 days
-  * Secondary Spot Sniping Window:   30-45 days forward
-  * Draft Clearance:                 ${draftClearanceText}
 ======================================================================
-[GRAPH & APP SYNCED] Terminal inputs coupled with Part B Vessel Recommendation & real-time IMD marine telemetry!`
+[APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
         }
       ]);
       setIsExecuting(false);
@@ -402,6 +497,58 @@ export default function WebTerminalModelTrainer({
     setIsExecuting(true);
 
     const normalNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'bdi_surge') || MARKET_NEWS_SIGNALS[0];
+    
+    const terminalMetricsPayload = {
+      spotUSD: 15.80,
+      spotINR: 1367,
+      p50USD: 17.32,
+      p50INR: 1498,
+      p10USD: 14.85,
+      p10INR: 1285,
+      p90USD: 21.18,
+      p90INR: 1832,
+      coaUSD: 14.85,
+      coaINR: 1285,
+      blendedUSD: 15.59,
+      blendedINR: 1349,
+      savingsUSD: 258768,
+      savingsINR_Cr: '2.24',
+      unhedgedINR_Cr: '22.47',
+      optINR_Cr: '20.23',
+      forwardFxRate: 86.50,
+      totalCongestionDays: 2.5,
+      weatherDelayDays: 0.0,
+      originWeather: {
+        portName: 'Hay Point / DBCT (Australia)',
+        isWeatherProper: true,
+        severity: 'NORMAL',
+        waveHeightMeters: 1.4,
+        windSpeedKnots: 16.0,
+        weatherHazardDescription: 'Calm synoptic coastal waters',
+        recommendedWaitDate: 'Sep 06, 2026',
+        contractCancellationRisk: false,
+        alternatePort: null
+      },
+      destWeather: {
+        portName: 'Paradip Port (Odisha)',
+        isWeatherProper: true,
+        severity: 'NORMAL',
+        stage: 'Normal Berthing',
+        waveHeightMeters: 1.8,
+        windSpeedKnots: 20.0,
+        recommendedWaitDate: 'Sep 06, 2026',
+        waitDays: 0,
+        demurrageINR_Lakhs: '0.0',
+        demurrageUSD: 0
+      },
+      isExtremeDemand: false,
+      buyStrikeDirectiveText: '🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,285 /MT ($14.85 /MT). Saves ₹149 /MT vs spot!',
+      holdWaitDirectiveText: '🔴 HOLD / WAIT DIRECTIVE: Avoid volatile spot booking during daily peaks. WAIT TILL Oct 12 – Oct 19, 2026 forward dip to save ₹2.24 Crore.',
+      recommendedWaitDate: 'Oct 12 – Oct 19, 2026',
+      bothWeatherProper: true,
+      source: 'test1'
+    };
+
     onRunScenario({
       origin: 'hay_point',
       destination: 'paradip',
@@ -410,7 +557,8 @@ export default function WebTerminalModelTrainer({
       horizon: 3,
       volatility: 1.0,
       newsSignal: null,
-      coaSplit: 70
+      coaSplit: 70,
+      terminalMetrics: terminalMetricsPayload
     });
 
     setTerminalHistory(prev => [
@@ -461,6 +609,63 @@ export default function WebTerminalModelTrainer({
     setIsExecuting(true);
 
     const cycloneNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'weather_cyclone') || MARKET_NEWS_SIGNALS[1];
+    
+    const terminalMetricsPayload = {
+      spotUSD: 16.40,
+      spotINR: 1419,
+      p50USD: 19.65,
+      p50INR: 1700,
+      p10USD: 14.52,
+      p10INR: 1256,
+      p90USD: 25.88,
+      p90INR: 2239,
+      coaUSD: 15.42,
+      coaINR: 1334,
+      blendedUSD: 16.05,
+      blendedINR: 1388,
+      savingsUSD: 270000,
+      savingsINR_Cr: '2.34',
+      unhedgedINR_Cr: '12.75',
+      optINR_Cr: '10.41',
+      forwardFxRate: 86.68,
+      totalCongestionDays: 7.5,
+      weatherDelayDays: 5.5,
+      originWeather: {
+        portName: 'Gladstone R.G. Tanna (Australia)',
+        isWeatherProper: false,
+        severity: 'CRITICAL',
+        waveHeightMeters: 4.8,
+        windSpeedKnots: 52.0,
+        weatherHazardDescription: 'Severe Tropical Cyclone Jasper tracking toward Queensland coal terminals. Conveyors halted.',
+        recommendedWaitDate: 'Sep 18, 2026',
+        contractCancellationRisk: true,
+        cancellationWarning: 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!',
+        alternatePort: {
+          portKey: 'newcastle',
+          portName: 'Newcastle Port (PWCS / NCIG)',
+          reason: 'Verified deep draft (15.2m >= 14.5m Panamax), outside cyclone path, operational rail link.'
+        }
+      },
+      destWeather: {
+        portName: 'Visakhapatnam Port (VPA)',
+        isWeatherProper: true,
+        severity: 'NORMAL',
+        stage: 'Normal Deepwater Berthing',
+        waveHeightMeters: 1.6,
+        windSpeedKnots: 17.5,
+        recommendedWaitDate: 'Sep 08, 2026',
+        waitDays: 0,
+        demurrageINR_Lakhs: '0.0',
+        demurrageUSD: 0
+      },
+      isExtremeDemand: true,
+      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.',
+      holdWaitDirectiveText: '🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL Sep 18, 2026 or DIVERT to Newcastle Port (PWCS).',
+      recommendedWaitDate: 'Sep 18, 2026',
+      bothWeatherProper: false,
+      source: 'test2'
+    };
+
     onRunScenario({
       origin: 'gladstone',
       destination: 'vizag',
@@ -469,7 +674,8 @@ export default function WebTerminalModelTrainer({
       horizon: 1,
       volatility: 1.6,
       newsSignal: cycloneNews,
-      coaSplit: 85
+      coaSplit: 85,
+      terminalMetrics: terminalMetricsPayload
     });
 
     setTerminalHistory(prev => [
@@ -483,8 +689,30 @@ export default function WebTerminalModelTrainer({
   Route:             Gladstone (Australia) -> Visakhapatnam Port (Andhra Pradesh)
   Vessel & Cargo:    Panamax | 75,000 MT Coking Coal (1-Month Horizon)
   Market Scenario:   Queensland Cyclone Alert (Severe Tropical Cyclone Jasper)
+  Sea Feasibility:   🔴 IMPROPER SEA WEATHER AT SOURCE PORT (CONTRACT AT RISK)
+  Market State:      ⚡ EXTREME DEMAND & WEATHER SHOCK (85% COA HEDGE APPLIED)
 ----------------------------------------------------------------------
-[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
+[1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
+  * SOURCE PORT [Gladstone R.G. Tanna, Australia]:
+    - Meteorology:   Australian Bureau of Meteorology (BOM Severe Weather Warning)
+    - Sea Condition: Wave 4.8m | Wind 52.0 kts (Gale Force 10) | Pressure 988.0 hPa
+    - Loading Status:🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.
+    - CANCELLATION:  ⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!
+                     Shipowners may issue Notice of Cancellation as vessel cannot berth within laycan.
+    - WAIT DIRECTIVE:WAIT TILL Sep 18, 2026 when cyclone track passes inland and swells drop <2.2m.
+    - ALTERNATE PORT:RECOMMENDED DIVERSION -> Newcastle Port (PWCS / NCIG, NSW)
+                     (All factors verified: 15.2m draft >= 14.5m Panamax, calm 1.6m seas, active coking coal feed).
+
+  * DESTINATION PORT [Visakhapatnam Port (VPA), Andhra Pradesh]:
+    - Meteorology:   IMD CWC Visakhapatnam
+    - Sea Condition: Wave 1.6m | Wind 17.5 kts | Normal Synoptic Berthing
+    - Pilotage/Berth:🟢 [PROPER SEA WEATHER] Outer Harbour VGCB & Inner Berths operating seamlessly.
+----------------------------------------------------------------------
+[2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
+  * BUY / STRIKE:    🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.
+  * HOLD / WAIT:     🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL Sep 18, 2026 or DIVERT to Newcastle Port (PWCS).
+----------------------------------------------------------------------
+[3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
   * Current Spot:     $16.40 /MT  (₹1,419 /MT)
   * Expected P50:     $19.65 /MT  (₹1,700 /MT)  [Headline MAPE: 15.49%]
@@ -492,18 +720,18 @@ export default function WebTerminalModelTrainer({
   * Stress P90:       $25.88 /MT  (₹2,239 /MT)  [89.9% 90%CI Coverage - High Asymmetry]
   * COA Fixed Lock:   $15.42 /MT  (₹1,334 /MT)
 ----------------------------------------------------------------------
-[2] ALGORITHMIC CVaR CARGO ALLOCATION:
+[4] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  85% (Protects Blast Furnace against Peak Spike)
   * Recommended Spot: 15% (Strictly Limited Spot Exposure)
   * Blended Rate:     $16.05 /MT  (₹1,388 /MT)  (Saves $3.60/MT vs Spot)
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
+[5] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $1,473,750  (₹12.75 Crore)
   * NaviFreight Optimized:   $1,203,750  (₹10.41 Crore)
   * Net Freight Cost Savings:  $270,000  (INR 2.34 Crore)
   * Demurrage Exposure:        7.5 Days Wait ($165,000 / INR 1.43 Cr)
 ----------------------------------------------------------------------
-[4] OPERATIONAL TIMING & VESSEL FIT:
+[6] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
   * Draft Clearance:                 [PASSED] Vessel draft 14.5m <= Port max 16.5m (Outer Harbour VGCB)
 ======================================================================
@@ -519,6 +747,58 @@ export default function WebTerminalModelTrainer({
     setIsExecuting(true);
 
     const redSeaNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'fuel_tax') || MARKET_NEWS_SIGNALS[2];
+    
+    const terminalMetricsPayload = {
+      spotUSD: 14.20,
+      spotINR: 1228,
+      p50USD: 21.10,
+      p50INR: 1825,
+      p10USD: 16.80,
+      p10INR: 1453,
+      p90USD: 27.05,
+      p90INR: 2340,
+      coaUSD: 13.35,
+      coaINR: 1155,
+      blendedUSD: 14.90,
+      blendedINR: 1289,
+      savingsUSD: 1116000,
+      savingsINR_Cr: '9.65',
+      unhedgedINR_Cr: '32.85',
+      optINR_Cr: '23.20',
+      forwardFxRate: 86.50,
+      totalCongestionDays: 4.0,
+      weatherDelayDays: 1.5,
+      originWeather: {
+        portName: 'Richards Bay RBCT (South Africa)',
+        isWeatherProper: true,
+        severity: 'NORMAL',
+        waveHeightMeters: 2.1,
+        windSpeedKnots: 19.0,
+        weatherHazardDescription: 'Moderate Agulhas swell within berth limits',
+        recommendedWaitDate: 'Sep 06, 2026',
+        contractCancellationRisk: false,
+        alternatePort: null
+      },
+      destWeather: {
+        portName: 'Paradip Port (Odisha)',
+        isWeatherProper: true,
+        severity: 'NORMAL',
+        stage: 'Normal Berthing',
+        waveHeightMeters: 1.8,
+        windSpeedKnots: 20.0,
+        recommendedWaitDate: 'Sep 06, 2026',
+        waitDays: 0,
+        demurrageINR_Lakhs: '0.0',
+        demurrageUSD: 0
+      },
+      isExtremeDemand: true,
+      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,453 – ₹1,825 /MT. Red Sea squeeze driving global bulk tonne-miles. Lock 80% under 6-Month COA immediately to avoid ₹2,340/MT P90 surge!',
+      holdWaitDirectiveText: '🔴 HOLD / DO NOT CHARTER SPOT: Global fleet squeeze underway. Spot market carries severe upside inflation. Rely strictly on multi-voyage COA coverage.',
+      recommendedWaitDate: 'Oct 05 – Oct 12, 2026',
+      bothWeatherProper: true,
+      source: 'test3'
+    };
+
     onRunScenario({
       origin: 'richards_bay',
       destination: 'paradip',
@@ -527,7 +807,8 @@ export default function WebTerminalModelTrainer({
       horizon: 6,
       volatility: 1.35,
       newsSignal: redSeaNews,
-      coaSplit: 80
+      coaSplit: 80,
+      terminalMetrics: terminalMetricsPayload
     });
 
     setTerminalHistory(prev => [
@@ -618,7 +899,7 @@ export default function WebTerminalModelTrainer({
       else if (cmd.includes('dhamra')) sectorArg = 'dhamra';
       else if (cmd.includes('gangavaram')) sectorArg = 'gangavaram';
       else if (cmd.includes('gopalpur')) sectorArg = 'gopalpur';
-      else if (cmd.includes('krishnapatnam') || cmd.includes('kamarajar')) sectorArg = 'krishnapatnam';
+      else if (cmd.includes('sandheads') || cmd.includes('sagar')) sectorArg = 'sandheads';
       else if (cmd.includes('paradip')) sectorArg = 'paradip';
 
       fetchLiveBayOfBengalWeather(sectorArg).then(data => {
@@ -1137,11 +1418,15 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         }
 
         // Generic dynamic calculation for any other route
-        const routeKey = `${parsedOrigin}-${parsedDest}`;
         const baseRateMatrix = {
-          'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'gladstone-paradip': 16.00,
-          'gladstone-vizag': 16.40, 'richards_bay-paradip': 14.20, 'port_hedland-rotterdam': 22.50,
-          'port_hedland-qingdao': 11.20, 'tubarao-rotterdam': 18.40, 'tubarao-qingdao': 24.80
+          'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-dhamra': 15.40,
+          'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-dhamra': 15.60,
+          'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70,
+          'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80,
+          'maputo-paradip': 13.60, 'maputo-vizag': 13.90,
+          'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70,
+          'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40,
+          'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70
         };
         const baseRate = baseRateMatrix[routeKey] || 16.50;
         const estSpot = (baseRate * (1.0 + (parsedHorizon * 0.035) * parsedVolatility)).toFixed(2);
@@ -1303,7 +1588,6 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     <option value="gladstone">Gladstone R.G. Tanna (17.8m Draft)</option>
                     <option value="hay_point">Hay Point / DBCT (19.1m Draft)</option>
                     <option value="newcastle">Newcastle PWCS (16.2m Draft)</option>
-                    <option value="port_hedland">Port Hedland (Iron Ore / 20.0m)</option>
                   </optgroup>
                   <optgroup label="United States (Met Coal)">
                     <option value="hampton_roads">Hampton Roads / Norfolk (15.5m)</option>
@@ -1315,9 +1599,8 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     <option value="samarinda">Samarinda / Muara Berau (14.2m)</option>
                     <option value="taboneo">Taboneo Anchorage (18.0m Floater)</option>
                   </optgroup>
-                  <optgroup label="South Africa / Brazil">
-                    <option value="richards_bay">Richards Bay RBCT (17.5m)</option>
-                    <option value="tubarao">Tubarao (Brazil / 21.0m)</option>
+                  <optgroup label="Russia (Pacific Bulk Coal)">
+                    <option value="vostochny">Port of Vostochny / Nakhodka (16.5m)</option>
                   </optgroup>
                 </select>
               </div>
@@ -1336,18 +1619,13 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   <optgroup label="Deepwater Ports (Capesize Capable)">
                     <option value="dhamra">Dhamra Port (DPCL - 18.0m / Tata Steel)</option>
                     <option value="gangavaram">Gangavaram (GPL - 19.5m / RINL Steel)</option>
-                    <option value="krishnapatnam">Krishnapatnam (KPCL - 18.0m / JSW)</option>
                     <option value="vizag">Visakhapatnam Outer (18.1m VGCB)</option>
                   </optgroup>
-                  <optgroup label="Tidal / Draft-Restricted Ports">
+                  <optgroup label="Tidal & Mid-Draft Ports">
                     <option value="paradip">Paradip Port (PPT - 14.5m MCHP / 16.0m KICT)</option>
-                    <option value="kamarajar">Kamarajar / Ennore (16.0m Dedicated Coal)</option>
                     <option value="gopalpur">Gopalpur Port (13.5m / Mid-tier Parcels)</option>
+                    <option value="sandheads">Sagar-Sandheads Anchorage (14.8m Transshipment)</option>
                     <option value="haldia">Haldia Lock Complex (8.5m / Lighterage Req.)</option>
-                  </optgroup>
-                  <optgroup label="Global Benchmark Ports">
-                    <option value="rotterdam">Rotterdam Maasvlakte (24.0m Draft)</option>
-                    <option value="qingdao">Qingdao Dongjiakou (21.0m Draft)</option>
                   </optgroup>
                 </select>
               </div>
@@ -1519,10 +1797,10 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   US Hampton Roads → Paradip (110k)
                 </button>
                 <button 
-                  onClick={() => { setManualOrigin('taboneo'); setManualDest('krishnapatnam'); setManualVessel('panamax'); setManualVolume(75000); setManualHorizon(1); }}
+                  onClick={() => { setManualOrigin('taboneo'); setManualDest('vizag'); setManualVessel('panamax'); setManualVolume(75000); setManualHorizon(1); }}
                   className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors"
                 >
-                  Indonesia → Krishnapatnam (75k)
+                  Indonesia → Vizag (75k Panamax)
                 </button>
               </div>
 

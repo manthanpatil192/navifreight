@@ -168,39 +168,6 @@ export default function ForecastChart({ forecast, currency, terminalMetrics }) {
         </div>
       </div>
 
-      {/* REAL BDRY MARKET WALK-FORWARD VALIDATION BADGE */}
-      <div className="bg-gradient-to-r from-slate-900 via-maritime-950 to-slate-900 text-white rounded-lg p-3 mb-3 border border-maritime-700/60 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
-            <Award className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-black uppercase tracking-wider text-white">
-                Live Backtest: BDRY Freight Futures Walk-Forward Validation
-              </span>
-              <span className="bg-emerald-950 text-emerald-300 border border-emerald-600/40 text-[10px] font-bold px-2 py-0.5 rounded">
-                66 Expanding Folds (1,386 Out-of-Sample Days)
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-300 mt-0.5">
-              Trained on Breakwave Dry Bulk ETF (BDRY) & Brent Crude. Calibrated P10/P50/P90 quantile cones prove why CVaR risk hedging beats directional speculation.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3 shrink-0 text-right bg-slate-950/60 border border-slate-800 rounded-md p-1.5 px-3">
-          <div>
-            <div className="text-[9px] text-slate-400 font-bold uppercase">Headline 30d MAPE</div>
-            <div className="text-xs font-black text-emerald-400 tabular-nums">15.5% (Real BDRY)</div>
-          </div>
-          <div className="w-px h-5 bg-slate-800" />
-          <div>
-            <div className="text-[9px] text-slate-400 font-bold uppercase">90% Interval Coverage</div>
-            <div className="text-xs font-black text-blue-300 tabular-nums">89.9% (P10–P90)</div>
-          </div>
-        </div>
-      </div>
 
       {/* Live Web Terminal ML Coupling Banner with P10, P50, and P90 metric points */}
       <div className="bg-slate-900 text-white rounded-lg p-3 mb-4 border border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">

@@ -101,15 +101,6 @@ export default function App() {
               Transitioning from reactive daily spot chartering to optimized <span className="font-semibold text-slate-700">3-Month / 6-Month Multiple Voyage Contracts (COAs)</span> using AI freight forecasts, port draft feasibility checks, and return tramp backhaul routing.
             </p>
           </div>
-
-          <div className="flex items-center space-x-2 shrink-0">
-            <button
-              onClick={() => setIsDatasetModalOpen(true)}
-              className="text-xs font-semibold text-maritime-800 hover:text-maritime-900 bg-maritime-50 border border-maritime-200 px-3 py-1.5 rounded-md transition-colors"
-            >
-              Auditable Open Datasets (7 Sources)
-            </button>
-          </div>
         </div>
 
 
@@ -160,6 +151,7 @@ export default function App() {
               contractHorizonMonths={contractHorizonMonths}
               onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
               currency={currency}
+              terminalMetrics={terminalMetrics}
             />
 
             {/* IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
@@ -291,6 +283,7 @@ export default function App() {
               forecast={forecast}
               portCongestion={currentPortCongestion}
               currency={currency}
+              terminalMetrics={terminalMetrics}
             />
 
             {/* Live AIS Ship Tracking Map & Geofencing Radar */}

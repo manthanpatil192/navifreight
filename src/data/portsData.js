@@ -151,48 +151,6 @@ export const INDIAN_EAST_COAST_PORTS = {
     transshipmentRequiredFor: [],
     officialSource: 'Kolkata Port Trust Sandheads Offshore Transshipment Gazette',
     description: 'Open sea transshipment hub where Capesize vessels discharge partial parcels into daughter barges bound for Haldia/Kolkata.'
-  },
-  krishnapatnam: {
-    id: 'krishnapatnam',
-    name: 'Krishnapatnam Port (KPCL)',
-    state: 'Andhra Pradesh',
-    coordinates: [14.2500, 80.1200],
-    maxDraftLaden: 18.0,
-    maxDraftHighTide: 18.5,
-    maxLOA: 310,
-    maxBeam: 50.0,
-    maxDWT: 200000, // Capesize / Newcastlemax
-    recommendedVessels: ['Capesize', 'Kamsarmax', 'Panamax'],
-    handlingRateTPD: 65000,
-    primaryCargoes: ['Coking Coal', 'Thermal Coal', 'Iron Ore', 'Fertilizers'],
-    demurragePerDayINR: 7000000,
-    avgWaitDays: 1.8,
-    congestionLevel: 'LOW',
-    tidalRangeMeters: 1.2,
-    transshipmentRequiredFor: [],
-    officialSource: 'Adani Ports Krishnapatnam Port Co. Ltd. (KPCL) Marine Circular 2025',
-    description: 'Privately operated deep-water port in southern Andhra Pradesh with 18.0m draft accommodating Capesize vessels for southern and central steel corridors.'
-  },
-  kamarajar: {
-    id: 'kamarajar',
-    name: 'Kamarajar Port (Ennore / KPL)',
-    state: 'Tamil Nadu',
-    coordinates: [13.2572, 80.3347],
-    maxDraftLaden: 16.0,
-    maxDraftHighTide: 16.5,
-    maxLOA: 290,
-    maxBeam: 45.0,
-    maxDWT: 150000,
-    recommendedVessels: ['Baby Cape', 'Kamsarmax', 'Panamax', 'Supramax'],
-    handlingRateTPD: 50000,
-    primaryCargoes: ['Thermal Coal', 'Coking Coal', 'Petcoke', 'Limestone'],
-    demurragePerDayINR: 6400000,
-    avgWaitDays: 2.4,
-    congestionLevel: 'LOW',
-    tidalRangeMeters: 1.1,
-    transshipmentRequiredFor: ['Fully Laden Capesize (>16.0m draft)'],
-    officialSource: 'Kamarajar Port Limited (KPL) Berth Manual & Marine Regulations 2025',
-    description: 'Corporatized major port north of Chennai with dedicated mechanized bulk and coal berths supporting industrial and thermal energy corridors.'
   }
 };
 
@@ -220,6 +178,18 @@ export const ORIGIN_LOADING_PORTS = {
     primaryCargoes: ['Coking Coal', 'Thermal Coal'],
     distanceToEastCoastNM: 4250,
     officialSource: 'Gladstone Ports Corporation Operations Manual'
+  },
+  newcastle: {
+    id: 'newcastle',
+    name: 'Newcastle PWCS / NCIG (Australia)',
+    country: 'Australia',
+    coordinates: [-32.9267, 151.7833],
+    maxDraftLaden: 16.2,
+    maxLOA: 300,
+    handlingRateTPD: 80000,
+    primaryCargoes: ['Thermal Coal', 'Semi-Soft Coking Coal'],
+    distanceToEastCoastNM: 4450,
+    officialSource: 'Port Authority of New South Wales Marine Operations Manual'
   },
   hampton_roads: {
     id: 'hampton_roads',
@@ -269,16 +239,16 @@ export const ORIGIN_LOADING_PORTS = {
     distanceToEastCoastNM: 2380,
     officialSource: 'Banjarmasin Port Authority & Taboneo Floating Crane Regulations'
   },
-  richards_bay: {
-    id: 'richards_bay',
-    name: 'Richards Bay RBCT (South Africa)',
-    country: 'South Africa',
-    coordinates: [-28.8000, 32.0833],
-    maxDraftLaden: 17.5,
-    maxLOA: 310,
-    handlingRateTPD: 70000,
-    primaryCargoes: ['High-CV Thermal Coal', 'Anthracite'],
-    distanceToEastCoastNM: 4680,
-    officialSource: 'Richards Bay Coal Terminal (RBCT) Technical Specs'
+  vostochny: {
+    id: 'vostochny',
+    name: 'Port of Vostochny / Nakhodka (Russia)',
+    country: 'Russia',
+    coordinates: [42.7333, 133.0833],
+    maxDraftLaden: 16.5,
+    maxLOA: 300,
+    handlingRateTPD: 65000,
+    primaryCargoes: ['Kuzbass Coking Coal', 'PCI Coal', 'Anthracite'],
+    distanceToEastCoastNM: 4850,
+    officialSource: 'FSUE Rosmorport Far Eastern Basin Branch & Vostochny Port Operations'
   }
 };

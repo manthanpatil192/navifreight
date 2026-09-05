@@ -83,29 +83,17 @@ export const BAY_OF_BENGAL_SECTORS = {
     baseWaveMeters: 2.3,
     baseWavePeriod: 8.6
   },
-  krishnapatnam: {
-    id: 'krishnapatnam',
-    name: 'South-West Bay of Bengal (Krishnapatnam & Kamarajar Approaches)',
-    latitude: 14.2,
-    longitude: 80.2,
-    cwcOffice: 'Regional Meteorological Centre (RMC) Chennai',
-    ports: ['Krishnapatnam Port (KPCL)', 'Kamarajar Port (Ennore)'],
-    basePressure: 1009.5,
-    baseWindKnots: 16.5,
-    baseWaveMeters: 1.5,
-    baseWavePeriod: 8.2
-  },
-  kamarajar: {
-    id: 'kamarajar',
-    name: 'South-West Bay of Bengal (Kamarajar & Chennai Approaches)',
-    latitude: 13.3,
-    longitude: 80.3,
-    cwcOffice: 'Regional Meteorological Centre (RMC) Chennai',
-    ports: ['Kamarajar Port (Ennore)', 'Chennai Port (ChPA)'],
-    basePressure: 1009.6,
-    baseWindKnots: 16.0,
-    baseWaveMeters: 1.4,
-    baseWavePeriod: 8.3
+  sandheads: {
+    id: 'sandheads',
+    name: 'Sagar / Sandheads Offshore Transshipment Anchorage',
+    latitude: 21.0,
+    longitude: 88.2,
+    cwcOffice: 'Area Cyclone Warning Centre (ACWC) Kolkata',
+    ports: ['Sagar-Sandheads Offshore Anchorage', 'Haldia Outer Approaches'],
+    basePressure: 1005.8,
+    baseWindKnots: 24.5,
+    baseWaveMeters: 2.3,
+    baseWavePeriod: 7.9
   }
 };
 
@@ -209,7 +197,7 @@ export function classifyImdCyclone(windSpeedKnots, baroPressureHpa) {
  * Fetches live Bay of Bengal weather telemetry for a specific sector/port.
  * Automatically tries live marine endpoints and formats against IMD standards.
  * 
- * @param {string} portOrSectorKey - 'paradip', 'vizag', 'dhamra', 'haldia', 'gangavaram', 'krishnapatnam', 'kamarajar'
+ * @param {string} portOrSectorKey - 'paradip', 'vizag', 'dhamra', 'haldia', 'gangavaram', 'gopalpur', 'sandheads'
  */
 export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
   const normalizedKey = (portOrSectorKey || 'paradip').toLowerCase();
@@ -250,6 +238,12 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     const demurrageINR = Math.round(demurrageUSD * 86.5);
     const demurrageINRCrore = (demurrageINR / 10000000).toFixed(2);
 
+    const isWeatherProper = classification.severity === 'NORMAL' && waveHeightMeters <= 2.0 && windSpeedKnots <= 22.0;
+    const waitDays = isWeatherProper ? 0 : Math.max(3, Math.ceil(demurrageDays) + 1);
+    const waitD = new Date();
+    waitD.setDate(waitD.getDate() + waitDays);
+    const recommendedWaitDate = waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+
     return {
       isLive: true,
       source: 'IMD Coastal Warning System & Real-Time Bay of Bengal Marine Radar',
@@ -267,14 +261,17 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
       waveHeightMeters,
       wavePeriodSeconds,
       ...classification,
+      isWeatherProper,
+      waitDays,
+      recommendedWaitDate,
       demurrageUSD,
       demurrageINR,
       demurrageINRCrore,
       cwcBulletin: `IMD/BOB/${new Date().toISOString().slice(0,10).replace(/-/g,'')}/${sector.id.toUpperCase()}-01`,
       affectedPorts: sector.ports,
-      operationalAdvice: classification.severity === 'NORMAL'
+      operationalAdvice: isWeatherProper
         ? 'Standard all-weather Capesize and Panamax berthing operating normally across East Coast ports.'
-        : `Squally convective weather in Bay of Bengal. Recommend +${classification.laycanBufferHours}h Laycan extension clause under charterparty.`
+        : `Squally convective weather in Bay of Bengal (${classification.stage}). Berthing pilotage restricted. Recommend +${classification.laycanBufferHours}h Laycan extension clause or wait till ${recommendedWaitDate}.`
     };
   } catch (err) {
     // Robust calibrated baseline fallback
@@ -283,6 +280,12 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     const demurrageUSD = Math.round(demurrageDays * 25000);
     const demurrageINR = Math.round(demurrageUSD * 86.5);
     const demurrageINRCrore = (demurrageINR / 10000000).toFixed(2);
+
+    const isWeatherProper = classification.severity === 'NORMAL' && sector.baseWaveMeters <= 2.0;
+    const waitDays = isWeatherProper ? 0 : Math.max(3, Math.ceil(demurrageDays) + 1);
+    const waitD = new Date();
+    waitD.setDate(waitD.getDate() + waitDays);
+    const recommendedWaitDate = waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
     return {
       isLive: false,
@@ -301,14 +304,17 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
       waveHeightMeters: sector.baseWaveMeters,
       wavePeriodSeconds: sector.baseWavePeriod,
       ...classification,
+      isWeatherProper,
+      waitDays,
+      recommendedWaitDate,
       demurrageUSD,
       demurrageINR,
       demurrageINRCrore,
       cwcBulletin: `IMD/BOB/${new Date().toISOString().slice(0,10).replace(/-/g,'')}/${sector.id.toUpperCase()}-SYN`,
       affectedPorts: sector.ports,
-      operationalAdvice: classification.severity === 'NORMAL'
+      operationalAdvice: isWeatherProper
         ? 'Clear synoptic state. Standard 24/7 all-weather berthing operational.'
-        : `Monsoon depression alert. Insert +${classification.laycanBufferHours}h weather laycan clause in spot fixtures.`
+        : `Monsoon depression alert. Berthing pilotage restricted. Recommend +${classification.laycanBufferHours}h weather laycan clause or wait till ${recommendedWaitDate}.`
     };
   }
 }

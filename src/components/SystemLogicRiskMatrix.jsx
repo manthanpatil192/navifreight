@@ -9,34 +9,37 @@ export default function SystemLogicRiskMatrix({
   contractHorizonMonths,
   forecast,
   portCongestion,
-  currency
+  currency,
+  terminalMetrics = null
 }) {
   const [activeScenario, setActiveScenario] = useState('compiled'); // 'compiled', 'pdf_example'
 
-  // Dynamic values based on selected state
-  const isRisingFreight = forecast.percentageSavings > 8; // If spot is escalating
+  // Dynamic values based on selected state & terminal metrics
+  const isRisingFreight = (terminalMetrics?.p50USD || 0) > (terminalMetrics?.spotUSD || 0) || forecast.percentageSavings > 8;
   const isCongested = portCongestion?.congestionStatus === 'HIGH' || portCongestion?.congestionStatus === 'MODERATE';
-  const isCycloneSeason = selectedOrigin.includes('hay') || selectedDestination === 'paradip' || selectedDestination === 'dhamra';
+  const hasWeatherAlert = (terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper) || 
+                          (terminalMetrics?.destWeather && !terminalMetrics.destWeather.isWeatherProper);
+  const isCycloneSeason = hasWeatherAlert || selectedOrigin.includes('hay') || selectedDestination === 'paradip' || selectedDestination === 'dhamra';
 
   // Risk Scores calculation (0 to 100)
   const freightRiskScore = isRisingFreight ? 78 : 35;
   const congestionRiskScore = portCongestion?.trafficRiskScore || 58;
-  const cycloneRiskScore = isCycloneSeason ? 82 : 25;
+  const cycloneRiskScore = hasWeatherAlert ? 88 : (isCycloneSeason ? 72 : 25);
   const compositeRiskScore = Math.round((freightRiskScore * 0.35) + (congestionRiskScore * 0.35) + (cycloneRiskScore * 0.30));
 
   // Final Output Indicator
   let finalAlertBadge = 'GREEN ALERT (Optimal Window: Lock COA Now)';
   let finalAlertColor = 'bg-emerald-500 text-white';
-  let finalRecommendationText = 'Favorable forward pricing and calm Bay of Bengal weather. Optimal entry window to fix multi-voyage contract.';
+  let finalRecommendationText = terminalMetrics?.buyStrikeDirectiveText || 'Favorable forward pricing and calm Bay of Bengal weather. Optimal entry window to fix multi-voyage contract.';
 
-  if (compositeRiskScore > 70) {
+  if (hasWeatherAlert || compositeRiskScore > 70) {
     finalAlertBadge = 'YELLOW / RED ALERT (Wait to Book Spot / Add Laycan Buffer)';
     finalAlertColor = 'bg-rose-600 text-white';
-    finalRecommendationText = 'High forward freight inflation (+6% SSE proxy), rising anchorage waitlist, and active IMD cyclone track in Bay of Bengal. Defer spot booking or secure fixed COA with 48h laycan flexibility.';
+    finalRecommendationText = terminalMetrics?.holdWaitDirectiveText || 'Severe weather or high freight inflation detected. Defer spot booking or secure fixed COA with laycan flexibility.';
   } else if (compositeRiskScore > 45) {
     finalAlertBadge = 'YELLOW ALERT (Moderate Risk: Exercise Laycan Caution)';
     finalAlertColor = 'bg-amber-500 text-white';
-    finalRecommendationText = 'Moderate port congestion detected. Ensure berthing preference clause in charter party to avoid demurrage exposure.';
+    finalRecommendationText = terminalMetrics?.holdWaitDirectiveText || 'Moderate port congestion detected. Ensure berthing preference clause in charter party to avoid demurrage exposure.';
   }
 
   return (
@@ -139,21 +142,33 @@ export default function SystemLogicRiskMatrix({
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1">
-              <span>3. Cyclone Risk</span>
-              <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
-                BAD (Active Track)
+              <span>3. Marine Sea Weather</span>
+              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                hasWeatherAlert ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {hasWeatherAlert ? 'ADVERSE WEATHER' : 'NORMAL / CALM'}
               </span>
             </div>
             <div className="text-base font-bold text-slate-900 flex items-center space-x-1.5">
-              <Wind className="w-4 h-4 text-rose-600" />
-              <span>28 kts Squall</span>
+              <Wind className={`w-4 h-4 ${hasWeatherAlert ? 'text-rose-600' : 'text-emerald-600'}`} />
+              <span>
+                {terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper
+                  ? `${terminalMetrics.originWeather.windSpeedKnots} kts Gale`
+                  : terminalMetrics?.destWeather?.windSpeedKnots
+                    ? `${terminalMetrics.destWeather.windSpeedKnots} kts Wind`
+                    : '18 kts Swell'}
+              </span>
             </div>
             <p className="text-[10px] text-slate-500 mt-1">
-              Source: <strong>IMD Live GeoJSON API</strong>
+              Source: <strong>{terminalMetrics?.originWeather ? 'Dual BOM/BMKG & IMD API' : 'IMD Live Marine Radar'}</strong>
             </p>
           </div>
           <div className="mt-3 pt-2 border-t border-slate-200/60 text-[10px] text-slate-600">
-            Active low-pressure track off Odisha / Bengal coast in 3 weeks.
+            {terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper
+              ? `Source Alert (${terminalMetrics.originWeather.portName.split(' ')[0]}): Cancellation risk. Wait till ${terminalMetrics.originWeather.recommendedWaitDate}.`
+              : terminalMetrics?.destWeather && !terminalMetrics.destWeather.isWeatherProper
+                ? `Discharge Alert (${terminalMetrics.destWeather.portName}): ${terminalMetrics.destWeather.stage}. Wait till ${terminalMetrics.destWeather.recommendedWaitDate}.`
+                : 'Calm synoptic sea state across route corridors.'}
           </div>
         </div>
 

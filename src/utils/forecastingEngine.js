@@ -135,8 +135,10 @@ export function calculateFreightForecast({
 
   // 3. AI Spot Dip Sniping Window (Track 2) calculated from route origin & forward curve
   let baseDipOffsetDays = 42; // Australia default (Week 6)
-  if (origin.id === 'samarinda') baseDipOffsetDays = 18; // Indonesia (Week 3)
-  else if (origin.id === 'richards_bay') baseDipOffsetDays = 34; // South Africa (Week 5)
+  if (origin.id === 'samarinda' || origin.id === 'taboneo') baseDipOffsetDays = 18; // Indonesia (Week 3)
+  else if (origin.id === 'maputo') baseDipOffsetDays = 32; // Mozambique (Week 4.5)
+  else if (origin.id === 'hampton_roads') baseDipOffsetDays = 55; // US East Coast (Week 8)
+  else if (origin.id === 'vostochny') baseDipOffsetDays = 28; // Russia (Week 4)
   else if (origin.id === 'gladstone') baseDipOffsetDays = 44;
 
   // Shift dip window if weather or commodity news shock is active
@@ -358,3 +360,214 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
     terminalCoa: Number((terminalCoaUSD * multiplier).toFixed(1))
   };
 }
+
+/**
+ * Econometric Freight Rate Decomposition Engine
+ * Implements: Freight Rate ≈ f(Demand, Supply, Fuel, Distance, Congestion, Seasonality, Risk)
+ * Evaluates the two primary market forces:
+ * 1. Cargo demand ↑ + Vessel supply same → Freight rate ↑
+ * 2. Vessel supply ↑ + Cargo demand same → Freight rate ↓
+ */
+export function calculateEconometricDecomposition({
+  originId = 'hay_point',
+  destinationId = 'paradip',
+  vesselId = 'capesize',
+  cargoMT = 150000,
+  demandState = 'normal', // 'high' | 'normal' | 'low'
+  supplyState = 'balanced', // 'tight' | 'balanced' | 'surplus'
+  fxRate = 86.50
+}) {
+  const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
+  const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
+  const vessel = VESSEL_CLASSES[vesselId] || VESSEL_CLASSES.capesize;
+
+  const distanceNM = origin.distanceToEastCoastNM || 4120;
+  const speedKnots = vessel.speedKnots || 12.8;
+  const sailingDays = distanceNM / (speedKnots * 24);
+  const baselineTCE = vessel.baselineDailyTimeCharterRateUSD || 22000;
+
+  // 1. Distance Factor (Base capital & time charter amortized over nautical haul)
+  // Longer voyages (e.g. US 12,400 NM vs Indonesia 2,100 NM) dominate the fixed transport floor
+  const distanceCostUSD = Number(((sailingDays * baselineTCE * 0.58) / cargoMT).toFixed(2));
+
+  // 2. Fuel Factor (VLSFO Bunker consumption at sea)
+  // ~42 MT/day for Capesize @ ~$625/MT VLSFO
+  const dailyFuelBurnUSD = (vessel.dailyFuelConsumptionMT || 42) * 625;
+  const fuelCostUSD = Number(((sailingDays * dailyFuelBurnUSD) / cargoMT).toFixed(2));
+
+  // 3. Port Congestion Factor (Anchorage queuing & terminal discharge turnaround)
+  // Wait days + berth discharge + port pilotage/berthing tariff
+  const portDischargeDays = cargoMT / (dest.handlingRateTPD || 45000);
+  const portWaitDays = dest.avgWaitDays || 2.5;
+  const portCostUSD = Number((((portWaitDays + portDischargeDays) * baselineTCE + 110000) / cargoMT).toFixed(2));
+
+  // 4. Cargo Demand Factor (Indian Crude Steel Expansion & Blast Furnace Basestock Feed)
+  // High demand adds premium; weak demand relieves pressure
+  let demandCostUSD = 2.40;
+  let demandExplanation = 'Baseline industrial consumption: Regular blast furnace feed replenishment.';
+  if (demandState === 'high') {
+    demandCostUSD = 4.20;
+    demandExplanation = 'Surging Indian Steel Demand (+15%): Aggressive mill restocking creates cargo competition.';
+  } else if (demandState === 'low') {
+    demandCostUSD = 0.80;
+    demandExplanation = 'Subdued Steel Production (-10%): Procurement pacing slows, lowering spot charter demand.';
+  }
+
+  // 5. Vessel Supply Factor (Global Dry Bulk Fleet Availability & Ballast Tonnage)
+  // Surplus fleet discounts rates; tight fleet charges availability premium
+  let supplyCostUSD = 0.00;
+  let supplyExplanation = 'Balanced Pacific Fleet: Vessel supply matches scheduled export volume.';
+  if (supplyState === 'surplus') {
+    supplyCostUSD = -2.10;
+    supplyExplanation = 'Vessel Supply Surplus (+15%): High ballast tonnage in Indian Ocean forces shipowners to discount.';
+  } else if (supplyState === 'tight') {
+    supplyCostUSD = 2.80;
+    supplyExplanation = 'Tight Vessel Availability (-10%): Tonnage scarcity allows shipowners to command spot premiums.';
+  }
+
+  // 6. Seasonality Factor (Post-monsoon industrial rush vs Q1 lull)
+  // Indian East Coast experiences peak post-monsoon dry season industrial surge
+  const seasonalityCostUSD = 1.35;
+  const seasonalityExplanation = 'Post-Monsoon Industrial Surge: Peak manufacturing and infrastructure build-up window.';
+
+  // 7. Risk Factor (P10–P90 Quantile Tail Volatility & Bay of Bengal Squalls)
+  const riskCostUSD = 1.15;
+  const riskExplanation = 'Bay of Bengal Weather & Demurrage Buffer: Hedging against pilotage suspension.';
+
+  // Total Spot Freight Rate
+  const totalFreightUSD = Number((distanceCostUSD + fuelCostUSD + portCostUSD + demandCostUSD + supplyCostUSD + seasonalityCostUSD + riskCostUSD).toFixed(2));
+  const totalFreightINR = Math.round(totalFreightUSD * fxRate);
+
+  // Determine active primary economic law
+  let activeMarketRule = '';
+  let ruleHeadline = '';
+  let strategicRecommendation = '';
+  let ruleBadgeColor = 'slate';
+
+  if (demandState === 'high' && supplyState === 'balanced') {
+    ruleHeadline = 'Cargo Demand ↑ + Vessel Supply Same → Freight Rate ↑';
+    activeMarketRule = 'Cargo volume expansion without added ship supply triggers bidder competition. Shipowners push spot rates higher.';
+    strategicRecommendation = '🟢 LOCK 3M / 6M MULTI-VOYAGE COA: Lock guaranteed baseline rates now before escalating spot prices erode steel mill operating margins.';
+    ruleBadgeColor = 'emerald';
+  } else if (supplyState === 'surplus' && demandState === 'normal') {
+    ruleHeadline = 'Vessel Supply ↑ + Cargo Demand Same → Freight Rate ↓';
+    activeMarketRule = 'Excess open bulk carriers competing for fixed cargo parcels forces shipowners to discount daily time-charter rates.';
+    strategicRecommendation = '🔵 EXPLOIT SPOT DIPS: Retain spot flexibility to capture depressed spot charters or negotiate heavy COA discount tiers.';
+    ruleBadgeColor = 'cyan';
+  } else if (demandState === 'high' && supplyState === 'tight') {
+    ruleHeadline = 'Cargo Demand ↑ + Vessel Supply Tight → Severe Rate Spike ↑↑';
+    activeMarketRule = 'Double squeeze: High procurement urgency meets tonnage deficit. Severe upside tail-risk spike (P90 stress ceiling).';
+    strategicRecommendation = '🔴 IMMEDIATE COA HEDGE (BLACKOUT SURGE): Avoid unhedged spot charters completely. Secure capacity via pre-negotiated multi-voyage contracts.';
+    ruleBadgeColor = 'rose';
+  } else if (demandState === 'low' && supplyState === 'surplus') {
+    ruleHeadline = 'Cargo Demand Low + Vessel Supply Surplus → Freight Collapse ↓↓';
+    activeMarketRule = 'Buyer-dominated market: Surplus ships chase scarce cargo. Spot rates test historical P10 floor.';
+    strategicRecommendation = '🟡 SHORT-TERM SPOT FIXTURES: Book minimum-duration voyage charters at bargain dip rates.';
+    ruleBadgeColor = 'amber';
+  } else {
+    ruleHeadline = 'Equilibrium Baseline: Balanced Supply & Demand';
+    activeMarketRule = 'Market in steady-state balance. Freight rates driven primarily by distance, bunker fuel, and port turnaround.';
+    strategicRecommendation = '🛡️ OPTIMAL 70/30 COA-SPOT SPLIT: Lock 70% in quarterly COA for basestock safety, 30% spot to capture local dips.';
+    ruleBadgeColor = 'blue';
+  }
+
+  // 7 Factor Array for waterfall / bar breakdown
+  const factors = [
+    {
+      id: 'demand',
+      name: 'Cargo Demand',
+      icon: 'TrendingUp',
+      valueUSD: demandCostUSD,
+      valueINR: Math.round(demandCostUSD * fxRate),
+      pct: Number(((demandCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'market_force',
+      impactDirection: demandCostUSD > 0 ? 'up' : 'down',
+      details: demandExplanation
+    },
+    {
+      id: 'supply',
+      name: 'Vessel Supply',
+      icon: 'Ship',
+      valueUSD: supplyCostUSD,
+      valueINR: Math.round(supplyCostUSD * fxRate),
+      pct: Number(((Math.abs(supplyCostUSD) / totalFreightUSD) * 100).toFixed(1)),
+      type: 'market_force',
+      impactDirection: supplyCostUSD >= 0 ? 'up' : 'down',
+      details: supplyExplanation
+    },
+    {
+      id: 'fuel',
+      name: 'Bunker Fuel (VLSFO)',
+      icon: 'Fuel',
+      valueUSD: fuelCostUSD,
+      valueINR: Math.round(fuelCostUSD * fxRate),
+      pct: Number(((fuelCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'operating_cost',
+      impactDirection: 'up',
+      details: `VLSFO $625/MT burn rate (${vessel.dailyFuelConsumptionMT || 42} MT/day across ${sailingDays.toFixed(1)} sailing days).`
+    },
+    {
+      id: 'distance',
+      name: 'Nautical Distance',
+      icon: 'Compass',
+      valueUSD: distanceCostUSD,
+      valueINR: Math.round(distanceCostUSD * fxRate),
+      pct: Number(((distanceCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'operating_cost',
+      impactDirection: 'up',
+      details: `${distanceNM.toLocaleString()} NM sea transit (${sailingDays.toFixed(1)} steaming days) from ${origin.name}.`
+    },
+    {
+      id: 'congestion',
+      name: 'Port Congestion',
+      icon: 'Anchor',
+      valueUSD: portCostUSD,
+      valueINR: Math.round(portCostUSD * fxRate),
+      pct: Number(((portCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'turnaround_cost',
+      impactDirection: 'up',
+      details: `${portWaitDays.toFixed(1)}d anchorage wait + ${portDischargeDays.toFixed(1)}d discharge at ${dest.name} (${dest.handlingRateTPD?.toLocaleString() || 45000} TPD).`
+    },
+    {
+      id: 'seasonality',
+      name: 'Seasonality Cycle',
+      icon: 'Calendar',
+      valueUSD: seasonalityCostUSD,
+      valueINR: Math.round(seasonalityCostUSD * fxRate),
+      pct: Number(((seasonalityCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'cyclical_driver',
+      impactDirection: 'up',
+      details: seasonalityExplanation
+    },
+    {
+      id: 'risk',
+      name: 'Tail Risk & Volatility',
+      icon: 'ShieldAlert',
+      valueUSD: riskCostUSD,
+      valueINR: Math.round(riskCostUSD * fxRate),
+      pct: Number(((riskCostUSD / totalFreightUSD) * 100).toFixed(1)),
+      type: 'risk_buffer',
+      impactDirection: 'up',
+      details: riskExplanation
+    }
+  ];
+
+  return {
+    origin,
+    destination: dest,
+    vessel,
+    cargoMT,
+    distanceNM,
+    sailingDays: Number(sailingDays.toFixed(1)),
+    totalFreightUSD,
+    totalFreightINR,
+    factors,
+    demandState,
+    supplyState,
+    ruleHeadline,
+    activeMarketRule,
+    strategicRecommendation,
+    ruleBadgeColor
+  };
+}
+

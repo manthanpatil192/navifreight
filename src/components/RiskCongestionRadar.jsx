@@ -83,11 +83,11 @@ export default function RiskCongestionRadar({ selectedDestination, currency }) {
               Head Bay (Haldia)
             </button>
             <button
-              onClick={() => handleSectorChange('krishnapatnam')}
-              className={`px-2 py-0.5 rounded ${activeSector === 'krishnapatnam' || activeSector === 'kamarajar' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
-              title="SW Bay: Krishnapatnam & Kamarajar"
+              onClick={() => handleSectorChange('gopalpur')}
+              className={`px-2 py-0.5 rounded ${activeSector === 'gopalpur' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'hover:text-slate-900'}`}
+              title="South Odisha: Gopalpur Port"
             >
-              SW Bay
+              South Odisha (Gopalpur)
             </button>
           </div>
 
