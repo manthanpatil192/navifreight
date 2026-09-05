@@ -191,42 +191,47 @@ export default function WebTerminalModelTrainer({
     if (isExecuting) return;
     setIsExecuting(true);
 
-    const originObj = ORIGIN_LOADING_PORTS[manualOrigin] || { name: manualOrigin, distanceToEastCoastNM: 4120 };
-    const destObj = INDIAN_EAST_COAST_PORTS[manualDest] || { 
-      name: manualDest, 
-      maxDraftLaden: 16.0, 
-      maxDraftHighTide: 17.5, 
-      maxLOA: 300,
-      demurragePerDayINR: 6500000,
-      avgWaitDays: 2.5
-    };
-    const vesselOptimization = optimizeVesselType({
-      originId: manualOrigin,
-      destinationId: manualDest,
-      cargoVolumeMT: manualVolume,
-      cargoType: manualCargo
-    });
-    const recommendedVesselKey = vesselOptimization.recommendedVesselId;
-    const vesselObj = VESSEL_CLASSES[recommendedVesselKey] || VESSEL_CLASSES.panamax;
-
-    // Live Dual-Port Weather API Ingestion (Source Loading Port + Destination Discharge Port)
-    let destWeather = liveBobWeather;
-    let originWeather = liveOriginWeather;
-
     try {
-      const vesselDraft = vesselObj.ladenDraftMeters || 16.0;
-      const [oW, dW] = await Promise.all([
-        fetchLiveOriginWeather(manualOrigin, manualCargo, vesselDraft),
-        fetchLiveBayOfBengalWeather(manualDest)
-      ]);
-      originWeather = oW;
-      destWeather = dW;
-      setLiveOriginWeather(oW);
-      setLiveBobWeather(dW);
-    } catch (e) {
-      if (!originWeather) originWeather = await fetchLiveOriginWeather(manualOrigin, manualCargo, 16.0);
-      if (!destWeather) destWeather = await fetchLiveBayOfBengalWeather(manualDest);
-    }
+      const originObj = ORIGIN_LOADING_PORTS[manualOrigin] || { name: manualOrigin, distanceToEastCoastNM: 4120 };
+      const destObj = INDIAN_EAST_COAST_PORTS[manualDest] || { 
+        name: manualDest, 
+        maxDraftLaden: 16.0, 
+        maxDraftHighTide: 17.5, 
+        maxLOA: 300,
+        demurragePerDayINR: 6500000,
+        avgWaitDays: 2.5
+      };
+      const vesselOptimization = optimizeVesselType({
+        originId: manualOrigin,
+        destinationId: manualDest,
+        cargoVolumeMT: manualVolume,
+        cargoType: manualCargo
+      });
+      const recommendedVesselKey = vesselOptimization.recommendedVesselId;
+      const vesselObj = VESSEL_CLASSES[recommendedVesselKey] || VESSEL_CLASSES.panamax;
+
+      // Live Dual-Port Weather API Ingestion (Source Loading Port + Destination Discharge Port)
+      let destWeather = liveBobWeather;
+      let originWeather = liveOriginWeather;
+
+      try {
+        const vesselDraft = vesselObj.ladenDraftMeters || 16.0;
+        const [oW, dW] = await Promise.all([
+          fetchLiveOriginWeather(manualOrigin, manualCargo, vesselDraft),
+          fetchLiveBayOfBengalWeather(manualDest)
+        ]);
+        originWeather = oW;
+        destWeather = dW;
+        setLiveOriginWeather(oW);
+        setLiveBobWeather(dW);
+      } catch {
+        try {
+          if (!originWeather) originWeather = await fetchLiveOriginWeather(manualOrigin, manualCargo, 16.0);
+          if (!destWeather) destWeather = await fetchLiveBayOfBengalWeather(manualDest);
+        } catch (innerErr) {
+          console.warn('Weather fallback used due to network:', innerErr);
+        }
+      }
 
     const destLaycanBufferHours = destWeather?.laycanBufferHours || 0;
     const destDelayDays = Number((destLaycanBufferHours / 24.0).toFixed(1));
@@ -309,6 +314,7 @@ export default function WebTerminalModelTrainer({
     const currentSpotUSD = Math.round(baseRate * manualVolume); // Today's spot baseline
     const optUSD = Math.round(blended * manualVolume);
     const optP10USD = Math.round(blendedP10 * manualVolume);
+    const savingsUSD = unhedgedUSD - optUSD;
     // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
     const baseFxRate = 86.50;
     const fxDriftPct = (manualHorizon / 12) * 0.025;
@@ -540,6 +546,10 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
       ]);
       setIsExecuting(false);
     }, 300);
+    } catch (err) {
+      console.error("Error executing manual dispatch:", err);
+      setIsExecuting(false);
+    }
   };
 
   // Scenario 1: Baseline Normal
@@ -1000,6 +1010,9 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
           }
         ]);
         setIsExecuting(false);
+      }).catch(err => {
+        console.error("Weather fetch error:", err);
+        setIsExecuting(false);
       });
       return;
     }
@@ -1426,7 +1439,8 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       (cmd.includes('rotterdam') && (cmd.includes('hedland') || cmd.includes('red sea') || cmd.includes('170')));
 
     setTimeout(() => {
-      setTerminalHistory(prev => {
+      try {
+        setTerminalHistory(prev => {
         if (isHedlandRotterdamRedSea) {
           return [
             ...prev,
@@ -1469,20 +1483,29 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         }
 
         // Generic dynamic calculation for any other route
+        const routeKey = `${parsedOrigin}-${parsedDest}`;
         const baseRateMatrix = {
-          'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-dhamra': 15.40,
-          'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-dhamra': 15.60,
-          'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70,
-          'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80,
-          'maputo-paradip': 13.60, 'maputo-vizag': 13.90,
-          'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70,
-          'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40,
-          'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70
+          'hay_point-dhamra': 15.40, 'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-gangavaram': 16.10, 'hay_point-gopalpur': 16.00, 'hay_point-sandheads': 15.90, 'hay_point-haldia': 16.60,
+          'gladstone-dhamra': 15.60, 'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-gangavaram': 16.30, 'gladstone-gopalpur': 16.20, 'gladstone-sandheads': 16.10, 'gladstone-haldia': 16.80,
+          'newcastle-dhamra': 15.90, 'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70, 'newcastle-gangavaram': 16.60, 'newcastle-gopalpur': 16.50, 'newcastle-sandheads': 16.40, 'newcastle-haldia': 17.10,
+          'hampton_roads-dhamra': 32.00, 'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80, 'hampton_roads-gangavaram': 32.70, 'hampton_roads-gopalpur': 32.40, 'hampton_roads-sandheads': 32.60, 'hampton_roads-haldia': 33.50,
+          'maputo-dhamra': 13.40, 'maputo-paradip': 13.60, 'maputo-vizag': 13.90, 'maputo-gangavaram': 13.80, 'maputo-gopalpur': 13.50, 'maputo-sandheads': 13.70, 'maputo-haldia': 14.30,
+          'samarinda-dhamra': 8.80, 'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70, 'samarinda-gangavaram': 8.65, 'samarinda-gopalpur': 8.75, 'samarinda-sandheads': 8.85, 'samarinda-haldia': 9.40,
+          'taboneo-dhamra': 8.50, 'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40, 'taboneo-gangavaram': 8.35, 'taboneo-gopalpur': 8.45, 'taboneo-sandheads': 8.55, 'taboneo-haldia': 9.10,
+          'vostochny-dhamra': 18.20, 'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70, 'vostochny-gangavaram': 18.60, 'vostochny-gopalpur': 18.40, 'vostochny-sandheads': 18.50, 'vostochny-haldia': 19.20
         };
-        const baseRate = baseRateMatrix[routeKey] || 16.50;
-        const estSpot = (baseRate * (1.0 + (parsedHorizon * 0.035) * parsedVolatility)).toFixed(2);
-        const estP10 = (estSpot * 0.88).toFixed(2);
-        const estP90 = (estSpot * 1.28).toFixed(2);
+        const baseRate = baseRateMatrix[routeKey] || 16.20;
+        const estSpot = Number((baseRate * (1.0 + (parsedHorizon * 0.035) * parsedVolatility)).toFixed(2));
+        const estP10 = Number((estSpot * 0.88).toFixed(2));
+        const estP90 = Number((estSpot * 1.28).toFixed(2));
+        const coaFixed = Number((baseRate * 0.94).toFixed(2));
+        const blended = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estSpot)).toFixed(2));
+
+        const unhedgedCost = Math.round(estSpot * parsedVolume);
+        const optCost = Math.round(blended * parsedVolume);
+        const savingsUSD = unhedgedCost - optCost;
+        const savingsEUR = Math.round(savingsUSD * 0.92);
+
         // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
         const baseFxRate = 86.50;
         const fxDriftPct = (parsedHorizon / 12) * 0.025;
@@ -1546,8 +1569,12 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 [GRAPH UPDATED] Forecast Chart synced to dynamic query parameters!`
           }
         ];
-      });
-      setIsExecuting(false);
+        });
+      } catch (err) {
+        console.error("handleCommandSubmit execution error:", err);
+      } finally {
+        setIsExecuting(false);
+      }
     }, 200);
   };
 
