@@ -136,9 +136,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
 
   // Filtered vessel list
   const filteredVessels = vessels.filter(v => {
-    if (vesselFilter === 'CAPESIZE') return v.vesselType.includes('Capesize');
+    if (vesselFilter === 'CAPESIZE') return v.vesselType.includes('Capesize') || v.vesselType.includes('Newcastlemax') || v.vesselType.includes('Baby Cape');
     if (vesselFilter === 'PANAMAX') return v.vesselType.includes('Panamax') || v.vesselType.includes('Kamsarmax');
-    if (vesselFilter === 'SUPRAMAX') return v.vesselType.includes('Supramax') || v.vesselType.includes('Handymax');
+    if (vesselFilter === 'SUPRAMAX') return v.vesselType.includes('Supramax') || v.vesselType.includes('Ultramax');
+    if (vesselFilter === 'HANDY') return v.vesselType.includes('Handymax') || v.vesselType.includes('Handysize');
     if (vesselFilter === 'BACKHAUL') return v.status.includes('Backhaul');
     return true;
   });
@@ -222,7 +223,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3 text-xs">
         <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-md border border-slate-200">
-          {['ALL', 'CAPESIZE', 'PANAMAX', 'SUPRAMAX', 'BACKHAUL'].map((tab) => (
+          {['ALL', 'CAPESIZE', 'PANAMAX', 'SUPRAMAX', 'HANDY', 'BACKHAUL'].map((tab) => (
             <button
               key={tab}
               onClick={() => setVesselFilter(tab)}
