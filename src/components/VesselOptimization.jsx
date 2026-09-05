@@ -649,17 +649,27 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
                         </div>
                       </div>
                     ) : isBlocked ? (
-                      <div className="mt-2.5 p-2 rounded-lg bg-rose-50/80 border border-rose-200 text-[11px] text-rose-950 space-y-1">
+                      <div className="mt-2.5 p-2.5 rounded-lg bg-rose-50/90 border border-rose-300 text-[11px] text-rose-950 space-y-1.5">
                         <div className="flex items-center space-x-1 font-bold text-rose-800">
-                          <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          <span>Hazard / Grounding Warning:</span>
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Operational Workaround Required:</span>
                         </div>
-                        <p className="text-[10.5px] leading-tight text-slate-600">
-                          Vessel draft ({card.ladenDraft}m) exceeds {currentPort.name} maximum draft ({currentPort.maxDraftLaden}m). Physical entry prohibited.
+                        <p className="text-[10.5px] leading-tight text-slate-700">
+                          Laden draft ({card.ladenDraft}m) exceeds {currentPort.name} standard draft ({currentPort.maxDraftLaden}m). Direct berthing without lightening is restricted.
                         </p>
-                        <div className="text-[10px] font-bold text-rose-700 bg-white/80 rounded px-1.5 py-0.5 border border-rose-200">
-                          Directive: DO NOT CHARTER FOR THIS PORT. Refusal of entry or mandatory offshore lighterage required.
+                        <div className="bg-white/95 rounded p-2 border border-rose-200 text-[10px] text-slate-800 space-y-1">
+                          <div className="font-extrabold text-rose-900 uppercase tracking-wider text-[9.5px]">What To Do (Industry Playbook):</div>
+                          <div>1. <strong className="text-slate-900">Offshore Lighterage:</strong> Offload ~30k MT into barges at outer anchorage to lighten draft to &lt;16m for high-tide berthing.</div>
+                          <div>2. <strong className="text-slate-900">Port Diversion to Dhamra/GPL:</strong> Divert to Dhamra (18m draft) or Gangavaram (19.5m draft) for 100% direct berthing.</div>
+                          <div>3. <strong className="text-slate-900">COA Parcel Split:</strong> Charter 2 × Kamsarmax (82k DWT) to berth directly with zero lighterage fees.</div>
                         </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setActiveTab('portswitcher'); }}
+                          className="w-full mt-1 py-1.5 px-2 bg-maritime-800 hover:bg-maritime-900 text-white rounded text-[10.5px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                        >
+                          <span>Compare Port Switch Savings (Dhamra / Gangavaram)</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     ) : (
                       <div className="mt-2.5 p-2 rounded-lg bg-cyan-50/80 border border-cyan-200 text-[11px] text-cyan-950 space-y-1">
