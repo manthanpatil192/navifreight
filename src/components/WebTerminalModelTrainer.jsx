@@ -8,6 +8,7 @@ import {
 import { MARKET_NEWS_SIGNALS } from '../data/marketNewsData';
 import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
+import { PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 import { fetchLiveOriginWeather, evaluateAlternateOriginPort } from '../services/originWeatherService';
@@ -380,6 +381,36 @@ export default function WebTerminalModelTrainer({
       holdWaitDirectiveText = `🔴 HOLD / WAIT DIRECTIVE: Current spot freight ($${baseRate.toFixed(2)} /MT) is trending upward. Avoid daily spot spikes. WAIT TILL forward P10 dip window to save ₹${savingsINR_Cr} Crore.`;
     }
 
+    // Real-Time Port Congestion Telemetry & 4-Factor Risk Engine (Referencing Part D)
+    const portCongestionData = PORT_CONGESTION_STATUS[manualDest] || {
+      portName: destObj.name,
+      vesselsAtAnchor: 6,
+      vesselsBerthWorking: 8,
+      avgAnchorageWaitDays: 2.5,
+      demurrageDailyExposureINR: 6500000,
+      congestionStatus: 'MODERATE',
+      trafficRiskScore: 45,
+      berthTurnaroundHours: 32,
+      pilotageAvailability: 'Standard',
+      nextBerthSlotETA: '36 Hours'
+    };
+
+    const freightRiskScore = isExtremeDemand ? 78 : 35;
+    const congestionRiskScore = portCongestionData.trafficRiskScore || 45;
+    const cycloneRiskScore = (!destProper || !originProper) ? 88 : 25;
+    const compositeRiskScore = Math.round((freightRiskScore * 0.35) + (congestionRiskScore * 0.35) + (cycloneRiskScore * 0.30));
+
+    let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
+    let congestionDecisionDirective = `🟢 GREEN ALERT (EXPRESS BERTHING & DISPATCH REWARD): Fast turnaround port with minimal queue (${portCongestionData.avgAnchorageWaitDays}d wait) and 24/7 deepwater pilotage. Vessel turnaround completes within agreed laytime, unlocking potential Dispatch Bonus (+₹15–30 Lakhs) and guaranteeing furnace basestock security.`;
+
+    if (!destProper || !originProper || compositeRiskScore > 70 || portCongestionData.congestionStatus === 'HIGH') {
+      compositeAlertBadge = '🔴 RED ALERT (Severe Tidal Congestion & High Demurrage Risk)';
+      congestionDecisionDirective = `🔴 RED ALERT (SEVERE TIDAL CONGESTION & WEATHER EXPOSURE): High queue (+${portCongestionData.avgAnchorageWaitDays}d wait, ${portCongestionData.vesselsAtAnchor} ships at anchor) combined with weather delays. Total idle risk exceeds laytime by ~${demurrageDays.toFixed(1)} days. DIRECTIVE: AVOID SPOT CHARTERING without minimum 96h Laycan extension buffer, or DIVERT to alternate deepwater port (${destObj.name === 'Haldia Dock Complex' ? 'Dhamra Port / Sandheads' : 'Gangavaram Port'}) to save ₹${demurrageExposureINR_Lakhs} Lakhs demurrage!`;
+    } else if (compositeRiskScore > 45 || portCongestionData.congestionStatus === 'MODERATE') {
+      compositeAlertBadge = '🟡 YELLOW ALERT (Moderate Anchorage Queue / Laycan Caution)';
+      congestionDecisionDirective = `🟡 YELLOW ALERT (MODERATE ANCHORAGE CONGESTION): ${portCongestionData.vesselsAtAnchor} vessels waiting at outer anchorage (+${portCongestionData.avgAnchorageWaitDays}d wait, ETA: ${portCongestionData.nextBerthSlotETA}). DIRECTIVE: Execute 70% Fixed COA hedge; insert 48h Weather Working Day (WWD) & berthing priority clause in charter party to shield buyer from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage exposure.`;
+    }
+
     const primaryWaitDate = !originProper 
       ? originWeather?.recommendedWaitDate 
       : (!destProper ? destWeather?.recommendedWaitDate : 'Oct 12 – Oct 19, 2026');
@@ -518,28 +549,22 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
   * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED vs Unhedged Forward Spot!
   * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage [Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d] × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
 ----------------------------------------------------------------------
-[6] PS PART (B) VESSEL TYPE & PORT TURNAROUND DECOMPOSITION:
-  * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
-  * PORT DRAFT RESTRICTION FIT:      Origin ${originObj.name}: ${originObj.maxDraftLaden}m Draft [PASSED]
-                                     Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
-  * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin [PASSED]` : `[RESTRICTED / GROUNDING HAZARD] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
-  * LOA & BERTH SUITABILITY:         ${vesselOptimization.recommendedVessel.loa <= destObj.maxLOA ? `Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [PASSED - CLEAR TO BERTH]` : `[RESTRICTED / EXCEEDED] Vessel ${vesselOptimization.recommendedVessel.loa}m > Berth ${destObj.maxLOA}m (+${vesselOptimization.recommendedVessel.loa - destObj.maxLOA}m Excess Length - Lock Gate Refusal)`}
-  * AIS REAL-WORLD COMPATIBILITY:    ${vesselOptimization.recommendedVessel.aisConfirmedCalls > 0 ? `🟢 [AIS VERIFIED] ${vesselOptimization.recommendedVessel.aisConfirmedCalls} live vessel(s) of this class currently active at ${destObj.name} (${vesselOptimization.recommendedVessel.aisLiveExamples})` : `ℹ️ AIS Audit: Validated for ${destObj.name} physical dimensions.`}
+[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
+  * DISCHARGE PORT TRAFFIC AUDIT [${destObj.name}]:
+    - Anchorage Waitlist:     ${portCongestionData.vesselsAtAnchor} Bulkers at Outer Anchorage (Avg Queue: ${portCongestionData.avgAnchorageWaitDays} Days)
+    - Active Berth Service:   ${portCongestionData.vesselsBerthWorking} Bulkers Discharging at Mechanized Berths
+    - Berth Slot ETA:         Next Available Berth Slot: ${portCongestionData.nextBerthSlotETA}
+    - Pilotage & Navigation:  ${portCongestionData.pilotageAvailability}
+    - Port Traffic Risk Score:${portCongestionData.trafficRiskScore}/100 [${portCongestionData.congestionStatus} CONGESTION]
   ------------------------------------------------------------------
-  * HANDLING & PORT TURNAROUND TIME BREAKDOWN:
-    [+] Net Cargo Discharge:         ${netDischargeDays.toFixed(2)} Days  (${manualVolume.toLocaleString()} MT ÷ ${destHandlingTPD.toLocaleString()} TPD at ${destObj.name})
-    [+] Berth Pilotage & Survey:     ${pilotageMooringDays.toFixed(2)} Days  (Inward/Outward Pilotage, Tugs & Draft Survey)
-    [+] Pre-Berthing Queue Wait:     ${queueWaitDays.toFixed(2)} Days  (Anchorage Congestion & Marine Sea-State Wait)
-    ------------------------------------------------------------------
-    [=] TOTAL PORT TURNAROUND:       ${totalPortTurnaroundDays} Days  (Explicit Sum: ${netDischargeDays.toFixed(2)}d + ${pilotageMooringDays.toFixed(2)}d + ${queueWaitDays.toFixed(2)}d)
-        [Berth Working Occupancy:    ${berthOnlyDays.toFixed(2)} Days]
+  * 4-FACTOR COMPOSITE RISK AUDIT (PART D SYSTEM LOGIC):
+    - Factor 1 (Freight Drift, 35% Wt):       ${isExtremeDemand ? 'High Squeeze Volatility [Score: 78]' : 'Stable Forward Trend [Score: 35]'}
+    - Factor 2 (Port Congestion, 35% Wt):     ${portCongestionData.congestionStatus} Traffic Queue [Score: ${portCongestionData.trafficRiskScore}]
+    - Factor 3 (Ocean Sea Weather, 30% Wt):   ${!destProper || !originProper ? 'Adverse Sea Swell / Squalls [Score: 88]' : 'Calm Synoptic Navigation [Score: 25]'}
+    - Composite Operational Risk:             ${compositeRiskScore}/100 [${compositeAlertBadge}]
   ------------------------------------------------------------------
-  * CANONICAL CHARTER DEMURRAGE RECONCILIATION:
-    - Canonical Charter Rate:        ₹${canonicalDemurrageDailyINR_Lakhs} Lakhs/Day ($${canonicalDemurrageDailyUSD.toLocaleString()} USD/Day)
-    - Contract Laytime Allowed:      ${laytimeAllowedDays.toFixed(2)} Days  (${manualVolume.toLocaleString()} MT ÷ 35,000 TPD Contract Laytime)
-    - Demurrage Incurred:            ${demurrageDays.toFixed(2)} Days  (Total Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d)
-    - Demurrage Exposure:            ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage × ₹${canonicalDemurrageDailyINR_Lakhs}L/day)
-    - Idle Time Prevented (Savings): Avoided ${idleDaysSaved.toFixed(2)} Days Idle (Saved ₹${demurrageSavedINR_Lakhs} Lakhs [${idleDaysSaved.toFixed(2)}d × ₹${canonicalDemurrageDailyINR_Lakhs}L/day] vs Misallocated Vessel)
+  * COMMERCIAL DECISION & CONGESTION MITIGATION DIRECTIVE:
+    ${congestionDecisionDirective}
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
         }

@@ -7,6 +7,7 @@ import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData
 import { fetchLiveINCOISData } from '../api/incoisConnector';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import { PORT_CONGESTION_STATUS, IMD_WEATHER_ALERTS } from '../data/weatherCongestionData';
+import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 import InsightBulb from './InsightBulb';
 
 // Vessel classes with physical specs
@@ -308,6 +309,31 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
     ? `Executive Directive: ${recommendedVesselEval.vessel.name} is constrained by ${recommendedVesselEval.bindingConstraint}; book early to manage light-loading or switch to ${vesselEvals.find(v => !v.isLightLoaded && !v.blocked)?.vessel.name || 'smaller class'} to save ₹${penaltyDeltaINRCr} Cr in dead-freight penalties.`
     : `Executive Directive: ${recommendedVesselEval.vessel.name} is the optimal 100% fit for ${currentPort.name} and loading origin. Zero draft restriction; discharge speed ${recommendedVesselEval.isDispatchEarned ? 'qualifies for Dispatch Reward Bonus' : 'fits laytime allowance cleanly'}.`;
 
+  // Integrated PS Part (b) Optimization Engine for Decision Matrix Cards
+  const engineOptimization = useMemo(() => {
+    return optimizeVesselType({
+      originId: selectedOrigin,
+      destinationId: selectedDestination,
+      cargoVolumeMT: activeCargoVolume,
+      cargoType: 'Coking Coal'
+    });
+  }, [selectedOrigin, selectedDestination, activeCargoVolume]);
+
+  const candidateMatrixCards = useMemo(() => {
+    const evals = engineOptimization.evaluations;
+    const isHaldia = selectedDestination === 'haldia';
+    
+    // Pick 3 representative classes across shallow, medium, and large
+    const shallow = isHaldia 
+      ? (evals.find(e => e.id === 'handymax') || evals.find(e => e.id === 'handysize') || evals[0])
+      : (evals.find(e => e.id === 'supramax') || evals.find(e => e.id === 'handymax') || evals[0]);
+    
+    const medium = evals.find(e => e.id === 'baby_cape') || evals.find(e => e.id === 'panamax') || evals[1];
+    const large = evals.find(e => e.id === 'capesize') || evals[evals.length - 1];
+    
+    return [shallow, medium, large].filter(Boolean);
+  }, [engineOptimization, selectedDestination]);
+
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-subtle mb-6">
 
@@ -366,6 +392,282 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
           Optimal Class: {recommendedVesselEval.vessel.name}
         </div>
       </div>
+
+      {/* === PART B: 3-CARD CANDIDATE VESSEL CLASS & PORT FIT DECISION MATRIX (STYLED LIKE PART A) === */}
+      {activeTab === 'optimizer' && (
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Ship className="w-4 h-4 text-emerald-700" />
+                <span>Interactive Candidate Vessel Class Decision Matrix (Shallow vs Panamax vs Capesize)</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  PS Part (b) Core
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Evaluating under-keel clearance (UKC), LOA berth limits, AIS live fleet verification, and turnaround decomposition for {activeCargoVolume.toLocaleString()} MT at {currentPort.name}.
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 hidden sm:inline">
+              Click any card to apply vessel class globally
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {candidateMatrixCards.map((card) => {
+              const isSelected = currentVesselId === card.id;
+              const isRecommended = card.id === engineOptimization.recommendedVesselId;
+              const isBlocked = card.isHardBlocked;
+              const isWarning = card.isLightLoaded || card.lighterageRequired;
+
+              const badgeCls = isRecommended
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : isBlocked
+                  ? 'bg-rose-50 text-rose-800 border-rose-300'
+                  : isWarning
+                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                    : 'bg-cyan-50 text-cyan-800 border-cyan-300';
+
+              const borderCls = isRecommended
+                ? 'border-emerald-400 hover:border-emerald-500'
+                : isBlocked
+                  ? 'border-rose-300 hover:border-rose-400'
+                  : isWarning
+                    ? 'border-amber-300 hover:border-amber-400'
+                    : 'border-cyan-300 hover:border-cyan-400';
+
+              const activeBorderCls = isRecommended
+                ? 'border-emerald-500 ring-2 ring-emerald-500/20'
+                : isBlocked
+                  ? 'border-rose-500 ring-2 ring-rose-500/20'
+                  : isWarning
+                    ? 'border-amber-500 ring-2 ring-amber-500/20'
+                    : 'border-cyan-500 ring-2 ring-cyan-500/20';
+
+              const headerBg = isRecommended
+                ? 'bg-gradient-to-r from-emerald-50 to-white'
+                : isBlocked
+                  ? 'bg-gradient-to-r from-rose-50 to-white'
+                  : isWarning
+                    ? 'bg-gradient-to-r from-amber-50 to-white'
+                    : 'bg-gradient-to-r from-cyan-50 to-white';
+
+              const tagText = isRecommended
+                ? '🏆 OPTIMAL CLASS (RECOMMENDED)'
+                : isBlocked
+                  ? '🔴 RESTRICTED / GROUNDING HAZARD'
+                  : isWarning
+                    ? '⚠️ PARTIAL LOAD / LIGHTERAGE'
+                    : 'COMPLIANT ALTERNATIVE';
+
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => onSelectVessel && onSelectVessel(card.id)}
+                  className={`rounded-xl border-2 transition-all cursor-pointer relative flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md ${
+                    isSelected ? activeBorderCls : `${borderCls} bg-white`
+                  }`}
+                >
+                  {/* Card Header Strip */}
+                  <div className={`p-4 border-b border-slate-100 ${headerBg}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border ${badgeCls}`}>
+                        {tagText}
+                      </span>
+                      {isSelected && (
+                        <span className="bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          Active Class
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900 mt-1">{card.name} ({card.dwt.toLocaleString()} DWT)</h4>
+                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{card.desc}</p>
+                  </div>
+
+                  {/* Body Metrics Grid */}
+                  <div className="p-4 space-y-3 text-xs">
+                    
+                    {/* Landed Freight Rate */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Effective Freight Rate:</span>
+                      <div className="text-right">
+                        <span className="text-base font-extrabold text-slate-900">
+                          ₹{card.effectiveRateINR.toLocaleString()} /MT
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">
+                          ${card.effectiveRateUSD.toFixed(2)} /MT @ Spot FX
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Total Outflow */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Total Landed Outflow:</span>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-slate-800">
+                          ₹{card.totalFreightINR_Cr} Crore
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">
+                          ${Math.round(card.effectiveRateUSD * activeCargoVolume).toLocaleString()} USD
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Under-Keel Clearance */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Under-Keel Clearance:</span>
+                      <div className="text-right font-semibold">
+                        {!isBlocked && card.draftMargin >= 0 ? (
+                          <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[11px]">
+                            +{card.draftMargin.toFixed(1)}m Safe Margin [PASSED]
+                          </span>
+                        ) : !isBlocked && card.tideDraftMargin >= 0 ? (
+                          <span className="text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded text-[11px]">
+                            +{card.tideDraftMargin.toFixed(1)}m Tide Margin [SPRING TIDE]
+                          </span>
+                        ) : (
+                          <span className="text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded text-[11px]">
+                            [RESTRICTED] {Math.abs(card.draftMargin).toFixed(1)}m Excess Draft
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* LOA & Berth Suitability */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">LOA & Berth Fit:</span>
+                      <div className="text-right font-mono text-[11px]">
+                        {card.loa <= currentPort.maxLOA ? (
+                          <span className="text-emerald-700 font-semibold">
+                            {card.loa}m &le; {currentPort.maxLOA}m [CLEAR TO BERTH]
+                          </span>
+                        ) : (
+                          <span className="text-rose-700 font-semibold">
+                            {card.loa}m &gt; {currentPort.maxLOA}m [LOCK REFUSAL]
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Real-World AIS Telemetry */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Live AIS Port Calls:</span>
+                      <div className="text-right text-[11px] font-medium text-slate-700">
+                        {card.aisConfirmedCalls > 0 ? (
+                          <span className="text-emerald-700 font-bold">
+                            🟢 {card.aisConfirmedCalls} live active calls ({card.aisLiveExamples.split(',')[0]})
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">
+                            Validated dimensions
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Turnaround Breakdown */}
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] mb-1">
+                        <span className="text-slate-600 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-cyan-600" />
+                          Turnaround Decomposition:
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {card.totalTurnaroundDays.toFixed(1)} Days Total
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono flex items-center justify-between bg-slate-50 p-1.5 rounded border border-slate-200/60">
+                        <span>Discharge: <strong>{card.pureDischargeDays.toFixed(1)}d</strong></span>
+                        <span>Tugs/Pilot: <strong>{card.portManeuverBufferDays.toFixed(1)}d</strong></span>
+                        <span>Queue: <strong>{card.queueWaitDays.toFixed(1)}d</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Demurrage / Dispatch Outcome */}
+                    <div className="flex items-baseline justify-between pt-1">
+                      <span className="text-slate-500 text-[11px]">Demurrage Exposure:</span>
+                      <div className="text-right font-mono text-[11px]">
+                        {isBlocked ? (
+                          <span className="text-rose-700 font-bold">₹{card.demurrageTotalINR_Lakhs} Lakhs (Detention)</span>
+                        ) : card.isLightLoaded ? (
+                          <span className="text-amber-800 font-bold">₹{card.demurrageTotalINR_Lakhs} Lakhs (+Tidal Wait)</span>
+                        ) : (
+                          <span className="text-emerald-700 font-bold">₹{card.demurrageTotalINR_Lakhs} Lakhs (Standard)</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Operational Directive Box */}
+                    {isRecommended ? (
+                      <div className="mt-2.5 p-2 rounded-lg bg-emerald-50/90 border border-emerald-300 text-[11px] text-emerald-950 space-y-1">
+                        <div className="flex items-center space-x-1 font-bold text-emerald-800">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Engineering Clearance:</span>
+                        </div>
+                        <p className="text-[10.5px] leading-tight text-slate-600">
+                          Full dual-port draft passed. Delivers maximum economies of scale, saving ₹{engineOptimization.demurrageSavedINR_Lakhs} Lakhs demurrage vs suboptimal classes.
+                        </p>
+                        <div className="text-[10px] font-bold text-emerald-800 bg-white/90 rounded px-1.5 py-0.5 border border-emerald-300">
+                          Directive: RECOMMENDED CLASS. Fully compliant with {currentPort.name} gantry cranes and berths.
+                        </div>
+                      </div>
+                    ) : isBlocked ? (
+                      <div className="mt-2.5 p-2 rounded-lg bg-rose-50/80 border border-rose-200 text-[11px] text-rose-950 space-y-1">
+                        <div className="flex items-center space-x-1 font-bold text-rose-800">
+                          <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Hazard / Grounding Warning:</span>
+                        </div>
+                        <p className="text-[10.5px] leading-tight text-slate-600">
+                          Vessel draft ({card.ladenDraft}m) exceeds {currentPort.name} maximum draft ({currentPort.maxDraftLaden}m). Physical entry prohibited.
+                        </p>
+                        <div className="text-[10px] font-bold text-rose-700 bg-white/80 rounded px-1.5 py-0.5 border border-rose-200">
+                          Directive: DO NOT CHARTER FOR THIS PORT. Refusal of entry or mandatory offshore lighterage required.
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2.5 p-2 rounded-lg bg-cyan-50/80 border border-cyan-200 text-[11px] text-cyan-950 space-y-1">
+                        <div className="flex items-center space-x-1 font-bold text-cyan-800">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                          <span>Alternative Feasible Fit:</span>
+                        </div>
+                        <p className="text-[10.5px] leading-tight text-slate-600">
+                          Fully compliant with berth draft and LOA. Viable fallback option if larger tonnage is unavailable in the prompt spot market.
+                        </p>
+                        <div className="text-[10px] font-bold text-cyan-800 bg-white/80 rounded px-1.5 py-0.5 border border-cyan-200">
+                          Directive: COMPLIANT SECONDARY CHOICE. Safe pilotage and berth handling guaranteed.
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* Bottom Action Strip */}
+                  <div className="p-3 bg-slate-50 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectVessel && onSelectVessel(card.id);
+                      }}
+                      className={`w-full py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+                        isSelected
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>{isSelected ? 'Current Selection' : `Apply ${card.name.split(' ')[0]} Class`}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* === SIDE-BY-SIDE "WHAT IF I CHOSE WRONG" COMPARISON CARD === */}
       {activeTab === 'optimizer' && (
