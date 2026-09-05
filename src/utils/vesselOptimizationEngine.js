@@ -49,11 +49,25 @@ export function optimizeVesselType({
       desc: '115,000 DWT specialized bulker engineered for draft-constrained Indian tidal berths (Paradip high tide).'
     },
     {
+      id: 'kamsarmax',
+      name: 'Kamsarmax',
+      category: 'Kamsarmax',
+      dwt: 82000,
+      capacityMT: 82000,
+      ladenDraft: 14.4,
+      loa: 229,
+      dailyCharterUSD: 14500,
+      demurragePerDayUSD: 16500,
+      fuelBurnMT: 29.5,
+      scaleFactor: 0.88,
+      desc: '80,000–82,000 DWT standard bulk carrier purpose-engineered for 80k MT parcels. Maximum dimension for Port Kamsar and East Coast Indian deepwater coal berths.'
+    },
+    {
       id: 'panamax',
       name: 'Panamax',
       category: 'Panamax',
       dwt: 75000,
-      capacityMT: 74000,
+      capacityMT: 75000,
       ladenDraft: 14.2,
       loa: 225,
       dailyCharterUSD: 14200,
@@ -216,14 +230,30 @@ export function optimizeVesselType({
       // Penalty for lighterage and tide waiting
       if (lighterageRequired) score -= 35;
       if (isLightLoaded) score -= 20;
-      // Parcel size suitability penalty
-      const capacityRatio = cargoVolumeMT / (vessel.capacityMT * voyagesNeeded);
-      if (vessel.capacityMT > cargoVolumeMT * 2.5) score -= 20; // Massive vessel for tiny parcel
-      if (voyagesNeeded > 2) score -= Math.min(20, (voyagesNeeded - 1) * 8); // Too small vessel requiring 3+ voyages
+
+      // Parcel size suitability penalty:
+      // A: Excessive capacity mismatch (massive vessel for tiny parcel)
+      if (vessel.capacityMT > cargoVolumeMT * 2.2) score -= 25;
+
+      // B: CAPACITY DEFICIT (vessel is undersized for consignment)
+      // Standard commercial rule: an 80k parcel should not be put on a 55k Supramax
+      if (cargoVolumeMT > vessel.capacityMT) {
+        const capacityShortfallMT = cargoVolumeMT - vessel.capacityMT;
+        const shortfallRatio = capacityShortfallMT / cargoVolumeMT;
+        score -= Math.round(35 + shortfallRatio * 30); // 35 to 65 pt severe penalty for undersized vessel
+      }
+      if (voyagesNeeded > 1) {
+        score -= (voyagesNeeded - 1) * 20; // Additional 20 pts per extra voyage needed
+      }
+
+      // Economies of scale penalty (higher scaleFactor = higher $/MT freight cost)
+      const costPenalty = Math.round((vessel.scaleFactor - 0.72) * 25);
+      score -= Math.max(0, costPenalty);
+
       // Demurrage penalty
       score -= Math.min(25, Math.round(idleDays * 2));
-      // Draft safety bonus
-      if (draftMargin >= 1.0) score += 5;
+      // Draft safety bonus (only applies if vessel has sufficient capacity)
+      if (draftMargin >= 1.0 && cargoVolumeMT <= vessel.capacityMT * 1.1) score += 5;
       // AIS operational confirmation bonus
       if (aisConfirmedCalls > 0) score += 5;
     }
@@ -259,6 +289,13 @@ export function optimizeVesselType({
         color: 'amber',
         isRecommended: false,
         text: `Requires high spring tide window (+${tideDraftMargin}m margin) to avoid grounding.`
+      };
+    } else if (cargoVolumeMT > vessel.capacityMT) {
+      statusBadge = {
+        label: 'CAPACITY DEFICIT',
+        color: 'amber',
+        isRecommended: false,
+        text: `Parcel (${cargoVolumeMT.toLocaleString()} MT) exceeds vessel capacity (${vessel.capacityMT.toLocaleString()} MT). Requires ${voyagesNeeded} voyages — switch to Kamsarmax/Panamax.`
       };
     }
 

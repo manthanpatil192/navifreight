@@ -107,8 +107,8 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   // Trips required
   const tripsRequired = Math.ceil(cargoMT / lightLoadingCapMT);
 
-  // Actual discharge days using live TPD
-  const dischargeDays = +(cargoMT / (live.actualTPD * tripsRequired)).toFixed(1);
+  // Actual discharge days using live TPD (net pumping/grabbing time)
+  const dischargeDays = +(cargoMT / live.actualTPD).toFixed(1);
 
   // Laytime allowance calculation (standard laytime = cargoMT / rated TPD)
   const allowedLaytimeDays = +(cargoMT / port.handlingRateTPD).toFixed(1);
@@ -121,12 +121,15 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   let dispatchBonusUSD = 0;
   let isDispatchEarned = false;
 
-  if (extraOverLaytime > 0 || live.waitDays > 1.5) {
-    const demurrageDays = Math.max(0, extraOverLaytime + Math.max(0, live.waitDays - 1.0));
+  // Extra voyages add additional anchorage queue waits and maneuvering buffers
+  const voyageMultiplierWaitDays = (tripsRequired - 1) * (live.waitDays + 1.0);
+
+  if (extraOverLaytime > 0 || live.waitDays > 1.5 || tripsRequired > 1) {
+    const demurrageDays = Math.max(0, extraOverLaytime + Math.max(0, live.waitDays - 1.0) + voyageMultiplierWaitDays);
     demurrageINRCr = +((demurrageDays * DEMURRAGE_RATE_INR_PER_DAY) / 10000000).toFixed(2);
     demurrageUSD = Math.round((demurrageINRCr * 10000000) / 86.5);
-  } else if (extraOverLaytime < 0 && live.waitDays <= 1.5) {
-    // Unloaded ahead of laytime schedule -> Dispatch Bonus Earned!
+  } else if (extraOverLaytime < 0 && live.waitDays <= 1.5 && tripsRequired === 1) {
+    // Unloaded ahead of laytime schedule on a single voyage -> Dispatch Bonus Earned!
     isDispatchEarned = true;
     const earlyDays = Math.abs(extraOverLaytime);
     dispatchBonusINRLakhs = +((earlyDays * DISPATCH_RATE_INR_PER_DAY) / 100000).toFixed(1);
@@ -154,9 +157,15 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
       cls: 'bg-amber-50 text-amber-900 border-amber-200',
       icon: AlertTriangle
     };
+  } else if (tripsRequired > 1) {
+    verdictBadge = {
+      text: `⚠️ Capacity Deficit: Requires ${tripsRequired} voyages (${cargoMT.toLocaleString()} MT > ${vessel.typicalParcel.toLocaleString()} MT) — Switch to Kamsarmax/Panamax`,
+      cls: 'bg-amber-50 text-amber-900 border-amber-200',
+      icon: AlertTriangle
+    };
   } else {
     verdictBadge = {
-      text: `✅ Fits 100% at Origin & Destination — Zero Restrictions`,
+      text: `✅ Fits 100% at Origin & Destination — Zero Restrictions for ${cargoMT.toLocaleString()} MT`,
       cls: 'bg-emerald-50 text-emerald-900 border-emerald-200',
       icon: CheckCircle2
     };
@@ -166,8 +175,8 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   let tpdTranslationSentence = '';
   if (isDispatchEarned) {
     tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ Finished ${Math.abs(extraOverLaytime)}d ahead of laytime! 🎉 Dispatch Reward: +₹${dispatchBonusINRLakhs} Lakhs (+$${Math.round(dispatchBonusUSD / 1000)}k USD) cash credit from shipowner.`;
-  } else if (extraOverLaytime > 0) {
-    tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ ${extraOverLaytime}d over laytime ➔ ₹${demurrageINRCr} Cr ($${Math.round(demurrageUSD / 1000)}k USD) demurrage exposure at anchorage.`;
+  } else if (extraOverLaytime > 0 || tripsRequired > 1) {
+    tpdTranslationSentence = `Discharge time: ${dischargeDays} days (${tripsRequired > 1 ? `${tripsRequired} voyages required` : 'single voyage'}) ➔ ₹${demurrageINRCr} Cr ($${Math.round(demurrageUSD / 1000)}k USD) demurrage & turnaround cost.`;
   } else {
     tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ On schedule within free laytime (${allowedLaytimeDays} days). Zero demurrage.`;
   }
@@ -175,11 +184,29 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   // Compute composite score /100
   let score = 100;
   if (isLightLoaded) score -= 20;   // light loading penalty
-  if (blocked) score -= 60;                    // blocked completely
+  if (blocked) score -= 60;         // blocked completely
+
+  // Capacity deficit penalty (critical: cannot fit consignment in single voyage)
+  if (cargoMT > lightLoadingCapMT) {
+    const capacityDeficitMT = cargoMT - lightLoadingCapMT;
+    const deficitRatio = capacityDeficitMT / cargoMT;
+    score -= Math.round(35 + deficitRatio * 30); // 35 to 65 pt penalty
+  }
+  if (tripsRequired > 1) {
+    score -= (tripsRequired - 1) * 20; // 20 pts per extra voyage
+  }
+  if (vessel.typicalParcel > cargoMT * 2.2) {
+    score -= 25; // Oversized vessel penalty
+  }
+
+  // Freight rate scale economics (Kamsarmax 0.88 vs Supramax 1.04)
+  const costPenalty = Math.round((vessel.costMultiplier - 0.72) * 20);
+  score -= Math.max(0, costPenalty);
+
   if (live.waitDays > 3) score -= 10;
   if (extraOverLaytime > 1.0) score -= 15;
   if (live.berthAvailDays < 7) score -= 12;
-  if (isDispatchEarned) score += 5;             // Bonus for fast dispatch
+  if (isDispatchEarned) score += 5;             // Bonus for fast single-voyage dispatch
   score = Math.max(0, Math.min(100, score));
 
   const costPremium = +(vessel.costMultiplier - 0.72).toFixed(2);
@@ -328,11 +355,17 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
       ? (evals.find(e => e.id === 'handymax') || evals.find(e => e.id === 'handysize') || evals[0])
       : (evals.find(e => e.id === 'supramax') || evals.find(e => e.id === 'handymax') || evals[0]);
     
-    const medium = evals.find(e => e.id === 'baby_cape') || evals.find(e => e.id === 'panamax') || evals[1];
+    // Medium class: prioritizes Kamsarmax/Panamax for 70k-90k MT parcels, or Baby Cape for >90k MT
+    const medium = evals.find(e => e.id === engineOptimization.recommendedVesselId && ['kamsarmax', 'panamax', 'baby_cape'].includes(e.id))
+      || (activeCargoVolume <= 90000 
+          ? (evals.find(e => e.id === 'kamsarmax') || evals.find(e => e.id === 'panamax'))
+          : (evals.find(e => e.id === 'baby_cape') || evals.find(e => e.id === 'kamsarmax') || evals.find(e => e.id === 'panamax')))
+      || evals[1];
+
     const large = evals.find(e => e.id === 'capesize') || evals[evals.length - 1];
     
     return [shallow, medium, large].filter(Boolean);
-  }, [engineOptimization, selectedDestination]);
+  }, [engineOptimization, selectedDestination, activeCargoVolume]);
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-subtle mb-6">
