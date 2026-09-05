@@ -714,6 +714,184 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
         </div>
       )}
 
+      {/* === CAPESIZE & LARGE CONSIGNMENT OPERATIONAL PLAYBOOK (SOLVING PARADIP / DRAFT RESTRICTIONS) === */}
+      {activeTab === 'optimizer' && (
+        <div className="bg-gradient-to-br from-slate-900 via-maritime-950 to-slate-900 border border-slate-700/60 rounded-xl p-5 mb-6 text-white shadow-md">
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-slate-700/60 gap-3">
+            <div className="flex items-start space-x-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shrink-0 mt-0.5">
+                <Anchor className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-extrabold tracking-wide uppercase text-white">
+                    Operational Playbook: Fulfilling Large Orders (150k–180k MT) at {currentPort.name}
+                  </h3>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 font-black px-2 py-0.5 rounded border border-amber-400/30 uppercase">
+                    Maritime Workaround Matrix
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Direct Capesize berthing draws 18.2m vs {currentPort.name} standard draft ({currentPort.maxDraftLaden}m). Here is how real-world charterers fulfill the volume:
+                </p>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="text-[11px] font-mono text-slate-400 block">Current Cargo: {activeCargoVolume.toLocaleString()} MT</span>
+              <span className="text-xs font-bold text-amber-400">3 Verified Industry Strategies</span>
+            </div>
+          </div>
+
+          {/* 3 Interactive Strategy Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+            
+            {/* Strategy 1: Anchorage Lighterage */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded border border-slate-600">
+                    Strategy 1: Offshore Lighterage
+                  </span>
+                  <span className="text-[11px] font-bold text-amber-400">Paradip Standard</span>
+                </div>
+                <h4 className="text-xs font-bold text-white mb-1">Anchorage Transshipment (Lightening)</h4>
+                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                  Capesize anchors at <strong>Paradip Outer Anchorage</strong>. Floating crane barges offload <strong>~25,000–35,000 MT</strong> into daughter barges, reducing draft from <strong>18.2m &rarr; 15.8m</strong>. Vessel then berths directly at KICT Berth 03 on the spring high tide.
+                </p>
+                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Draft Reduction:</span>
+                    <span className="font-bold text-emerald-400">18.2m &rarr; 15.8m (Enters Port)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Lighterage Cost:</span>
+                    <span className="font-bold text-amber-300">+$3.80/MT (~₹3.2 Cr)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Turnaround Delay:</span>
+                    <span className="font-bold text-slate-300">+2.5 Days Anchorage Wait</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-slate-700/60">
+                <span className="text-[10px] text-slate-400 block mb-1.5">Best when: Coal MUST be unloaded at Paradip berths.</span>
+                <button
+                  type="button"
+                  onClick={() => onSelectVessel && onSelectVessel('capesize')}
+                  className="w-full py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                >
+                  <span>Select Capesize + Lighterage Model</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Strategy 2: Port Diversion (Dhamra / Gangavaram) */}
+            <div className="bg-emerald-950/40 border-2 border-emerald-500/60 rounded-lg p-4 flex flex-col justify-between hover:border-emerald-400 transition-all shadow-sm">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-400/40">
+                    Strategy 2: Port Diversion (Recommended)
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-400">⚡ Best ROI</span>
+                </div>
+                <h4 className="text-xs font-bold text-white mb-1">Divert to Dhamra (18m) or Gangavaram (19.5m)</h4>
+                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                  Instead of lightering at Paradip, divert 60 NM to <strong>Dhamra Port (18.0m draft)</strong> or <strong>Gangavaram (19.5m draft)</strong>. Capesize berths <strong>100% directly with ZERO lighterage</strong> and 65k–70k TPD fast unloaders, railed directly via ECoR to steel plants.
+                </p>
+                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Direct Berth Draft:</span>
+                    <span className="font-bold text-emerald-400">18.0m (Dhamra) / 19.5m (GPL)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Demurrage/Lighterage Saved:</span>
+                    <span className="font-bold text-emerald-300">₹2.80 – ₹4.20 Crore Saved!</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Discharge Speed:</span>
+                    <span className="font-bold text-emerald-400">65,000–70,000 TPD (Fast)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-emerald-500/30">
+                <span className="text-[10px] text-emerald-300/80 block mb-1.5">Best when: Charterer wants maximum cost savings & zero delays.</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelectPort && onSelectPort('dhamra')}
+                    className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span>Divert to Dhamra</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectPort && onSelectPort('gangavaram')}
+                    className="flex-1 py-1.5 px-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span>Divert to GPL</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Strategy 3: Vessel Substitution (Baby Cape or 2x Kamsarmax) */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded border border-cyan-400/30">
+                    Strategy 3: Vessel Substitution
+                  </span>
+                  <span className="text-[11px] font-bold text-cyan-400">Direct Paradip Berth</span>
+                </div>
+                <h4 className="text-xs font-bold text-white mb-1">Charter Baby Cape (115k) or 2 × Kamsarmax (82k)</h4>
+                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                  Replace 1 Capesize with either <strong>Baby Cape (115,000 DWT, 15.1m draft)</strong> for direct high-tide berthing, or contract <strong>2 × Kamsarmax (82,000 DWT, 14.4m draft)</strong>. Both options grant 100% direct berth access at Paradip with ZERO offshore lighterage.
+                </p>
+                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Baby Cape Berth Fit:</span>
+                    <span className="font-bold text-cyan-300">15.1m Draft (Fits High Tide)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">2 × Kamsarmax Volume:</span>
+                    <span className="font-bold text-emerald-400">160,000 MT (100% Fits 14.5m)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Offshore Lighterage Fee:</span>
+                    <span className="font-bold text-emerald-400">₹0 (Zero Lighterage Needed)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-slate-700/60">
+                <span className="text-[10px] text-slate-400 block mb-1.5">Best when: Strictly dedicated to Paradip Port infrastructure.</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelectVessel && onSelectVessel('kamsarmax')}
+                    className="flex-1 py-1.5 px-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span>Use Kamsarmax</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectVessel && onSelectVessel('baby_cape')}
+                    className="flex-1 py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span>Use Baby Cape</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* === SIDE-BY-SIDE "WHAT IF I CHOSE WRONG" COMPARISON CARD === */}
       {activeTab === 'optimizer' && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-5">
