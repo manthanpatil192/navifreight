@@ -306,8 +306,20 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
       .sort((a, b) => b.score - a.score);
   }, [selectedOrigin, selectedDestination, activeCargoVolume, incoisData, activeLiveShip]);
 
-  // Auto-Recommended Optimal Vessel Class
-  const recommendedVesselEval = vesselEvals.find(v => !v.blocked) || vesselEvals[0];
+  // Integrated PS Part (b) Optimization Engine
+  const engineOptimization = useMemo(() => {
+    return optimizeVesselType({
+      originId: selectedOrigin,
+      destinationId: selectedDestination,
+      cargoVolumeMT: activeCargoVolume,
+      cargoType: 'Coking Coal'
+    });
+  }, [selectedOrigin, selectedDestination, activeCargoVolume]);
+
+  // Auto-Recommended Optimal Vessel Class (Strictly synchronized with PS Part b Core Engine)
+  const recommendedVesselEval = vesselEvals.find(v => v.vessel.id === engineOptimization.recommendedVesselId && !v.blocked)
+    || vesselEvals.find(v => !v.blocked) 
+    || vesselEvals[0];
   const activeVesselEval = vesselEvals.find(v => v.vessel.id === currentVesselId) || recommendedVesselEval;
 
   // Compute side-by-side penalty delta between Recommended and Suboptimal Vessel
@@ -334,17 +346,7 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
   // Plain-English Executive Summary Header text
   const executiveSummaryHeader = recommendedVesselEval.isLightLoaded
     ? `Executive Directive: ${recommendedVesselEval.vessel.name} is constrained by ${recommendedVesselEval.bindingConstraint}; book early to manage light-loading or switch to ${vesselEvals.find(v => !v.isLightLoaded && !v.blocked)?.vessel.name || 'smaller class'} to save ₹${penaltyDeltaINRCr} Cr in dead-freight penalties.`
-    : `Executive Directive: ${recommendedVesselEval.vessel.name} is the optimal 100% fit for ${currentPort.name} and loading origin. Zero draft restriction; discharge speed ${recommendedVesselEval.isDispatchEarned ? 'qualifies for Dispatch Reward Bonus' : 'fits laytime allowance cleanly'}.`;
-
-  // Integrated PS Part (b) Optimization Engine for Decision Matrix Cards
-  const engineOptimization = useMemo(() => {
-    return optimizeVesselType({
-      originId: selectedOrigin,
-      destinationId: selectedDestination,
-      cargoVolumeMT: activeCargoVolume,
-      cargoType: 'Coking Coal'
-    });
-  }, [selectedOrigin, selectedDestination, activeCargoVolume]);
+    : `Executive Directive: ${recommendedVesselEval.vessel.name} is the optimal 100% fit for ${currentPort.name} and loading origin. Zero draft restriction; single-voyage capacity matches ${activeCargoVolume.toLocaleString()} MT consignment cleanly.`;
 
   const candidateMatrixCards = useMemo(() => {
     const evals = engineOptimization.evaluations;
