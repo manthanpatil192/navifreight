@@ -748,11 +748,11 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
             {/* Strategy 1: Anchorage Lighterage */}
             <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
                   <span className="text-[10px] font-black uppercase tracking-wider bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded border border-slate-600">
                     Strategy 1: Offshore Lighterage
                   </span>
-                  <span className="text-[11px] font-bold text-amber-400">Paradip Standard</span>
+                  <span className="text-[10px] font-bold text-amber-400 shrink-0 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40">Paradip Standard</span>
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">Anchorage Transshipment (Lightening)</h4>
                 <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
@@ -789,11 +789,11 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
             {/* Strategy 2: Port Diversion (Dhamra / Gangavaram) */}
             <div className="bg-emerald-950/40 border-2 border-emerald-500/60 rounded-lg p-4 flex flex-col justify-between hover:border-emerald-400 transition-all shadow-sm">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
                   <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-400/40">
-                    Strategy 2: Port Diversion (Recommended)
+                    Strategy 2: Port Diversion (Best ROI)
                   </span>
-                  <span className="text-[11px] font-bold text-emerald-400">⚡ Best ROI</span>
+                  <span className="text-[10px] font-bold text-emerald-300 shrink-0 bg-emerald-900/60 px-1.5 py-0.5 rounded border border-emerald-500/40">⚡ ₹3–4 Cr Saved</span>
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">Divert to Dhamra (18m) or Gangavaram (19.5m)</h4>
                 <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
@@ -840,11 +840,11 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
             {/* Strategy 3: Vessel Substitution (Baby Cape or 2x Kamsarmax) */}
             <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
                   <span className="text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded border border-cyan-400/30">
                     Strategy 3: Vessel Substitution
                   </span>
-                  <span className="text-[11px] font-bold text-cyan-400">Direct Paradip Berth</span>
+                  <span className="text-[10px] font-bold text-cyan-400 shrink-0 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/40">Direct Berth</span>
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">Charter Baby Cape (115k) or 2 × Kamsarmax (82k)</h4>
                 <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
