@@ -138,15 +138,30 @@ export function optimizeVesselType({
     const actualDischargeRateTPD = dest.handlingRateTPD || 45000;
     // Net discharge is strictly cargo tonnage / daily discharge rate
     const pureDischargeDays = Number((cargoVolumeMT / actualDischargeRateTPD).toFixed(2));
-    const portManeuverBufferDays = 1.00; // Pilotage inward/outward, tug assistance & draft survey
+    const portManeuverBufferDays = Number((1.00 * voyagesNeeded).toFixed(2)); // Pilotage inward/outward, tug assist & draft survey per voyage
     const berthOnlyTurnaroundDays = Number((pureDischargeDays + portManeuverBufferDays).toFixed(2));
 
-    // 4. Idle time & Demurrage calculation
-    const baseWaitDays = dest.avgWaitDays || 2.5;
-    let idleDays = baseWaitDays;
-    if (lighterageRequired) idleDays += 3.5; // Offshore barge lighterage delay
-    if (isLightLoaded && !lighterageRequired) idleDays += 0.8; // Waiting for spring high tide window
-    if (isHardBlocked) idleDays += 10.0; // Refused entry penalty
+    // 4. Queue Wait & Idle time calculation parameterized on cargo volume, discharge rate & vessel limits
+    // In queueing theory (M/M/c berth queues), berth service demand is proportional to (cargoVolumeMT / actualDischargeRateTPD)
+    // Standard baseline assumes a 100,000 MT parcel at 45,000 TPD (~2.22 days berth service)
+    const berthServiceIntensity = (pureDischargeDays / voyagesNeeded) / 2.22;
+    const baseWaitDays = (dest.avgWaitDays || 2.5) * Math.max(0.6, berthServiceIntensity);
+    let idleDays = baseWaitDays * voyagesNeeded;
+    
+    let lighterageDelayDays = 0;
+    if (lighterageRequired) {
+      // Lighterage volume depends on excess draft: ~11,500 MT per meter excess draft
+      const excessDraftM = Math.max(0, vessel.ladenDraft - destDraftStandard);
+      const lighterageMT = Math.min(cargoVolumeMT, Math.round(excessDraftM * 11500));
+      lighterageDelayDays = Number((lighterageMT / 12000).toFixed(2)); // Offshore barge grab rate ~12,000 TPD
+      idleDays += lighterageDelayDays;
+    }
+    if (isLightLoaded && !lighterageRequired) {
+      idleDays += Number((0.8 * voyagesNeeded).toFixed(2)); // Waiting for spring high tide window
+    }
+    if (isHardBlocked) {
+      idleDays += Number((8.0 * voyagesNeeded).toFixed(2)); // Refused entry penalty / transshipment delay
+    }
 
     const queueWaitDays = Number(idleDays.toFixed(2));
     // Total turnaround is strictly defined as the explicit sum of its named components

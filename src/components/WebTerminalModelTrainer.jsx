@@ -339,13 +339,23 @@ export default function WebTerminalModelTrainer({
     const destHandlingTPD = destObj.handlingRateTPD || 45000;
     const netDischargeDays = Number((manualVolume / destHandlingTPD).toFixed(2));
     const pilotageMooringDays = 1.00; // Pilotage inward/outward, tug assist & draft survey
-    const queueWaitDays = Number(totalCongestionDays.toFixed(2)); // Anchorage congestion + weather delay
+    
+    // Dynamic Queue Wait: parameterized on parcel berth service demand (manualVolume / destHandlingTPD)
+    // Standard baseline assumes a 100,000 MT parcel at 45,000 TPD (~2.22 days berth service)
+    const berthOccupancyRatio = netDischargeDays / 2.22;
+    const scaledWaitDays = (destObj.avgWaitDays || 2.5) * Math.max(0.6, berthOccupancyRatio);
+    const queueWaitDays = Number((scaledWaitDays + weatherDelayDays).toFixed(2)); // Anchorage congestion + weather delay
     const totalPortTurnaroundDays = Number((netDischargeDays + pilotageMooringDays + queueWaitDays).toFixed(2));
     const berthOnlyDays = Number((netDischargeDays + pilotageMooringDays).toFixed(2));
 
-    // Demurrage: strictly derived from canonicalDemurrageDailyINR_Lakhs
-    const demurrageExposureUSD = Math.round(queueWaitDays * canonicalDemurrageDailyUSD);
-    const demurrageExposureINR_Lakhs = Number((queueWaitDays * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+    // Contractual Laytime & Demurrage Exposure:
+    // Under bulk charterparty terms (Amwelsh / Gencon), laytime allowed is based on agreed contract rate (35,000 TPD PWWDSHINC)
+    const laytimeAllowedDays = Number((manualVolume / 35000).toFixed(2));
+    // Demurrage is incurred when total port turnaround exceeds agreed laytime
+    const demurrageDays = Math.max(0, Number((totalPortTurnaroundDays - laytimeAllowedDays).toFixed(2)));
+    const demurrageExposureUSD = Math.round(demurrageDays * canonicalDemurrageDailyUSD);
+    const demurrageExposureINR_Lakhs = Number((demurrageDays * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+
     const idleDaysSaved = Number((vesselOptimization.idleDaysSaved || 0).toFixed(2));
     const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
     const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
@@ -500,7 +510,7 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
   * Current Spot Baseline (Today):   ₹${currentSpotINR_Cr} Crore   ($${currentSpotUSD.toLocaleString()} USD @ Spot FX)
   * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
   * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED vs Unhedged Forward Spot!
-  * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${queueWaitDays.toFixed(2)} Days Actual Wait × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
+  * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage [Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d] × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
 ----------------------------------------------------------------------
 [6] PS PART (B) VESSEL TYPE & PORT TURNAROUND DECOMPOSITION:
   * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
@@ -519,7 +529,9 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
   ------------------------------------------------------------------
   * CANONICAL CHARTER DEMURRAGE RECONCILIATION:
     - Canonical Charter Rate:        ₹${canonicalDemurrageDailyINR_Lakhs} Lakhs/Day ($${canonicalDemurrageDailyUSD.toLocaleString()} USD/Day)
-    - Demurrage Exposure:            ₹${demurrageExposureINR_Lakhs} Lakhs  (${queueWaitDays.toFixed(2)} Days Wait × ₹${canonicalDemurrageDailyINR_Lakhs}L/day)
+    - Contract Laytime Allowed:      ${laytimeAllowedDays.toFixed(2)} Days  (${manualVolume.toLocaleString()} MT ÷ 35,000 TPD Contract Laytime)
+    - Demurrage Incurred:            ${demurrageDays.toFixed(2)} Days  (Total Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d)
+    - Demurrage Exposure:            ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage × ₹${canonicalDemurrageDailyINR_Lakhs}L/day)
     - Idle Time Prevented (Savings): Avoided ${idleDaysSaved.toFixed(2)} Days Idle (Saved ₹${demurrageSavedINR_Lakhs} Lakhs [${idleDaysSaved.toFixed(2)}d × ₹${canonicalDemurrageDailyINR_Lakhs}L/day] vs Misallocated Vessel)
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
