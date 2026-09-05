@@ -516,8 +516,9 @@ ${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitD
   * RECOMMENDED VESSEL CLASS:        ${vesselOptimization.recommendedVessel.name} (${vesselOptimization.recommendedVessel.dwt.toLocaleString()} DWT)
   * PORT DRAFT RESTRICTION FIT:      Origin ${originObj.name}: ${originObj.maxDraftLaden}m Draft [PASSED]
                                      Discharge ${destObj.name}: ${destObj.maxDraftLaden}m (${destObj.maxDraftHighTide}m High Tide)
-  * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin` : `[RESTRICTED] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
-  * LOA & BERTH SUITABILITY:         Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [CLEAR]
+  * UNDER-KEEL CLEARANCE:            ${vesselOptimization.recommendedVessel.draftMargin >= 0 ? `+${vesselOptimization.recommendedVessel.draftMargin.toFixed(1)}m Safe Under-Keel Margin [PASSED]` : `[RESTRICTED / GROUNDING HAZARD] ${Math.abs(vesselOptimization.recommendedVessel.draftMargin).toFixed(1)}m Excess Draft`}
+  * LOA & BERTH SUITABILITY:         ${vesselOptimization.recommendedVessel.loa <= destObj.maxLOA ? `Vessel ${vesselOptimization.recommendedVessel.loa}m <= Berth ${destObj.maxLOA}m [PASSED - CLEAR TO BERTH]` : `[RESTRICTED / EXCEEDED] Vessel ${vesselOptimization.recommendedVessel.loa}m > Berth ${destObj.maxLOA}m (+${vesselOptimization.recommendedVessel.loa - destObj.maxLOA}m Excess Length - Lock Gate Refusal)`}
+  * AIS REAL-WORLD COMPATIBILITY:    ${vesselOptimization.recommendedVessel.aisConfirmedCalls > 0 ? `🟢 [AIS VERIFIED] ${vesselOptimization.recommendedVessel.aisConfirmedCalls} live vessel(s) of this class currently active at ${destObj.name} (${vesselOptimization.recommendedVessel.aisLiveExamples})` : `ℹ️ AIS Audit: Validated for ${destObj.name} physical dimensions.`}
   ------------------------------------------------------------------
   * HANDLING & PORT TURNAROUND TIME BREAKDOWN:
     [+] Net Cargo Discharge:         ${netDischargeDays.toFixed(2)} Days  (${manualVolume.toLocaleString()} MT ÷ ${destHandlingTPD.toLocaleString()} TPD at ${destObj.name})

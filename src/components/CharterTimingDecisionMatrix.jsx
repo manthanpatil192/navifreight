@@ -113,13 +113,17 @@ export default function CharterTimingDecisionMatrix({
   const refSpotTotalINR_Cr = (refSpotTotalUSD * 87.58) / 10000000;
 
   // Calendar dates relative to current simulation date (September 2026 baseline)
-  const strikeWindowDate = 'Oct 12 – Oct 19, 2026';
-  const blackoutWindowDate = 'Nov 01 – Nov 18, 2026';
+  const promptLaycanWindowDate = 'Sep 08 – Sep 15, 2026'; // Prompt September Execution Window
+  const forwardDipWindowDate = 'Oct 12 – Oct 19, 2026'; // Forward P10 Dip Valley (~38 days ahead)
+  const blackoutWindowDate = 'Nov 01 – Nov 18, 2026'; // Seasonal Pre-Winter Volatility Spike
 
   // Weather and extreme demand statuses from Window Terminal
   const isOriginImproper = terminalMetrics?.originWeather && !terminalMetrics.originWeather.isWeatherProper;
   const isDestImproper = terminalMetrics?.destWeather && !terminalMetrics.destWeather.isWeatherProper;
   const isExtremeDemand = terminalMetrics?.isExtremeDemand ?? false;
+  const activeWeatherWaitDate = isOriginImproper 
+    ? terminalMetrics?.originWeather?.recommendedWaitDate 
+    : (isDestImproper ? terminalMetrics?.destWeather?.recommendedWaitDate : null);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-subtle p-5 mb-6 text-slate-800">
@@ -167,12 +171,17 @@ export default function CharterTimingDecisionMatrix({
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
               <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                {isExtremeDemand ? '🟢 Strike Window (Extreme Demand Buy Corridor: P10–P50)' : '🟢 Strike Window (Optimal Entry Buy Signal)'}
+                {isExtremeDemand ? '🟢 Strike Window (Extreme Demand Corridor: P10–P50)' : '🟢 Strike Window (Optimal Entry Buy Signal)'}
               </span>
             </div>
-            <span className="text-xs font-mono font-bold text-emerald-900 bg-white border border-emerald-200 px-2 py-0.5 rounded shadow-2xs">
-              {isExtremeDemand ? 'Oct 05 – Oct 19, 2026' : strikeWindowDate}
-            </span>
+            <div className="text-right">
+              <span className="text-[11px] font-mono font-bold text-emerald-900 bg-white border border-emerald-200 px-2 py-0.5 rounded shadow-2xs block">
+                Prompt Laycan: {promptLaycanWindowDate}
+              </span>
+              <span className="text-[10px] text-emerald-700 font-mono block mt-0.5">
+                Forward Dip Valley: {forwardDipWindowDate}
+              </span>
+            </div>
           </div>
 
           <div className="mt-3 flex items-baseline justify-between pb-3 border-b border-emerald-200/60">
@@ -239,11 +248,9 @@ export default function CharterTimingDecisionMatrix({
               </span>
             </div>
             <span className="text-xs font-mono font-bold text-rose-900 bg-white border border-rose-200 px-2 py-0.5 rounded shadow-2xs">
-              {isOriginImproper 
-                ? (terminalMetrics?.originWeather?.recommendedWaitDate || blackoutWindowDate)
-                : isDestImproper 
-                  ? (terminalMetrics?.destWeather?.recommendedWaitDate || blackoutWindowDate)
-                  : blackoutWindowDate}
+              {isOriginImproper || isDestImproper 
+                ? `Active Weather Halt: WAIT TILL ${activeWeatherWaitDate || 'Sep 15, 2026'}`
+                : `Forward Peak Blackout: ${blackoutWindowDate}`}
             </span>
           </div>
 

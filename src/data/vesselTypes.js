@@ -109,22 +109,40 @@ export const VESSEL_CLASSES = {
     economyOfScaleMultiplier: 1.00,
     description: 'Flexible geared carrier with access to virtually all East Coast berths and river approaches.'
   },
+  handymax_hdc: {
+    id: 'handymax_hdc',
+    name: 'Handymax (HDC River Lock Class)',
+    dwt: 35000,
+    cargoCapacityMT: 33000,
+    ladenDraftMeters: 8.2, // Fully compliant with Haldia 8.5m draft & 9.1m spring tide
+    ballastDraftMeters: 5.0,
+    loaMeters: 178.0,
+    beamMeters: 27.5,
+    geared: true,
+    dailyFuelConsumptionMT: 18.0,
+    dailyAuxFuelMT: 2.2,
+    baselineDailyTimeCharterRateUSD: 11500,
+    demurrageRatePerDayUSD: 12000,
+    suitableCargoes: ['Coking Coal (Direct to Haldia)', 'Thermal Coal', 'Met Coke'],
+    economyOfScaleMultiplier: 1.18,
+    description: 'Specialized 35,000 DWT river bulker purpose-built for the Hooghly tidal channel and Haldia Lock Gates.'
+  },
   handysize: {
     id: 'handysize',
-    name: 'Handysize / Handymax',
-    dwt: 38000,
-    cargoCapacityMT: 35000,
-    ladenDraftMeters: 10.1,
-    ballastDraftMeters: 5.2,
-    loaMeters: 180.0,
-    beamMeters: 28.0,
+    name: 'Handysize (Shallow Draft)',
+    dwt: 28000,
+    cargoCapacityMT: 28000,
+    ladenDraftMeters: 7.8, // Shallow draft for extreme river channels
+    ballastDraftMeters: 4.8,
+    loaMeters: 165.0,
+    beamMeters: 26.0,
     geared: true,
-    dailyFuelConsumptionMT: 16.5,
-    dailyAuxFuelMT: 2.2,
-    baselineDailyTimeCharterRateUSD: 11000,
-    demurrageRatePerDayUSD: 11500,
+    dailyFuelConsumptionMT: 15.0,
+    dailyAuxFuelMT: 2.0,
+    baselineDailyTimeCharterRateUSD: 9800,
+    demurrageRatePerDayUSD: 10500,
     suitableCargoes: ['Coking Coal (Direct to Haldia)', 'Met Coke', 'Specialty Minerals'],
-    economyOfScaleMultiplier: 1.25, // Higher cost per ton, but sole vessel able to enter shallow ports directly
-    description: 'Only class capable of navigating Haldia Lock Gates without lightening, eliminating transshipment double-handling.'
+    economyOfScaleMultiplier: 1.25,
+    description: 'Only vessel class capable of navigating Haldia Lock Gates at neap tide (7.8m draft) without lightening.'
   }
 };
