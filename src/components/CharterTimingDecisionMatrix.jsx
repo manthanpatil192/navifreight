@@ -388,30 +388,54 @@ export default function CharterTimingDecisionMatrix({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono text-[11.5px]">
-              <tr className="hover:bg-slate-800/40">
-                <td className="py-2 px-3 font-sans font-medium text-emerald-400">Prices Stable</td>
-                <td className="py-2 px-3 font-bold text-emerald-300">More Spot</td>
-                <td className="py-2 px-3 text-slate-200">35% COA / 65% Spot</td>
-                <td className="py-2 px-3 font-sans text-slate-400">Captures cheap daily market price dips during calm synoptic conditions.</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="py-2 px-3 font-sans font-medium text-cyan-400">Prices Likely to Rise</td>
-                <td className="py-2 px-3 font-bold text-cyan-300">More Long-Term</td>
-                <td className="py-2 px-3 text-slate-200">75% COA / 25% Spot</td>
-                <td className="py-2 px-3 font-sans text-slate-400">Locks in lower contract rates before anticipated market price surge.</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40 bg-rose-950/20">
-                <td className="py-2 px-3 font-sans font-medium text-rose-400">Very High Uncertainty</td>
-                <td className="py-2 px-3 font-bold text-rose-300">More Long-Term</td>
-                <td className="py-2 px-3 text-slate-200">85% COA / 15% Spot</td>
-                <td className="py-2 px-3 font-sans text-slate-400">Protects blast furnace basestock against worst-case P90 tail-risk surges.</td>
-              </tr>
-              <tr className="hover:bg-slate-800/40">
-                <td className="py-2 px-3 font-sans font-medium text-amber-400">Prices Expected to Fall</td>
-                <td className="py-2 px-3 font-bold text-amber-300">More Spot</td>
-                <td className="py-2 px-3 text-slate-200">20% COA / 80% Spot</td>
-                <td className="py-2 px-3 font-sans text-slate-400">Rides the falling market down to capture lower future spot rates.</td>
-              </tr>
+              {(() => {
+                const currentCoaSplit = terminalMetrics?.terminalMetricsPayload?.coaSplit || terminalMetrics?.coaSplit || 35;
+                const isHighUncertaintyRow = currentCoaSplit >= 80;
+                const isPricesRisingRow = currentCoaSplit >= 65 && currentCoaSplit < 80;
+                const isPricesFallingRow = currentCoaSplit <= 25;
+                const isPricesStableRow = !isHighUncertaintyRow && !isPricesRisingRow && !isPricesFallingRow;
+
+                return (
+                  <>
+                    <tr className={`transition-colors ${isPricesStableRow ? 'bg-emerald-950/40 border-l-4 border-l-emerald-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
+                      <td className="py-2 px-3 font-sans font-medium text-emerald-400 flex items-center justify-between">
+                        <span>Prices Stable</span>
+                        {isPricesStableRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
+                      </td>
+                      <td className="py-2 px-3 font-bold text-emerald-300">More Spot</td>
+                      <td className="py-2 px-3 text-slate-200">35% COA / 65% Spot</td>
+                      <td className="py-2 px-3 font-sans text-slate-400">Captures cheap daily market price dips during calm synoptic conditions.</td>
+                    </tr>
+                    <tr className={`transition-colors ${isPricesRisingRow ? 'bg-cyan-950/40 border-l-4 border-l-cyan-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
+                      <td className="py-2 px-3 font-sans font-medium text-cyan-400 flex items-center justify-between">
+                        <span>Prices Likely to Rise</span>
+                        {isPricesRisingRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
+                      </td>
+                      <td className="py-2 px-3 font-bold text-cyan-300">More Long-Term</td>
+                      <td className="py-2 px-3 text-slate-200">70% COA / 30% Spot</td>
+                      <td className="py-2 px-3 font-sans text-slate-400">Locks in lower contract rates before anticipated market price surge or port queue.</td>
+                    </tr>
+                    <tr className={`transition-colors ${isHighUncertaintyRow ? 'bg-rose-950/40 border-l-4 border-l-rose-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
+                      <td className="py-2 px-3 font-sans font-medium text-rose-400 flex items-center justify-between">
+                        <span>Very High Uncertainty</span>
+                        {isHighUncertaintyRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
+                      </td>
+                      <td className="py-2 px-3 font-bold text-rose-300">More Long-Term</td>
+                      <td className="py-2 px-3 text-slate-200">85% COA / 15% Spot</td>
+                      <td className="py-2 px-3 font-sans text-slate-400">Protects blast furnace basestock against worst-case P90 tail-risk surges.</td>
+                    </tr>
+                    <tr className={`transition-colors ${isPricesFallingRow ? 'bg-amber-950/40 border-l-4 border-l-amber-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
+                      <td className="py-2 px-3 font-sans font-medium text-amber-400 flex items-center justify-between">
+                        <span>Prices Expected to Fall</span>
+                        {isPricesFallingRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
+                      </td>
+                      <td className="py-2 px-3 font-bold text-amber-300">More Spot</td>
+                      <td className="py-2 px-3 text-slate-200">20% COA / 80% Spot</td>
+                      <td className="py-2 px-3 font-sans text-slate-400">Rides the falling market down to capture lower future spot rates.</td>
+                    </tr>
+                  </>
+                );
+              })()}
             </tbody>
           </table>
         </div>
