@@ -21,6 +21,7 @@ import {
 import ActionableBookingDirective from './components/ActionableBookingDirective';
 import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
 import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
+import LoginPage from './components/LoginPage';
 
 const PS_TABS = [
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
@@ -31,6 +32,10 @@ const PS_TABS = [
 ];
 
 export default function App() {
+  // Authentication & View State (Default to true to display the Figma-grade Login Page initially)
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showLoginPage, setShowLoginPage] = useState(true);
+
   // Application State
   const [activeTab, setActiveTab] = useState('part_a');
   const [selectedOrigin, setSelectedOrigin] = useState('hay_point');
@@ -46,6 +51,21 @@ export default function App() {
   const [terminalMetrics, setTerminalMetrics] = useState(null);
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // Authentication Handlers
+  const handleLoginSuccess = (userData) => {
+    setCurrentUser(userData);
+    setShowLoginPage(false);
+  };
+
+  const handleGuestAccess = () => {
+    setShowLoginPage(false);
+  };
+
+  const handleSignOut = () => {
+    setCurrentUser(null);
+    setShowLoginPage(true);
+  };
 
   // Dynamic Freight Forecast Calculation with Live News Signal Coupling
   const forecast = calculateFreightForecast({
@@ -74,6 +94,16 @@ export default function App() {
     setIsReportModalOpen(true);
   };
 
+  // If user is on the Login view, render the high-end Figma-inspired Login Page
+  if (showLoginPage) {
+    return (
+      <LoginPage
+        onLogin={handleLoginSuccess}
+        onGuestAccess={handleGuestAccess}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans selection:bg-maritime-100 selection:text-maritime-900">
       
@@ -83,10 +113,36 @@ export default function App() {
         currency={currency}
         setCurrency={setCurrency}
         onExportReport={handleExportReport}
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+        onOpenLoginPage={() => setShowLoginPage(true)}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* Active Authenticated Session Banner */}
+        {currentUser && (
+          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 mb-4 shadow-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="font-bold text-slate-900">Active Terminal Session:</span>
+              <span className="font-semibold text-slate-700">{currentUser.roleTitle}</span>
+              <span className="text-slate-400">· {currentUser.organization}</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-[11px] font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                LICENSE: {currentUser.code}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer"
+              >
+                Sign Out / Switch Role
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* Executive Summary Banner */}
         <div className="bg-white border border-slate-200 rounded-lg p-4 mb-6 shadow-subtle flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

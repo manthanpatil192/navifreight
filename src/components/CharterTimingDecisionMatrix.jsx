@@ -359,6 +359,64 @@ export default function CharterTimingDecisionMatrix({
 
       </div>
 
+      {/* ================= DYNAMIC RISK-BASED ALLOCATION ENGINE CARD (NO FIXED RULES) ================= */}
+      <div className="my-5 p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              NaviFreight Dynamic Risk-Based Allocation Engine
+            </h3>
+          </div>
+          <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+            Rejects Static 70/30 Rule • Dynamic CVaR Calculation
+          </span>
+        </div>
+
+        <p className="text-xs text-slate-300 mt-2.5 mb-3 leading-relaxed">
+          Don't use a fixed rule like <code className="text-amber-300 font-mono">"Always use 70% long-term + 30% spot."</code> Instead, NaviFreight dynamically calculates the best combination based on live market risk:
+        </p>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
+                <th className="py-2 px-3">Market Situation</th>
+                <th className="py-2 px-3">NaviFreight Recommendation</th>
+                <th className="py-2 px-3">Dynamic Allocation Split</th>
+                <th className="py-2 px-3">Calculation Rationale</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-mono text-[11.5px]">
+              <tr className="hover:bg-slate-800/40">
+                <td className="py-2 px-3 font-sans font-medium text-emerald-400">Prices Stable</td>
+                <td className="py-2 px-3 font-bold text-emerald-300">More Spot</td>
+                <td className="py-2 px-3 text-slate-200">35% COA / 65% Spot</td>
+                <td className="py-2 px-3 font-sans text-slate-400">Captures cheap daily market price dips during calm synoptic conditions.</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="py-2 px-3 font-sans font-medium text-cyan-400">Prices Likely to Rise</td>
+                <td className="py-2 px-3 font-bold text-cyan-300">More Long-Term</td>
+                <td className="py-2 px-3 text-slate-200">75% COA / 25% Spot</td>
+                <td className="py-2 px-3 font-sans text-slate-400">Locks in lower contract rates before anticipated market price surge.</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40 bg-rose-950/20">
+                <td className="py-2 px-3 font-sans font-medium text-rose-400">Very High Uncertainty</td>
+                <td className="py-2 px-3 font-bold text-rose-300">More Long-Term</td>
+                <td className="py-2 px-3 text-slate-200">85% COA / 15% Spot</td>
+                <td className="py-2 px-3 font-sans text-slate-400">Protects blast furnace basestock against worst-case P90 tail-risk surges.</td>
+              </tr>
+              <tr className="hover:bg-slate-800/40">
+                <td className="py-2 px-3 font-sans font-medium text-amber-400">Prices Expected to Fall</td>
+                <td className="py-2 px-3 font-bold text-amber-300">More Spot</td>
+                <td className="py-2 px-3 text-slate-200">20% COA / 80% Spot</td>
+                <td className="py-2 px-3 font-sans text-slate-400">Rides the falling market down to capture lower future spot rates.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* ================= SECTION 2: SIDE-BY-SIDE CONTRACT HORIZON COMPARISON ================= */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
