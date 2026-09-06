@@ -508,7 +508,8 @@ export default function CharterTimingDecisionMatrix({
             // Financial calculations for this horizon
             const spotRateUSD = baseSpotRate * h.driftFactor;
             const coaRateUSD = baseSpotRate * h.coaDiscountFactor;
-            const blendedRateUSD = Number(((h.coaShare / 100 * coaRateUSD) + (h.spotShare / 100 * spotRateUSD)).toFixed(2));
+            const spotSliceRateUSD = h.spotShare < 100 ? (spotRateUSD * 0.88) : spotRateUSD;
+            const blendedRateUSD = Number(((h.coaShare / 100 * coaRateUSD) + (h.spotShare / 100 * spotSliceRateUSD)).toFixed(2));
             
             const blendedRateINR = Math.round(blendedRateUSD * h.forwardFx);
             const totalOutflowUSD = Math.round(blendedRateUSD * activeVolume);

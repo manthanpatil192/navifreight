@@ -144,16 +144,16 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.59 /MT  (₹1,349 /MT)  (Saves $1.73/MT vs Spot)
+  * Blended Rate:     $14.85 /MT  (₹1,285 /MT)  (Saves $2.47/MT vs Spot P50)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
   * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
     ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,338,500  (₹20.23 Crore)
+  * NaviFreight Optimized:   $2,227,500  (₹19.27 Crore)
     ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
-  * Net Direct Savings:      $258,768  (INR 2.24 Crore)
+  * Net Direct Savings:      $370,500  (INR 3.20 Crore)
     ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:      2.5 Days Wait ($62,500 / INR 54.0 Lakhs)
     ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
@@ -435,15 +435,15 @@ export default function WebTerminalModelTrainer({
       const coaFixed = Number((baseRate * 0.94).toFixed(2));
 
       // Blended rate computations:
-      const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
+      // When Recommended Spot is designated "Captures P10 Dip Windows", it models opportunistic execution at the P10 dip rate
       const blendedP10 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estP10)).toFixed(2));
-      const blended = blendedP50;
+      const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
+      const blended = blendedP10; // Accurately pulls P10 dip pricing for the spot leg!
 
       // Financial totals
       const unhedgedUSD = Math.round(estSpot * manualVolume);
       const currentSpotUSD = Math.round(baseRate * manualVolume);
       const optUSD = Math.round(blended * manualVolume);
-      const optP10USD = Math.round(blendedP10 * manualVolume);
       const savingsUSD = unhedgedUSD - optUSD;
 
       const baseFxRate = 86.50;
@@ -705,8 +705,6 @@ export default function WebTerminalModelTrainer({
   const handleTest1 = () => {
     setIsExecuting(true);
 
-    const normalNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'bdi_surge') || MARKET_NEWS_SIGNALS[0];
-    
     const terminalMetricsPayload = {
       spotUSD: 15.80,
       spotINR: 1367,
@@ -718,12 +716,12 @@ export default function WebTerminalModelTrainer({
       p90INR: 1832,
       coaUSD: 14.85,
       coaINR: 1285,
-      blendedUSD: 15.59,
-      blendedINR: 1349,
-      savingsUSD: 258768,
-      savingsINR_Cr: '2.24',
+      blendedUSD: 14.85,
+      blendedINR: 1285,
+      savingsUSD: 370500,
+      savingsINR_Cr: '3.20',
       unhedgedINR_Cr: '22.47',
-      optINR_Cr: '20.23',
+      optINR_Cr: '19.27',
       forwardFxRate: 86.50,
       totalCongestionDays: 2.5,
       weatherDelayDays: 0.0,
@@ -734,7 +732,7 @@ export default function WebTerminalModelTrainer({
         waveHeightMeters: 1.4,
         windSpeedKnots: 16.0,
         weatherHazardDescription: 'Calm synoptic coastal waters',
-        recommendedWaitDate: 'Sep 06, 2026',
+        recommendedWaitDate: 'Immediate Clearance (No Delay)',
         contractCancellationRisk: false,
         alternatePort: null
       },
@@ -800,15 +798,15 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.59 /MT  (₹1,349 /MT)  (Saves $1.73/MT vs Spot)
+  * Blended Rate:     $14.85 /MT  (₹1,285 /MT)  (Saves $2.47/MT vs Spot)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
     ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,338,500  (₹20.23 Crore)
+  * NaviFreight Optimized:   $2,227,500  (₹19.27 Crore)
     ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
-  * Net Freight Cost Savings:  $258,768  (INR 2.24 Crore)
+  * Net Freight Cost Savings:  $370,500  (INR 3.20 Crore)
     ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        2.5 Days Wait ($62,500 / INR 0.54 Cr)
     ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
@@ -841,12 +839,12 @@ export default function WebTerminalModelTrainer({
       p90INR: 2239,
       coaUSD: 15.42,
       coaINR: 1334,
-      blendedUSD: 16.05,
-      blendedINR: 1388,
-      savingsUSD: 270000,
-      savingsINR_Cr: '2.34',
-      unhedgedINR_Cr: '12.75',
-      optINR_Cr: '10.41',
+      blendedUSD: 15.29,
+      blendedINR: 1325,
+      savingsUSD: 327000,
+      savingsINR_Cr: '2.83',
+      unhedgedINR_Cr: '12.77',
+      optINR_Cr: '9.94',
       forwardFxRate: 86.68,
       totalCongestionDays: 7.5,
       weatherDelayDays: 5.5,
@@ -950,15 +948,15 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 15% (Strictly Limited Spot Exposure)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $16.05 /MT  (₹1,388 /MT)  (Saves $3.60/MT vs Spot)
+  * Blended Rate:     $15.29 /MT  (₹1,325 /MT)  (Saves $4.36/MT vs Spot P50)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost: $1,473,750  (₹12.75 Crore)
+  * Unhedged 100% Spot Cost: $1,473,750  (₹12.77 Crore)
     ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $1,203,750  (₹10.41 Crore)
+  * NaviFreight Optimized:   $1,146,750  (₹9.94 Crore)
     ↳ [Meaning: Total bill achieved using our AI's smart 85-15 allocation]
-  * Net Freight Cost Savings:  $270,000  (INR 2.34 Crore)
+  * Net Freight Cost Savings:  $327,000  (INR 2.83 Crore)
     ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        7.5 Days Wait ($165,000 / INR 1.43 Cr)
     ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
@@ -990,12 +988,12 @@ export default function WebTerminalModelTrainer({
       p90INR: 2340,
       coaUSD: 13.35,
       coaINR: 1155,
-      blendedUSD: 14.90,
-      blendedINR: 1289,
-      savingsUSD: 1116000,
-      savingsINR_Cr: '9.65',
+      blendedUSD: 14.04,
+      blendedINR: 1214,
+      savingsUSD: 1270800,
+      savingsINR_Cr: '10.99',
       unhedgedINR_Cr: '32.85',
-      optINR_Cr: '23.20',
+      optINR_Cr: '21.86',
       forwardFxRate: 86.50,
       totalCongestionDays: 4.0,
       weatherDelayDays: 1.5,
@@ -1072,15 +1070,15 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 20%
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $14.90 /MT  (₹1,289 /MT)  (Saves $6.20/MT vs Spot Peak)
+  * Blended Rate:     $14.04 /MT  (₹1,214 /MT)  (Saves $7.06/MT vs Spot P50)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK AVOIDANCE:
   * Unhedged 100% Spot Cost: $3,798,000  (₹32.85 Crore)
     ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,682,000  (₹23.20 Crore)
+  * NaviFreight Optimized:   $2,527,200  (₹21.86 Crore)
     ↳ [Meaning: Total bill achieved using our AI's smart 80-20 allocation]
-  * Net Freight Cost Savings:  $1,116,000  (INR 9.65 Crore)
+  * Net Freight Cost Savings:  $1,270,800  (INR 10.99 Crore)
     ↳ [Meaning: Pure corporate money saved for your company]
   * Demurrage Exposure:        4.0 Days Wait ($100,000 / INR 0.86 Cr)
     ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
@@ -1222,7 +1220,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       const coaLock = Number((baseSpot * 0.94).toFixed(2));
       const coaPct = nlp.recommendedCoaPct;
       const spotPct = nlp.recommendedSpotPct;
-      const blendedRate = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * p50)).toFixed(2));
+      const blendedRate = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * p10)).toFixed(2));
       const unhedgedCost = Math.round(vol * p50);
       const optimizedCost = Math.round(vol * blendedRate);
       const savingsUSD = unhedgedCost - optimizedCost;
@@ -1681,7 +1679,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         const estP10 = Number((estSpot * 0.88).toFixed(2));
         const estP90 = Number((estSpot * 1.28).toFixed(2));
         const coaFixed = Number((baseRate * 0.94).toFixed(2));
-        const blended = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estSpot)).toFixed(2));
+        const blended = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estP10)).toFixed(2));
 
         const unhedgedCost = Math.round(estSpot * parsedVolume);
         const optCost = Math.round(blended * parsedVolume);

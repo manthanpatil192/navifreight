@@ -208,7 +208,8 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
             optimal_coa_pct = 75.0
             
         optimal_spot_pct = 100.0 - optimal_coa_pct
-        blended_rate = round((optimal_coa_pct / 100.0 * coa_fixed_rate) + (optimal_spot_pct / 100.0 * projected_spot), 2)
+        # Price the spot/dip-sniping allocation slice at p10 (bargain dip window floor), not p50
+        blended_rate = round((optimal_coa_pct / 100.0 * coa_fixed_rate) + (optimal_spot_pct / 100.0 * p10), 2)
         unhedged_spot_cost = round(volume_mt * projected_spot, 2)
         optimized_cost = round(volume_mt * blended_rate, 2)
         freight_savings_usd = round(unhedged_spot_cost - optimized_cost, 2)

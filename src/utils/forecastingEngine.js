@@ -108,8 +108,8 @@ export function calculateFreightForecast({
 
   // Savings computation based on optimized split
   const coaAllocationMT = Math.round(cargoMT * (activeCoaSplit / 100));
-  const spotAllocationMT = cargoMT - coaAllocationMT;
-  const blendedEffectiveRateUSD = Number(((coaRateUSD * (activeCoaSplit / 100)) + (projectedSpotRateUSD * ((100 - activeCoaSplit) / 100))).toFixed(2));
+  const spotLegRateUSD = (activeCoaSplit < 100) ? lowerBound95 : projectedSpotRateUSD;
+  const blendedEffectiveRateUSD = Number(((coaRateUSD * (activeCoaSplit / 100)) + (spotLegRateUSD * ((100 - activeCoaSplit) / 100))).toFixed(2));
   
   const spotTotalCostUSD = projectedSpotRateUSD * cargoMT;
   const blendedPortfolioCostUSD = blendedEffectiveRateUSD * cargoMT;
