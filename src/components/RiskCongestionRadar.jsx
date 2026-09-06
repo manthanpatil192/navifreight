@@ -307,6 +307,81 @@ export default function RiskCongestionRadar({ selectedDestination, currency }) {
 
       </div>
 
+      {/* ================= GEOPOLITICAL AIS ROUTE CHANGE & DETOUR RECALIBRATION ================= */}
+      <div className="mt-5 p-4 rounded-xl border border-rose-200 bg-gradient-to-br from-rose-950 via-slate-900 to-slate-900 text-slate-100 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-rose-800/60 gap-2 mb-3">
+          <div className="flex items-center space-x-2">
+            <span className="p-1 rounded bg-rose-500/20 text-rose-400">
+              <Compass className="w-4 h-4" />
+            </span>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-rose-100 flex items-center gap-2">
+              <span>Geopolitical AIS Route Change & Rerouting Engine</span>
+              <span className="animate-pulse px-2 py-0.5 rounded text-[10px] bg-rose-600 text-white font-extrabold">
+                AUTOMATED RECALIBRATION
+              </span>
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+            Red Sea / Cape of Good Hope Detour
+          </span>
+        </div>
+
+        {/* Route Change Detection Banner */}
+        <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-700/60 text-xs mb-3">
+          <div className="flex items-center justify-between font-mono font-bold text-rose-200 mb-1">
+            <span className="flex items-center gap-1.5 text-rose-300">
+              <Wind className="w-3.5 h-3.5 animate-spin text-rose-400" />
+              AIS Signal Trigger: "This ship has changed its route"
+            </span>
+            <span className="text-[11px] text-amber-300">Cape of Good Hope Rerouting</span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-1 sm:space-y-0 text-slate-300 font-mono text-[11px] mt-1.5">
+            <span className="line-through text-slate-500">Standard: Asia ──► Red Sea / Suez Canal ──► Europe / India</span>
+            <span className="text-amber-400 font-bold">──► Rerouted Path: Asia ──► Around Africa (Cape of Good Hope) ──► Europe / India</span>
+          </div>
+        </div>
+
+        {/* Automatically Updated Parameters Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
+          
+          {/* 1. ETA */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">1. Updated ETA</span>
+            <div className="text-sm font-extrabold text-amber-400 mt-0.5">+12.5 Days</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Sep 14 ──► Sep 27</span>
+          </div>
+
+          {/* 2. Distance */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">2. Sailing Distance</span>
+            <div className="text-sm font-extrabold text-cyan-400 mt-0.5">+3,450 NM</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">7,200 ──► 10,650 NM</span>
+          </div>
+
+          {/* 3. Fuel Requirement */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">3. Fuel Requirement</span>
+            <div className="text-sm font-extrabold text-rose-400 mt-0.5">+385 MT VLSFO</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">+$238,700 USD Extra</span>
+          </div>
+
+          {/* 4. Freight Cost */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">4. Freight Rate Impact</span>
+            <div className="text-sm font-extrabold text-emerald-400 mt-0.5">+$3.40 /MT</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">+₹294 /MT Squeeze</span>
+          </div>
+
+          {/* 5. Delay Risk */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">5. Delay & Queue Risk</span>
+            <div className="text-sm font-extrabold text-rose-400 mt-0.5">92/100 (CRITICAL)</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Anchorage Queue Risk</span>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   );
 }
