@@ -390,93 +390,9 @@ export default function SystemLogicRiskMatrix({
         </div>
       </div>
 
-      {/* ================= BETTER NAVIFREIGHT ARCHITECTURE & DATA FLOW PIPELINE ================= */}
-      <div className="mt-5 p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 shadow-lg">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-          <div className="flex items-center space-x-2">
-            <span className="p-1 rounded bg-emerald-500/20 text-emerald-400">
-              <Layers className="w-4 h-4" />
-            </span>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-100">
-              Better NaviFreight: End-to-End Architectural Data Flow Pipeline
-            </h3>
-          </div>
-          <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-            Multi-Source Ingestion ──► AI ML Engine ──► CVaR Optimization ──► Directives
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-          
-          {/* STEP 1: MARKET DATA INGESTION */}
-          <div className="bg-slate-800/80 border border-slate-700/70 rounded-lg p-3 relative">
-            <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400 mb-2 pb-1 border-b border-slate-700">
-              <span>1. Market Data Ingestion</span>
-              <Database className="w-3.5 h-3.5" />
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-slate-300 font-mono">
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>AIS / Vessel Movement</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Ton-Miles (Rerouting)</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Vessel Availability</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Fuel Prices (VLSFO)</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Geopolitical Events</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Port Congestion</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>CII / EEXI Compliance</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Sanctions Risk</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span><span>Commodity / Tariffs</span></li>
-            </ul>
-          </div>
-
-          {/* STEP 2: AI MODELING & INFERENCE */}
-          <div className="bg-slate-800/80 border border-slate-700/70 rounded-lg p-3 relative">
-            <div className="flex items-center justify-between text-[11px] font-bold text-amber-400 mb-2 pb-1 border-b border-slate-700">
-              <span>2. AI & ML Engine</span>
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-slate-300 font-mono">
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Bayesian Changepoints</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Quantile GBDT (P10-P90)</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Global News NLP Engine</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Ton-Mile Elasticity</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Demurrage Risk Simulator</span></li>
-            </ul>
-          </div>
-
-          {/* STEP 3: DYNAMIC PORTFOLIO OPTIMIZATION */}
-          <div className="bg-slate-800/80 border border-slate-700/70 rounded-lg p-3 relative">
-            <div className="flex items-center justify-between text-[11px] font-bold text-purple-400 mb-2 pb-1 border-b border-slate-700">
-              <span>3. Portfolio Optimization</span>
-              <TrendingUp className="w-3.5 h-3.5" />
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-slate-300 font-mono">
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span>CVaR Cost Minimization</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span>Dynamic Risk Allocation</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span>Rejects Fixed 70/30 Rule</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span>Optimal Laycan Windows</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span>Berth Draft Clearance</span></li>
-            </ul>
-          </div>
-
-          {/* STEP 4: ACTIONABLE DIRECTIVES & OUTPUTS */}
-          <div className="bg-slate-800/80 border border-slate-700/70 rounded-lg p-3 relative">
-            <div className="flex items-center justify-between text-[11px] font-bold text-emerald-400 mb-2 pb-1 border-b border-slate-700">
-              <span>4. Actionable Directives</span>
-              <FileCheck className="w-3.5 h-3.5" />
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-slate-300 font-mono">
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Strike / Buy Corridor</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Hold / Weather Advisories</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Landed Cost Savings (₹Cr)</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Demurrage Avoidance</span></li>
-              <li className="flex items-center space-x-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>MARPOL Legal Evidence</span></li>
-            </ul>
-          </div>
-
-        </div>
-      </div>
-
     </div>
   );
 }
+
 
 

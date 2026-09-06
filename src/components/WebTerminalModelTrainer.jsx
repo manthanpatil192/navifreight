@@ -527,45 +527,40 @@ export default function WebTerminalModelTrainer({
           {
             type: 'success',
             text: `======================================================================
-     BETTER NAVIFREIGHT: END-TO-END ARCHITECTURAL DATA FLOW DIRECTIVE
+      NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE & MARKET ANALYSIS     
 ======================================================================
   Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
   Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
   Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
-  Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Changepoint Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Post-COVID Structural Stability)'}
+  Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)'}
+  Fuel Prices VLSFO: VLSFO $620/MT (Bunker Adjustment Factor BAF Factored in Freight)
+  Tariff & Trade:    ${manualCargo} Import/Export Tariffs & Sanctions Audited (Zero Exposure)
   Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Trend)
 ----------------------------------------------------------------------
-[STEP 1: MARKET DATA INGESTION (MULTI-SOURCE FEEDS)]
-  * AIS Vessel Movement: Tracking ${vesselObj.name} (${vesselObj.dwt?.toLocaleString() || '180,000'} DWT, Laden Draft ${vesselDraft}m)
-  * Ton-Miles (Rerouting): ${isExtremeDemand ? 'High Ton-Mile Squeeze (Cape/Strait Detour Active)' : 'Standard Voyage Corridors (Baseline NM)'}
-  * Vessel Availability: ${isExtremeDemand ? 'Tonnage Tightness (Capesize/Panamax Regional Squeeze)' : 'Balanced Bulk Fleet Availability'}
-  * Fuel Prices (VLSFO):  VLSFO $620/MT (Bunker Adjustment Factor Included)
+[1] MARKET DATA INGESTION & MARKET STATE ANALYSIS:
+  * Market State & Risk: ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
+  * AIS Vessel Movement: Tracking ${vesselObj.name} (${vesselObj.dwt?.toLocaleString() || '180,000'} DWT, Draft ${vesselDraft}m)
+  * Fuel Prices (VLSFO): $620/MT VLSFO Baseline (Determines voyage fuel burn & freight floor)
+  * Tariff & Sanctions:  ${manualCargo} Trade Policy & Duty Rates Verified
   * Geopolitical Events: ${nlpDriversText} [Risk Severity: ${newsNlpAnalysis.riskLevel}]
-  * Port Congestion:     ${portCongestionData.vesselsAtAnchor} Bulkers waiting at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
-  * CII/EEXI Compliance: Grade A/B Eco-Vessel Energy Efficiency Compliant
-  * Sanctions Risk:      Passed Automated Sanctions & Flag Audit (Zero Exposure)
-  * Commodity/Tariffs:   ${manualCargo} benchmark tracked via SSE & World Bank Coal Indices
+  * Port Congestion:     ${portCongestionData.vesselsAtAnchor} Ships at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
 ----------------------------------------------------------------------
-[STEP 2: AI & ML ENGINE (QUANTITATIVE INFERENCE)]
+[2] AI & ML ENGINE (GLOBAL NEWS NLP & CHANGEPOINTS):
+  * Global News NLP:     "${newsNlpText}" (Volatility Multiplier x${newsNlpAnalysis.volatilityMultiplier})
   * Bayesian Changepoints: Detected ${isExtremeDemand ? 'Structural Regime Jump (High Volatility Squeeze)' : 'Stable Linear Baseline Regime'}
-  * Quantile GBDT Cones:   P10: ₹${estP10INR.toLocaleString()} ($${estP10}) | P50: ₹${estSpotINR.toLocaleString()} ($${estSpot}) | P90: ₹${estP90INR.toLocaleString()} ($${estP90}) /MT
-  * Global News NLP:       "${newsNlpText}" (Volatility Multiplier x${newsNlpAnalysis.volatilityMultiplier})
-  * Ton-Mile Elasticity:   Spot Freight Drift +$${newsNlpAnalysis.spotDriftUsd.toFixed(2)}/MT across route corridor
-  * Demurrage Simulator:   ${demurrageDays.toFixed(2)} Days Net Demurrage Exposure (₹${demurrageExposureINR_Lakhs} Lakhs)
+  * Quantile GBDT Cones: P10: ₹${estP10INR.toLocaleString()} ($${estP10}) | P50: ₹${estSpotINR.toLocaleString()} ($${estSpot}) | P90: ₹${estP90INR.toLocaleString()} ($${estP90}) /MT
+  * Ton-Mile Elasticity: Spot Freight Drift +$${newsNlpAnalysis.spotDriftUsd.toFixed(2)}/MT across corridor
 ----------------------------------------------------------------------
-[STEP 3: PORTFOLIO OPTIMIZATION (CVaR & CONSTRAINTS)]
-  * CVaR Cost Minimization: Minimized tail-risk exposure at 90% Confidence Level
-  * Dynamic Risk Allocation: ${coaSplit}% Long-Term COA / ${100 - coaSplit}% Spot (Rejects Static 70/30 Rule)
-  * Market Situation:      ${marketSituationLabel.toUpperCase()} (${allocationRationale})
-  * Optimal Laycan Window:  ${primaryWaitDate}
-  * Berth Draft Clearance: ${draftClearanceText}
+[3] PORTFOLIO OPTIMIZATION (CVaR & LAYCAN TIMING):
+  * CVaR Allocation:     ${coaSplit}% Long-Term COA / ${100 - coaSplit}% Spot (Dynamic Portfolio Hedge)
+  * Optimal Laycan:      ${primaryWaitDate}
+  * Berth Draft Check:   ${draftClearanceText}
 ----------------------------------------------------------------------
-[STEP 4: ACTIONABLE DIRECTIVES & OUTPUTS]
-  * Strike / Buy Corridor:  ${buyStrikeDirectiveText}
-  * Hold / Weather Advice:  ${holdWaitDirectiveText}
-  * Landed Cost Savings:   ₹${savingsINR_Cr} Crore SAVED vs Unhedged Spot (₹${rateSavingsINR.toLocaleString()} /MT)
-  * Demurrage Avoidance:   Avoided ₹${demurrageSavedINR_Lakhs} Lakhs demurrage via optimal laycan timing
-  * MARPOL Legal Evidence: Audited logs serialized to models/navifreight_gbdt_bundle.joblib
+[4] ACTIONABLE PROCUREMENT DIRECTIVES:
+  * Strike / Buy Corridor: ${buyStrikeDirectiveText}
+  * Hold / Weather Advice: ${holdWaitDirectiveText}
+  * Freight Savings:     ₹${savingsINR_Cr} Crore SAVED vs Unhedged Spot (₹${rateSavingsINR.toLocaleString()} /MT)
+  * Demurrage Avoidance: Avoided ₹${demurrageSavedINR_Lakhs} Lakhs demurrage penalty via optimal laycan timing
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
           }
