@@ -242,7 +242,7 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     const waitDays = isWeatherProper ? 0 : Math.max(3, Math.ceil(demurrageDays) + 1);
     const waitD = new Date();
     waitD.setDate(waitD.getDate() + waitDays);
-    const recommendedWaitDate = waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const recommendedWaitDate = isWeatherProper ? 'Immediate Clearance (No Delay)' : waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
     return {
       isLive: true,
@@ -285,7 +285,7 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     const waitDays = isWeatherProper ? 0 : Math.max(3, Math.ceil(demurrageDays) + 1);
     const waitD = new Date();
     waitD.setDate(waitD.getDate() + waitDays);
-    const recommendedWaitDate = waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    const recommendedWaitDate = isWeatherProper ? 'Immediate Clearance (No Delay)' : waitD.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
     return {
       isLive: false,

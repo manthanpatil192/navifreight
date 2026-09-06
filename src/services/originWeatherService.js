@@ -273,7 +273,7 @@ export async function fetchLiveOriginWeather(originKey = 'hay_point', cargoType 
 
   // If weather is improper, compute the exact calendar date when conditions subside
   const waitDays = isWeatherProper ? 0 : (laycanDelayDays > 0 ? Math.ceil(laycanDelayDays) + 1 : 4);
-  const recommendedWaitDate = getFutureDateString(waitDays);
+  const recommendedWaitDate = isWeatherProper ? 'Immediate Clearance (No Delay)' : getFutureDateString(waitDays);
 
   // Evaluate alternate port options
   const alternatePort = !isWeatherProper 

@@ -256,106 +256,149 @@ export default function CharterTimingDecisionMatrix({
           </div>
         </div>
 
-        {/* 2. RED BLACKOUT WINDOW (WAIT SIGNAL) */}
-        <div className="rounded-xl border-2 border-rose-400/80 bg-gradient-to-br from-rose-50/70 via-white to-rose-50/30 p-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-20 h-20 bg-rose-400/10 rounded-full blur-xl pointer-events-none"></div>
+        {/* 2. DYNAMIC SECONDARY TIMING WINDOW (WEATHER HALT OR SECONDARY SPOT SNIPING) */}
+        {isOriginImproper || isDestImproper ? (
+          /* RED OPERATIONAL BLACKOUT WINDOW (ONLY WHEN WEATHER IS DISRUPTED) */
+          <div className="rounded-xl border-2 border-rose-400/80 bg-gradient-to-br from-rose-50/70 via-white to-rose-50/30 p-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-20 h-20 bg-rose-400/10 rounded-full blur-xl pointer-events-none"></div>
 
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-              </span>
-              <span className="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/90 border border-rose-300 px-2.5 py-0.5 rounded-full">
-                {isOriginImproper 
-                  ? '🔴 Blackout Window (Source Weather Halt & Cancellation Risk)'
-                  : isDestImproper 
-                    ? '🔴 Blackout Window (Bay of Bengal Weather Delay: Wait Signal)'
-                    : '🔴 Blackout Window (High Volatility Wait Signal)'}
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                </span>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100/90 border border-rose-300 px-2.5 py-0.5 rounded-full">
+                  {isOriginImproper 
+                    ? '🔴 Blackout Window (Source Weather Halt & Cancellation Risk)'
+                    : '🔴 Blackout Window (Bay of Bengal Weather Delay: Wait Signal)'}
+                </span>
+              </div>
+              <span className="text-xs font-mono font-bold text-rose-900 bg-white border border-rose-200 px-2 py-0.5 rounded shadow-2xs">
+                Active Weather Halt: WAIT TILL {activeWeatherWaitDate || 'Sep 15, 2026'}
               </span>
             </div>
-            <span className="text-xs font-mono font-bold text-rose-900 bg-white border border-rose-200 px-2 py-0.5 rounded shadow-2xs">
-              {isOriginImproper || isDestImproper 
-                ? `Active Weather Halt: WAIT TILL ${activeWeatherWaitDate || 'Sep 15, 2026'}`
-                : `Forward Peak Blackout: ${blackoutWindowDate}`}
-            </span>
-          </div>
 
-          <div className="mt-3 flex items-baseline justify-between pb-3 border-b border-rose-200/60">
-            <div>
-              <span className="text-[11px] text-slate-500 block">
-                {isOriginImproper ? 'Source Weather Delay & Laycan Default Risk' : isDestImproper ? 'Discharge Anchorage Delay Exposure' : 'Projected Stress Rate (P90 Tail Bound)'}
-              </span>
-              <div className="flex items-baseline space-x-2 mt-0.5">
-                <span className="text-xl font-black text-rose-700">
-                  {terminalMetrics?.p90INR ? `₹${terminalMetrics.p90INR.toLocaleString()} /MT` : `₹${Math.round((baseSpotRate * 1.32) * 87.58).toLocaleString()} /MT`}
+            <div className="mt-3 flex items-baseline justify-between pb-3 border-b border-rose-200/60">
+              <div>
+                <span className="text-[11px] text-slate-500 block">
+                  {isOriginImproper ? 'Source Weather Delay & Laycan Default Risk' : 'Discharge Anchorage Delay Exposure'}
                 </span>
-                <span className="text-xs text-slate-500 font-mono">
-                  (${terminalMetrics?.p90USD ? terminalMetrics.p90USD.toFixed(2) : Number(baseSpotRate * 1.32).toFixed(2)} /MT @ Stress FX)
+                <div className="flex items-baseline space-x-2 mt-0.5">
+                  <span className="text-xl font-black text-rose-700">
+                    {terminalMetrics?.p90INR ? `₹${terminalMetrics.p90INR.toLocaleString()} /MT` : `₹${Math.round((baseSpotRate * 1.32) * 87.58).toLocaleString()} /MT`}
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    (${terminalMetrics?.p90USD ? terminalMetrics.p90USD.toFixed(2) : Number(baseSpotRate * 1.32).toFixed(2)} /MT @ Stress FX)
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] text-rose-700 font-semibold block">Excess Unhedged Penalty</span>
+                <span className="text-sm font-bold text-rose-900">
+                  +₹{((((baseSpotRate * 1.32) - refSpotUSD) * activeVolume * 87.58) / 10000000).toFixed(2)} Crore Loss
                 </span>
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-[11px] text-rose-700 font-semibold block">Excess Unhedged Penalty</span>
-              <span className="text-sm font-bold text-rose-900">
-                +₹{((((baseSpotRate * 1.32) - refSpotUSD) * activeVolume * 87.58) / 10000000).toFixed(2)} Crore Loss
-              </span>
-            </div>
-          </div>
 
-          <div className="mt-3 space-y-1.5 text-xs text-slate-700">
-            {isOriginImproper ? (
-              <>
-                <div className="flex items-start space-x-1.5">
-                  <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong>Protective Directive:</strong> Adverse sea weather at {originObj.name} ({terminalMetrics.originWeather.weatherHazardDescription}).
-                    <div className="text-rose-900 font-bold mt-0.5">⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!</div>
-                    <div className="mt-0.5">
-                      DO NOT charter spot ships today. <strong>WAIT TILL {terminalMetrics.originWeather.recommendedWaitDate}</strong> when sea swell subsides.
+            <div className="mt-3 space-y-1.5 text-xs text-slate-700">
+              {isOriginImproper ? (
+                <>
+                  <div className="flex items-start space-x-1.5">
+                    <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Protective Directive:</strong> Adverse sea weather at {originObj.name} ({terminalMetrics?.originWeather?.weatherHazardDescription || 'Severe Swell'}).
+                      <div className="text-rose-900 font-bold mt-0.5">⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!</div>
+                      <div className="mt-0.5">
+                        DO NOT charter spot ships today. <strong>WAIT TILL {terminalMetrics?.originWeather?.recommendedWaitDate || 'Sep 18, 2026'}</strong> when sea swell subsides.
+                      </div>
                     </div>
                   </div>
-                </div>
-                {terminalMetrics.originWeather.alternatePort && (
-                  <div className="flex items-start space-x-1.5 text-[11px] text-amber-900 bg-amber-100/70 border border-amber-300 rounded p-1.5 font-medium">
-                    <Compass className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
-                    <span>
-                      <strong>Alternate Port Option:</strong> Consider diverting to <strong>{terminalMetrics.originWeather.alternatePort.portName}</strong> ({terminalMetrics.originWeather.alternatePort.reason})
-                    </span>
+                  {terminalMetrics?.originWeather?.alternatePort && (
+                    <div className="flex items-start space-x-1.5 text-[11px] text-amber-900 bg-amber-100/70 border border-amber-300 rounded p-1.5 font-medium">
+                      <Compass className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Alternate Port Option:</strong> Consider diverting to <strong>{terminalMetrics.originWeather.alternatePort.portName}</strong> ({terminalMetrics.originWeather.alternatePort.reason})
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start space-x-1.5">
+                    <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <p>
+                      <strong>Protective Directive:</strong> Squally weather & high swell at {destObj.name} ({terminalMetrics?.destWeather?.stage || 'Depression'}). Pilotage restricted.
+                      <strong> DO NOT enter spot chartering today.</strong> <strong>WAIT TILL {terminalMetrics?.destWeather?.recommendedWaitDate || 'Sep 15, 2026'}</strong> to avoid paying unbudgeted demurrage.
+                    </p>
                   </div>
-                )}
-              </>
-            ) : isDestImproper ? (
-              <>
-                <div className="flex items-start space-x-1.5">
-                  <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <p>
-                    <strong>Protective Directive:</strong> Squally weather & high swell at {destObj.name} ({terminalMetrics.destWeather.stage}). Pilotage restricted.
-                    <strong> DO NOT enter spot chartering.</strong> <strong>WAIT TILL {terminalMetrics.destWeather.recommendedWaitDate}</strong> to avoid paying unbudgeted demurrage.
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2 text-[11px] text-rose-800 bg-rose-100/60 rounded px-2 py-1 font-medium">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                  <span>Demurrage Risk: Anchorage delay +{terminalMetrics.destWeather.waitDays || 3.5}d will incur ₹{terminalMetrics.destWeather.demurrageINR_Lakhs || '22.5'} Lakhs demurrage loss.</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-start space-x-1.5">
-                  <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <p>
-                    <strong>Protective Directive:</strong> Historical post-monsoon industrial restocking surge & spot rate drift. 
-                    <strong> DO NOT enter spot chartering.</strong> Rely strictly on pre-locked COA program feed.
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2 text-[11px] text-rose-800 bg-rose-100/60 rounded px-2 py-1 font-medium">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                  <span>Price Suggestion: Spot rates peaking at ₹{Math.round(baseSpotRate * 1.25 * 86.5).toLocaleString()} /MT. WAIT TILL forward dip to save ₹{terminalMetrics?.savingsINR_Cr || '2.24'} Cr.</span>
-                </div>
-              </>
-            )}
+                  <div className="flex items-center space-x-2 text-[11px] text-rose-800 bg-rose-100/60 rounded px-2 py-1 font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span>Demurrage Risk: Anchorage delay +{terminalMetrics?.destWeather?.waitDays || 3.5}d will incur ₹{terminalMetrics?.destWeather?.demurrageINR_Lakhs || '22.5'} Lakhs demurrage loss.</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          /* BLUE/INDIGO SECONDARY SPOT SNIPING STRATEGY (WHEN WEATHER IS ALL-CLEAR) */
+          <div className="rounded-xl border-2 border-indigo-400/70 bg-gradient-to-br from-indigo-50/60 via-white to-indigo-50/20 p-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-20 h-20 bg-indigo-400/10 rounded-full blur-xl pointer-events-none"></div>
+
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                </span>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-800 bg-indigo-100/90 border border-indigo-300 px-2.5 py-0.5 rounded-full">
+                  🔵 Secondary Spot Sniping Window (P10 Forward Dip)
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-mono font-bold text-indigo-900 bg-white border border-indigo-200 px-2 py-0.5 rounded shadow-2xs block">
+                  Secondary Window: {forwardDipWindowDate}
+                </span>
+                <span className="text-[10px] text-indigo-700 font-mono block mt-0.5">
+                  Peak Resistance Blackout: {blackoutWindowDate}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-baseline justify-between pb-3 border-b border-indigo-200/60">
+              <div>
+                <span className="text-[11px] text-slate-500 block">Expected Forward Spot Dip (P10 Bound)</span>
+                <div className="flex items-baseline space-x-2 mt-0.5">
+                  <span className="text-xl font-black text-indigo-700">
+                    ₹{terminalMetrics?.p10INR ? terminalMetrics.p10INR.toLocaleString() : Math.round((baseSpotRate * 0.88) * 87.04).toLocaleString()} /MT
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">
+                    (${terminalMetrics?.p10USD || Number(baseSpotRate * 0.88).toFixed(2)} /MT @ Forward FX)
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] text-indigo-700 font-semibold block">Spot Dip Savings</span>
+                <span className="text-sm font-bold text-indigo-900">
+                  ₹{terminalMetrics?.savingsINR_Cr ? `${terminalMetrics.savingsINR_Cr} Crore` : '2.24 Crore'} Advantage
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3 space-y-1.5 text-xs text-slate-700">
+              <div className="flex items-start space-x-1.5">
+                <TrendingDown className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Secondary Tactical Advice (30% Spot Volume):</strong> For optional forward parcels beyond the 70% core COA basestock, do NOT chase spot during weekly mini-surges. Float this 30% parcel into the mid-October P10 dip window ({forwardDipWindowDate}) to capture bottom-quartile rates and maximize arbitrage savings.
+                </p>
+              </div>
+              <div className="flex items-center space-x-2 text-[11px] text-indigo-800 bg-indigo-100/60 rounded px-2 py-1 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span>Operational Status All-Clear: Operational deepwater berths & calm sea corridors. Zero weather delay across origin and destination ports.</span>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 

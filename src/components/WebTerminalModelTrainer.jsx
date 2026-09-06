@@ -116,12 +116,13 @@ export default function WebTerminalModelTrainer({
     - Meteorology:   IMD CWC Bhubaneswar Telemetry
     - Sea Condition: Wave 1.8m | Wind 20.0 kts | Stage: Normal Synoptic
     - Pilotage/Berth:🟢 [PROPER SEA WEATHER] Deepwater outer anchorage & berths operating seamlessly.
+    - WAIT DIRECTIVE:Immediate berthing clearance granted (Zero weather delay).
 
 ----------------------------------------------------------------------
 [2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
-  * BUY / STRIKE:    🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,285 /MT ($14.85 /MT). Saves ₹149 /MT vs spot!
-  * HOLD / WAIT:     🔴 HOLD / WAIT DIRECTIVE: Avoid volatile spot booking during daily peaks. WAIT TILL Oct 12 – Oct 19, 2026 forward dip to save ₹2.24 Crore.
-  * Market Regime:   PRICES STABLE - Calm market & low volatility baseline
+  * Primary Directive:   🟢 EXECUTE PRIMARY COA LAYCAN (Immediate Demand All-Clear): Strike 3-Month COA tender during Primary Laycan Window (Sep 06 – Sep 13, 2026) at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
+  * Secondary Advice:    🟢 SECONDARY SPOT ADVICE: For optional forward volume, WAIT FOR SECONDARY SPOT SNIPING WINDOW (Oct 12 – Oct 19, 2026) to capture seasonal P10 price dips.
+  * Market Risk Regime:  PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
@@ -365,7 +366,17 @@ export default function WebTerminalModelTrainer({
       let coaSplit = 35; // Default baseline
 
       const isHighUncertainty = (!originProper || !destProper || destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL' || (newsNlpAnalysis?.riskLevel && newsNlpAnalysis.riskLevel.includes("CRITICAL")) || volatilityMult >= 1.50 || compositeRiskScore >= 70);
-      const isPricesRising = (!isHighUncertainty && ((newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd > 3.0) || destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH' || volatilityMult >= 1.25 || compositeRiskScore >= 50 || portCongestionData.trafficRiskScore >= 55 || portCongestionData.avgAnchorageWaitDays >= 3.0));
+      const isPricesRising = (!isHighUncertainty && (
+        (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd > 2.0) || 
+        destWeather?.severity === 'HIGH' || 
+        originWeather?.severity === 'HIGH' || 
+        volatilityMult >= 1.20 || 
+        compositeRiskScore > 45 || 
+        portCongestionData.congestionStatus === 'MODERATE' ||
+        portCongestionData.trafficRiskScore >= 45 || 
+        portCongestionData.vesselsAtAnchor >= 5 ||
+        portCongestionData.avgAnchorageWaitDays >= 2.0
+      ));
       const isPricesFalling = (!isHighUncertainty && !isPricesRising && (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd < -1.0) && compositeRiskScore < 40);
 
       if (isHighUncertainty) {
@@ -511,6 +522,9 @@ export default function WebTerminalModelTrainer({
         congestionDecisionDirective = `🟡 YELLOW ALERT (MODERATE ANCHORAGE CONGESTION): ${portCongestionData.vesselsAtAnchor} vessels waiting at outer anchorage (+${portCongestionData.avgAnchorageWaitDays}d wait, ETA: ${portCongestionData.nextBerthSlotETA}). DIRECTIVE: Execute ${coaSplit}% Fixed COA hedge; insert 48h Weather Working Day (WWD) & berthing priority clause in charter party to shield buyer from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage exposure.`;
       }
 
+      const buyStrikeDirectiveText = primaryProcurementDirective;
+      const holdWaitDirectiveText = secondarySpotHedgingDirective;
+
       const terminalMetricsPayload = {
         spotUSD: baseRate,
         spotINR: spotRateINR,
@@ -612,13 +626,14 @@ export default function WebTerminalModelTrainer({
     - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Pressure 1012.0 hPa
     - Loading Status:${originProper ? '🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.' : '🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.'}
     - CANCELLATION:  ${originProper ? 'No contract cancellation risk detected.' : `⚠️ ${originWeather?.cancellationWarning || 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!'}`}
-    - WAIT DIRECTIVE:WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides.
-    ${originWeather?.alternatePort ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
+    - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides.`}
+    ${(!originProper && originWeather?.alternatePort) ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
 
   * DESTINATION PORT [${destObj.name || manualDest}]:
     - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Telemetry'}
     - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | Stage: ${destWeather?.stage || 'Normal Synoptic'}
     - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] Outer harbour & deepwater berths operating seamlessly.' : '🔴 [IMPROPER SEA WEATHER] Anchorage delay +' + destDelayDays + 'd adds demurrage exposure.'}
+    - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for pilotage clearance.`}
 
 ----------------------------------------------------------------------
 [2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
@@ -730,14 +745,14 @@ export default function WebTerminalModelTrainer({
         stage: 'Normal Berthing',
         waveHeightMeters: 1.8,
         windSpeedKnots: 20.0,
-        recommendedWaitDate: 'Sep 06, 2026',
+        recommendedWaitDate: 'Immediate Clearance (No Delay)',
         waitDays: 0,
         demurrageINR_Lakhs: '0.0',
         demurrageUSD: 0
       },
       isExtremeDemand: false,
       buyStrikeDirectiveText: '🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,285 /MT ($14.85 /MT). Saves ₹149 /MT vs spot!',
-      holdWaitDirectiveText: '🔴 HOLD / WAIT DIRECTIVE: Avoid volatile spot booking during daily peaks. WAIT TILL Oct 12 – Oct 19, 2026 forward dip to save ₹2.24 Crore.',
+      holdWaitDirectiveText: '🟢 SECONDARY SPOT ADVICE: For optional forward volume, WAIT FOR SECONDARY SPOT SNIPING WINDOW (Oct 12 – Oct 19, 2026) to capture seasonal P10 price dips. Avoid daily spot spike surges.',
       recommendedWaitDate: 'Oct 12 – Oct 19, 2026',
       bothWeatherProper: true,
       source: 'test1'
@@ -991,7 +1006,7 @@ export default function WebTerminalModelTrainer({
         waveHeightMeters: 2.1,
         windSpeedKnots: 19.0,
         weatherHazardDescription: 'Moderate Agulhas swell within berth limits',
-        recommendedWaitDate: 'Sep 06, 2026',
+        recommendedWaitDate: 'Immediate Clearance (No Delay)',
         contractCancellationRisk: false,
         alternatePort: null
       },
@@ -1002,7 +1017,7 @@ export default function WebTerminalModelTrainer({
         stage: 'Normal Berthing',
         waveHeightMeters: 1.8,
         windSpeedKnots: 20.0,
-        recommendedWaitDate: 'Sep 06, 2026',
+        recommendedWaitDate: 'Immediate Clearance (No Delay)',
         waitDays: 0,
         demurrageINR_Lakhs: '0.0',
         demurrageUSD: 0
