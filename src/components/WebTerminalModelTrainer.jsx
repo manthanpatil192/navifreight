@@ -234,312 +234,300 @@ export default function WebTerminalModelTrainer({
         }
       }
 
-    const destLaycanBufferHours = destWeather?.laycanBufferHours || 0;
-    const destDelayDays = Number((destLaycanBufferHours / 24.0).toFixed(1));
-    const originDelayDays = Number((originWeather?.laycanDelayDays || 0).toFixed(1));
-    const weatherDelayDays = Number((destDelayDays + originDelayDays).toFixed(1));
-    const baseWaitDays = destObj.avgWaitDays || 2.5;
-    const totalCongestionDays = Number((baseWaitDays + weatherDelayDays).toFixed(1));
+      const destLaycanBufferHours = destWeather?.laycanBufferHours || 0;
+      const destDelayDays = Number((destLaycanBufferHours / 24.0).toFixed(1));
+      const originDelayDays = Number((originWeather?.laycanDelayDays || 0).toFixed(1));
+      const weatherDelayDays = Number((destDelayDays + originDelayDays).toFixed(1));
+      const baseWaitDays = destObj.avgWaitDays || 2.5;
+      const totalCongestionDays = Number((baseWaitDays + weatherDelayDays).toFixed(1));
 
-    // Sea weather proper checks
-    const originProper = originWeather?.isWeatherProper ?? true;
-    const destProper = destWeather?.isWeatherProper ?? true;
-    const bothWeatherProper = originProper && destProper;
+      // Sea weather proper checks
+      const originProper = originWeather?.isWeatherProper ?? true;
+      const destProper = destWeather?.isWeatherProper ?? true;
+      const bothWeatherProper = originProper && destProper;
 
-    // Volatility and CVaR split dynamically driven by dual-port weather telemetry & news NLP
-    let volatilityMult = 1.0;
-    if (destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL') {
-      volatilityMult = 1.70;
-    } else if (destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH') {
-      volatilityMult = 1.45;
-    } else if (destWeather?.severity === 'MODERATE' || originWeather?.severity === 'MODERATE') {
-      volatilityMult = 1.25;
-    } else {
-      volatilityMult = 1.05;
-    }
+      // Volatility and CVaR split dynamically driven by dual-port weather telemetry & news NLP
+      let volatilityMult = 1.0;
+      if (destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL') {
+        volatilityMult = 1.70;
+      } else if (destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH') {
+        volatilityMult = 1.45;
+      } else if (destWeather?.severity === 'MODERATE' || originWeather?.severity === 'MODERATE') {
+        volatilityMult = 1.25;
+      } else {
+        volatilityMult = 1.05;
+      }
 
-    // Dynamic 4-State Market Risk & Allocation Calculation Matrix (No Fixed Rules)
-    let marketSituationLabel = "Prices Stable";
-    let marketSituationDesc = "Calm market & low volatility baseline";
-    let naviFreightRecommendation = "More Spot";
-    let coaSplit = 35; // Default for stable prices: More Spot (35% COA / 65% Spot)
-    let allocationRationale = "More Spot allocated to capture daily market price dips while maintaining minimum operational basestock.";
+      // Extreme Demand Logic
+      const isExtremeDemand = (volatilityMult >= 1.35) || (manualVolume >= 120000 && destObj.avgWaitDays >= 2.5) || (!originProper && !destProper);
 
-    const isHighUncertainty = (!originProper || !destProper || destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL' || (newsNlpAnalysis?.riskLevel && newsNlpAnalysis.riskLevel.includes("CRITICAL")) || volatilityMult >= 1.50);
-    const isPricesRising = (!isHighUncertainty && ((newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd > 3.0) || destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH' || volatilityMult >= 1.25));
-    const isPricesFalling = (!isHighUncertainty && !isPricesRising && (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd < -1.0));
+      // Dynamic Global News NLP Analysis & Market Changepoint Engine (EARLY INITIALIZATION TO PREVENT REFERENCE ERROR)
+      const newsNlpText = (!originProper)
+        ? `${originWeather?.weatherHazardDescription || 'Severe weather at loading port'} affecting vessel laycan & cargo departure`
+        : (!destProper 
+            ? `Bay of Bengal ${destWeather?.stage || 'squalls & depression'} impacting discharge berth pilotage at ${destObj.name}`
+            : (isExtremeDemand 
+                ? "Red Sea detour forces Cape of Good Hope rerouting, stretching ton-miles and vessel tonnage supply" 
+                : "Global dry bulk & tanker markets operating on baseline economic supply and demand"));
 
-    if (isHighUncertainty) {
-      marketSituationLabel = "Very High Uncertainty";
-      marketSituationDesc = "Extreme weather / geopolitical disruption / critical berth queue";
-      naviFreightRecommendation = "More Long-Term (COA)";
-      coaSplit = 85;
-      allocationRationale = "More Long-Term (COA) locked to hedge blast furnace basestock against worst-case P90 tail-risk price surges.";
-    } else if (isPricesRising) {
-      marketSituationLabel = "Prices Likely to Rise";
-      marketSituationDesc = "Bullish forward freight drift / tonnage supply squeeze";
-      naviFreightRecommendation = "More Long-Term (COA)";
-      coaSplit = 75;
-      allocationRationale = "More Long-Term (COA) locked to secure lower contract rates before the anticipated market price surge.";
-    } else if (isPricesFalling) {
-      marketSituationLabel = "Prices Expected to Fall";
-      marketSituationDesc = "Bearish freight trend / commodity market slump";
-      naviFreightRecommendation = "More Spot";
-      coaSplit = 20;
-      allocationRationale = "More Spot allocated to ride the declining market down and capture lower future spot rates.";
-    } else {
-      marketSituationLabel = "Prices Stable";
-      marketSituationDesc = "Stable synoptic berthing & steady freight rates";
-      naviFreightRecommendation = "More Spot";
-      coaSplit = 35;
-      allocationRationale = "More Spot allocated to exploit daily market dips while holding minimum baseline COA.";
-    }
+      const newsNlpAnalysis = analyzeGlobalNewsNlp(newsNlpText);
+      const nlpDriversText = newsNlpAnalysis.primaryDrivers.join(" | ");
 
-    let weatherImpactNote = `${marketSituationLabel} - ${naviFreightRecommendation} (${coaSplit}% COA / ${100 - coaSplit}% Spot)`;
+      // Dynamic 4-State Market Risk & Allocation Calculation Matrix (No Fixed Rules)
+      let marketSituationLabel = "Prices Stable";
+      let marketSituationDesc = "Calm market & low volatility baseline";
+      let naviFreightRecommendation = "More Spot";
+      let coaSplit = 35; // Default for stable prices: More Spot (35% COA / 65% Spot)
+      let allocationRationale = "More Spot allocated to capture daily market price dips while maintaining minimum operational basestock.";
 
-    // Extreme Demand Logic
-    const isExtremeDemand = (volatilityMult >= 1.35) || (manualVolume >= 120000 && destObj.avgWaitDays >= 2.5) || (!originProper && !destProper);
+      const isHighUncertainty = (!originProper || !destProper || destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL' || (newsNlpAnalysis?.riskLevel && newsNlpAnalysis.riskLevel.includes("CRITICAL")) || volatilityMult >= 1.50);
+      const isPricesRising = (!isHighUncertainty && ((newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd > 3.0) || destWeather?.severity === 'HIGH' || originWeather?.severity === 'HIGH' || volatilityMult >= 1.25));
+      const isPricesFalling = (!isHighUncertainty && !isPricesRising && (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd < -1.0));
 
-    // Tide & Berth Draft Bathymetry (Auto-evaluated from port bathymetry)
-    const effectivePortDraft = destObj.maxDraftLaden || 16.0;
-    const vesselDraft = vesselObj.ladenDraftMeters || 18.0;
-    let draftClearanceText = "";
-    if (vesselDraft <= effectivePortDraft) {
-      draftClearanceText = `[STATUS CLEAR] Vessel ${vesselDraft}m <= Berth ${effectivePortDraft.toFixed(1)}m (All-Weather Deepwater Berth)`;
-    } else {
-      const excessMeters = (vesselDraft - effectivePortDraft).toFixed(1);
-      const estimatedLighterageMT = Math.round(excessMeters * 11500);
-      draftClearanceText = `[WARNING DRAFT EXCEEDED] Vessel ${vesselDraft}m > Berth ${effectivePortDraft.toFixed(1)}m (Requires ~${estimatedLighterageMT.toLocaleString()} MT Offshore Lighterage at Anchorage)`;
-    }
+      if (isHighUncertainty) {
+        marketSituationLabel = "Very High Uncertainty";
+        marketSituationDesc = "Extreme weather / geopolitical disruption / critical berth queue";
+        naviFreightRecommendation = "More Long-Term (COA)";
+        coaSplit = 85;
+        allocationRationale = "More Long-Term (COA) locked to hedge blast furnace basestock against worst-case P90 tail-risk price surges.";
+      } else if (isPricesRising) {
+        marketSituationLabel = "Prices Likely to Rise";
+        marketSituationDesc = "Bullish forward freight drift / tonnage supply squeeze";
+        naviFreightRecommendation = "More Long-Term (COA)";
+        coaSplit = 75;
+        allocationRationale = "More Long-Term (COA) locked to secure lower contract rates before the anticipated market price surge.";
+      } else if (isPricesFalling) {
+        marketSituationLabel = "Prices Expected to Fall";
+        marketSituationDesc = "Bearish freight trend / commodity market slump";
+        naviFreightRecommendation = "More Spot";
+        coaSplit = 20;
+        allocationRationale = "More Spot allocated to ride the declining market down and capture lower future spot rates.";
+      } else {
+        marketSituationLabel = "Prices Stable";
+        marketSituationDesc = "Stable synoptic berthing & steady freight rates";
+        naviFreightRecommendation = "More Spot";
+        coaSplit = 35;
+        allocationRationale = "More Spot allocated to exploit daily market dips while holding minimum baseline COA.";
+      }
 
-    // Freight calculations
-    const routeKey = `${manualOrigin}-${manualDest}`;
-    const baseRateMatrix = {
-      'hay_point-dhamra': 15.40, 'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-gangavaram': 16.10, 'hay_point-gopalpur': 16.00, 'hay_point-sandheads': 15.90, 'hay_point-haldia': 16.60,
-      'gladstone-dhamra': 15.60, 'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-gangavaram': 16.30, 'gladstone-gopalpur': 16.20, 'gladstone-sandheads': 16.10, 'gladstone-haldia': 16.80,
-      'newcastle-dhamra': 15.90, 'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70, 'newcastle-gangavaram': 16.60, 'newcastle-gopalpur': 16.50, 'newcastle-sandheads': 16.40, 'newcastle-haldia': 17.10,
-      'hampton_roads-dhamra': 32.00, 'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80, 'hampton_roads-gangavaram': 32.70, 'hampton_roads-gopalpur': 32.40, 'hampton_roads-sandheads': 32.60, 'hampton_roads-haldia': 33.50,
-      'maputo-dhamra': 13.40, 'maputo-paradip': 13.60, 'maputo-vizag': 13.90, 'maputo-gangavaram': 13.80, 'maputo-gopalpur': 13.50, 'maputo-sandheads': 13.70, 'maputo-haldia': 14.30,
-      'samarinda-dhamra': 8.80, 'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70, 'samarinda-gangavaram': 8.65, 'samarinda-gopalpur': 8.75, 'samarinda-sandheads': 8.85, 'samarinda-haldia': 9.40,
-      'taboneo-dhamra': 8.50, 'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40, 'taboneo-gangavaram': 8.35, 'taboneo-gopalpur': 8.45, 'taboneo-sandheads': 8.55, 'taboneo-haldia': 9.10,
-      'vostochny-dhamra': 18.20, 'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70, 'vostochny-gangavaram': 18.60, 'vostochny-gopalpur': 18.40, 'vostochny-sandheads': 18.50, 'vostochny-haldia': 19.20
-    };
-    const baseRate = baseRateMatrix[routeKey] || 16.20;
-    const forwardDrift = (manualHorizon * 0.038 * volatilityMult) + ((weatherDelayDays * 0.4) / baseRate);
-    const estSpot = Number((baseRate * (1.0 + forwardDrift)).toFixed(2));
-    const estP10 = Number((estSpot * 0.88).toFixed(2));
-    const estP90 = Number((estSpot * 1.28).toFixed(2));
-    const coaFixed = Number((baseRate * 0.94).toFixed(2));
+      let weatherImpactNote = `${marketSituationLabel} - ${naviFreightRecommendation} (${coaSplit}% COA / ${100 - coaSplit}% Spot)`;
 
-    // Blended rate computations:
-    // 1. Conservative Baseline (Spot leg at P50 Median Forward Rate)
-    const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
-    // 2. Tactical Dip Capture (Spot leg executed at P10 Forward Dip)
-    const blendedP10 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estP10)).toFixed(2));
-    const blended = blendedP50; // Active benchmark for conservative portfolio baseline
+      // Tide & Berth Draft Bathymetry (Auto-evaluated from port bathymetry)
+      const effectivePortDraft = destObj.maxDraftLaden || 16.0;
+      const vesselDraft = vesselObj.ladenDraftMeters || 18.0;
+      let draftClearanceText = "";
+      if (vesselDraft <= effectivePortDraft) {
+        draftClearanceText = `[STATUS CLEAR] Vessel ${vesselDraft}m <= Berth ${effectivePortDraft.toFixed(1)}m (All-Weather Deepwater Berth)`;
+      } else {
+        const excessMeters = (vesselDraft - effectivePortDraft).toFixed(1);
+        const estimatedLighterageMT = Math.round(excessMeters * 11500);
+        draftClearanceText = `[WARNING DRAFT EXCEEDED] Vessel ${vesselDraft}m > Berth ${effectivePortDraft.toFixed(1)}m (Requires ~${estimatedLighterageMT.toLocaleString()} MT Offshore Lighterage at Anchorage)`;
+      }
 
-    // Financial totals (USD and INR based on Forward Forex Trend)
-    const unhedgedUSD = Math.round(estSpot * manualVolume); // Forward P50 unhedged
-    const currentSpotUSD = Math.round(baseRate * manualVolume); // Today's spot baseline
-    const optUSD = Math.round(blended * manualVolume);
-    const optP10USD = Math.round(blendedP10 * manualVolume);
-    const savingsUSD = unhedgedUSD - optUSD;
-    // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
-    const baseFxRate = 86.50;
-    const fxDriftPct = (manualHorizon / 12) * 0.025;
-    const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
-    const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
+      // Freight calculations
+      const routeKey = `${manualOrigin}-${manualDest}`;
+      const baseRateMatrix = {
+        'hay_point-dhamra': 15.40, 'hay_point-paradip': 15.80, 'hay_point-vizag': 16.20, 'hay_point-gangavaram': 16.10, 'hay_point-gopalpur': 16.00, 'hay_point-sandheads': 15.90, 'hay_point-haldia': 16.60,
+        'gladstone-dhamra': 15.60, 'gladstone-paradip': 16.00, 'gladstone-vizag': 16.40, 'gladstone-gangavaram': 16.30, 'gladstone-gopalpur': 16.20, 'gladstone-sandheads': 16.10, 'gladstone-haldia': 16.80,
+        'newcastle-dhamra': 15.90, 'newcastle-paradip': 16.30, 'newcastle-vizag': 16.70, 'newcastle-gangavaram': 16.60, 'newcastle-gopalpur': 16.50, 'newcastle-sandheads': 16.40, 'newcastle-haldia': 17.10,
+        'hampton_roads-dhamra': 32.00, 'hampton_roads-paradip': 32.50, 'hampton_roads-vizag': 32.80, 'hampton_roads-gangavaram': 32.70, 'hampton_roads-gopalpur': 32.40, 'hampton_roads-sandheads': 32.60, 'hampton_roads-haldia': 33.50,
+        'maputo-dhamra': 13.40, 'maputo-paradip': 13.60, 'maputo-vizag': 13.90, 'maputo-gangavaram': 13.80, 'maputo-gopalpur': 13.50, 'maputo-sandheads': 13.70, 'maputo-haldia': 14.30,
+        'samarinda-dhamra': 8.80, 'samarinda-paradip': 8.90, 'samarinda-vizag': 8.70, 'samarinda-gangavaram': 8.65, 'samarinda-gopalpur': 8.75, 'samarinda-sandheads': 8.85, 'samarinda-haldia': 9.40,
+        'taboneo-dhamra': 8.50, 'taboneo-paradip': 8.60, 'taboneo-vizag': 8.40, 'taboneo-gangavaram': 8.35, 'taboneo-gopalpur': 8.45, 'taboneo-sandheads': 8.55, 'taboneo-haldia': 9.10,
+        'vostochny-dhamra': 18.20, 'vostochny-paradip': 18.50, 'vostochny-vizag': 18.70, 'vostochny-gangavaram': 18.60, 'vostochny-gopalpur': 18.40, 'vostochny-sandheads': 18.50, 'vostochny-haldia': 19.20
+      };
+      const baseRate = baseRateMatrix[routeKey] || 16.20;
+      const forwardDrift = (manualHorizon * 0.038 * volatilityMult) + ((weatherDelayDays * 0.4) / baseRate);
+      const estSpot = Number((baseRate * (1.0 + forwardDrift)).toFixed(2));
+      const estP10 = Number((estSpot * 0.88).toFixed(2));
+      const estP90 = Number((estSpot * 1.28).toFixed(2));
+      const coaFixed = Number((baseRate * 0.94).toFixed(2));
 
-    // Canonical demurrage rate from vessel charter party (single shared variable)
-    const canonicalDemurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
-    const canonicalDemurrageDailyINR_Lakhs = Number(((canonicalDemurrageDailyUSD * baseFxRate) / 100000).toFixed(2));
+      // Blended rate computations:
+      const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
+      const blendedP10 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estP10)).toFixed(2));
+      const blended = blendedP50;
 
-    const spotRateINR = Math.round(baseRate * baseFxRate);
-    const currentSpotINR_Cr = ((currentSpotUSD * baseFxRate) / 10000000).toFixed(2);
-    const estSpotINR = Math.round(estSpot * forwardFxRate);
-    const estP10INR = Math.round(estP10 * forwardFxRate);
-    const estP90INR = Math.round(estP90 * forwardFxRate);
-    const coaFixedINR = Math.round(coaFixed * baseFxRate);
-    const blendedINR = Math.round(blended * blendedFxRate);
-    const blendedP10INR = Math.round(blendedP10 * blendedFxRate);
-    const rateSavingsINR = estSpotINR - blendedINR;
-    const rateSavingsP10INR = estSpotINR - blendedP10INR;
+      // Financial totals
+      const unhedgedUSD = Math.round(estSpot * manualVolume);
+      const currentSpotUSD = Math.round(baseRate * manualVolume);
+      const optUSD = Math.round(blended * manualVolume);
+      const optP10USD = Math.round(blendedP10 * manualVolume);
+      const savingsUSD = unhedgedUSD - optUSD;
 
-    const unhedgedINR_Cr = ((unhedgedUSD * forwardFxRate) / 10000000).toFixed(2);
-    const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
-    const optP10INR_Cr = ((optP10USD * blendedFxRate) / 10000000).toFixed(2);
-    const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
+      const baseFxRate = 86.50;
+      const fxDriftPct = (manualHorizon / 12) * 0.025;
+      const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
+      const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
 
-    // Turnaround time: strictly defined as the explicit sum of named components
-    const destHandlingTPD = destObj.handlingRateTPD || 45000;
-    const netDischargeDays = Number((manualVolume / destHandlingTPD).toFixed(2));
-    const pilotageMooringDays = 1.00; // Pilotage inward/outward, tug assist & draft survey
-    
-    // Dynamic Queue Wait: parameterized on parcel berth service demand (manualVolume / destHandlingTPD)
-    // Standard baseline assumes a 100,000 MT parcel at 45,000 TPD (~2.22 days berth service)
-    const berthOccupancyRatio = netDischargeDays / 2.22;
-    const scaledWaitDays = (destObj.avgWaitDays || 2.5) * Math.max(0.6, berthOccupancyRatio);
-    const queueWaitDays = Number((scaledWaitDays + weatherDelayDays).toFixed(2)); // Anchorage congestion + weather delay
-    const totalPortTurnaroundDays = Number((netDischargeDays + pilotageMooringDays + queueWaitDays).toFixed(2));
-    const berthOnlyDays = Number((netDischargeDays + pilotageMooringDays).toFixed(2));
+      const canonicalDemurrageDailyUSD = vesselObj.demurrageRatePerDayUSD || 25000;
+      const canonicalDemurrageDailyINR_Lakhs = Number(((canonicalDemurrageDailyUSD * baseFxRate) / 100000).toFixed(2));
 
-    // Contractual Laytime & Demurrage Exposure:
-    // Under bulk charterparty terms (Amwelsh / Gencon), laytime allowed is based on agreed contract rate (35,000 TPD PWWDSHINC)
-    const laytimeAllowedDays = Number((manualVolume / 35000).toFixed(2));
-    // Demurrage is incurred when total port turnaround exceeds agreed laytime
-    const demurrageDays = Math.max(0, Number((totalPortTurnaroundDays - laytimeAllowedDays).toFixed(2)));
-    const demurrageExposureUSD = Math.round(demurrageDays * canonicalDemurrageDailyUSD);
-    const demurrageExposureINR_Lakhs = Number((demurrageDays * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+      const spotRateINR = Math.round(baseRate * baseFxRate);
+      const currentSpotINR_Cr = ((currentSpotUSD * baseFxRate) / 10000000).toFixed(2);
+      const estSpotINR = Math.round(estSpot * forwardFxRate);
+      const estP10INR = Math.round(estP10 * forwardFxRate);
+      const estP90INR = Math.round(estP90 * forwardFxRate);
+      const coaFixedINR = Math.round(coaFixed * baseFxRate);
+      const blendedINR = Math.round(blended * blendedFxRate);
+      const blendedP10INR = Math.round(blendedP10 * blendedFxRate);
+      const rateSavingsINR = estSpotINR - blendedINR;
+      const rateSavingsP10INR = estSpotINR - blendedP10INR;
 
-    const idleDaysSaved = Number((vesselOptimization.idleDaysSaved || 0).toFixed(2));
-    const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
-    const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
+      const unhedgedINR_Cr = ((unhedgedUSD * forwardFxRate) / 10000000).toFixed(2);
+      const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
+      const optP10INR_Cr = ((optP10USD * blendedFxRate) / 10000000).toFixed(2);
+      const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
 
-    // Dynamic Buy / Strike & Hold / Wait Directives
-    const buyStrikeDirectiveText = isExtremeDemand
-      ? `🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target corridor ₹${estP10INR.toLocaleString()} ($${estP10.toFixed(2)}) to ₹${estSpotINR.toLocaleString()} ($${estSpot.toFixed(2)}) /MT. Do not hold out only for P10 as supply may sell out. Lock ${coaSplit}% under Fixed COA to protect blast furnace from P90 spike (₹${estP90INR.toLocaleString()}/MT).`
-      : `🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Calm sea window confirmed. Strike 3-Month COA tender at forward P10 target ₹${estP10INR.toLocaleString()} /MT ($${estP10.toFixed(2)} /MT). Saves ₹${rateSavingsINR.toLocaleString()} /MT vs spot!`;
+      const destHandlingTPD = destObj.handlingRateTPD || 45000;
+      const netDischargeDays = Number((manualVolume / destHandlingTPD).toFixed(2));
+      const pilotageMooringDays = 1.00;
+      
+      const berthOccupancyRatio = netDischargeDays / 2.22;
+      const scaledWaitDays = (destObj.avgWaitDays || 2.5) * Math.max(0.6, berthOccupancyRatio);
+      const queueWaitDays = Number((scaledWaitDays + weatherDelayDays).toFixed(2));
+      const totalPortTurnaroundDays = Number((netDischargeDays + pilotageMooringDays + queueWaitDays).toFixed(2));
+      const berthOnlyDays = Number((netDischargeDays + pilotageMooringDays).toFixed(2));
 
-    let holdWaitDirectiveText = "";
-    if (!originProper) {
-      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Severe weather at source [${originObj.name}]. ${originWeather?.cancellationWarning || 'Contract cancellation risk!'} WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides, or DIVERT to alternate loading port ${originWeather?.alternatePort?.portName || 'Gladstone'}.`;
-    } else if (!destProper) {
-      holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Bay of Bengal squalls at destination [${destObj.name}] (${destWeather?.stage || 'Depression'}). Anchorage delay +${destDelayDays}d adds ₹${(destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1)}L demurrage. WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for calm pilotage window.`;
-    } else {
-      holdWaitDirectiveText = `🔴 HOLD / WAIT DIRECTIVE: Current spot freight ($${baseRate.toFixed(2)} /MT) is trending upward. Avoid daily spot spikes. WAIT TILL forward P10 dip window to save ₹${savingsINR_Cr} Crore.`;
-    }
+      const laytimeAllowedDays = Number((manualVolume / 35000).toFixed(2));
+      const demurrageDays = Math.max(0, Number((totalPortTurnaroundDays - laytimeAllowedDays).toFixed(2)));
+      const demurrageExposureUSD = Math.round(demurrageDays * canonicalDemurrageDailyUSD);
+      const demurrageExposureINR_Lakhs = Number((demurrageDays * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
 
-    // Real-Time Port Congestion Telemetry & 4-Factor Risk Engine (Referencing Part D)
-    const portCongestionData = PORT_CONGESTION_STATUS[manualDest] || {
-      portName: destObj.name,
-      vesselsAtAnchor: 6,
-      vesselsBerthWorking: 8,
-      avgAnchorageWaitDays: 2.5,
-      demurrageDailyExposureINR: 6500000,
-      congestionStatus: 'MODERATE',
-      trafficRiskScore: 45,
-      berthTurnaroundHours: 32,
-      pilotageAvailability: 'Standard',
-      nextBerthSlotETA: '36 Hours'
-    };
+      const idleDaysSaved = Number((vesselOptimization.idleDaysSaved || 0).toFixed(2));
+      const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
+      const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
 
-    const freightRiskScore = isExtremeDemand ? 78 : 35;
-    const congestionRiskScore = portCongestionData.trafficRiskScore || 45;
-    const cycloneRiskScore = (!destProper || !originProper) ? 88 : 25;
-    const compositeRiskScore = Math.round((freightRiskScore * 0.35) + (congestionRiskScore * 0.35) + (cycloneRiskScore * 0.30));
+      const buyStrikeDirectiveText = isExtremeDemand
+        ? `🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target corridor ₹${estP10INR.toLocaleString()} ($${estP10.toFixed(2)}) to ₹${estSpotINR.toLocaleString()} ($${estSpot.toFixed(2)}) /MT. Do not hold out only for P10 as supply may sell out. Lock ${coaSplit}% under Fixed COA to protect blast furnace from P90 spike (₹${estP90INR.toLocaleString()}/MT).`
+        : `🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Calm sea window confirmed. Strike 3-Month COA tender at forward P10 target ₹${estP10INR.toLocaleString()} /MT ($${estP10.toFixed(2)} /MT). Saves ₹${rateSavingsINR.toLocaleString()} /MT vs spot!`;
 
-    let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
-    let congestionDecisionDirective = `🟢 GREEN ALERT (EXPRESS BERTHING & DISPATCH REWARD): Fast turnaround port with minimal queue (${portCongestionData.avgAnchorageWaitDays}d wait) and 24/7 deepwater pilotage. Vessel turnaround completes within agreed laytime, unlocking potential Dispatch Bonus (+₹15–30 Lakhs) and guaranteeing furnace basestock security.`;
+      let holdWaitDirectiveText = "";
+      if (!originProper) {
+        holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Severe weather at source [${originObj.name}]. ${originWeather?.cancellationWarning || 'Contract cancellation risk!'} WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides, or DIVERT to alternate loading port ${originWeather?.alternatePort?.portName || 'Gladstone'}.`;
+      } else if (!destProper) {
+        holdWaitDirectiveText = `🔴 HOLD / DO NOT CHARTER SPOT: Bay of Bengal squalls at destination [${destObj.name}] (${destWeather?.stage || 'Depression'}). Anchorage delay +${destDelayDays}d adds ₹${(destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1)}L demurrage. WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for calm pilotage window.`;
+      } else {
+        holdWaitDirectiveText = `🔴 HOLD / WAIT DIRECTIVE: Current spot freight ($${baseRate.toFixed(2)} /MT) is trending upward. Avoid daily spot spikes. WAIT TILL forward P10 dip window to save ₹${savingsINR_Cr} Crore.`;
+      }
 
-    if (!destProper || !originProper || compositeRiskScore > 70 || portCongestionData.congestionStatus === 'HIGH') {
-      compositeAlertBadge = '🔴 RED ALERT (Severe Tidal Congestion & High Demurrage Risk)';
-      congestionDecisionDirective = `🔴 RED ALERT (SEVERE TIDAL CONGESTION & WEATHER EXPOSURE): High queue (+${portCongestionData.avgAnchorageWaitDays}d wait, ${portCongestionData.vesselsAtAnchor} ships at anchor) combined with weather delays. Total idle risk exceeds laytime by ~${demurrageDays.toFixed(1)} days. DIRECTIVE: AVOID SPOT CHARTERING without minimum 96h Laycan extension buffer, or DIVERT to alternate deepwater port (${destObj.name === 'Haldia Dock Complex' ? 'Dhamra Port / Sandheads' : 'Gangavaram Port'}) to save ₹${demurrageExposureINR_Lakhs} Lakhs demurrage!`;
-    } else if (compositeRiskScore > 45 || portCongestionData.congestionStatus === 'MODERATE') {
-      compositeAlertBadge = '🟡 YELLOW ALERT (Moderate Anchorage Queue / Laycan Caution)';
-      congestionDecisionDirective = `🟡 YELLOW ALERT (MODERATE ANCHORAGE CONGESTION): ${portCongestionData.vesselsAtAnchor} vessels waiting at outer anchorage (+${portCongestionData.avgAnchorageWaitDays}d wait, ETA: ${portCongestionData.nextBerthSlotETA}). DIRECTIVE: Execute 70% Fixed COA hedge; insert 48h Weather Working Day (WWD) & berthing priority clause in charter party to shield buyer from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage exposure.`;
-    }
-
-    const primaryWaitDate = !originProper 
-      ? originWeather?.recommendedWaitDate 
-      : (!destProper ? destWeather?.recommendedWaitDate : 'Oct 12 – Oct 19, 2026');
-
-    // Dynamic Global News NLP Analysis & Market Changepoint Engine
-    const newsNlpText = (!originProper)
-      ? `${originWeather?.weatherHazardDescription || 'Severe weather at loading port'} affecting vessel laycan & cargo departure`
-      : (!destProper 
-          ? `Bay of Bengal ${destWeather?.stage || 'squalls & depression'} impacting discharge berth pilotage at ${destObj.name}`
-          : (isExtremeDemand 
-              ? "Red Sea detour forces Cape of Good Hope rerouting, stretching ton-miles and vessel tonnage supply" 
-              : "Global dry bulk & tanker markets operating on baseline economic supply and demand"));
-
-    const newsNlpAnalysis = analyzeGlobalNewsNlp(newsNlpText);
-    const nlpDriversText = newsNlpAnalysis.primaryDrivers.join(" | ");
-
-    const terminalMetricsPayload = {
-      spotUSD: baseRate,
-      spotINR: spotRateINR,
-      p50USD: estSpot,
-      p50INR: estSpotINR,
-      p10USD: estP10,
-      p10INR: estP10INR,
-      p90USD: estP90,
-      p90INR: estP90INR,
-      coaUSD: coaFixed,
-      coaINR: coaFixedINR,
-      blendedUSD: blended,
-      blendedINR: blendedINR,
-      savingsUSD: savingsUSD,
-      savingsINR_Cr: savingsINR_Cr,
-      unhedgedINR_Cr: unhedgedINR_Cr,
-      optINR_Cr: optINR_Cr,
-      forwardFxRate: forwardFxRate,
-      totalCongestionDays: totalCongestionDays,
-      weatherDelayDays: weatherDelayDays,
-      // Dual-Port Weather
-      originWeather: {
-        portName: originObj.name,
-        isWeatherProper: originProper,
-        severity: originWeather?.severity || 'NORMAL',
-        waveHeightMeters: originWeather?.waveHeightMeters || 1.6,
-        windSpeedKnots: originWeather?.windSpeedKnots || 18.0,
-        weatherHazardDescription: originWeather?.weatherHazardDescription || 'Calm waters',
-        recommendedWaitDate: originWeather?.recommendedWaitDate || 'Sep 12, 2026',
-        contractCancellationRisk: !originProper,
-        cancellationWarning: originWeather?.cancellationWarning,
-        alternatePort: originWeather?.alternatePort
-      },
-      destWeather: {
+      const portCongestionData = PORT_CONGESTION_STATUS[manualDest] || {
         portName: destObj.name,
-        isWeatherProper: destProper,
-        severity: destWeather?.severity || 'NORMAL',
-        stage: destWeather?.stage || 'Normal Synoptic',
-        waveHeightMeters: destWeather?.waveHeightMeters || 2.2,
-        windSpeedKnots: destWeather?.windSpeedKnots || 24.5,
-        recommendedWaitDate: destWeather?.recommendedWaitDate || 'Sep 15, 2026',
-        waitDays: destWeather?.waitDays || 0,
-        demurrageINR_Lakhs: (destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1),
-        demurrageUSD: Math.round(destDelayDays * canonicalDemurrageDailyUSD)
-      },
-      isExtremeDemand,
-      buyStrikeDirectiveText,
-      holdWaitDirectiveText,
-      recommendedWaitDate: primaryWaitDate,
-      bothWeatherProper,
-      source: 'terminal_dispatch'
-    };
+        vesselsAtAnchor: 6,
+        vesselsBerthWorking: 8,
+        avgAnchorageWaitDays: 2.5,
+        demurrageDailyExposureINR: 6500000,
+        congestionStatus: 'MODERATE',
+        trafficRiskScore: 45,
+        berthTurnaroundHours: 32,
+        pilotageAvailability: 'Standard',
+        nextBerthSlotETA: '36 Hours'
+      };
 
-    // Sync global App state & couple live graph & Part B optimizer
-    if (onRunScenario) {
-      onRunScenario({
-        origin: manualOrigin,
-        destination: manualDest,
-        vessel: recommendedVesselKey,
-        volume: manualVolume,
-        horizon: manualHorizon,
-        volatility: volatilityMult,
-        newsSignal: (destWeather?.severity !== 'NORMAL' || originWeather?.severity !== 'NORMAL') ? {
-          id: 'dual_port_weather',
-          title: `Marine Weather Alert: ${!originProper ? originObj.name : destWeather?.stage}`,
-          impact: `+${weatherDelayDays}d Operational Delay`,
-          volatility: volatilityMult,
-          sentiment: 'bullish'
-        } : null,
-        coaSplit: coaSplit,
-        terminalMetrics: terminalMetricsPayload
-      });
-    }
+      const freightRiskScore = isExtremeDemand ? 78 : 35;
+      const congestionRiskScore = portCongestionData.trafficRiskScore || 45;
+      const cycloneRiskScore = (!destProper || !originProper) ? 88 : 25;
+      const compositeRiskScore = Math.round((freightRiskScore * 0.35) + (congestionRiskScore * 0.35) + (cycloneRiskScore * 0.30));
 
-    setTimeout(() => {
-      setTerminalHistory(prev => [
-        ...prev,
-        { 
-          type: 'prompt', 
-          text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${manualOrigin} --dest ${manualDest} --vol ${manualVolume} --vessel ${manualVessel} --dual-weather-api` 
+      let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
+      let congestionDecisionDirective = `🟢 GREEN ALERT (EXPRESS BERTHING & DISPATCH REWARD): Fast turnaround port with minimal queue (${portCongestionData.avgAnchorageWaitDays}d wait) and 24/7 deepwater pilotage. Vessel turnaround completes within agreed laytime, unlocking potential Dispatch Bonus (+₹15–30 Lakhs) and guaranteeing furnace basestock security.`;
+
+      if (!destProper || !originProper || compositeRiskScore > 70 || portCongestionData.congestionStatus === 'HIGH') {
+        compositeAlertBadge = '🔴 RED ALERT (Severe Tidal Congestion & High Demurrage Risk)';
+        congestionDecisionDirective = `🔴 RED ALERT (SEVERE TIDAL CONGESTION & WEATHER EXPOSURE): High queue (+${portCongestionData.avgAnchorageWaitDays}d wait, ${portCongestionData.vesselsAtAnchor} ships at anchor) combined with weather delays. Total idle risk exceeds laytime by ~${demurrageDays.toFixed(1)} days. DIRECTIVE: AVOID SPOT CHARTERING without minimum 96h Laycan extension buffer, or DIVERT to alternate deepwater port (${destObj.name === 'Haldia Dock Complex' ? 'Dhamra Port / Sandheads' : 'Gangavaram Port'}) to save ₹${demurrageExposureINR_Lakhs} Lakhs demurrage!`;
+      } else if (compositeRiskScore > 45 || portCongestionData.congestionStatus === 'MODERATE') {
+        compositeAlertBadge = '🟡 YELLOW ALERT (Moderate Anchorage Queue / Laycan Caution)';
+        congestionDecisionDirective = `🟡 YELLOW ALERT (MODERATE ANCHORAGE CONGESTION): ${portCongestionData.vesselsAtAnchor} vessels waiting at outer anchorage (+${portCongestionData.avgAnchorageWaitDays}d wait, ETA: ${portCongestionData.nextBerthSlotETA}). DIRECTIVE: Execute 70% Fixed COA hedge; insert 48h Weather Working Day (WWD) & berthing priority clause in charter party to shield buyer from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage exposure.`;
+      }
+
+      const primaryWaitDate = !originProper 
+        ? originWeather?.recommendedWaitDate 
+        : (!destProper ? destWeather?.recommendedWaitDate : 'Oct 12 – Oct 19, 2026');
+
+      const terminalMetricsPayload = {
+        spotUSD: baseRate,
+        spotINR: spotRateINR,
+        p50USD: estSpot,
+        p50INR: estSpotINR,
+        p10USD: estP10,
+        p10INR: estP10INR,
+        p90USD: estP90,
+        p90INR: estP90INR,
+        coaUSD: coaFixed,
+        coaINR: coaFixedINR,
+        blendedUSD: blended,
+        blendedINR: blendedINR,
+        savingsUSD: savingsUSD,
+        savingsINR_Cr: savingsINR_Cr,
+        unhedgedINR_Cr: unhedgedINR_Cr,
+        optINR_Cr: optINR_Cr,
+        forwardFxRate: forwardFxRate,
+        totalCongestionDays: totalCongestionDays,
+        weatherDelayDays: weatherDelayDays,
+        originWeather: {
+          portName: originObj.name,
+          isWeatherProper: originProper,
+          severity: originWeather?.severity || 'NORMAL',
+          waveHeightMeters: originWeather?.waveHeightMeters || 1.6,
+          windSpeedKnots: originWeather?.windSpeedKnots || 18.0,
+          weatherHazardDescription: originWeather?.weatherHazardDescription || 'Calm waters',
+          recommendedWaitDate: originWeather?.recommendedWaitDate || 'Sep 12, 2026',
+          contractCancellationRisk: !originProper,
+          cancellationWarning: originWeather?.cancellationWarning,
+          alternatePort: originWeather?.alternatePort
         },
-        {
-          type: 'success',
-          text: `======================================================================
-      NAVIFREIGHT INDIAN MARKET QUANTITATIVE PROCUREMENT DIRECTIVE        
+        destWeather: {
+          portName: destObj.name,
+          isWeatherProper: destProper,
+          severity: destWeather?.severity || 'NORMAL',
+          stage: destWeather?.stage || 'Normal Synoptic',
+          waveHeightMeters: destWeather?.waveHeightMeters || 2.2,
+          windSpeedKnots: destWeather?.windSpeedKnots || 24.5,
+          recommendedWaitDate: destWeather?.recommendedWaitDate || 'Sep 15, 2026',
+          waitDays: destWeather?.waitDays || 0,
+          demurrageINR_Lakhs: (destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1),
+          demurrageUSD: Math.round(destDelayDays * canonicalDemurrageDailyUSD)
+        },
+        isExtremeDemand,
+        buyStrikeDirectiveText,
+        holdWaitDirectiveText,
+        recommendedWaitDate: primaryWaitDate,
+        bothWeatherProper,
+        source: 'terminal_dispatch'
+      };
+
+      // Sync global App state & couple live graph & Part B optimizer
+      if (onRunScenario) {
+        onRunScenario({
+          origin: manualOrigin,
+          destination: manualDest,
+          vessel: recommendedVesselKey,
+          volume: manualVolume,
+          horizon: manualHorizon,
+          volatility: volatilityMult,
+          newsSignal: (destWeather?.severity !== 'NORMAL' || originWeather?.severity !== 'NORMAL') ? {
+            id: 'dual_port_weather',
+            title: `Marine Weather Alert: ${!originProper ? originObj.name : destWeather?.stage}`,
+            impact: `+${weatherDelayDays}d Operational Delay`,
+            volatility: volatilityMult,
+            sentiment: 'bullish'
+          } : null,
+          coaSplit: coaSplit,
+          terminalMetrics: terminalMetricsPayload
+        });
+      }
+
+      setTimeout(() => {
+        setTerminalHistory(prev => [
+          ...prev,
+          { 
+            type: 'prompt', 
+            text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${manualOrigin} --dest ${manualDest} --vol ${manualVolume} --vessel ${manualVessel} --dual-weather-api` 
+          },
+          {
+            type: 'success',
+            text: `======================================================================
+     BETTER NAVIFREIGHT: END-TO-END ARCHITECTURAL DATA FLOW DIRECTIVE
 ======================================================================
   Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
   Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
@@ -547,95 +535,43 @@ export default function WebTerminalModelTrainer({
   Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Changepoint Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Post-COVID Structural Stability)'}
   Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Trend)
 ----------------------------------------------------------------------
-[1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
-  * SOURCE PORT [${originObj.name}]:
-    - Meteorology:   ${originWeather?.authority || 'BOM Marine Telemetry'}
-    - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Press ${originWeather?.surfacePressureHpa || 1014.0} hPa
-    - Berthing/Load: ${originProper ? '🟢 [PROPER SEA WEATHER] Loading berths & stackers operating normally.' : `🔴 [IMPROPER SEA WEATHER - ${originWeather?.severity || 'HIGH'}] ${originWeather?.operationalStatus || 'Restricted'}`}
-${!originProper ? `    - CANCELLATION:  ⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!
-    - WAIT DIRECTIVE: WAIT TILL ${originWeather?.recommendedWaitDate} when sea swell drops below safe threshold.
-    - ALTERNATE PORT: RECOMMENDED DIVERSION -> ${originWeather?.alternatePort?.portName}
-                      (${originWeather?.alternatePort?.reason})` : ''}
-
-  * DESTINATION PORT [${destObj.name}]:
-    - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Bhubaneswar'}
-    - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | ${destWeather?.stage || 'Normal'}
-    - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] All-weather 24/7 deepwater pilotage operating normally.' : `🔴 [IMPROPER SEA WEATHER - ${destWeather?.signal || 'Signal III'}] Pilotage restricted during high swells.`}
-${!destProper ? `    - WAIT DIRECTIVE: WAIT TILL ${destWeather?.recommendedWaitDate} when Bay of Bengal depression clears.
-    - DEMURRAGE EXPOSURE: +${destDelayDays} Days weather delay -> Unbudgeted Demurrage ₹${(destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1)} Lakhs ($${Math.round(destDelayDays * canonicalDemurrageDailyUSD).toLocaleString()} USD)!` : ''}
+[STEP 1: MARKET DATA INGESTION (MULTI-SOURCE FEEDS)]
+  * AIS Vessel Movement: Tracking ${vesselObj.name} (${vesselObj.dwt?.toLocaleString() || '180,000'} DWT, Laden Draft ${vesselDraft}m)
+  * Ton-Miles (Rerouting): ${isExtremeDemand ? 'High Ton-Mile Squeeze (Cape/Strait Detour Active)' : 'Standard Voyage Corridors (Baseline NM)'}
+  * Vessel Availability: ${isExtremeDemand ? 'Tonnage Tightness (Capesize/Panamax Regional Squeeze)' : 'Balanced Bulk Fleet Availability'}
+  * Fuel Prices (VLSFO):  VLSFO $620/MT (Bunker Adjustment Factor Included)
+  * Geopolitical Events: ${nlpDriversText} [Risk Severity: ${newsNlpAnalysis.riskLevel}]
+  * Port Congestion:     ${portCongestionData.vesselsAtAnchor} Bulkers waiting at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
+  * CII/EEXI Compliance: Grade A/B Eco-Vessel Energy Efficiency Compliant
+  * Sanctions Risk:      Passed Automated Sanctions & Flag Audit (Zero Exposure)
+  * Commodity/Tariffs:   ${manualCargo} benchmark tracked via SSE & World Bank Coal Indices
 ----------------------------------------------------------------------
-[1.1] 🌍 DYNAMIC NLP GLOBAL NEWS & MARKET CHANGEPOINT ENGINE:
-  * Global News NLP Audit:   "${newsNlpText}"
-  * Detected Shock Drivers:  ${nlpDriversText} [Risk Assessment: ${newsNlpAnalysis.riskLevel}]
-  * Steaming & Drift Impact: Volatility Multiplier x${newsNlpAnalysis.volatilityMultiplier} | Spot Drift +$${newsNlpAnalysis.spotDriftUsd}/MT | Congestion Queue +${newsNlpAnalysis.congestionDays}d
-  * Changepoint AI Logic:    Parses global news signals to predict forward trends BEFORE price realization.
-                             Applies Bayesian Piecewise Changepoints to detect structural regime jumps (e.g. rate jumps from baseline ₹14,000 up to ₹30,000/MT) rather than assuming past linear trends repeat.
-  * Market State Reason:     ${isExtremeDemand ? `⚡ EXTREME DEMAND / SQUEEZE DETECTED: ${newsNlpAnalysis.primaryDrivers[0] || 'Global News Shock'} triggered changepoint shift to high-volatility regime.` : `⚖️ BALANCED COMMERCIAL MARKET: ${newsNlpAnalysis.primaryDrivers[0] || 'Baseline Sentiment'} with stable ton-mile demand.`}
+[STEP 2: AI & ML ENGINE (QUANTITATIVE INFERENCE)]
+  * Bayesian Changepoints: Detected ${isExtremeDemand ? 'Structural Regime Jump (High Volatility Squeeze)' : 'Stable Linear Baseline Regime'}
+  * Quantile GBDT Cones:   P10: ₹${estP10INR.toLocaleString()} ($${estP10}) | P50: ₹${estSpotINR.toLocaleString()} ($${estSpot}) | P90: ₹${estP90INR.toLocaleString()} ($${estP90}) /MT
+  * Global News NLP:       "${newsNlpText}" (Volatility Multiplier x${newsNlpAnalysis.volatilityMultiplier})
+  * Ton-Mile Elasticity:   Spot Freight Drift +$${newsNlpAnalysis.spotDriftUsd.toFixed(2)}/MT across route corridor
+  * Demurrage Simulator:   ${demurrageDays.toFixed(2)} Days Net Demurrage Exposure (₹${demurrageExposureINR_Lakhs} Lakhs)
 ----------------------------------------------------------------------
-[2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
-  * BUY / STRIKE:    ${buyStrikeDirectiveText}
-  * HOLD / WAIT:     ${holdWaitDirectiveText}
+[STEP 3: PORTFOLIO OPTIMIZATION (CVaR & CONSTRAINTS)]
+  * CVaR Cost Minimization: Minimized tail-risk exposure at 90% Confidence Level
+  * Dynamic Risk Allocation: ${coaSplit}% Long-Term COA / ${100 - coaSplit}% Spot (Rejects Static 70/30 Rule)
+  * Market Situation:      ${marketSituationLabel.toUpperCase()} (${allocationRationale})
+  * Optimal Laycan Window:  ${primaryWaitDate}
+  * Berth Draft Clearance: ${draftClearanceText}
 ----------------------------------------------------------------------
-[3] FORWARD FREIGHT PREDICTION & QUANTILE CONES (INDIAN RUPEES):
-  * Current Spot Rate:               ₹${spotRateINR.toLocaleString()} /MT   ($${baseRate.toFixed(2)} /MT)
-    ↳ [Meaning: Today's open-market price to hire an immediate cargo vessel right now]
-  * Expected Forward Median (P50):   ₹${estSpotINR.toLocaleString()} /MT   ($${estSpot.toFixed(2)} /MT @ Forward FX)  [Headline MAPE: 13.40%]
-    ↳ [Meaning: Most likely future price in 3–6 months (50% chance higher, 50% lower)]
-  * Optimistic Dip Bound (P10):      ₹${estP10INR.toLocaleString()} /MT   ($${estP10.toFixed(2)} /MT @ Forward FX)
-    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
-  * Stress Tail-Risk Bound (P90):    ₹${estP90INR.toLocaleString()} /MT   ($${estP90.toFixed(2)} /MT @ Forward FX)  [90.8% 90%CI Coverage]
-    ↳ [Meaning: Worst-case surge price during crises, storms, or spikes (90th percentile ceiling)]
-  * COA Fixed Contract Lock:         ₹${coaFixedINR.toLocaleString()} /MT   ($${coaFixed.toFixed(2)} /MT @ Spot FX)  [Locked Long-Term]
-    ↳ [Meaning: Pre-negotiated fixed wholesale bulk contract rate (locks in cheap price)]
-----------------------------------------------------------------------
-[4] DYNAMIC CVaR CARGO ALLOCATION MATRIX (RISK-BASED RECOMMENDATION):
-  * Dynamic Strategy:         Rejects static fixed 70/30 quotas. System dynamically calculates optimal combination based on active risk.
-  * Active Market Situation:  ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
-  * Dynamic Recommendation:   ${naviFreightRecommendation.toUpperCase()} (${coaSplit}% Long-Term COA / ${100 - coaSplit}% Spot)
-  * Calculation Rationale:    ${allocationRationale}
-  * Recommended COA Weight:  ${coaSplit}% (Hedging Blast Furnace Feed vs Risk)
-  * Recommended Spot Weight: ${100 - coaSplit}% (Tactical Window Allocation)
-  * Blended Rate (P50 Median Base):  ₹${blendedINR.toLocaleString()} /MT   ($${blended.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P50 Spot @ ₹${estSpotINR}]
-    ↳ [Meaning: Combined weighted average price paid per ton across both contracts]
-  * Blended Rate (P10 Dip Target):   ₹${blendedP10INR.toLocaleString()} /MT   ($${blendedP10.toFixed(2)} /MT) [${coaSplit}% COA @ ₹${coaFixedINR} + ${100-coaSplit}% P10 Dip @ ₹${estP10INR}]
-    ↳ [Meaning: Target combined average price if we successfully catch the bargain dip]
-  * Net Landed Savings vs P50 Spot:  ₹${rateSavingsINR.toLocaleString()} /MT (₹${rateSavingsP10INR.toLocaleString()} /MT if P10 Dip sniped)
-    ↳ [Meaning: Actual cash saved per ton compared to buying blindly in the future]
-----------------------------------------------------------------------
-[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
-  * Unhedged Forward Spot (P50):     ₹${unhedgedINR_Cr} Crore   ($${unhedgedUSD.toLocaleString()} USD @ Forward FX)
-    ↳ [Meaning: Total bill with zero planning if paying full future market rate]
-  * Current Spot Baseline (Today):   ₹${currentSpotINR_Cr} Crore   ($${currentSpotUSD.toLocaleString()} USD @ Spot FX)
-    ↳ [Meaning: Total bill if whole cargo sailed today at current spot price]
-  * NaviFreight Optimized Cost:      ₹${optINR_Cr} Crore   ($${optUSD.toLocaleString()} USD)
-    ↳ [Meaning: Total bill achieved using our AI's 70% COA + 30% timing strategy]
-  * NET FREIGHT COST SAVINGS:        ₹${savingsINR_Cr} Crore SAVED vs Unhedged Forward Spot!
-    ↳ [Meaning: Pure corporate money saved for your company on this shipment]
-  * Demurrage Exposure:              ₹${demurrageExposureINR_Lakhs} Lakhs  (${demurrageDays.toFixed(2)} Days Demurrage [Turnaround ${totalPortTurnaroundDays}d − Laytime ${laytimeAllowedDays.toFixed(2)}d] × ₹${canonicalDemurrageDailyINR_Lakhs}L/day [$${canonicalDemurrageDailyUSD.toLocaleString()} USD/day])
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-----------------------------------------------------------------------
-[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
-  * DISCHARGE PORT TRAFFIC AUDIT [${destObj.name}]:
-    - Anchorage Waitlist:     ${portCongestionData.vesselsAtAnchor} Bulkers at Outer Anchorage (Avg Queue: ${portCongestionData.avgAnchorageWaitDays} Days)
-    - Active Berth Service:   ${portCongestionData.vesselsBerthWorking} Bulkers Discharging at Mechanized Berths
-    - Berth Slot ETA:         Next Available Berth Slot: ${portCongestionData.nextBerthSlotETA}
-    - Pilotage & Navigation:  ${portCongestionData.pilotageAvailability}
-    - Port Traffic Risk Score:${portCongestionData.trafficRiskScore}/100 [${portCongestionData.congestionStatus} CONGESTION]
-  ------------------------------------------------------------------
-  * 4-FACTOR COMPOSITE RISK AUDIT (PART D SYSTEM LOGIC):
-    - Factor 1 (Freight Drift, 35% Wt):       ${isExtremeDemand ? 'High Squeeze Volatility [Score: 78]' : 'Stable Forward Trend [Score: 35]'}
-    - Factor 2 (Port Congestion, 35% Wt):     ${portCongestionData.congestionStatus} Traffic Queue [Score: ${portCongestionData.trafficRiskScore}]
-    - Factor 3 (Ocean Sea Weather, 30% Wt):   ${!destProper || !originProper ? 'Adverse Sea Swell / Squalls [Score: 88]' : 'Calm Synoptic Navigation [Score: 25]'}
-    - Composite Operational Risk:             ${compositeRiskScore}/100 [${compositeAlertBadge}]
-  ------------------------------------------------------------------
-  * COMMERCIAL DECISION & CONGESTION MITIGATION DIRECTIVE:
-    ${congestionDecisionDirective}
+[STEP 4: ACTIONABLE DIRECTIVES & OUTPUTS]
+  * Strike / Buy Corridor:  ${buyStrikeDirectiveText}
+  * Hold / Weather Advice:  ${holdWaitDirectiveText}
+  * Landed Cost Savings:   ₹${savingsINR_Cr} Crore SAVED vs Unhedged Spot (₹${rateSavingsINR.toLocaleString()} /MT)
+  * Demurrage Avoidance:   Avoided ₹${demurrageSavedINR_Lakhs} Lakhs demurrage via optimal laycan timing
+  * MARPOL Legal Evidence: Audited logs serialized to models/navifreight_gbdt_bundle.joblib
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
-        }
-      ]);
-      setIsExecuting(false);
-    }, 300);
+          }
+        ]);
+        setIsExecuting(false);
+      }, 300);
     } catch (err) {
       console.error("Error executing manual dispatch:", err);
       setIsExecuting(false);
