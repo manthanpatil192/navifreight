@@ -91,25 +91,88 @@ export default function WebTerminalModelTrainer({
     { type: 'prompt', text: 'PS C:\\navifreight\\ml> python scripts/query_interactive_model.py test1' },
     { 
       type: 'output', 
-      text: `[1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
+      text: `======================================================================
+      NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE & MARKET ANALYSIS     
+======================================================================
+  Route:             Hay Point / DBCT (Australia) -> Paradip Port (PPT)
+  Vessel & Cargo:    Capesize | 150,000 MT Coking Coal (3-Month Horizon)
+  Freight Rates:     Spot: $15.80/MT (₹1,367/MT) | P50: $17.32/MT (₹1,498/MT) | P10: $14.85/MT (₹1,285/MT)
+  Sea Feasibility:   🟢 PROPER SEA WEATHER AT BOTH PORTS
+  Market State:      ⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)
+  Fuel Prices VLSFO: $620/MT VLSFO Baseline
+                     ↳ [Fuel Impact: Determines daily fuel burn (~45 MT/day Capesize = $27.9k/day) & Bunker Adjustment Factor (BAF) floor.]
+  Tariff & Trade:    Active: Yes (5% Coking Coal Duty & Import Quotas Audited)
+  Forex Trend:       1 USD = ₹86.50 Spot -> ₹87.04 Forward (3-Month RBI Trend)
+----------------------------------------------------------------------
+[1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
+  * SOURCE PORT [Hay Point / DBCT, Australia]:
+    - Meteorology:   BOM Bureau of Meteorology Telemetry
+    - Sea Condition: Wave 1.4m | Wind 16.0 kts | Pressure 1014.2 hPa
+    - Loading Status:🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.
+    - CANCELLATION:  No contract cancellation risk detected.
+    - WAIT DIRECTIVE:Immediate loading clearance granted.
+
+  * DESTINATION PORT [Paradip Port (PPT), Odisha]:
+    - Meteorology:   IMD CWC Bhubaneswar Telemetry
+    - Sea Condition: Wave 1.8m | Wind 20.0 kts | Stage: Normal Synoptic
+    - Pilotage/Berth:🟢 [PROPER SEA WEATHER] Deepwater outer anchorage & berths operating seamlessly.
+
+----------------------------------------------------------------------
+[2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
+  * BUY / STRIKE:    🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,285 /MT ($14.85 /MT). Saves ₹149 /MT vs spot!
+  * HOLD / WAIT:     🔴 HOLD / WAIT DIRECTIVE: Avoid volatile spot booking during daily peaks. WAIT TILL Oct 12 – Oct 19, 2026 forward dip to save ₹2.24 Crore.
+  * Market Regime:   PRICES STABLE - Calm market & low volatility baseline
+
+----------------------------------------------------------------------
+[3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
   * Current Spot:     $15.80 /MT  (₹1,367 /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
   * Expected P50:     $17.32 /MT  (₹1,498 /MT)  [Headline MAPE: 15.49%]
+    ↳ [Meaning: Most likely future price in 3 months (50% chance higher, 50% lower)]
   * Optimistic P10:   $14.85 /MT  (₹1,285 /MT)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress P90:       $21.18 /MT  (₹1,832 /MT)  [89.9% 90%CI Coverage]
+    ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $14.85 /MT  (₹1,285 /MT)
-[2] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA:  70% (Guarantees Plant Basestock)
+    ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
+
+----------------------------------------------------------------------
+[4] DYNAMIC CVaR CARGO ALLOCATION MATRIX:
+  * Recommended COA:  70% (Guarantees Plant Basestock & Hedges Spike)
+    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
-  * Blended Rate:     $15.59 /MT  (₹1,349 /MT)  (Saves $1.73/MT vs Unhedged)
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
+    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
+  * Blended Rate:     $15.59 /MT  (₹1,349 /MT)  (Saves $1.73/MT vs Spot)
+    ↳ [Meaning: Combined average price paid per ton across both contract types]
+
+----------------------------------------------------------------------
+[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
   * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
+    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
   * NaviFreight Optimized:   $2,338,500  (₹20.23 Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
   * Net Direct Savings:      $258,768  (INR 2.24 Crore)
-  * Demurrage Exposure:      2.5 Days Wait ($62,500 / INR 0.54 Cr)
-[4] OPERATIONAL STATUS:
-  * Laycan Booking Window:   Sep 06 - Sep 13, 2026
-  * Vessel Draft Clearance:  [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 17.5m (Lighterage Required!)`
+    ↳ [Meaning: Pure corporate money saved for your company]
+  * Demurrage Exposure:      2.5 Days Wait ($62,500 / INR 54.0 Lakhs)
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
+
+----------------------------------------------------------------------
+[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
+  * Port Alert Badge: 🟢 GREEN ALERT (Low Operational Risk)
+  * Port Queue Data:  6 Ships at outer anchorage (2.5d avg queue)
+  * Traffic Risk:     Traffic Risk Score 45/100 | Composite Risk Score 35/100
+  * Congestion Advice:🟢 GREEN ALERT (EXPRESS BERTHING & DISPATCH REWARD): Fast turnaround port with minimal queue (2.5d wait) and 24/7 deepwater pilotage.
+
+----------------------------------------------------------------------
+[7] OPERATIONAL TIMING & VESSEL FIT:
+  * Primary COA Laycan (Immediate Demand): Sep 06 – Sep 13, 2026
+    ↳ [Immediate Execution: For urgent plant consumption demand requiring immediate September chartering.]
+  * Secondary Spot Sniping (Forward Dip): Oct 12 – Oct 19, 2026
+    ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
+  * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
+======================================================================
+[GRAPH UPDATED] Initial benchmark directive initialized successfully!`
     }
   ]);
   
@@ -531,36 +594,82 @@ export default function WebTerminalModelTrainer({
 ======================================================================
   Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
   Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
+  Freight Rates:     Spot: $${baseRate.toFixed(2)}/MT (₹${spotRateINR.toLocaleString()}/MT) | P50: $${estSpot.toFixed(2)}/MT (₹${estSpotINR.toLocaleString()}/MT) | P10: $${estP10.toFixed(2)}/MT (₹${estP10INR.toLocaleString()}/MT)
   Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
   Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)'}
-  Fuel Prices VLSFO: VLSFO $620/MT (Bunker Adjustment Factor BAF Factored in Freight)
-  Tariff & Trade:    ${manualCargo} Import/Export Tariffs & Sanctions Audited (Zero Exposure)
+  Fuel Prices VLSFO: $620/MT VLSFO Baseline
+                     ↳ [Fuel Impact: Determines daily fuel burn (~45 MT/day Capesize = $27.9k/day) & Bunker Adjustment Factor (BAF) floor.]
+  Tariff & Trade:    Active: Yes (${manualCargo} Import Duty 5.0% & Safeguard Quotas Audited)
   Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Trend)
 ----------------------------------------------------------------------
-[1] MARKET DATA INGESTION & MARKET STATE ANALYSIS:
-  * Market State & Risk: ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
-  * AIS Vessel Movement: Tracking ${vesselObj.name} (${vesselObj.dwt?.toLocaleString() || '180,000'} DWT, Draft ${vesselDraft}m)
-  * Fuel Prices (VLSFO): $620/MT VLSFO Baseline (Determines voyage fuel burn & freight floor)
-  * Tariff & Sanctions:  ${manualCargo} Trade Policy & Duty Rates Verified
-  * Geopolitical Events: ${nlpDriversText} [Risk Severity: ${newsNlpAnalysis.riskLevel}]
-  * Port Congestion:     ${portCongestionData.vesselsAtAnchor} Ships at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
+[1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
+  * SOURCE PORT [${originObj.name || manualOrigin}]:
+    - Meteorology:   ${originWeather?.source || 'Global Marine Weather Telemetry'}
+    - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Pressure 1012.0 hPa
+    - Loading Status:${originProper ? '🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.' : '🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.'}
+    - CANCELLATION:  ${originProper ? 'No contract cancellation risk detected.' : `⚠️ ${originWeather?.cancellationWarning || 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!'}`}
+    - WAIT DIRECTIVE:WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides.
+    ${originWeather?.alternatePort ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
+
+  * DESTINATION PORT [${destObj.name || manualDest}]:
+    - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Telemetry'}
+    - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | Stage: ${destWeather?.stage || 'Normal Synoptic'}
+    - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] Outer harbour & deepwater berths operating seamlessly.' : '🔴 [IMPROPER SEA WEATHER] Anchorage delay +' + destDelayDays + 'd adds demurrage exposure.'}
+
 ----------------------------------------------------------------------
-[2] AI & ML ENGINE (GLOBAL NEWS NLP & CHANGEPOINTS):
-  * Global News NLP:     "${newsNlpText}" (Volatility Multiplier x${newsNlpAnalysis.volatilityMultiplier})
-  * Bayesian Changepoints: Detected ${isExtremeDemand ? 'Structural Regime Jump (High Volatility Squeeze)' : 'Stable Linear Baseline Regime'}
-  * Quantile GBDT Cones: P10: ₹${estP10INR.toLocaleString()} ($${estP10}) | P50: ₹${estSpotINR.toLocaleString()} ($${estSpot}) | P90: ₹${estP90INR.toLocaleString()} ($${estP90}) /MT
-  * Ton-Mile Elasticity: Spot Freight Drift +$${newsNlpAnalysis.spotDriftUsd.toFixed(2)}/MT across corridor
+[2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
+  * BUY / STRIKE:    ${buyStrikeDirectiveText}
+  * HOLD / WAIT:     ${holdWaitDirectiveText}
+  * Market Regime:   ${marketSituationLabel.toUpperCase()} - ${marketSituationDesc}
+
 ----------------------------------------------------------------------
-[3] PORTFOLIO OPTIMIZATION (CVaR & LAYCAN TIMING):
-  * CVaR Allocation:     ${coaSplit}% Long-Term COA / ${100 - coaSplit}% Spot (Dynamic Portfolio Hedge)
-  * Optimal Laycan:      ${primaryWaitDate}
-  * Berth Draft Check:   ${draftClearanceText}
+[3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
+  * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
+  * Current Spot:     $${baseRate.toFixed(2)} /MT  (₹${spotRateINR.toLocaleString()} /MT)
+    ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
+  * Expected P50:     $${estSpot.toFixed(2)} /MT  (₹${estSpotINR.toLocaleString()} /MT)  [Headline MAPE: 15.49%]
+    ↳ [Meaning: Most likely future price in ${manualHorizon} months (50% chance higher, 50% lower)]
+  * Optimistic P10:   $${estP10.toFixed(2)} /MT  (₹${estP10INR.toLocaleString()} /MT)
+    ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
+  * Stress P90:       $${estP90.toFixed(2)} /MT  (₹${estP90INR.toLocaleString()} /MT)  [89.9% 90%CI Coverage]
+    ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
+  * COA Fixed Lock:   $${coaFixed.toFixed(2)} /MT  (₹${coaFixedINR.toLocaleString()} /MT)
+    ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
+
 ----------------------------------------------------------------------
-[4] ACTIONABLE PROCUREMENT DIRECTIVES:
-  * Strike / Buy Corridor: ${buyStrikeDirectiveText}
-  * Hold / Weather Advice: ${holdWaitDirectiveText}
-  * Freight Savings:     ₹${savingsINR_Cr} Crore SAVED vs Unhedged Spot (₹${rateSavingsINR.toLocaleString()} /MT)
-  * Demurrage Avoidance: Avoided ₹${demurrageSavedINR_Lakhs} Lakhs demurrage penalty via optimal laycan timing
+[4] DYNAMIC CVaR CARGO ALLOCATION MATRIX:
+  * Recommended COA:  ${coaSplit}% (Guarantees Plant Basestock & Hedges Spike)
+    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
+  * Recommended Spot: ${100 - coaSplit}% (Captures P10 Dip Windows)
+    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
+  * Blended Rate:     $${blended.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)  (Saves $${(estSpot - blended).toFixed(2)}/MT vs Spot)
+    ↳ [Meaning: Combined average price paid per ton across both contract types]
+
+----------------------------------------------------------------------
+[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
+  * Unhedged 100% Spot Cost: $${unhedgedUSD.toLocaleString()}  (₹${unhedgedINR_Cr} Crore)
+    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
+  * NaviFreight Optimized:   $${optUSD.toLocaleString()}  (₹${optINR_Cr} Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart ${coaSplit}-${100 - coaSplit} allocation]
+  * Net Direct Savings:      $${savingsUSD.toLocaleString()}  (INR ${savingsINR_Cr} Crore)
+    ↳ [Meaning: Pure corporate money saved for your company]
+  * Demurrage Exposure:      ${totalCongestionDays.toFixed(1)} Days Wait ($${demurrageExposureUSD.toLocaleString()} / INR ${demurrageExposureINR_Lakhs} Lakhs)
+    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
+
+----------------------------------------------------------------------
+[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
+  * Port Alert Badge: ${compositeAlertBadge}
+  * Port Queue Data:  ${portCongestionData.vesselsAtAnchor} Ships at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
+  * Traffic Risk:     Traffic Risk Score ${congestionRiskScore}/100 | Composite Risk Score ${compositeRiskScore}/100
+  * Congestion Advice:${congestionDecisionDirective}
+
+----------------------------------------------------------------------
+[7] OPERATIONAL TIMING & VESSEL FIT:
+  * Primary COA Laycan (Immediate Demand): Sep 06 – Sep 13, 2026
+    ↳ [Immediate Execution: For urgent plant consumption demand requiring immediate September chartering.]
+  * Secondary Spot Sniping (Forward Dip): ${primaryWaitDate}
+    ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
+  * Berth Draft Clearance:                 ${draftClearanceText}
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
           }
