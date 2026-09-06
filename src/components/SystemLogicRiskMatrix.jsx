@@ -1,6 +1,61 @@
 import React, { useState } from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle2, TrendingUp, Anchor, Wind, Database, Sparkles, Clock, ArrowRight, Layers, FileCheck } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, CheckCircle2, TrendingUp, Anchor, Wind, Database, Sparkles, Clock, ArrowRight, Layers, FileCheck, Compass } from 'lucide-react';
 import InsightBulb from './InsightBulb';
+
+const ROUTE_DETOUR_DATA = {
+  aus: {
+    id: 'aus',
+    name: 'Australia (AUS)',
+    flag: '🇦🇺',
+    vessel: 'M.V. Kamsarmax Enterprise',
+    standard: 'Hay Point ──► Torres Strait / Lombok ──► Paradip / Vizag (4,120 NM)',
+    rerouted: 'Hay Point ──► South Australia Outer Pass (Avoids Cyclone Jasper & Coral Sea Swells)',
+    eta: '+4.5 Days (Sep 14 ──► Sep 19)',
+    distance: '+1,200 NM (4,120 ──► 5,320 NM)',
+    fuel: '+140 MT VLSFO (+$86,800 USD)',
+    freight: '+$1.80 /MT (+₹156 /MT)',
+    risk: '78/100 (HIGH SWELL ALERT)'
+  },
+  indo: {
+    id: 'indo',
+    name: 'Indonesia (INDO)',
+    flag: '🇮🇩',
+    vessel: 'M.V. Java Bulk (Supramax)',
+    standard: 'Samarinda ──► Malacca Strait ──► Bay of Bengal ──► Paradip / Haldia (2,250 NM)',
+    rerouted: 'Samarinda ──► Sunda / Lombok Strait Detour (Bypasses Malacca Bottleneck Queue)',
+    eta: '+3.2 Days (Sep 08 ──► Sep 11)',
+    distance: '+850 NM (2,250 ──► 3,100 NM)',
+    fuel: '+95 MT VLSFO (+$58,900 USD)',
+    freight: '+$1.25 /MT (+₹108 /MT)',
+    risk: '68/100 (STRAIT QUEUE)'
+  },
+  mozam: {
+    id: 'mozam',
+    name: 'Mozambique (MOZAM)',
+    flag: '🇲🇿',
+    vessel: 'M.V. Zambezi Express (Capesize)',
+    standard: 'Maputo ──► Mozambique Channel ──► Indian Ocean ──► Vizag / Paradip (4,480 NM)',
+    rerouted: 'Maputo ──► East Madagascar Outer Pass (Avoids Mozambique Cyclone Belt & Agulhas Swell)',
+    eta: '+5.8 Days (Sep 18 ──► Sep 24)',
+    distance: '+1,650 NM (4,480 ──► 6,130 NM)',
+    fuel: '+180 MT VLSFO (+$111,600 USD)',
+    freight: '+$2.20 /MT (+₹190 /MT)',
+    risk: '84/100 (CYCLONE BELT)'
+  },
+  russia: {
+    id: 'russia',
+    name: 'Russia (RUSSIA)',
+    flag: '🇷🇺',
+    vessel: 'M.V. Arctic Sentinel (Aframax / Capesize)',
+    standard: 'Vostochny / Black Sea ──► Red Sea / Suez Canal ──► Vadinar / Paradip (7,200 NM)',
+    rerouted: 'Black Sea / Baltic ──► Around Africa (Cape of Good Hope) ──► Indian Ocean',
+    eta: '+14.2 Days (Sep 14 ──► Sep 28)',
+    distance: '+4,100 NM (7,200 ──► 11,300 NM)',
+    fuel: '+460 MT VLSFO (+$285,200 USD)',
+    freight: '+$4.80 /MT (+₹415 /MT)',
+    risk: '94/100 (CRITICAL DETOUR)'
+  }
+};
 
 export default function SystemLogicRiskMatrix({
   selectedVessel,
@@ -13,6 +68,15 @@ export default function SystemLogicRiskMatrix({
   terminalMetrics = null
 }) {
   const [activeScenario, setActiveScenario] = useState('compiled'); // 'compiled', 'pdf_example'
+
+  const o = (selectedOrigin || '').toLowerCase();
+  let defaultKey = 'aus';
+  if (o.includes('samarinda') || o.includes('taboneo')) defaultKey = 'indo';
+  else if (o.includes('maputo') || o.includes('beira')) defaultKey = 'mozam';
+  else if (o.includes('vostochny') || o.includes('russia')) defaultKey = 'russia';
+
+  const [selectedRouteKey, setSelectedRouteKey] = useState(defaultKey);
+  const routeInfo = ROUTE_DETOUR_DATA[selectedRouteKey] || ROUTE_DETOUR_DATA.aus;
 
   // Dynamic values based on selected state & terminal metrics
   const isRisingFreight = (terminalMetrics?.p50USD || 0) > (terminalMetrics?.spotUSD || 0) || forecast.percentageSavings > 8;
@@ -237,162 +301,94 @@ export default function SystemLogicRiskMatrix({
       </div>
 
       {/* ================= GEOPOLITICAL AIS ROUTE CHANGE & DETOUR ENGINE (PART D CORE) ================= */}
-      {(() => {
-        const ROUTE_DETOUR_DATA = {
-          aus: {
-            id: 'aus',
-            name: 'Australia (AUS)',
-            flag: '🇦🇺',
-            vessel: 'M.V. Kamsarmax Enterprise',
-            standard: 'Hay Point ──► Torres Strait / Lombok ──► Paradip / Vizag (4,120 NM)',
-            rerouted: 'Hay Point ──► South Australia Outer Pass (Avoids Cyclone Jasper & Coral Sea Swells)',
-            eta: '+4.5 Days (Sep 14 ──► Sep 19)',
-            distance: '+1,200 NM (4,120 ──► 5,320 NM)',
-            fuel: '+140 MT VLSFO (+$86,800 USD)',
-            freight: '+$1.80 /MT (+₹156 /MT)',
-            risk: '78/100 (HIGH SWELL ALERT)'
-          },
-          indo: {
-            id: 'indo',
-            name: 'Indonesia (INDO)',
-            flag: '🇮🇩',
-            vessel: 'M.V. Java Bulk (Supramax)',
-            standard: 'Samarinda ──► Malacca Strait ──► Bay of Bengal ──► Paradip / Haldia (2,250 NM)',
-            rerouted: 'Samarinda ──► Sunda / Lombok Strait Detour (Bypasses Malacca Bottleneck Queue)',
-            eta: '+3.2 Days (Sep 08 ──► Sep 11)',
-            distance: '+850 NM (2,250 ──► 3,100 NM)',
-            fuel: '+95 MT VLSFO (+$58,900 USD)',
-            freight: '+$1.25 /MT (+₹108 /MT)',
-            risk: '68/100 (STRAIT QUEUE)'
-          },
-          mozam: {
-            id: 'mozam',
-            name: 'Mozambique (MOZAM)',
-            flag: '🇲🇿',
-            vessel: 'M.V. Zambezi Express (Capesize)',
-            standard: 'Maputo ──► Mozambique Channel ──► Indian Ocean ──► Vizag / Paradip (4,480 NM)',
-            rerouted: 'Maputo ──► East Madagascar Outer Pass (Avoids Mozambique Cyclone Belt & Agulhas Swell)',
-            eta: '+5.8 Days (Sep 18 ──► Sep 24)',
-            distance: '+1,650 NM (4,480 ──► 6,130 NM)',
-            fuel: '+180 MT VLSFO (+$111,600 USD)',
-            freight: '+$2.20 /MT (+₹190 /MT)',
-            risk: '84/100 (CYCLONE BELT)'
-          },
-          russia: {
-            id: 'russia',
-            name: 'Russia (RUSSIA)',
-            flag: '🇷🇺',
-            vessel: 'M.V. Arctic Sentinel (Aframax / Capesize)',
-            standard: 'Vostochny / Black Sea ──► Red Sea / Suez Canal ──► Vadinar / Paradip (7,200 NM)',
-            rerouted: 'Black Sea / Baltic ──► Around Africa (Cape of Good Hope) ──► Indian Ocean',
-            eta: '+14.2 Days (Sep 14 ──► Sep 28)',
-            distance: '+4,100 NM (7,200 ──► 11,300 NM)',
-            fuel: '+460 MT VLSFO (+$285,200 USD)',
-            freight: '+$4.80 /MT (+₹415 /MT)',
-            risk: '94/100 (CRITICAL DETOUR)'
-          }
-        };
-
-        const o = (selectedOrigin || '').toLowerCase();
-        let defaultKey = 'aus';
-        if (o.includes('samarinda') || o.includes('taboneo')) defaultKey = 'indo';
-        else if (o.includes('maputo') || o.includes('beira')) defaultKey = 'mozam';
-        else if (o.includes('vostochny') || o.includes('russia')) defaultKey = 'russia';
-
-        const [selectedRouteKey, setSelectedRouteKey] = React.useState(defaultKey);
-        const routeInfo = ROUTE_DETOUR_DATA[selectedRouteKey] || ROUTE_DETOUR_DATA.aus;
-
-        return (
-          <div className="mt-5 p-4 rounded-xl border border-rose-200 bg-gradient-to-br from-rose-950 via-slate-900 to-slate-900 text-slate-100 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-rose-800/60 gap-2 mb-3">
-              <div className="flex items-center space-x-2">
-                <span className="p-1 rounded bg-rose-500/20 text-rose-400">
-                  <Compass className="w-4 h-4" />
-                </span>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-rose-100 flex items-center gap-2">
-                  <span>Part D AIS Engine: Geopolitical Route Change & Detour Detection</span>
-                  <span className="animate-pulse px-2 py-0.5 rounded text-[10px] bg-rose-600 text-white font-extrabold">
-                    LIVE DETOUR DETECTED
-                  </span>
-                </h3>
-              </div>
-
-              {/* 4 Trade Corridors Selector: INDO 🇮🇩 | AUS 🇦🇺 | MOZAM 🇲🇿 | RUSSIA 🇷🇺 */}
-              <div className="flex items-center space-x-1 bg-slate-800 p-1 rounded-lg border border-slate-700 text-xs font-mono">
-                {Object.values(ROUTE_DETOUR_DATA).map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => setSelectedRouteKey(r.id)}
-                    className={`px-2 py-1 rounded transition-colors flex items-center space-x-1 ${
-                      selectedRouteKey === r.id 
-                        ? 'bg-rose-600 text-white font-extrabold shadow-sm' 
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                    }`}
-                  >
-                    <span>{r.flag}</span>
-                    <span>{r.id.toUpperCase()}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Route Change Detection Banner */}
-            <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-700/60 text-xs mb-3">
-              <div className="flex items-center justify-between font-mono font-bold text-rose-200 mb-1">
-                <span className="flex items-center gap-1.5 text-rose-300">
-                  <Wind className="w-3.5 h-3.5 animate-spin text-rose-400" />
-                  AIS Alert: "This ship has changed its route" ({routeInfo.flag} {routeInfo.name})
-                </span>
-                <span className="text-[11px] text-amber-300">Target: {routeInfo.vessel}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-1 sm:space-y-0 text-slate-300 font-mono text-[11px] mt-1.5">
-                <span className="line-through text-slate-500">Standard: {routeInfo.standard}</span>
-                <span className="text-amber-400 font-bold">──► Rerouted: {routeInfo.rerouted}</span>
-              </div>
-            </div>
-
-            {/* Automatically Updated Parameters Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
-              
-              {/* 1. ETA */}
-              <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">1. Updated ETA</span>
-                <div className="text-sm font-extrabold text-amber-400 mt-0.5">{routeInfo.eta.split(' ')[0]} {routeInfo.eta.split(' ')[1]}</div>
-                <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.eta.split('(')[1]?.replace(')', '')}</span>
-              </div>
-
-              {/* 2. Distance */}
-              <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">2. Sailing Distance</span>
-                <div className="text-sm font-extrabold text-cyan-400 mt-0.5">{routeInfo.distance.split(' ')[0]} {routeInfo.distance.split(' ')[1]}</div>
-                <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.distance.split('(')[1]?.replace(')', '')}</span>
-              </div>
-
-              {/* 3. Fuel Requirement */}
-              <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">3. Fuel Requirement</span>
-                <div className="text-sm font-extrabold text-rose-400 mt-0.5">{routeInfo.fuel.split(' (')[0]}</div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{routeInfo.fuel.split('(')[1]?.replace(')', '')}</span>
-              </div>
-
-              {/* 4. Freight Cost */}
-              <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">4. Freight Rate Impact</span>
-                <div className="text-sm font-extrabold text-emerald-400 mt-0.5">{routeInfo.freight.split(' (')[0]}</div>
-                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{routeInfo.freight.split('(')[1]?.replace(')', '')}</span>
-              </div>
-
-              {/* 5. Delay Risk */}
-              <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
-                <span className="text-[10px] font-bold text-slate-400 block uppercase">5. Delay & Queue Risk</span>
-                <div className="text-sm font-extrabold text-rose-400 mt-0.5">{routeInfo.risk.split(' ')[0]}</div>
-                <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.risk.split('(')[1]?.replace(')', '')}</span>
-              </div>
-
-            </div>
+      <div className="mt-5 p-4 rounded-xl border border-rose-200 bg-gradient-to-br from-rose-950 via-slate-900 to-slate-900 text-slate-100 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-rose-800/60 gap-2 mb-3">
+          <div className="flex items-center space-x-2">
+            <span className="p-1 rounded bg-rose-500/20 text-rose-400">
+              <Compass className="w-4 h-4" />
+            </span>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-rose-100 flex items-center gap-2">
+              <span>Part D AIS Engine: Geopolitical Route Change & Detour Detection</span>
+              <span className="animate-pulse px-2 py-0.5 rounded text-[10px] bg-rose-600 text-white font-extrabold">
+                LIVE DETOUR DETECTED
+              </span>
+            </h3>
           </div>
-        );
-      })()}
+
+          {/* 4 Trade Corridors Selector: INDO 🇮🇩 | AUS 🇦🇺 | MOZAM 🇲🇿 | RUSSIA 🇷🇺 */}
+          <div className="flex items-center space-x-1 bg-slate-800 p-1 rounded-lg border border-slate-700 text-xs font-mono">
+            {Object.values(ROUTE_DETOUR_DATA).map(r => (
+              <button
+                key={r.id}
+                onClick={() => setSelectedRouteKey(r.id)}
+                className={`px-2 py-1 rounded transition-colors flex items-center space-x-1 ${
+                  selectedRouteKey === r.id 
+                    ? 'bg-rose-600 text-white font-extrabold shadow-sm' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <span>{r.flag}</span>
+                <span>{r.id.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Route Change Detection Banner */}
+        <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-700/60 text-xs mb-3">
+          <div className="flex items-center justify-between font-mono font-bold text-rose-200 mb-1">
+            <span className="flex items-center gap-1.5 text-rose-300">
+              <Wind className="w-3.5 h-3.5 animate-spin text-rose-400" />
+              AIS Alert: "This ship has changed its route" ({routeInfo.flag} {routeInfo.name})
+            </span>
+            <span className="text-[11px] text-amber-300">Target: {routeInfo.vessel}</span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-1 sm:space-y-0 text-slate-300 font-mono text-[11px] mt-1.5">
+            <span className="line-through text-slate-500">Standard: {routeInfo.standard}</span>
+            <span className="text-amber-400 font-bold">──► Rerouted: {routeInfo.rerouted}</span>
+          </div>
+        </div>
+
+        {/* Automatically Updated Parameters Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
+          
+          {/* 1. ETA */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">1. Updated ETA</span>
+            <div className="text-sm font-extrabold text-amber-400 mt-0.5">{routeInfo.eta.split(' ')[0]} {routeInfo.eta.split(' ')[1]}</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.eta.split('(')[1]?.replace(')', '')}</span>
+          </div>
+
+          {/* 2. Distance */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">2. Sailing Distance</span>
+            <div className="text-sm font-extrabold text-cyan-400 mt-0.5">{routeInfo.distance.split(' ')[0]} {routeInfo.distance.split(' ')[1]}</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.distance.split('(')[1]?.replace(')', '')}</span>
+          </div>
+
+          {/* 3. Fuel Requirement */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">3. Fuel Requirement</span>
+            <div className="text-sm font-extrabold text-rose-400 mt-0.5">{routeInfo.fuel.split(' (')[0]}</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{routeInfo.fuel.split('(')[1]?.replace(')', '')}</span>
+          </div>
+
+          {/* 4. Freight Cost */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">4. Freight Rate Impact</span>
+            <div className="text-sm font-extrabold text-emerald-400 mt-0.5">{routeInfo.freight.split(' (')[0]}</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{routeInfo.freight.split('(')[1]?.replace(')', '')}</span>
+          </div>
+
+          {/* 5. Delay Risk */}
+          <div className="p-2.5 rounded-lg bg-slate-800/90 border border-slate-700">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">5. Delay & Queue Risk</span>
+            <div className="text-sm font-extrabold text-rose-400 mt-0.5">{routeInfo.risk.split(' ')[0]}</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">{routeInfo.risk.split('(')[1]?.replace(')', '')}</span>
+          </div>
+
+        </div>
+      </div>
 
       {/* ================= BETTER NAVIFREIGHT ARCHITECTURE & DATA FLOW PIPELINE ================= */}
       <div className="mt-5 p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 shadow-lg">
@@ -482,3 +478,5 @@ export default function SystemLogicRiskMatrix({
     </div>
   );
 }
+
+
