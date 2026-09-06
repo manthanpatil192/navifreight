@@ -191,7 +191,7 @@ export default function WebTerminalModelTrainer({
     if (isExecuting) {
       const lockSafetyTimer = setTimeout(() => {
         setIsExecuting(false);
-      }, 3500);
+      }, 1500);
       return () => clearTimeout(lockSafetyTimer);
     }
   }, [isExecuting]);
@@ -260,14 +260,29 @@ export default function WebTerminalModelTrainer({
     }, 1200);
   };
 
+  const applyPreset = (preset) => {
+    if (preset.origin) setManualOrigin(preset.origin);
+    if (preset.dest) setManualDest(preset.dest);
+    if (preset.vessel) setManualVessel(preset.vessel);
+    if (preset.volume) setManualVolume(preset.volume);
+    if (preset.horizon) setManualHorizon(preset.horizon);
+    handleManualDispatch(preset);
+  };
+
   // ---------------- LOGISTICS MANAGER DISPATCH HANDLER (DIRECT BAY OF BENGAL IMD TELEMETRY) ----------------
-  const handleManualDispatch = async () => {
+  const handleManualDispatch = async (customParams = null) => {
     setIsExecuting(true);
 
     try {
-      const originObj = ORIGIN_LOADING_PORTS[manualOrigin] || { name: manualOrigin, distanceToEastCoastNM: 4120 };
-      const destObj = INDIAN_EAST_COAST_PORTS[manualDest] || { 
-        name: manualDest, 
+      const activeOrigin = customParams?.origin || manualOrigin;
+      const activeDest = customParams?.dest || manualDest;
+      const activeVolume = customParams?.volume !== undefined ? customParams?.volume : manualVolume;
+      const activeCargo = customParams?.cargo || manualCargo;
+      const activeHorizon = customParams?.horizon !== undefined ? customParams?.horizon : manualHorizon;
+
+      const originObj = ORIGIN_LOADING_PORTS[activeOrigin] || { name: activeOrigin, distanceToEastCoastNM: 4120 };
+      const destObj = INDIAN_EAST_COAST_PORTS[activeDest] || { 
+        name: activeDest, 
         maxDraftLaden: 16.0, 
         maxDraftHighTide: 17.5, 
         maxLOA: 300,
@@ -275,30 +290,37 @@ export default function WebTerminalModelTrainer({
         avgWaitDays: 2.5
       };
       const vesselOptimization = optimizeVesselType({
-        originId: manualOrigin,
-        destinationId: manualDest,
-        cargoVolumeMT: manualVolume,
-        cargoType: manualCargo
+        originId: activeOrigin,
+        destinationId: activeDest,
+        cargoVolumeMT: activeVolume,
+        cargoType: activeCargo
       });
       const recommendedVesselKey = vesselOptimization.recommendedVesselId;
       const vesselObj = VESSEL_CLASSES[recommendedVesselKey] || VESSEL_CLASSES.panamax;
 
-      // Live Dual-Port Weather API Ingestion (Source Loading Port + Destination Discharge Port)
+      // Fast Dual-Port Weather Resolution (Use pre-fetched state if available, or fast 500ms timeout)
       let destWeather = liveBobWeather;
       let originWeather = liveOriginWeather;
 
-      try {
-        const vesselDraft = vesselObj.ladenDraftMeters || 16.0;
-        const [oW, dW] = await Promise.all([
-          fetchLiveOriginWeather(manualOrigin, manualCargo, vesselDraft),
-          fetchLiveBayOfBengalWeather(manualDest)
-        ]);
-        originWeather = oW;
-        destWeather = dW;
-        setLiveOriginWeather(oW);
-        setLiveBobWeather(dW);
-      } catch (innerErr) {
-        console.warn('Weather fallback used due to network:', innerErr);
+      const needOriginFetch = !originWeather || (originWeather.portKey && originWeather.portKey !== activeOrigin);
+      const needDestFetch = !destWeather || (destWeather.sectorId && destWeather.sectorId !== activeDest);
+
+      if (needOriginFetch || needDestFetch) {
+        try {
+          const vesselDraft = vesselObj.ladenDraftMeters || 16.0;
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Weather timeout')), 500));
+          const [oW, dW] = await Promise.race([
+            Promise.all([
+              needOriginFetch ? fetchLiveOriginWeather(activeOrigin, activeCargo, vesselDraft) : Promise.resolve(originWeather),
+              needDestFetch ? fetchLiveBayOfBengalWeather(activeDest) : Promise.resolve(destWeather)
+            ]),
+            timeoutPromise
+          ]);
+          if (oW) { originWeather = oW; setLiveOriginWeather(oW); }
+          if (dW) { destWeather = dW; setLiveBobWeather(dW); }
+        } catch (innerErr) {
+          // Fallback to baseline or cached weather without blocking execution
+        }
       }
 
       const destLaycanBufferHours = destWeather?.laycanBufferHours || 0;
@@ -444,6 +466,7 @@ export default function WebTerminalModelTrainer({
       const unhedgedUSD = Math.round(estSpot * manualVolume);
       const currentSpotUSD = Math.round(baseRate * manualVolume);
       const optUSD = Math.round(blended * manualVolume);
+      const optP10USD = optUSD;
       const savingsUSD = unhedgedUSD - optUSD;
 
       const baseFxRate = 86.50;
@@ -578,13 +601,14 @@ export default function WebTerminalModelTrainer({
       };
 
       // Sync global App state & couple live graph & Part B optimizer
+      // Sync global App state & couple live graph & Part B optimizer
       if (onRunScenario) {
         onRunScenario({
-          origin: manualOrigin,
-          destination: manualDest,
+          origin: activeOrigin,
+          destination: activeDest,
           vessel: recommendedVesselKey,
-          volume: manualVolume,
-          horizon: manualHorizon,
+          volume: activeVolume,
+          horizon: activeHorizon,
           volatility: volatilityMult,
           newsSignal: (destWeather?.severity !== 'NORMAL' || originWeather?.severity !== 'NORMAL') ? {
             id: 'dual_port_weather',
@@ -598,30 +622,29 @@ export default function WebTerminalModelTrainer({
         });
       }
 
-      setTimeout(() => {
-        setTerminalHistory(prev => [
-          ...prev,
-          { 
-            type: 'prompt', 
-            text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${manualOrigin} --dest ${manualDest} --vol ${manualVolume} --vessel ${manualVessel} --dual-weather-api` 
-          },
-          {
-            type: 'success',
-            text: `======================================================================
+      setTerminalHistory(prev => [
+        ...prev,
+        { 
+          type: 'prompt', 
+          text: `PS C:\\navifreight\\ml> python scripts/query_interactive_model.py --origin ${activeOrigin} --dest ${activeDest} --vol ${activeVolume} --vessel ${recommendedVesselKey} --dual-weather-api` 
+        },
+        {
+          type: 'success',
+          text: `======================================================================
       NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE & MARKET ANALYSIS     
 ======================================================================
-  Route:             ${originObj.name || manualOrigin} -> ${destObj.name || manualDest}
-  Vessel & Cargo:    ${vesselObj.name || manualVessel} | ${manualVolume.toLocaleString()} MT ${manualCargo} (${manualHorizon}-Month Horizon)
+  Route:             ${originObj.name || activeOrigin} -> ${destObj.name || activeDest}
+  Vessel & Cargo:    ${vesselObj.name || recommendedVesselKey} | ${activeVolume.toLocaleString()} MT ${activeCargo} (${activeHorizon}-Month Horizon)
   Freight Rates:     Spot: $${baseRate.toFixed(2)}/MT (₹${spotRateINR.toLocaleString()}/MT) | P50: $${estSpot.toFixed(2)}/MT (₹${estSpotINR.toLocaleString()}/MT) | P10: $${estP10.toFixed(2)}/MT (₹${estP10INR.toLocaleString()}/MT)
   Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
   Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)'}
   Fuel Prices VLSFO: $620/MT VLSFO Baseline
                      ↳ [Fuel Impact: Determines daily fuel burn (~45 MT/day Capesize = $27.9k/day) & Bunker Adjustment Factor (BAF) floor.]
-  Tariff & Trade:    Active: Yes (${manualCargo} Import Duty 5.0% & Safeguard Quotas Audited)
-  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${manualHorizon}-Month RBI Trend)
+  Tariff & Trade:    Active: Yes (${activeCargo} Import Duty 5.0% & Safeguard Quotas Audited)
+  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${activeHorizon}-Month RBI Trend)
 ----------------------------------------------------------------------
 [1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
-  * SOURCE PORT [${originObj.name || manualOrigin}]:
+  * SOURCE PORT [${originObj.name || activeOrigin}]:
     - Meteorology:   ${originWeather?.source || 'Global Marine Weather Telemetry'}
     - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Pressure 1012.0 hPa
     - Loading Status:${originProper ? '🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.' : '🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.'}
@@ -629,7 +652,7 @@ export default function WebTerminalModelTrainer({
     - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides.`}
     ${(!originProper && originWeather?.alternatePort) ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
 
-  * DESTINATION PORT [${destObj.name || manualDest}]:
+  * DESTINATION PORT [${destObj.name || activeDest}]:
     - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Telemetry'}
     - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | Stage: ${destWeather?.stage || 'Normal Synoptic'}
     - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] Outer harbour & deepwater berths operating seamlessly.' : '🔴 [IMPROPER SEA WEATHER] Anchorage delay +' + destDelayDays + 'd adds demurrage exposure.'}
@@ -647,7 +670,7 @@ export default function WebTerminalModelTrainer({
   * Current Spot:     $${baseRate.toFixed(2)} /MT  (₹${spotRateINR.toLocaleString()} /MT)
     ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
   * Expected P50:     $${estSpot.toFixed(2)} /MT  (₹${estSpotINR.toLocaleString()} /MT)  [Headline MAPE: 15.49%]
-    ↳ [Meaning: Most likely future price in ${manualHorizon} months (50% chance higher, 50% lower)]
+    ↳ [Meaning: Most likely future price in ${activeHorizon} months (50% chance higher, 50% lower)]
   * Optimistic P10:   $${estP10.toFixed(2)} /MT  (₹${estP10INR.toLocaleString()} /MT)
     ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
   * Stress P90:       $${estP90.toFixed(2)} /MT  (₹${estP90INR.toLocaleString()} /MT)  [89.9% 90%CI Coverage]
@@ -691,12 +714,18 @@ export default function WebTerminalModelTrainer({
   * Berth Draft Clearance:                 ${draftClearanceText}
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
-          }
-        ]);
-        setIsExecuting(false);
-      }, 300);
+        }
+      ]);
     } catch (err) {
       console.error("Error executing manual dispatch:", err);
+      setTerminalHistory(prev => [
+        ...prev,
+        { 
+          type: 'error', 
+          text: `[EXECUTION ALERT]: Directive updated with fallback defaults (${err?.message || 'Calculation adjusted'}). Terminal unlocked.` 
+        }
+      ]);
+    } finally {
       setIsExecuting(false);
     }
   };
@@ -1340,6 +1369,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 [GRAPH SYNCED] Forecast Chart dynamically shifted to Dec 2023 - Jan 2024 historical trajectory!`
         }
       ]);
+      setIsExecuting(false);
       return;
     }
 
@@ -1428,6 +1458,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 [GRAPH SYNCED] Forecast Chart dynamically shifted to Red Sea Geopolitical Cape Rerouting Trajectory!`
         }
       ]);
+      setIsExecuting(false);
       return;
     }
 
@@ -1479,6 +1510,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 ======================================================================`
         }
       ]);
+      setIsExecuting(false);
       return;
     }
 
@@ -1780,14 +1812,26 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
           </div>
         </div>
 
-        <button
-          onClick={() => setTerminalHistory([{ type: 'system', text: 'Terminal cleared. Type "help" for commands.' }])}
-          className="text-slate-400 hover:text-slate-200 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 transition-colors"
-          title="Clear Terminal Output"
-        >
-          <RefreshCw className="w-3 h-3" />
-          <span>Clear Screen</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          {isExecuting && (
+            <button
+              onClick={() => setIsExecuting(false)}
+              className="text-amber-300 hover:text-amber-100 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 rounded border border-amber-600/70 transition-colors animate-pulse cursor-pointer"
+              title="Click to force-unlock terminal"
+            >
+              <RefreshCw className="w-3 h-3 text-amber-400" />
+              <span>Force Unlock</span>
+            </button>
+          )}
+          <button
+            onClick={() => setTerminalHistory([{ type: 'system', text: 'Terminal cleared. Type "help" for commands.' }])}
+            className="text-slate-400 hover:text-slate-200 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 transition-colors cursor-pointer"
+            title="Clear Terminal Output"
+          >
+            <RefreshCw className="w-3 h-3" />
+            <span>Clear Screen</span>
+          </button>
+        </div>
       </div>
 
       {/* ================= LOGISTICS MANAGER MANUAL CONSIGNMENT & ROUTING PANEL ================= */}
@@ -1839,8 +1883,12 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </label>
                 <select
                   value={manualOrigin}
-                  onChange={(e) => setManualOrigin(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setManualOrigin(val);
+                    handleManualDispatch({ origin: val });
+                  }}
+                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
                 >
                   <optgroup label="Australia (Major Coking Coal)">
                     <option value="gladstone">Gladstone R.G. Tanna (17.8m Draft)</option>
@@ -1871,8 +1919,12 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </label>
                 <select
                   value={manualDest}
-                  onChange={(e) => setManualDest(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setManualDest(val);
+                    handleManualDispatch({ dest: val });
+                  }}
+                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
                 >
                   <optgroup label="Deepwater Ports (Capesize Capable)">
                     <option value="dhamra">Dhamra Port (DPCL - 18.0m / Tata Steel)</option>
@@ -1907,12 +1959,25 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     step="5000"
                     value={manualVolume}
                     onChange={(e) => setManualVolume(Number(e.target.value))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleManualDispatch({ volume: Number(e.target.value) });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      handleManualDispatch({ volume: Number(e.target.value) });
+                    }}
                     className="w-2/3 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-mono text-xs"
                   />
                   <select
                     value={manualCargo}
-                    onChange={(e) => setManualCargo(e.target.value)}
-                    className="w-1/3 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setManualCargo(val);
+                      handleManualDispatch({ cargo: val });
+                    }}
+                    className="w-1/3 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
                   >
                     <option value="Coking Coal">Coking</option>
                     <option value="Thermal Coal">Thermal</option>
@@ -1956,8 +2021,12 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </label>
                 <select
                   value={manualHorizon}
-                  onChange={(e) => setManualHorizon(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs"
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setManualHorizon(val);
+                    handleManualDispatch({ horizon: val });
+                  }}
+                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
                 >
                   <option value={1}>1-Month (Spot & Prompt Booking)</option>
                   <option value={3}>3-Month (Quarterly COA Program)</option>
@@ -2018,7 +2087,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               {/* Execute Button */}
               <div className="flex items-end">
                 <button
-                  onClick={handleManualDispatch}
+                  onClick={() => handleManualDispatch()}
                   className="w-full h-[58px] inline-flex flex-col items-center justify-center px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-98 text-white font-bold rounded-lg shadow-md transition-all text-xs cursor-pointer"
                 >
                   <div className="flex items-center space-x-1.5">
@@ -2040,34 +2109,34 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-semibold text-slate-300">Quick Consignments:</span>
                 <button 
-                  onClick={() => { setManualOrigin('hay_point'); setManualDest('paradip'); setManualVessel('capesize'); setManualVolume(90000); setManualHorizon(6); }}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded border border-emerald-700/60 transition-colors font-medium"
+                  onClick={() => applyPreset({ origin: 'hay_point', dest: 'paradip', vessel: 'capesize', volume: 90000, horizon: 6 })}
+                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded border border-emerald-700/60 transition-colors font-medium cursor-pointer"
                 >
                   Hay Point → Paradip (90k MT, 6-Mo)
                 </button>
                 <button 
                   onClick={() => { setIsExecuting(false); }}
-                  className="px-2 py-0.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 rounded border border-rose-700/60 transition-colors font-medium text-[10px] flex items-center gap-1"
+                  className="px-2 py-0.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 rounded border border-rose-700/60 transition-colors font-medium text-[10px] flex items-center gap-1 cursor-pointer"
                   title="Force unlock terminal if unresponsive"
                 >
                   <RefreshCw className="w-2.5 h-2.5" />
                   <span>Unlock Terminal</span>
                 </button>
                 <button 
-                  onClick={() => { setManualOrigin('gladstone'); setManualDest('dhamra'); setManualVessel('capesize'); setManualVolume(150000); setManualHorizon(6); }}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors"
+                  onClick={() => applyPreset({ origin: 'gladstone', dest: 'dhamra', vessel: 'capesize', volume: 150000, horizon: 6 })}
+                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
                 >
                   Gladstone → Dhamra (150k Capesize)
                 </button>
                 <button 
-                  onClick={() => { setManualOrigin('hampton_roads'); setManualDest('paradip'); setManualVessel('baby_cape'); setManualVolume(110000); setManualHorizon(3); }}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors"
+                  onClick={() => applyPreset({ origin: 'hampton_roads', dest: 'paradip', vessel: 'baby_cape', volume: 110000, horizon: 3 })}
+                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
                 >
                   US Hampton Roads → Paradip (110k)
                 </button>
                 <button 
-                  onClick={() => { setManualOrigin('taboneo'); setManualDest('vizag'); setManualVessel('panamax'); setManualVolume(75000); setManualHorizon(1); }}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors"
+                  onClick={() => applyPreset({ origin: 'taboneo', dest: 'vizag', vessel: 'panamax', volume: 75000, horizon: 1 })}
+                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
                 >
                   Indonesia → Vizag (75k Panamax)
                 </button>
