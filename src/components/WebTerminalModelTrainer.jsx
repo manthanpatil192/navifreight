@@ -185,6 +185,16 @@ export default function WebTerminalModelTrainer({
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
+  // Auto-Unlock Safety Guard: Guarantees terminal NEVER hangs or gets locked permanently
+  useEffect(() => {
+    if (isExecuting) {
+      const lockSafetyTimer = setTimeout(() => {
+        setIsExecuting(false);
+      }, 3500);
+      return () => clearTimeout(lockSafetyTimer);
+    }
+  }, [isExecuting]);
+
   // Synchronize with Phase 1 inputs whenever user updates the top configurator
   useEffect(() => {
     if (selectedOrigin) setManualOrigin(selectedOrigin);
@@ -2023,6 +2033,14 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded border border-emerald-700/60 transition-colors font-medium"
                 >
                   Hay Point → Paradip (90k MT, 6-Mo)
+                </button>
+                <button 
+                  onClick={() => { setIsExecuting(false); }}
+                  className="px-2 py-0.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 rounded border border-rose-700/60 transition-colors font-medium text-[10px] flex items-center gap-1"
+                  title="Force unlock terminal if unresponsive"
+                >
+                  <RefreshCw className="w-2.5 h-2.5" />
+                  <span>Unlock Terminal</span>
                 </button>
                 <button 
                   onClick={() => { setManualOrigin('gladstone'); setManualDest('dhamra'); setManualVessel('capesize'); setManualVolume(150000); setManualHorizon(6); }}
