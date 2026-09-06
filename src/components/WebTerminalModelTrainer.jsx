@@ -212,7 +212,6 @@ export default function WebTerminalModelTrainer({
 
   // Run Walk-Forward Training in Web Terminal
   const handleRunTraining = () => {
-    if (isExecuting) return;
     setIsExecuting(true);
 
     const newLogs = [
@@ -228,7 +227,7 @@ export default function WebTerminalModelTrainer({
         { type: 'info', text: '[STEP 2/4] Engineering 13 non-leaking point-in-time features (momentum lags, MA ratios, volatility)...' },
         { type: 'info', text: '[STEP 3/4] Fitting Scikit-Learn Quantile Regressors across 66 expanding monthly folds...' }
       ]);
-    }, 600);
+    }, 400);
 
     setTimeout(() => {
       setTerminalHistory(prev => [
@@ -237,7 +236,7 @@ export default function WebTerminalModelTrainer({
         { type: 'progress', text: '  [Training Progress] Completed fold 45/66 (68%)...' },
         { type: 'progress', text: '  [Training Progress] Completed fold 66/66 (100%) in 1.42s.' }
       ]);
-    }, 1200);
+    }, 800);
 
     setTimeout(() => {
       setTerminalHistory(prev => [
@@ -257,12 +256,11 @@ export default function WebTerminalModelTrainer({
         }
       ]);
       setIsExecuting(false);
-    }, 1800);
+    }, 1200);
   };
 
   // ---------------- LOGISTICS MANAGER DISPATCH HANDLER (DIRECT BAY OF BENGAL IMD TELEMETRY) ----------------
   const handleManualDispatch = async () => {
-    if (isExecuting) return;
     setIsExecuting(true);
 
     try {
@@ -690,7 +688,6 @@ export default function WebTerminalModelTrainer({
 
   // Scenario 1: Baseline Normal
   const handleTest1 = () => {
-    if (isExecuting) return;
     setIsExecuting(true);
 
     const normalNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'bdi_surge') || MARKET_NEWS_SIGNALS[0];
@@ -814,7 +811,6 @@ export default function WebTerminalModelTrainer({
 
   // Scenario 2: Cyclone Warning Stress Test
   const handleTest2 = () => {
-    if (isExecuting) return;
     setIsExecuting(true);
 
     const cycloneNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'weather_cyclone') || MARKET_NEWS_SIGNALS[1];
@@ -964,7 +960,6 @@ export default function WebTerminalModelTrainer({
 
   // Scenario 3: Red Sea Fleet Squeeze
   const handleTest3 = () => {
-    if (isExecuting) return;
     setIsExecuting(true);
 
     const redSeaNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'fuel_tax') || MARKET_NEWS_SIGNALS[2];
@@ -2011,12 +2006,15 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               <div className="flex items-end">
                 <button
                   onClick={handleManualDispatch}
-                  disabled={isExecuting}
-                  className="w-full h-[58px] inline-flex flex-col items-center justify-center px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg shadow-md transition-all disabled:opacity-50 text-xs cursor-pointer"
+                  className="w-full h-[58px] inline-flex flex-col items-center justify-center px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-98 text-white font-bold rounded-lg shadow-md transition-all text-xs cursor-pointer"
                 >
                   <div className="flex items-center space-x-1.5">
-                    <Zap className="w-4 h-4 fill-current text-amber-300" />
-                    <span className="text-sm font-bold">Run Quantitative Directive</span>
+                    {isExecuting ? (
+                      <RefreshCw className="w-4 h-4 animate-spin text-amber-300" />
+                    ) : (
+                      <Zap className="w-4 h-4 fill-current text-amber-300" />
+                    )}
+                    <span className="text-sm font-bold">{isExecuting ? 'Calculating...' : 'Run Quantitative Directive'}</span>
                   </div>
                   <span className="text-[10px] font-normal text-emerald-200 font-mono mt-0.5">Auto-Calculates Live IMD & FX</span>
                 </button>
