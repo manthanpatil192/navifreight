@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, CloudRain, Waves, Terminal } from 'lucide-react';
+import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, CloudRain, Waves, Flame, Gauge, ShieldCheck, DollarSign } from 'lucide-react';
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
@@ -63,44 +63,10 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       </div>
 
       {/* Overview Explanation */}
-      <div className="bg-slate-50 border border-slate-200 rounded-md p-3.5 mb-3 text-xs text-slate-600 flex items-start space-x-3">
+      <div className="bg-slate-50 border border-slate-200 rounded-md p-3.5 mb-5 text-xs text-slate-600 flex items-start space-x-3">
         <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
         <div>
           <span className="font-bold text-slate-800">Tramp Return Voyage Intelligence:</span> Select a live discharging vessel below. Our engine instantly pairs it with outbound exports that fit its exact dimensions, elevating Round-Voyage Time Charter Equivalent (TCE) earnings before the ship even drops its lines.
-        </div>
-      </div>
-
-      {/* Web Terminal Directive Reference Bar */}
-      <div className="mb-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-700/80 rounded-md p-3 text-white text-xs shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-800/80 mb-2">
-          <div className="flex items-center space-x-2">
-            <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="font-mono text-[11px] font-bold text-slate-200 uppercase tracking-wider">
-              Web Terminal Directive Feed
-            </span>
-            <span className="bg-emerald-950 text-emerald-300 border border-emerald-700 text-[9px] font-mono px-2 py-0.5 rounded font-bold">
-              LIVE OUTPUT REF
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 sm:space-x-3 font-mono text-[10px] sm:text-[11px] text-slate-300 overflow-x-auto">
-            <span>Spot: <strong className="text-emerald-400">{terminalMetrics?.spotUSD ? `${currSym}${(terminalMetrics.spotUSD * multiplier).toFixed(1)}` : `${currSym}${(14.85 * multiplier).toFixed(1)}`}</strong></span>
-            <span>•</span>
-            <span>P50: <strong className="text-amber-400">{terminalMetrics?.p50USD ? `${currSym}${(terminalMetrics.p50USD * multiplier).toFixed(1)}` : `${currSym}${(17.69 * multiplier).toFixed(1)}`}</strong></span>
-            <span>•</span>
-            <span>P10 Dip: <strong className="text-cyan-400">{terminalMetrics?.p10USD ? `${currSym}${(terminalMetrics.p10USD * multiplier).toFixed(1)}` : `${currSym}${(15.57 * multiplier).toFixed(1)}`}</strong></span>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono text-slate-300 gap-2">
-          <div className="flex items-center space-x-2 truncate">
-            <span className="text-emerald-400 font-bold shrink-0">▶ Terminal Output Ref:</span>
-            <span className="text-slate-200 truncate max-w-xl">
-              {terminalMetrics?.buyStrikeDirectiveText || '🟢 EXECUTE PRIMARY COA LAYCAN: Strike 3-Month COA tender at target rate for plant coal basestock.'}
-            </span>
-          </div>
-          <div className="shrink-0 text-right text-slate-400 text-[10px]">
-            Model Coverage: <span className="text-emerald-400 font-bold">89.9% Quantile</span>
-          </div>
         </div>
       </div>
 
@@ -282,69 +248,103 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
         </div>
       )}
 
-      {/* HACKATHON WINNING EDGE: Standout Logic Checks */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 border-t border-slate-200 pt-5">
-        
-        {/* Triangulation Logic */}
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-          <div className="flex items-center text-indigo-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <MapPin className="w-4 h-4 mr-1.5" />
-            Coastal Triangulation Routing
-          </div>
-          <p className="text-xs text-indigo-900/80 mb-3 leading-relaxed">
-            Instead of A &rarr; B &rarr; A, generate hyper-local multi-stop routes to eliminate ballast entirely. Perfect for utilizing Indian cabotage waivers for foreign-flagged tonnage.
-          </p>
-          <div className="bg-white/60 p-2.5 rounded border border-indigo-100 text-[11px] font-mono text-indigo-900">
-            <span className="font-bold text-indigo-700">SUGGESTION FOR {activeShip ? activeShip.name : 'VESSEL'}:</span><br/>
-            Drop Coal at {selectedLivePort} &rarr; Pick up {selectedLivePort === 'paradip' ? 'Iron Ore' : 'Alumina'} &rarr; Drop at Ennore &rarr; Pick up Bauxite &rarr; SE Asia.
-          </div>
+      {/* ESSENTIAL MARITIME OPTIMIZATION SUGGESTIONS (PART C ESSENTIALS) */}
+      <div className="border-t border-slate-200 pt-5 mt-6">
+        <div className="flex items-center space-x-2 mb-4">
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            Phase 6 Strategic Optimization Directives & Fuel Savings Intelligence
+          </h3>
         </div>
 
-        {/* Bunker Arbitrage Logic */}
-        <div className="bg-rose-50 border border-rose-200 rounded-lg p-4">
-          <div className="flex items-center text-rose-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <Zap className="w-4 h-4 mr-1.5" />
-            Bunker Arbitrage Positioning
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          {/* Suggestion 1: Eco-Speed Sailing & JIT Virtual Arrival */}
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-4 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center text-emerald-900 font-bold text-xs mb-2 uppercase tracking-wide">
+                <Flame className="w-4 h-4 mr-1.5 text-emerald-600" />
+                1. Eco-Speed & Virtual Arrival JIT
+              </div>
+              <p className="text-xs text-emerald-950/80 mb-3 leading-relaxed">
+                When anchorage queues at {selectedLivePort} are high (2.8d wait), steaming at 13.5 kts full speed wastes fuel only to sit idle at anchor. Reducing speed to 11.0 kts ("Eco-Speed") cuts daily fuel burn from 29.5 MT/day to 23.0 MT/day VLSFO.
+              </p>
+            </div>
+            <div className="bg-white/80 p-2.5 rounded border border-emerald-200 text-[11px] font-mono text-emerald-950">
+              <span className="font-bold text-emerald-700">LIVE FUEL SAVINGS:</span><br/>
+              Saves <strong>6.5 MT VLSFO/day</strong> = <strong className="text-emerald-700">+$4,030 USD (₹3.48 Lakhs/day)</strong> fuel reduction while aligning ETA with berth slot.
+            </div>
           </div>
-          <p className="text-xs text-rose-900/80 mb-3 leading-relaxed">
-            If no backhaul is available, vessels traditionally anchor and burn fuel idly. NaviFreight calculates the nearest anchorage with the cheapest VLSFO prices to refuel during idle time.
-          </p>
-          <div className="bg-white/60 p-2.5 rounded border border-rose-100 text-[11px] font-mono text-rose-900">
-            <span className="font-bold text-rose-700">IF NO CARGO SECURED:</span><br/>
-            Do not anchor at {selectedLivePort}. Sail at eco-speed to Colombo Anchorage (VLSFO: -$22/MT cheaper than India East Coast) to refuel while awaiting spot orders.
-          </div>
-        </div>
 
-        {/* Monsoon "Wet Coal" Penalty */}
-        <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
-          <div className="flex items-center text-sky-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <CloudRain className="w-4 h-4 mr-1.5" />
-            Monsoon "Wet Coal" Penalty
+          {/* Suggestion 2: IMO CII Carbon Intensity & ESG Tax Shield */}
+          <div className="bg-teal-50/70 border border-teal-200 rounded-lg p-4 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center text-teal-900 font-bold text-xs mb-2 uppercase tracking-wide">
+                <Leaf className="w-4 h-4 mr-1.5 text-teal-600" />
+                2. IMO CII & EU ETS Carbon Shield
+              </div>
+              <p className="text-xs text-teal-950/80 mb-3 leading-relaxed">
+                Sailing empty ballast severely degrades vessel Carbon Intensity Indicator (CII) rating from Grade B down to D/E. Pairing inbound coal with outbound iron ore pellets eliminates empty sailing.
+              </p>
+            </div>
+            <div className="bg-white/80 p-2.5 rounded border border-teal-200 text-[11px] font-mono text-teal-950">
+              <span className="font-bold text-teal-700">ENVIRONMENTAL IMPACT:</span><br/>
+              Avoids <strong>1,420 MT CO2 emissions</strong> per voyage, shielding shipowner from <strong>$127,800 USD EU ETS carbon taxes</strong> and CII grade downgrades.
+            </div>
           </div>
-          <p className="text-xs text-sky-900/80 mb-3 leading-relaxed">
-            Heavy monsoon rains cause coal to absorb water, becoming heavy and sticky. This drastically slows down grab-crane discharge rates, causing severe port queues.
-          </p>
-          <div className="bg-white/60 p-2.5 rounded border border-sky-100 text-[11px] font-mono text-sky-900">
-            <span className="font-bold text-sky-700">IMD WEATHER ALERT:</span><br/>
-            Heavy rainfall forecasted at {selectedLivePort}. Automatically downgrading expected port discharge rate by 40%. Expect +3 days of demurrage risk for arriving vessels.
-          </div>
-        </div>
 
-        {/* Haldia Sandbar Exploit */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-center text-amber-800 font-bold text-xs mb-2 uppercase tracking-wide">
-            <Waves className="w-4 h-4 mr-1.5" />
-            Freshwater Draft Adjustments
+          {/* Suggestion 3: Bunker Price Arbitrage Positioning */}
+          <div className="bg-rose-50/70 border border-rose-200 rounded-lg p-4 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center text-rose-900 font-bold text-xs mb-2 uppercase tracking-wide">
+                <Zap className="w-4 h-4 mr-1.5 text-rose-600" />
+                3. Bunker Refueling Arbitrage
+              </div>
+              <p className="text-xs text-rose-950/80 mb-3 leading-relaxed">
+                Indian East Coast bunker prices ($645/MT) carry a $22–$25/MT premium over international bunkering hubs. Vessels awaiting spot orders should refuel at off-route anchorages.
+              </p>
+            </div>
+            <div className="bg-white/80 p-2.5 rounded border border-rose-200 text-[11px] font-mono text-rose-950">
+              <span className="font-bold text-rose-700">REFUELS STRATEGY:</span><br/>
+              Sail at eco-speed to Singapore/Colombo anchorage (VLSFO: <strong>-$25/MT cheaper</strong> than India) to refuel while awaiting next spot order.
+            </div>
           </div>
-          <p className="text-xs text-amber-900/80 mb-3 leading-relaxed">
-            River ports (like Haldia) have fresh water, which is less dense than the ocean. A fully loaded ship entering fresh water will sink deeper, risking catastrophic grounding.
-          </p>
-          <div className="bg-white/60 p-2.5 rounded border border-amber-100 text-[11px] font-mono text-amber-900">
-            <span className="font-bold text-amber-700">PHYSICS ENGINE TRIGGERED:</span><br/>
-            Destination is a river port (Specific Gravity 1.005). Must short-load cargo by 2,500 MT at origin to prevent exceeding draft limits upon entering the river channel.
-          </div>
-        </div>
 
+          {/* Suggestion 4: DGS Indian Cabotage Waiver Coupling */}
+          <div className="bg-indigo-50/70 border border-indigo-200 rounded-lg p-4 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center text-indigo-900 font-bold text-xs mb-2 uppercase tracking-wide">
+                <MapPin className="w-4 h-4 mr-1.5 text-indigo-600" />
+                4. Indian Cabotage Waiver Coupling
+              </div>
+              <p className="text-xs text-indigo-950/80 mb-3 leading-relaxed">
+                Foreign-flagged vessels discharging import coal at Dhamra/Paradip can utilize Directorate General of Shipping (DGS) cabotage waivers to carry domestic thermal coal down to TANGEDCO power plants in Tamil Nadu.
+              </p>
+            </div>
+            <div className="bg-white/80 p-2.5 rounded border border-indigo-200 text-[11px] font-mono text-indigo-950">
+              <span className="font-bold text-indigo-700">COASTAL TRADE LEVERAGE:</span><br/>
+              Replaces 4,480 NM empty ballast to Mozambique with a high-yield 780 NM coastal coal leg to Ennore/Tuticorin (<strong>+$480,000 USD revenue</strong>).
+            </div>
+          </div>
+
+          {/* Suggestion 5: Monsoon "Wet Coal" & Demurrage Shield */}
+          <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-4 flex flex-col justify-between shadow-xs md:col-span-2 lg:col-span-2">
+            <div>
+              <div className="flex items-center text-amber-900 font-bold text-xs mb-2 uppercase tracking-wide">
+                <ShieldCheck className="w-4 h-4 mr-1.5 text-amber-600" />
+                5. Monsoon Discharge & Demurrage Shield
+              </div>
+              <p className="text-xs text-amber-950/80 mb-3 leading-relaxed">
+                Monsoon rains slow grab-crane coal discharge rates by 40% ("Wet Coal Penalty"). NaviFreight shifts vessels to PPT Mechanized Ore Berth (`CQ-1/CQ-2`) equipped with high-speed 4,500 TPH conveyers and inserts 96h Weather Working Day (WWD) clauses into charter parties.
+              </p>
+            </div>
+            <div className="bg-white/80 p-2.5 rounded border border-amber-200 text-[11px] font-mono text-amber-950">
+              <span className="font-bold text-amber-700">DEMURRAGE PROTECTION:</span><br/>
+              Eliminates <strong>₹21.62 Lakhs/day demurrage penalties</strong> ($25,000/day) and unlocks up to <strong>₹15–30 Lakhs in Dispatch Rewards</strong> for fast vessel turnaround.
+            </div>
+          </div>
+
+        </div>
       </div>
 
     </div>
