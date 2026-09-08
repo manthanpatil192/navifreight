@@ -227,16 +227,16 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
                     <button
                       type="button"
                       onClick={() => setMatchedId(isMatched ? null : route.id)}
-                      className={`w-full py-1.5 px-3 rounded text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors ${
+                      className={`w-full py-1.5 px-3 rounded text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer ${
                         isMatched
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                          ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700'
+                          : 'bg-slate-900 hover:bg-slate-800 text-white'
                       }`}
                     >
                       {isMatched ? (
                         <>
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Backhaul Locked for {activeShip.name}</span>
+                          <span>Backhaul Locked & Paired for {activeShip ? activeShip.name : 'Vessel'}</span>
                         </>
                       ) : (
                         <>
@@ -246,6 +246,25 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
                       )}
                     </button>
                   </div>
+
+                  {/* Operational Execution Confirmation Banner when Locked */}
+                  {isMatched && (
+                    <div className="mt-3 p-3 rounded-lg bg-emerald-950 border border-emerald-700 text-emerald-100 text-[11px] font-mono space-y-1.5 animate-fadeIn shadow-md">
+                      <div className="flex items-center justify-between text-emerald-300 font-bold uppercase border-b border-emerald-800 pb-1 text-[10px]">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          Charter Party Contract Clause Generated
+                        </span>
+                        <span className="text-amber-400">REF: CVC-NVF-2026</span>
+                      </div>
+                      <div className="text-white font-sans text-xs font-bold mt-1">
+                        Commercial Rebate Executed: -{currSym}{(2.93 * multiplier).toFixed(1)}/MT Freight Discount Captured!
+                      </div>
+                      <p className="text-[10.5px] text-emerald-200/90 font-sans leading-tight">
+                        Logistics Manager instructs broker: <strong>{activeShip ? activeShip.name : 'Vessel'}</strong> locks consecutive voyage charter for <strong>{route.exportCargo}</strong> ({route.destinationRegion}). Inbound coal freight reduced from {currSym}{(14.85 * multiplier).toFixed(1)} to {currSym}{(11.92 * multiplier).toFixed(1)}/MT. Net savings: <strong>{currSym}{(210000 * multiplier / (isINR ? 100000 : 1)).toFixed(2)} {isINR ? 'Lakhs' : 'USD'}</strong>.
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}
