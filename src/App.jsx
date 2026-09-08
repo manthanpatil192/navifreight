@@ -289,6 +289,7 @@ export default function App() {
               selectedDestination={selectedDestination}
               currency={currency}
               forecast={forecast}
+              terminalMetrics={terminalMetrics}
             />
           </div>
         )}

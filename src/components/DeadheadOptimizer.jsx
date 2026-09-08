@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, CloudRain, Waves } from 'lucide-react';
+import { RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, MapPin, Zap, TrendingUp, CloudRain, Waves, Terminal } from 'lucide-react';
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
 
-export default function DeadheadOptimizer({ selectedDestination, currency, forecast }) {
+export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null }) {
   const [selectedLivePort, setSelectedLivePort] = useState('paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('');
   const [matchedId, setMatchedId] = useState(null);
   
   const isINR = currency === 'INR';
   const multiplier = isINR ? 86.5 : 1;
+  const currSym = isINR ? '₹' : '$';
 
   // Filter vessels that are discharging at the selected port
   const dischargingVessels = LIVE_AIS_VESSELS.filter(
@@ -62,10 +63,44 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       </div>
 
       {/* Overview Explanation */}
-      <div className="bg-slate-50 border border-slate-200 rounded-md p-3.5 mb-4 text-xs text-slate-600 flex items-start space-x-3">
+      <div className="bg-slate-50 border border-slate-200 rounded-md p-3.5 mb-3 text-xs text-slate-600 flex items-start space-x-3">
         <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
         <div>
           <span className="font-bold text-slate-800">Tramp Return Voyage Intelligence:</span> Select a live discharging vessel below. Our engine instantly pairs it with outbound exports that fit its exact dimensions, elevating Round-Voyage Time Charter Equivalent (TCE) earnings before the ship even drops its lines.
+        </div>
+      </div>
+
+      {/* Web Terminal Directive Reference Bar */}
+      <div className="mb-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-700/80 rounded-md p-3 text-white text-xs shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-2 border-b border-slate-800/80 mb-2">
+          <div className="flex items-center space-x-2">
+            <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-mono text-[11px] font-bold text-slate-200 uppercase tracking-wider">
+              Web Terminal Directive Feed
+            </span>
+            <span className="bg-emerald-950 text-emerald-300 border border-emerald-700 text-[9px] font-mono px-2 py-0.5 rounded font-bold">
+              LIVE OUTPUT REF
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-3 font-mono text-[10px] sm:text-[11px] text-slate-300 overflow-x-auto">
+            <span>Spot: <strong className="text-emerald-400">{terminalMetrics?.spotUSD ? `${currSym}${(terminalMetrics.spotUSD * multiplier).toFixed(1)}` : `${currSym}${(14.85 * multiplier).toFixed(1)}`}</strong></span>
+            <span>•</span>
+            <span>P50: <strong className="text-amber-400">{terminalMetrics?.p50USD ? `${currSym}${(terminalMetrics.p50USD * multiplier).toFixed(1)}` : `${currSym}${(17.69 * multiplier).toFixed(1)}`}</strong></span>
+            <span>•</span>
+            <span>P10 Dip: <strong className="text-cyan-400">{terminalMetrics?.p10USD ? `${currSym}${(terminalMetrics.p10USD * multiplier).toFixed(1)}` : `${currSym}${(15.57 * multiplier).toFixed(1)}`}</strong></span>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono text-slate-300 gap-2">
+          <div className="flex items-center space-x-2 truncate">
+            <span className="text-emerald-400 font-bold shrink-0">▶ Terminal Output Ref:</span>
+            <span className="text-slate-200 truncate max-w-xl">
+              {terminalMetrics?.buyStrikeDirectiveText || '🟢 EXECUTE PRIMARY COA LAYCAN: Strike 3-Month COA tender at target rate for plant coal basestock.'}
+            </span>
+          </div>
+          <div className="shrink-0 text-right text-slate-400 text-[10px]">
+            Model Coverage: <span className="text-emerald-400 font-bold">89.9% Quantile</span>
+          </div>
         </div>
       </div>
 
