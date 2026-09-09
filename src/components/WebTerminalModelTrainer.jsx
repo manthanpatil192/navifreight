@@ -181,13 +181,13 @@ export default function WebTerminalModelTrainer({
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
-[8] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+[8] PSU STATUTORY TENDER & COA MASTER DIRECTIVE:
   * Tender Notice ID:    TDR-2026-HAY-PAR-CAPE
   * Scope & Contract:    150,000 MT Coking Coal | 3-Month Quarterly COA Master Tender
   * Target Laycan Dip:   Oct 12 – Oct 19, 2026 (~14.3d sea transit from Hay Point)
   * Publish Tender By:   Sep 21, 2026 (Mandatory 21-day statutory notice period)
-  * Indian Flag ROFR:    Low (~2.5% Domestic Fleet Share) -> Zero Delay (Direct Foreign L1 Award)
-  * Technical Spec:      Capesize (Gearless) | High-tide draft 16.0m limit at PPT Berth 03
+  * COA Architecture:    Master COA covers 70% basestock; shipments called off without 21d spot delays
+  * Tender Advisory:     Float 1 Master COA Tender instead of 3 repeated spot cycles
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
     }
@@ -749,13 +749,13 @@ export default function WebTerminalModelTrainer({
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------
-[8] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+[8] PSU STATUTORY TENDER & COA MASTER DIRECTIVE:
   * Tender Notice ID:    ${psuTenderPlan.tenderId}
   * Scope & Contract:    ${activeVolume.toLocaleString()} MT ${activeCargo} | ${psuTenderPlan.tenderContractType}
   * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d sea transit)
   * Publish Tender By:   ${psuTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Indian Flag ROFR:    ${psuTenderPlan.rofrLikelihoodBadge} (${psuTenderPlan.rofrWaitingImpact})
-  * Technical Clearance: ${psuTenderPlan.technicalDraftClause}
+  * COA Architecture:    ${psuTenderPlan.tenderLotDescription}
+  * Tender Advisory:     ${psuTenderPlan.tenderStrategyAdvice}
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`
         }
@@ -899,13 +899,13 @@ export default function WebTerminalModelTrainer({
   * Secondary Spot Sniping Window:   Oct 12 - Oct 19, 2026
   * Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Lighterage Required!)
 ----------------------------------------------------------------------
-[5] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+[5] PSU STATUTORY TENDER & COA MASTER DIRECTIVE:
   * Tender Notice ID:    ${test1TenderPlan.tenderId}
   * Scope & Contract:    150,000 MT Coking Coal | 3-Month Quarterly COA Master Tender
   * Target Laycan Dip:   ${test1TenderPlan.targetDipWindow} (~${test1TenderPlan.sailingDays}d sea transit)
   * Publish Tender By:   ${test1TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Indian Flag ROFR:    ${test1TenderPlan.rofrLikelihoodBadge} (${test1TenderPlan.rofrWaitingImpact})
-  * Technical Clearance: ${test1TenderPlan.technicalDraftClause}
+  * COA Architecture:    ${test1TenderPlan.tenderLotDescription}
+  * Tender Advisory:     ${test1TenderPlan.tenderStrategyAdvice}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart now displaying Baseline Normal Trajectory!`
       }
@@ -1066,13 +1066,13 @@ export default function WebTerminalModelTrainer({
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
   * Draft Clearance:                 [PASSED] Vessel draft 14.5m <= Port max 16.5m (Outer Harbour VGCB)
 ----------------------------------------------------------------------
-[7] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+[7] PSU STATUTORY TENDER & COA MASTER DIRECTIVE:
   * Tender Notice ID:    ${test2TenderPlan.tenderId}
   * Scope & Contract:    75,000 MT Coking Coal | Single-Voyage Spot E-Tender
   * Target Laycan Dip:   ${test2TenderPlan.targetDipWindow} (~${test2TenderPlan.sailingDays}d sea transit)
   * Publish Tender By:   ${test2TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Indian Flag ROFR:    ${test2TenderPlan.rofrLikelihoodBadge} (${test2TenderPlan.rofrWaitingImpact})
-  * Technical Clearance: ${test2TenderPlan.technicalDraftClause}
+  * COA Architecture:    ${test2TenderPlan.tenderLotDescription}
+  * Tender Advisory:     ${test2TenderPlan.tenderStrategyAdvice}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart dynamically spiked to $19.65/MT and widened P90 to $25.88/MT!`
       }
@@ -1206,13 +1206,13 @@ export default function WebTerminalModelTrainer({
   * Laycan Booking Window:     Sep 06 - Sep 13, 2026
   * Draft Clearance:           [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (KICT Tidal Window Required!)
 ----------------------------------------------------------------------
-[5] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+[5] PSU STATUTORY TENDER & COA MASTER DIRECTIVE:
   * Tender Notice ID:    ${test3TenderPlan.tenderId}
   * Scope & Contract:    180,000 MT Coking Coal | Bi-Annual 6-Month Master COA Program
   * Target Laycan Dip:   ${test3TenderPlan.targetDipWindow} (~${test3TenderPlan.sailingDays}d sea transit)
   * Publish Tender By:   ${test3TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Indian Flag ROFR:    ${test3TenderPlan.rofrLikelihoodBadge} (${test3TenderPlan.rofrWaitingImpact})
-  * Technical Clearance: ${test3TenderPlan.technicalDraftClause}
+  * COA Architecture:    ${test3TenderPlan.tenderLotDescription}
+  * Tender Advisory:     ${test3TenderPlan.tenderStrategyAdvice}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart shifted to $21.10/MT forward median and expanded P90 stress cone!`
       }
