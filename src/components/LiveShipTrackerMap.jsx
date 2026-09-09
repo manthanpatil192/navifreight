@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
   Ship, Radio, Compass, Anchor, Wind, ShieldAlert, CheckCircle2, 
   Play, Pause, RefreshCw, Filter, Layers, Navigation, ArrowUpRight, 
-  Clock, FileText, Search, Wifi, WifiOff, Key, X, Activity, Gauge, MapPin
+  Clock, FileText, Search, Wifi, WifiOff, Key, X, Activity, Gauge, MapPin,
+  Bell, BellRing, Volume2, VolumeX, Crosshair, AlertTriangle
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/liveAisVessels';
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
@@ -131,6 +132,90 @@ const PORT_CALL_LOGBOOK = [
   { id: 8, vessel: 'LNG CORAL ENERGY', type: 'LNG Carrier', port: 'Dhamra LNG Jetty', event: 'Fast Moored', time: '08:00 IST', status: 'Regasifying to Grid' }
 ];
 
+// Haversine distance in km between two lat/lon points
+const getHaversineDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+// Web Audio API Synthesizer: Two-Tone Naval Sonar Ping (Zero External File Dependencies)
+const playRadarChime = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(520, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    // AudioContext blocked before first user gesture
+  }
+};
+
+// Map Camera Controller for smooth flyTo animation
+function MapCameraController({ focusTarget }) {
+  const map = useMap();
+  useEffect(() => {
+    if (focusTarget && focusTarget.coords) {
+      map.flyTo(focusTarget.coords, focusTarget.zoom || 8, {
+        duration: 1.4,
+        easeLinearity: 0.25
+      });
+    }
+  }, [focusTarget, map]);
+  return null;
+}
+
+const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'init_1',
+    vesselName: 'MV OLYMPIC GLORY',
+    vesselType: 'Capesize',
+    mmsi: '563112000',
+    portName: 'Paradip Port Outer Anchorage',
+    portId: 'paradip',
+    time: '10:42 IST',
+    speedKnots: 12.4,
+    currentDraught: 17.8,
+    cargo: '165,000 MT Hard Coking Coal',
+    coordinates: [20.2500, 86.7500],
+    timestamp: new Date(Date.now() - 1000 * 60 * 12)
+  },
+  {
+    id: 'init_2',
+    vesselName: 'MV MAHA JACQUELINE',
+    vesselType: 'Capesize',
+    mmsi: '419001280',
+    portName: 'Gangavaram Port Approaches (GPL)',
+    portId: 'gangavaram',
+    time: '09:15 IST',
+    speedKnots: 10.5,
+    currentDraught: 18.2,
+    cargo: '160,000 MT Semi-Soft Coking Coal',
+    coordinates: [17.6100, 83.2900],
+    timestamp: new Date(Date.now() - 1000 * 60 * 35)
+  }
+];
+
 export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }) {
   const [vessels, setVessels] = useState(LIVE_AIS_VESSELS);
   const [selectedVessel, setSelectedVessel] = useState(LIVE_AIS_VESSELS[0]);
@@ -144,6 +229,22 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('esri'); // 'esri' or 'osm'
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
+
+  // Geofence Notification & Alert State
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [unreadCount, setUnreadCount] = useState(2);
+  const [activeToast, setActiveToast] = useState(null);
+  const [showNotificationDrawer, setShowNotificationDrawer] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [mapFocusTarget, setMapFocusTarget] = useState(null);
+
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  const vesselGeofenceStateRef = useRef(new Map());
+  const isInitialRef = useRef(true);
 
   // Real Live WebSocket State
   const [isWsConnecting, setIsWsConnecting] = useState(false);
@@ -346,6 +447,129 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
     }
   }, [vessels]);
 
+  // Auto-dismiss floating toast notification after 7 seconds
+  useEffect(() => {
+    if (activeToast) {
+      const timer = setTimeout(() => {
+        setActiveToast(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeToast]);
+
+  // Geofence entry crossing detection engine
+  const checkGeofenceCrossings = (currentVessels) => {
+    const stateMap = vesselGeofenceStateRef.current;
+    const newAlerts = [];
+
+    if (isInitialRef.current) {
+      currentVessels.forEach(v => {
+        PORT_GEOFENCES.forEach(geo => {
+          const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
+          stateMap.set(`${v.mmsi}_${geo.id}`, dist <= geo.radiusKm);
+        });
+      });
+      isInitialRef.current = false;
+      return;
+    }
+
+    currentVessels.forEach(v => {
+      if (v.status && (v.status.includes('Berth') || v.status.includes('Moored'))) return;
+
+      PORT_GEOFENCES.forEach(geo => {
+        const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
+        const isInside = dist <= geo.radiusKm;
+        const key = `${v.mmsi}_${geo.id}`;
+        const wasInside = stateMap.get(key);
+
+        if (isInside && wasInside === false) {
+          const alertObj = {
+            id: `${v.mmsi}_${geo.id}_${Date.now()}`,
+            vesselName: v.name,
+            vesselType: v.vesselType,
+            mmsi: v.mmsi,
+            portName: geo.name,
+            portId: geo.id.replace('_zone', ''),
+            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+            speedKnots: v.speedKnots,
+            currentDraught: v.currentDraughtMeters,
+            cargo: v.cargo,
+            coordinates: v.coordinates,
+            timestamp: new Date()
+          };
+          newAlerts.push(alertObj);
+        }
+
+        stateMap.set(key, isInside);
+      });
+    });
+
+    if (newAlerts.length > 0) {
+      setNotifications(prev => [...newAlerts, ...prev].slice(0, 30));
+      setUnreadCount(prev => prev + newAlerts.length);
+      setActiveToast(newAlerts[0]);
+      if (soundEnabledRef.current) {
+        playRadarChime();
+      }
+    }
+  };
+
+  // Run crossing check whenever vessels move
+  useEffect(() => {
+    if (vessels && vessels.length > 0) {
+      checkGeofenceCrossings(vessels);
+    }
+  }, [vessels]);
+
+  const handleFocusVessel = (alertOrVessel) => {
+    if (!alertOrVessel || !alertOrVessel.coordinates) return;
+    setMapFocusTarget({
+      coords: alertOrVessel.coordinates,
+      zoom: 9,
+      timestamp: Date.now()
+    });
+
+    const match = vessels.find(v => v.mmsi === alertOrVessel.mmsi);
+    if (match) {
+      setSelectedVessel(match);
+    }
+    setActiveToast(null);
+  };
+
+  const handleSimulateEntryAlert = () => {
+    const sample = vessels.find(v => v.speedKnots > 8 && !v.status.includes('Berth')) || vessels[1];
+    const targetPort = PORT_GEOFENCES.find(g => g.id.includes(sample.destinationId)) || PORT_GEOFENCES[0];
+
+    const alertCoords = [
+      Number((targetPort.center[0] + 0.035).toFixed(4)),
+      Number((targetPort.center[1] + 0.035).toFixed(4))
+    ];
+
+    const alertObj = {
+      id: `sim_${Date.now()}`,
+      vesselName: sample.name,
+      vesselType: sample.vesselType,
+      mmsi: sample.mmsi,
+      portName: targetPort.name,
+      portId: targetPort.id.replace('_zone', ''),
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+      speedKnots: sample.speedKnots || 11.8,
+      currentDraught: sample.currentDraughtMeters || 16.8,
+      cargo: sample.cargo,
+      coordinates: alertCoords,
+      timestamp: new Date()
+    };
+
+    setVessels(prev => prev.map(v => v.mmsi === sample.mmsi ? { ...v, coordinates: alertCoords, status: 'Entering Outer Anchorage' } : v));
+    setSelectedVessel({ ...sample, coordinates: alertCoords, status: 'Entering Outer Anchorage' });
+    setNotifications(prev => [alertObj, ...prev]);
+    setUnreadCount(prev => prev + 1);
+    setActiveToast(alertObj);
+    if (soundEnabledRef.current) {
+      playRadarChime();
+    }
+  };
+
   // Dynamic filter and search computation
   const filteredVessels = useMemo(() => {
     return vessels.filter(v => {
@@ -509,6 +733,130 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
           >
             {mapTheme === 'esri' ? '🗺️ OSM' : '🏙️ Light Gray'}
           </button>
+
+          {/* Notification Controls: Bell, Audio Mute, Demo Trigger */}
+          <div className="relative flex items-center">
+            <button
+              onClick={() => {
+                setShowNotificationDrawer(!showNotificationDrawer);
+                setUnreadCount(0);
+              }}
+              className={`flex items-center space-x-1.5 px-2.5 py-1 border rounded text-xs font-semibold transition-all relative ${
+                showNotificationDrawer 
+                  ? 'bg-maritime-900 text-white border-maritime-900 shadow-sm' 
+                  : unreadCount > 0 
+                  ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse' 
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+              }`}
+              title="Geofence Entry Notifications"
+            >
+              {unreadCount > 0 ? (
+                <BellRing className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
+              ) : (
+                <Bell className="w-3.5 h-3.5 text-slate-600" />
+              )}
+              <span>Alerts</span>
+              {unreadCount > 0 && (
+                <span className="ml-0.5 px-1.5 py-0.2 bg-rose-600 text-white text-[10px] font-extrabold rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Sound Mute/Unmute */}
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={`p-1 border rounded text-xs transition-colors ml-1 ${
+                soundEnabled 
+                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
+                  : 'bg-rose-50 text-rose-500 border-rose-200'
+              }`}
+              title={soundEnabled ? 'Mute Sonar Alert Chime' : 'Enable Sonar Alert Chime'}
+            >
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Demo Simulation Trigger */}
+            <button
+              onClick={handleSimulateEntryAlert}
+              className="flex items-center space-x-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold ml-1 transition-colors"
+              title="Simulate incoming vessel crossing into geofence"
+            >
+              <span>⚡ Demo Alert</span>
+            </button>
+
+            {/* Notifications Dropdown Popover */}
+            {showNotificationDrawer && (
+              <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl z-[1200] p-3 text-xs animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
+                  <div className="flex items-center space-x-1.5">
+                    <Bell className="w-3.5 h-3.5 text-maritime-700" />
+                    <span className="font-bold text-slate-900">Geofence Entry Logbook</span>
+                    <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-1.5 py-0.5 rounded">
+                      {notifications.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={() => setNotifications([])}
+                        className="text-[10px] text-slate-400 hover:text-rose-600 font-semibold"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNotificationDrawer(false)}
+                      className="text-slate-400 hover:text-slate-700"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-slate-400 text-xs">
+                      No recent geofence breaches detected.
+                    </div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div 
+                        key={notif.id}
+                        className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-slate-100/80 transition-colors flex items-start justify-between gap-2"
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span className="font-bold text-slate-900 text-xs truncate max-w-[160px]">{notif.vesselName}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-600 font-medium">
+                            Entered: <b className="text-maritime-800">{notif.portName}</b>
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate max-w-[210px]">
+                            {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            handleFocusVessel(notif);
+                            setShowNotificationDrawer(false);
+                          }}
+                          className="px-2 py-1 bg-white hover:bg-maritime-50 text-maritime-800 border border-slate-200 rounded text-[10px] font-bold shrink-0 flex items-center space-x-0.5 shadow-xs cursor-pointer"
+                          title="Center on Map"
+                        >
+                          <Crosshair className="w-3 h-3" />
+                          <span>Locate</span>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -629,6 +977,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
           >
+            <MapCameraController focusTarget={mapFocusTarget} />
+
             {/* Tile Layer */}
             {mapTheme === 'esri' ? (
               <TileLayer
@@ -755,6 +1105,63 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
               );
             })}
           </MapContainer>
+
+          {/* Floating Geofence Entry Toast Notification */}
+          {activeToast && (
+            <div className="absolute top-3 right-3 z-[1050] max-w-xs sm:max-w-sm w-full bg-slate-900/95 text-white border border-emerald-500/50 rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-3 duration-300">
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center space-x-1.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">
+                    Geofence Entry Alert
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[10px] font-mono text-slate-400">{activeToast.time}</span>
+                  <button 
+                    onClick={() => setActiveToast(null)}
+                    className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-0.5 mb-2">
+                <div className="text-xs font-bold text-slate-100 flex items-center justify-between">
+                  <span className="truncate">{activeToast.vesselName}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-semibold border border-emerald-700/50 shrink-0 ml-1">
+                    {activeToast.vesselType}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-300">
+                  Entered <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
+                </div>
+                <div className="text-[10px] text-slate-400 truncate">
+                  Speed: {activeToast.speedKnots} kts • Draft: {activeToast.currentDraught}m • {activeToast.cargo}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-1.5 border-t border-slate-800 text-[11px]">
+                <button
+                  onClick={() => setActiveToast(null)}
+                  className="px-2 py-0.5 text-slate-400 hover:text-slate-200 text-[10px] font-medium cursor-pointer"
+                >
+                  Dismiss
+                </button>
+                <button
+                  onClick={() => handleFocusVessel(activeToast)}
+                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-[10px] flex items-center space-x-1 transition-all shadow-xs cursor-pointer"
+                >
+                  <Crosshair className="w-3 h-3" />
+                  <span>Focus Map</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Map Overlay Legend */}
           <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-xs p-2.5 rounded-md border border-slate-300 shadow-sm text-[10px] space-y-1">
