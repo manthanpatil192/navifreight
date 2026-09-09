@@ -155,25 +155,7 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 
 ----------------------------------------------------------------------
-[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
-  * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
-    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,227,500  (₹19.27 Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
-  * Net Direct Savings:      $370,500  (INR 3.20 Crore)
-    ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:      2.5 Days Wait ($62,500 / INR 54.0 Lakhs)
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-
-----------------------------------------------------------------------
-[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
-  * Port Alert Badge: 🟢 GREEN ALERT (Low Operational Risk)
-  * Port Queue Data:  6 Ships at outer anchorage (2.5d avg queue)
-  * Traffic Risk:     Traffic Risk Score 45/100 | Composite Risk Score 35/100
-  * Congestion Advice:🟢 GREEN ALERT (EXPRESS BERTHING & DISPATCH REWARD): Fast turnaround port with minimal queue (2.5d wait) and 24/7 deepwater pilotage.
-
-----------------------------------------------------------------------
-[7] OPERATIONAL TIMING & VESSEL FIT:
+[5] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
     ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
   * Forward Dip Laycan (Tendered Sep 21):   Oct 12 – Oct 19, 2026
@@ -181,7 +163,7 @@ export default function WebTerminalModelTrainer({
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
-[8] PSU STATUTORY TENDER & BOOKING TIMELINE:
+[6] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    TDR-2026-HAY-PAR-CAPE
   * Tender Scope:        150,000 MT Coking Coal (+/- 10% MOLOO)
   * Target Laycan Dip:   Oct 12 – Oct 19, 2026 (~14.3d sea transit from Hay Point)
@@ -723,26 +705,7 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 
 ----------------------------------------------------------------------
-[5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
-  * Unhedged 100% Spot Cost: $${(activeVolume * estP90).toLocaleString()}  (₹${((activeVolume * estP90 * 86.5) / 10000000).toFixed(2)} Crore)
-    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $${(activeVolume * (estSpot * 0.3 + coaFixed * 0.7)).toLocaleString()}  (₹${((activeVolume * (estSpot * 0.3 + coaFixed * 0.7) * 86.5) / 10000000).toFixed(2)} Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
-  * Net Direct Savings:      $${((activeVolume * estP90) - (activeVolume * (estSpot * 0.3 + coaFixed * 0.7))).toLocaleString()}  (INR ${(((activeVolume * estP90) - (activeVolume * (estSpot * 0.3 + coaFixed * 0.7))) * 86.5 / 10000000).toFixed(2)} Crore)
-    ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:      ${portCongestionData.avgAnchorageWaitDays} Days Wait ($${demurrageExposureUSD.toLocaleString()} / INR ${demurrageExposureINR_Lakhs} Lakhs)
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-
-----------------------------------------------------------------------
-[6] PORT CONGESTION & SATELLITE RADAR:
-  * Destination Port: ${destObj.name}
-  * Port Alert Badge: ${compositeAlertBadge}
-  * Port Queue Data:  ${portCongestionData.vesselsAtAnchor} Ships at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
-  * Traffic Risk:     Traffic Risk Score ${congestionRiskScore}/100 | Composite Risk Score ${compositeRiskScore}/100
-  * Congestion Advice:${congestionDecisionDirective}
-
-----------------------------------------------------------------------
-[7] OPERATIONAL TIMING & VESSEL FIT:
+[5] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
     ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
   * Forward Dip Laycan (Tendered Sep 21):   ${primaryWaitDate}
@@ -750,7 +713,7 @@ export default function WebTerminalModelTrainer({
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------
-[8] PSU STATUTORY TENDER & BOOKING TIMELINE:
+[6] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${psuTenderPlan.tenderId}
   * Tender Scope:        ${activeVolume.toLocaleString()} MT ${activeCargo} (+/- 10% MOLOO)
   * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d sea transit)
@@ -885,22 +848,12 @@ export default function WebTerminalModelTrainer({
   * Blended Rate:     $14.85 /MT  (₹1,285 /MT)  (Saves $2.47/MT vs Spot)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost: $2,598,000  (₹22.47 Crore)
-    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,227,500  (₹19.27 Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
-  * Net Freight Cost Savings:  $370,500  (INR 3.20 Crore)
-    ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:        2.5 Days Wait ($62,500 / INR 0.54 Cr)
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-----------------------------------------------------------------------
-[4] OPERATIONAL TIMING & VESSEL FIT:
-  * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
-  * Secondary Spot Sniping Window:   Oct 12 - Oct 19, 2026
+[3] OPERATIONAL TIMING & VESSEL FIT:
+  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
+  * Forward Dip Laycan (Tendered Sep 21):   Oct 12 - Oct 19, 2026
   * Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Lighterage Required!)
 ----------------------------------------------------------------------
-[5] PSU STATUTORY TENDER & BOOKING TIMELINE:
+[4] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${test1TenderPlan.tenderId}
   * Tender Scope:        150,000 MT Coking Coal (+/- 10% MOLOO)
   * Target Laycan Dip:   ${test1TenderPlan.targetDipWindow} (~${test1TenderPlan.sailingDays}d sea transit)
@@ -1053,21 +1006,11 @@ export default function WebTerminalModelTrainer({
   * Blended Rate:     $15.29 /MT  (₹1,325 /MT)  (Saves $4.36/MT vs Spot P50)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
-[5] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost: $1,473,750  (₹12.77 Crore)
-    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $1,146,750  (₹9.94 Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart 85-15 allocation]
-  * Net Freight Cost Savings:  $327,000  (INR 2.83 Crore)
-    ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:        7.5 Days Wait ($165,000 / INR 1.43 Cr)
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-----------------------------------------------------------------------
-[6] OPERATIONAL TIMING & VESSEL FIT:
-  * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
+[5] OPERATIONAL TIMING & VESSEL FIT:
+  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
   * Draft Clearance:                 [PASSED] Vessel draft 14.5m <= Port max 16.5m (Outer Harbour VGCB)
 ----------------------------------------------------------------------
-[7] PSU STATUTORY TENDER & BOOKING TIMELINE:
+[6] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${test2TenderPlan.tenderId}
   * Tender Scope:        75,000 MT Coking Coal (+/- 10% MOLOO)
   * Target Laycan Dip:   ${test2TenderPlan.targetDipWindow} (~${test2TenderPlan.sailingDays}d sea transit)
@@ -1193,21 +1136,11 @@ export default function WebTerminalModelTrainer({
   * Blended Rate:     $14.04 /MT  (₹1,214 /MT)  (Saves $7.06/MT vs Spot P50)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
-[3] FINANCIAL IMPACT & RISK AVOIDANCE:
-  * Unhedged 100% Spot Cost: $3,798,000  (₹32.85 Crore)
-    ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $2,527,200  (₹21.86 Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart 80-20 allocation]
-  * Net Freight Cost Savings:  $1,270,800  (INR 10.99 Crore)
-    ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:        4.0 Days Wait ($100,000 / INR 0.86 Cr)
-    ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
-----------------------------------------------------------------------
-[4] OPERATIONAL TIMING & VESSEL FIT:
-  * Laycan Booking Window:     Sep 06 - Sep 13, 2026
+[3] OPERATIONAL TIMING & VESSEL FIT:
+  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
   * Draft Clearance:           [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (KICT Tidal Window Required!)
 ----------------------------------------------------------------------
-[5] PSU STATUTORY TENDER & BOOKING TIMELINE:
+[4] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${test3TenderPlan.tenderId}
   * Scope:               180,000 MT Coking Coal (+/- 10% MOLOO)
   * Target Laycan Dip:   ${test3TenderPlan.targetDipWindow} (~${test3TenderPlan.sailingDays}d sea transit)
