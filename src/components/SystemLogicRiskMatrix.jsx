@@ -498,7 +498,7 @@ export default function SystemLogicRiskMatrix({
             Part D Global Layer: IMF PortWatch + Automated Port Call Logbook Technique
           </span>
           <p className="text-slate-600 leading-relaxed">
-            By drawing invisible digital geofence circles around Indian port borders and synchronizing with <strong>IMF PortWatch satellite port call data</strong>, our engine provides the same predictive scheduling precision that <strong>Amazon and Walmart</strong> use for container shipping. Logistics managers know the precise minute coal hits the dock, allowing instant coordination of Indian Railways rakes and dumpers—completely eliminating ₹60–80 Lakhs/day demurrage penalties for free.
+            By drawing digital geofence circles around Indian port approaches and synchronizing with <strong>IMF PortWatch satellite port call data</strong>, our engine provides real-time visibility into outer anchorage queues, pilot boarding, and berth clearance. Logistics managers gain precise vessel arrival milestones to prepare handling equipment and stockyard allocations ahead of time—mitigating ₹60–80 Lakhs/day demurrage penalties.
           </p>
         </div>
       </div>

@@ -435,7 +435,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
                 subtitle="High-Density AIS Fleet + IMF PortWatch Satellite Integration"
                 dataset="AISStream.io WebSockets + Local Port Daily Traffic Reports + IMF PortWatch"
                 logic="Draws digital geofence circles around port approaches to automatically track vessel check-in, anchor stay duration, and check-out times. Cross-references live transponder telemetry across bulkers, tankers, and feeders to prevent demurrage bottlenecks."
-                impact="Eliminates vessel idle time, tracks demurrage penalties in real time, and alerts logistics teams to coordinate rail rakes before the ship touches the berth."
+                impact="Eliminates vessel idle time, tracks demurrage penalties in real time, and provides logistics managers with arrival milestones to prepare berth readiness and stockyard space."
               />
             </h2>
           </div>
@@ -524,18 +524,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
           {PORT_GEOFENCES.map(geo => (
             <div 
               key={geo.id}
               onClick={() => {
-                const portKey = geo.id.replace('_zone', '').split('_')[0];
+                const portKey = geo.id.replace('_zone', '');
                 if (onSelectPort) onSelectPort(portKey);
               }}
               className="bg-white p-2 rounded border border-slate-200 hover:border-maritime-400 cursor-pointer transition-all hover:shadow-xs"
             >
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
-                <span className="truncate">{geo.name.split(' ')[0]}</span>
+                <span className="truncate">{geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]}</span>
                 <span className={`w-2 h-2 rounded-full ${
                   geo.status === 'MODERATE_TRAFFIC' ? 'bg-amber-500' :
                   geo.status === 'TRANSSHIPMENT_ACTIVE' ? 'bg-blue-500' :
@@ -839,8 +839,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
               </div>
 
               <div className="bg-emerald-50 border border-emerald-200 rounded p-2.5 text-[10px] text-emerald-900">
-                <span className="font-bold block mb-0.5">Amazon/Walmart-Grade Dispatch:</span>
-                Coordinates inland railway rakes & dumpers the exact minute cargo clears the berth unloader.
+                <span className="font-bold block mb-0.5">Automated Port Turnaround Readiness:</span>
+                Monitors outer anchorage queues, pilot boarding status, and berth availability so logistics managers have real-time visibility into vessel arrival milestones.
               </div>
             </div>
           ) : selectedVessel ? (
