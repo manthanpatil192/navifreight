@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
+import { buildPsuTenderPlan } from '../utils/psuTenderEngine';
 
 export default function CharterTimingDecisionMatrix({
   selectedOrigin = 'hay_point',
@@ -147,9 +148,18 @@ export default function CharterTimingDecisionMatrix({
   const refSpotTotalUSD = refSpotUSD * activeVolume;
   const refSpotTotalINR_Cr = (refSpotTotalUSD * 87.58) / 10000000;
 
+  // Dynamic PSU Tender Plan coupled with Web Terminal and selected route/vessel
+  const activeTenderPlan = terminalMetrics?.psuTenderPlan || buildPsuTenderPlan({
+    originId: selectedOrigin,
+    destinationId: selectedDestination,
+    vesselKey: selectedVessel,
+    volumeMT: activeVolume,
+    horizonMonths: contractHorizonMonths
+  });
+
   // Calendar dates relative to current simulation date (September 2026 baseline)
   const promptLaycanWindowDate = 'Sep 08 – Sep 15, 2026'; // Prompt September Execution Window
-  const forwardDipWindowDate = 'Oct 12 – Oct 19, 2026'; // Forward P10 Dip Valley (~38 days ahead)
+  const forwardDipWindowDate = activeTenderPlan.targetDipWindow; // Dynamic Dip Valley coupled to route transit
   const blackoutWindowDate = 'Nov 01 – Nov 18, 2026'; // Seasonal Pre-Winter Volatility Spike
 
   return (
@@ -414,14 +424,19 @@ export default function CharterTimingDecisionMatrix({
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <span>PSU Tender Lead Time & ROFR Planning</span>
                 <span className="text-[10px] normal-case font-medium text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
-                  Statutory 3-Week (21-Day) Tender Cycle
+                  Coupled to {activeTenderPlan.routeTitle}
                 </span>
               </h3>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-            Target Laycan: {forwardDipWindowDate}
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+              Ref: {activeTenderPlan.tenderId}
+            </span>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+              Target Laycan: {activeTenderPlan.targetDipWindow}
+            </span>
+          </div>
         </div>
 
         {/* 3 Simple, Practical Insights Grid */}
@@ -433,7 +448,7 @@ export default function CharterTimingDecisionMatrix({
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-blue-600" />
-                  3-Week Tender Lead Time
+                  3-Week Statutory Lead Time
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
                   21 Days Notice
@@ -444,17 +459,21 @@ export default function CharterTimingDecisionMatrix({
               </p>
               <div className="mt-2.5 p-2 rounded bg-slate-50 border border-slate-100 space-y-1 font-mono text-[10.5px]">
                 <div className="flex justify-between text-slate-500">
-                  <span>Target Low Window:</span>
-                  <span className="font-bold text-slate-700">Oct 12 – Oct 19</span>
+                  <span>Sea Transit ({activeTenderPlan.distanceNM.toLocaleString()} NM):</span>
+                  <span className="font-bold text-slate-700">~{activeTenderPlan.sailingDays} Days</span>
                 </div>
-                <div className="flex justify-between text-blue-700 font-semibold">
+                <div className="flex justify-between text-slate-500">
+                  <span>Target Dip Laycan:</span>
+                  <span className="font-bold text-slate-700">{activeTenderPlan.targetDipWindow}</span>
+                </div>
+                <div className="flex justify-between text-blue-700 font-semibold border-t border-slate-200/60 pt-1 mt-1">
                   <span>Issue Tender Notice By:</span>
-                  <span className="font-bold text-blue-800">Sep 21, 2026</span>
+                  <span className="font-bold text-blue-800">{activeTenderPlan.tenderPublishDeadline}</span>
                 </div>
               </div>
             </div>
             <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
-              ↳ Insight: Publish 3 weeks early so bids open right as the market reaches the low.
+              ↳ Insight: Notice issued 21 days early ensures bids open right as the market reaches the low.
             </div>
           </div>
 
@@ -467,41 +486,42 @@ export default function CharterTimingDecisionMatrix({
                   Indian Flag ROFR Likelihood
                 </span>
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                  selectedVessel === 'capesize' 
+                  activeTenderPlan.rofrSharePercent <= 10
                     ? 'bg-slate-100 text-slate-700 border-slate-200' 
-                    : selectedVessel === 'panamax' || selectedVessel === 'post_panamax'
+                    : activeTenderPlan.rofrSharePercent <= 40
                     ? 'bg-amber-50 text-amber-800 border-amber-200'
                     : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                 }`}>
-                  {selectedVessel === 'capesize' ? 'Low (~2.5%)' : selectedVessel === 'panamax' || selectedVessel === 'post_panamax' ? 'Moderate (~28%)' : 'High (~68%)'}
+                  {activeTenderPlan.rofrLikelihoodBadge}
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                {selectedVessel === 'capesize' 
-                  ? 'Indian-flagged Capesize availability is ~2.5%. ROFR matching is rare; tender award will almost certainly go to foreign L1 bidder.' 
-                  : selectedVessel === 'panamax' || selectedVessel === 'post_panamax'
-                  ? 'Indian-flagged Panamax fleet availability is ~28%. Allow standard 3–5 working days for domestic ROFR matching evaluation.'
-                  : 'Indian-flagged Supramax availability is ~68%. High probability of domestic owners exercising ROFR to match foreign L1.'}
+                {activeTenderPlan.rofrDirective}
               </p>
               <div className="mt-2.5 p-2 rounded bg-slate-50 border border-slate-100 space-y-1 text-[10.5px]">
                 <div className="flex justify-between text-slate-500">
                   <span>Selected Vessel:</span>
-                  <span className="font-bold text-slate-700">{vesselObj.name}</span>
+                  <span className="font-bold text-slate-700">{activeTenderPlan.vesselName} ({activeTenderPlan.rofrSharePercent}% Domestic Share)</span>
                 </div>
                 <div className="flex justify-between text-slate-500">
-                  <span>ROFR Waiting Impact:</span>
+                  <span>ROFR Tender Impact:</span>
                   <span className="font-bold text-slate-700">
-                    {selectedVessel === 'capesize' ? 'Zero Delay (Award Foreign L1)' : '3–5 Days Matching Window'}
+                    {activeTenderPlan.rofrWaitingImpact}
                   </span>
                 </div>
+                {activeTenderPlan.technicalDraftClause && (
+                  <div className="text-[10px] text-slate-600 border-t border-slate-200/60 pt-1 mt-1 leading-tight">
+                    {activeTenderPlan.technicalDraftClause}
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
-              ↳ Insight: Plan vessel chartering timeline based on domestic fleet availability.
+              ↳ Insight: Evaluates domestic tonnage availability to prevent unbudgeted fixture delays.
             </div>
           </div>
 
-          {/* Card 3: Master Multi-Voyage Contract Recommendation */}
+          {/* Card 3: Dynamic Contract Architecture Recommendation */}
           <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
             <div>
               <div className="flex items-center justify-between mb-1.5">
@@ -510,24 +530,24 @@ export default function CharterTimingDecisionMatrix({
                   Contract Strategy Recommendation
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                  Recommended
+                  {activeTenderPlan.tenderTag}
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                Floating 12 single-voyage spot tenders a year incurs repeated 3-week tendering delays and spot market volatility exposure.
+                {activeTenderPlan.tenderStrategyAdvice}
               </p>
               <div className="mt-2.5 p-2 rounded bg-emerald-50/60 border border-emerald-200 space-y-1 text-[10.5px] text-emerald-900 font-medium">
                 <div className="flex items-center gap-1 font-bold">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>Issue 1 Master COA Tender / 6 Months</span>
+                  <span>{activeTenderPlan.tenderContractType}</span>
                 </div>
                 <p className="text-[10px] text-slate-600 leading-tight">
-                  Covers core basestock with flexible laycans, bypassing repeated 3-week tendering cycles.
+                  {activeTenderPlan.tenderLotDescription}
                 </p>
               </div>
             </div>
             <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
-              ↳ Insight: 1 master tender preserves statutory compliance while locking wholesale rates.
+              ↳ Insight: Tender architecture dynamically tailored to {contractHorizonMonths}-month procurement program.
             </div>
           </div>
 

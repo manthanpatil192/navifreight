@@ -230,6 +230,7 @@ export default function App() {
               onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
               currency={currency}
               terminalMetrics={terminalMetrics}
+              forecast={forecast}
             />
 
             {/* 3. THIRD (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}

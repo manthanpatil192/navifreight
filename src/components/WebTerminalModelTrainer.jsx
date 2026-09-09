@@ -13,6 +13,7 @@ import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 import { fetchLiveOriginWeather, evaluateAlternateOriginPort } from '../services/originWeatherService';
 import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
+import { buildPsuTenderPlan } from '../utils/psuTenderEngine';
 
 export default function WebTerminalModelTrainer({ 
   onRunScenario, 
@@ -178,6 +179,15 @@ export default function WebTerminalModelTrainer({
   * Secondary Spot Sniping (Forward Dip): Oct 12 – Oct 19, 2026
     ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
+
+----------------------------------------------------------------------
+[8] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+  * Tender Notice ID:    TDR-2026-HAY-PAR-CAPE
+  * Scope & Contract:    150,000 MT Coking Coal | 3-Month Quarterly COA Master Tender
+  * Target Laycan Dip:   Oct 12 – Oct 19, 2026 (~14.3d sea transit from Hay Point)
+  * Publish Tender By:   Sep 21, 2026 (Mandatory 21-day statutory notice period)
+  * Indian Flag ROFR:    Low (~2.5% Domestic Fleet Share) -> Zero Delay (Direct Foreign L1 Award)
+  * Technical Spec:      Capesize (Gearless) | High-tide draft 16.0m limit at PPT Berth 03
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
     }
@@ -554,6 +564,18 @@ export default function WebTerminalModelTrainer({
       const buyStrikeDirectiveText = primaryProcurementDirective;
       const holdWaitDirectiveText = secondarySpotHedgingDirective;
 
+      // Dynamic PSU Tender Plan coupled with route and vessel specs
+      const psuTenderPlan = buildPsuTenderPlan({
+        originId: activeOrigin,
+        destinationId: activeDest,
+        vesselKey: recommendedVesselKey,
+        volumeMT: activeVolume,
+        horizonMonths: activeHorizon,
+        cargoType: activeCargo,
+        originWeather,
+        destWeather
+      });
+
       const terminalMetricsPayload = {
         spotUSD: baseRate,
         spotINR: spotRateINR,
@@ -598,6 +620,7 @@ export default function WebTerminalModelTrainer({
           demurrageINR_Lakhs: (destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1),
           demurrageUSD: Math.round(destDelayDays * canonicalDemurrageDailyUSD)
         },
+        psuTenderPlan,
         isExtremeDemand,
         buyStrikeDirectiveText,
         holdWaitDirectiveText,
@@ -724,8 +747,17 @@ export default function WebTerminalModelTrainer({
   * Secondary Spot Sniping (Forward Dip): ${primaryWaitDate}
     ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
   * Berth Draft Clearance:                 ${draftClearanceText}
+
+----------------------------------------------------------------------
+[8] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+  * Tender Notice ID:    ${psuTenderPlan.tenderId}
+  * Scope & Contract:    ${activeVolume.toLocaleString()} MT ${activeCargo} | ${psuTenderPlan.tenderContractType}
+  * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d sea transit)
+  * Publish Tender By:   ${psuTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
+  * Indian Flag ROFR:    ${psuTenderPlan.rofrLikelihoodBadge} (${psuTenderPlan.rofrWaitingImpact})
+  * Technical Clearance: ${psuTenderPlan.technicalDraftClause}
 ======================================================================
-[APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and Part 4 comparison cards!`
+[APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`
         }
       ]);
     } catch (err) {
@@ -797,6 +829,16 @@ export default function WebTerminalModelTrainer({
       source: 'test1'
     };
 
+    const test1TenderPlan = buildPsuTenderPlan({
+      originId: 'hay_point',
+      destinationId: 'paradip',
+      vesselKey: 'capesize',
+      volumeMT: 150000,
+      horizonMonths: 3,
+      cargoType: 'Coking Coal'
+    });
+    terminalMetricsPayload.psuTenderPlan = test1TenderPlan;
+
     onRunScenario({
       origin: 'hay_point',
       destination: 'paradip',
@@ -856,6 +898,14 @@ export default function WebTerminalModelTrainer({
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
   * Secondary Spot Sniping Window:   Oct 12 - Oct 19, 2026
   * Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Lighterage Required!)
+----------------------------------------------------------------------
+[5] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+  * Tender Notice ID:    ${test1TenderPlan.tenderId}
+  * Scope & Contract:    150,000 MT Coking Coal | 3-Month Quarterly COA Master Tender
+  * Target Laycan Dip:   ${test1TenderPlan.targetDipWindow} (~${test1TenderPlan.sailingDays}d sea transit)
+  * Publish Tender By:   ${test1TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
+  * Indian Flag ROFR:    ${test1TenderPlan.rofrLikelihoodBadge} (${test1TenderPlan.rofrWaitingImpact})
+  * Technical Clearance: ${test1TenderPlan.technicalDraftClause}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart now displaying Baseline Normal Trajectory!`
       }
@@ -924,6 +974,16 @@ export default function WebTerminalModelTrainer({
       bothWeatherProper: false,
       source: 'test2'
     };
+
+    const test2TenderPlan = buildPsuTenderPlan({
+      originId: 'gladstone',
+      destinationId: 'vizag',
+      vesselKey: 'panamax',
+      volumeMT: 75000,
+      horizonMonths: 1,
+      cargoType: 'Coking Coal'
+    });
+    terminalMetricsPayload.psuTenderPlan = test2TenderPlan;
 
     onRunScenario({
       origin: 'gladstone',
@@ -1005,6 +1065,14 @@ export default function WebTerminalModelTrainer({
 [6] OPERATIONAL TIMING & VESSEL FIT:
   * Primary COA Laycan Window:       Sep 06 - Sep 13, 2026
   * Draft Clearance:                 [PASSED] Vessel draft 14.5m <= Port max 16.5m (Outer Harbour VGCB)
+----------------------------------------------------------------------
+[7] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+  * Tender Notice ID:    ${test2TenderPlan.tenderId}
+  * Scope & Contract:    75,000 MT Coking Coal | Single-Voyage Spot E-Tender
+  * Target Laycan Dip:   ${test2TenderPlan.targetDipWindow} (~${test2TenderPlan.sailingDays}d sea transit)
+  * Publish Tender By:   ${test2TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
+  * Indian Flag ROFR:    ${test2TenderPlan.rofrLikelihoodBadge} (${test2TenderPlan.rofrWaitingImpact})
+  * Technical Clearance: ${test2TenderPlan.technicalDraftClause}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart dynamically spiked to $19.65/MT and widened P90 to $25.88/MT!`
       }
@@ -1069,6 +1137,16 @@ export default function WebTerminalModelTrainer({
       source: 'test3'
     };
 
+    const test3TenderPlan = buildPsuTenderPlan({
+      originId: 'richards_bay',
+      destinationId: 'paradip',
+      vesselKey: 'capesize',
+      volumeMT: 180000,
+      horizonMonths: 6,
+      cargoType: 'Coking Coal'
+    });
+    terminalMetricsPayload.psuTenderPlan = test3TenderPlan;
+
     onRunScenario({
       origin: 'richards_bay',
       destination: 'paradip',
@@ -1127,6 +1205,14 @@ export default function WebTerminalModelTrainer({
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Laycan Booking Window:     Sep 06 - Sep 13, 2026
   * Draft Clearance:           [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (KICT Tidal Window Required!)
+----------------------------------------------------------------------
+[5] PSU STATUTORY TENDER PLANNING & ROFR DIRECTIVE:
+  * Tender Notice ID:    ${test3TenderPlan.tenderId}
+  * Scope & Contract:    180,000 MT Coking Coal | Bi-Annual 6-Month Master COA Program
+  * Target Laycan Dip:   ${test3TenderPlan.targetDipWindow} (~${test3TenderPlan.sailingDays}d sea transit)
+  * Publish Tender By:   ${test3TenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
+  * Indian Flag ROFR:    ${test3TenderPlan.rofrLikelihoodBadge} (${test3TenderPlan.rofrWaitingImpact})
+  * Technical Clearance: ${test3TenderPlan.technicalDraftClause}
 ======================================================================
 [GRAPH UPDATED] Forecast Chart shifted to $21.10/MT forward median and expanded P90 stress cone!`
       }
