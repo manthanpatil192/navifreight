@@ -1,6 +1,21 @@
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 
+// Helper functions for dynamic date arithmetic
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+
+function formatDayMonth(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+}
+
 /**
  * Builds a dynamic, statutory-compliant PSU freight tender plan 
  * coupled with route transit times and COA vs Spot contract horizons.
@@ -11,7 +26,8 @@ export function buildPsuTenderPlan({
   vesselKey = 'capesize',
   volumeMT = 150000,
   horizonMonths = 3,
-  cargoType = 'Coking Coal'
+  cargoType = 'Coking Coal',
+  baseDate = null
 }) {
   const originObj = ORIGIN_LOADING_PORTS[originId] || { name: 'Hay Point (Australia)', distanceToEastCoastNM: 4120 };
   const destObj = INDIAN_EAST_COAST_PORTS[destinationId] || { name: 'Paradip Port (PPT)', maxDraftLaden: 16.0, avgWaitDays: 2.5 };
@@ -21,24 +37,47 @@ export function buildPsuTenderPlan({
   // Standard bulk carrier steaming speed: 12 knots
   const sailingDays = Number((distanceNM / (12 * 24)).toFixed(1));
 
-  // Base simulation reference date: Today = Sep 09, 2026
-  // Standard statutory tender period: 21 days minimum (GFR 2017)
-  const todayDate = 'Sep 09, 2026';
-  const promptLaycanWindow = 'Oct 01 – Oct 08, 2026'; // Earliest legal laycan if tendered today (21d notice + award)
-  
-  // Forward dip laycan (lowest market rate forecasted by AI model)
-  const targetDipWindow = 'Oct 12 – Oct 19, 2026';
-  const tenderPublishDeadline = 'Sep 21, 2026'; // Exactly 21 days before target dip laycan
+  // Dynamic reference date: uses provided baseDate, or defaults to 2026-09-09 baseline
+  const refDate = baseDate instanceof Date 
+    ? baseDate 
+    : (typeof baseDate === 'string' && !isNaN(new Date(baseDate).getTime()) 
+        ? new Date(baseDate) 
+        : new Date(2026, 8, 9)); // Month 8 = September in JS (0-indexed)
+
+  const todayDate = formatDate(refDate);
+
+  // 1. Dynamic Prompt Tender (If issued today):
+  // 21 days mandatory statutory notice period (GFR 2017)
+  const promptNoticeClose = addDays(refDate, 21);
+  const promptLaycanStart = addDays(promptNoticeClose, 1);
+  const promptLaycanEnd = addDays(promptLaycanStart, 7);
+  const promptLaycanWindow = `${formatDayMonth(promptLaycanStart)} – ${formatDayMonth(promptLaycanEnd)}, ${promptLaycanStart.getFullYear()}`;
+
+  // 2. Dynamic Forward Dip Tender (Lowest forecasted P10 rate window):
+  // Deepest freight dip occurs ~33 to 40 days ahead of tender planning
+  const dipStart = addDays(refDate, 33);
+  const dipEnd = addDays(dipStart, 7);
+  const targetDipWindow = `${formatDayMonth(dipStart)} – ${formatDayMonth(dipEnd)}, ${dipStart.getFullYear()}`;
+
+  // Must issue 21-day tender notice exactly 21 days before target loading
+  const tenderPublishDate = addDays(dipStart, -21);
+  const tenderPublishDeadline = formatDate(tenderPublishDate);
+
+  // Booking & reverse auction award (1-2 days before laycan start)
+  const bookingStart = addDays(dipStart, -2);
+  const bookingEnd = addDays(dipStart, -1);
+  const bookingDate = `${formatDayMonth(bookingStart)} – ${formatDayMonth(bookingEnd)}, ${dipStart.getFullYear()}`;
+
+  // Dynamic arrival & discharge in India after sailing transit
+  const arrivalStart = addDays(dipEnd, Math.round(sailingDays));
+  const arrivalEnd = addDays(arrivalStart, 5);
+  const arrivalDate = `${formatDayMonth(arrivalStart)} – ${formatDayMonth(arrivalEnd)}, ${arrivalStart.getFullYear()}`;
 
   // One Simple Unified Tender Model
   const tenderContractType = `Global Freight E-Tender (${volumeMT.toLocaleString()} MT ${cargoType})`;
   const tenderLotDescription = `Procurement of ${volumeMT.toLocaleString()} MT ${cargoType} destined for ${destObj.name.split('(')[0].trim()}`;
   const tenderStrategyAdvice = `Issue 21-day tender by ${tenderPublishDeadline} to book vessel in time for the ${targetDipWindow} freight dip.`;
   const tenderTag = '21-Day Statutory Tender';
-
-  // Dynamic 4-step tender-to-discharge milestones
-  const bookingDate = 'Oct 10 – Oct 11, 2026'; // Bids close & L1 awarded
-  const arrivalDate = sailingDays > 20 ? 'Nov 15 – Nov 22, 2026' : 'Oct 27 – Nov 01, 2026';
 
   const milestoneSteps = [
     {
