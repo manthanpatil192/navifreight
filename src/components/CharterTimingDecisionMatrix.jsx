@@ -157,9 +157,10 @@ export default function CharterTimingDecisionMatrix({
     horizonMonths: contractHorizonMonths
   });
 
-  // Calendar dates relative to current simulation date (September 2026 baseline)
-  const promptLaycanWindowDate = 'Sep 08 – Sep 15, 2026'; // Prompt September Execution Window
-  const forwardDipWindowDate = activeTenderPlan.targetDipWindow; // Dynamic Dip Valley coupled to route transit
+  // Calendar dates relative to current simulation date (Today: Sep 09, 2026)
+  // Under GFR 2017 21-day tender law, earliest legal laycan if tendered today is Oct 01 – Oct 08
+  const promptLaycanWindowDate = activeTenderPlan.promptLaycanWindow || 'Oct 01 – Oct 08, 2026';
+  const forwardDipWindowDate = activeTenderPlan.targetDipWindow; // Dynamic Dip Valley (tendered Sep 21)
   const blackoutWindowDate = 'Nov 01 – Nov 18, 2026'; // Seasonal Pre-Winter Volatility Spike
 
   return (
@@ -197,7 +198,7 @@ export default function CharterTimingDecisionMatrix({
       {/* ================= SECTION 1: ACTIONABLE TIMING SIGNALS (STRIKE VS BLACKOUT) ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
         
-        {/* 1. GREEN STRIKE WINDOW (BUY SIGNAL) */}
+        {/* 1. GREEN STRIKE WINDOW (TENDER DIRECTIVE) */}
         <div className="rounded-xl border-2 border-emerald-500/80 bg-gradient-to-br from-emerald-50/70 via-white to-emerald-50/30 p-4 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-20 h-20 bg-emerald-400/10 rounded-full blur-xl pointer-events-none"></div>
           
@@ -208,15 +209,15 @@ export default function CharterTimingDecisionMatrix({
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
               <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2.5 py-0.5 rounded-full">
-                {isExtremeDemand ? '🟢 Strike Window (Extreme Demand Corridor: P10–P50)' : '🟢 Strike Window (Optimal Entry Buy Signal)'}
+                {isExtremeDemand ? '🟢 Optimal Tender Corridor (P10–P50 Demand Coverage)' : '🟢 Recommended Tender Window (Prompt & Forward Dip Directives)'}
               </span>
             </div>
             <div className="text-right">
               <span className="text-[11px] font-mono font-bold text-emerald-900 bg-white border border-emerald-200 px-2 py-0.5 rounded shadow-2xs block">
-                Prompt Laycan: {promptLaycanWindowDate}
+                Earliest Laycan (Tendered Today): {promptLaycanWindowDate}
               </span>
               <span className="text-[10px] text-emerald-700 font-mono block mt-0.5">
-                Forward Dip Valley: {forwardDipWindowDate}
+                Forward Dip Laycan (Tendered Sep 21): {forwardDipWindowDate}
               </span>
             </div>
           </div>
@@ -253,8 +254,8 @@ export default function CharterTimingDecisionMatrix({
               <p>
                 <strong>Procurement Directive:</strong>{' '}
                 {isExtremeDemand 
-                  ? 'Extreme demand surge detected. Do NOT hold out exclusively for P10 bottom as vessel capacity may sell out. Execute buy orders within the P10–P50 price corridor. Lock 80%–85% under fixed COA to protect blast furnace basestock feed.'
-                  : 'Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Execute 3-Month or 6-Month COA bookings during this window with 70% COA / 30% Spot allocation.'}
+                  ? 'Extreme demand surge detected. Do NOT hold out exclusively for P10 bottom as vessel capacity may sell out. Issue tender notice within the P10–P50 price corridor to lock in required volume and protect blast furnace basestock feed.'
+                  : 'Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by Sep 21 targeting the Oct 12 – Oct 19 laycan window with 70% COA / 30% Spot allocation.'}
               </p>
             </div>
             <div className="flex items-center space-x-2 text-[11px] text-emerald-800 bg-emerald-100/60 rounded px-2 py-1 font-medium">

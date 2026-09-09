@@ -21,20 +21,14 @@ export function buildPsuTenderPlan({
   // Standard bulk carrier steaming speed: 12 knots
   const sailingDays = Number((distanceNM / (12 * 24)).toFixed(1));
 
-  // Determine dynamic forward dip laycan dates based on transit duration:
-  // Short route (<10d, e.g. Indonesia ~8d): dip window Sep 22 – Sep 29, 2026. 21-day notice: Sep 01, 2026.
-  // Medium route (10-22d, e.g. Australia/South Africa/Mozambique ~14-17d): dip window Oct 12 – Oct 19, 2026. 21-day notice: Sep 21, 2026.
-  // Long route (>22d, e.g. USA ~34d, Russia ~19d): dip window Oct 28 – Nov 05, 2026. 21-day notice: Oct 07, 2026.
-  let targetDipWindow = 'Oct 12 – Oct 19, 2026';
-  let tenderPublishDeadline = 'Sep 21, 2026';
-
-  if (sailingDays < 10) {
-    targetDipWindow = 'Sep 22 – Sep 29, 2026';
-    tenderPublishDeadline = 'Sep 01, 2026';
-  } else if (sailingDays > 22) {
-    targetDipWindow = 'Oct 28 – Nov 05, 2026';
-    tenderPublishDeadline = 'Oct 07, 2026';
-  }
+  // Base simulation reference date: Today = Sep 09, 2026
+  // Standard statutory tender period: 21 days minimum (GFR 2017)
+  const todayDate = 'Sep 09, 2026';
+  const promptLaycanWindow = 'Oct 01 – Oct 08, 2026'; // Earliest legal laycan if tendered today (21d notice + award)
+  
+  // Forward dip laycan (lowest market rate forecasted by AI model)
+  const targetDipWindow = 'Oct 12 – Oct 19, 2026';
+  const tenderPublishDeadline = 'Sep 21, 2026'; // Exactly 21 days before target dip laycan
 
   // One Simple Unified Tender Model
   const tenderContractType = `Global Freight E-Tender (${volumeMT.toLocaleString()} MT ${cargoType})`;
@@ -43,16 +37,8 @@ export function buildPsuTenderPlan({
   const tenderTag = '21-Day Statutory Tender';
 
   // Dynamic 4-step tender-to-discharge milestones
-  let bookingDate = 'Oct 10 – Oct 11, 2026';
-  let arrivalDate = 'Oct 27 – Nov 01, 2026';
-
-  if (sailingDays < 10) {
-    bookingDate = 'Sep 20 – Sep 21, 2026';
-    arrivalDate = 'Sep 30 – Oct 05, 2026';
-  } else if (sailingDays > 22) {
-    bookingDate = 'Oct 26 – Oct 27, 2026';
-    arrivalDate = 'Nov 20 – Nov 28, 2026';
-  }
+  const bookingDate = 'Oct 10 – Oct 11, 2026'; // Bids close & L1 awarded
+  const arrivalDate = sailingDays > 20 ? 'Nov 15 – Nov 22, 2026' : 'Oct 27 – Nov 01, 2026';
 
   const milestoneSteps = [
     {
@@ -97,7 +83,8 @@ export function buildPsuTenderPlan({
     cargoVolumeMT: volumeMT,
     cargoType,
     vesselName: vesselObj.name,
-    vesselKey,
+    todayDate,
+    promptLaycanWindow,
     targetDipWindow,
     tenderPublishDeadline,
     bookingDate,

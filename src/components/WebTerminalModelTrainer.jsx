@@ -120,10 +120,10 @@ export default function WebTerminalModelTrainer({
     - WAIT DIRECTIVE:Immediate berthing clearance granted (Zero weather delay).
 
 ----------------------------------------------------------------------
-[2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
-  * Primary Directive:   🟢 EXECUTE PRIMARY COA LAYCAN (Immediate Demand All-Clear): Strike 3-Month COA tender during Primary Laycan Window (Sep 06 – Sep 13, 2026) at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
-  * Secondary Advice:    🟢 SECONDARY SPOT ADVICE: For optional forward volume, WAIT FOR SECONDARY SPOT SNIPING WINDOW (Oct 12 – Oct 19, 2026) to capture seasonal P10 price dips.
-  * Market Risk Regime:  PRICES STABLE (Calm market & low volatility baseline)
+[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
+  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: Sep 09): Issue 21-day tender today for Oct 01 – Oct 08 Laycan at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
+  * Forward Dip Schedule:     🟢 FORWARD DIP SCHEDULE: For secondary volume, float tender on Sep 21 to capture the seasonal P10 low freight dip (Oct 12 – Oct 19, 2026).
+  * Market Risk Regime:       PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
@@ -174,10 +174,10 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [7] OPERATIONAL TIMING & VESSEL FIT:
-  * Primary COA Laycan (Immediate Demand): Sep 06 – Sep 13, 2026
-    ↳ [Immediate Execution: For urgent plant consumption demand requiring immediate September chartering.]
-  * Secondary Spot Sniping (Forward Dip): Oct 12 – Oct 19, 2026
-    ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
+  * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
+    ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
+  * Forward Dip Laycan (Tendered Sep 21):   Oct 12 – Oct 19, 2026
+    ↳ [Target Dip Optimization: Float tender on Sep 21 to lock in the lowest P10 market freight rate]
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
@@ -540,14 +540,14 @@ export default function WebTerminalModelTrainer({
         const hazardStr = !originProper 
           ? `Severe weather at loading port [${originObj.name}]: ${originWeather?.weatherHazardDescription || 'High Swell'}`
           : `Bay of Bengal squalls at discharge port [${destObj.name}]: ${destWeather?.stage || 'Depression'}`;
-        primaryProcurementDirective = `🔴 HOLD / DO NOT CHARTER SPOT: ${hazardStr}. WAIT TILL ${primaryWaitDate} for sea state clearance, or DIVERT to alternate loading port.`;
-        secondarySpotHedgingDirective = `⚠️ CONTRACT CANCELLATION RISK: Vessel chartering suspended until pilotage clearance. Avoid unhedged spot commitments.`;
+        primaryProcurementDirective = `🔴 SUSPEND TENDER FLOAT / WEATHER HALT: ${hazardStr}. WAIT TILL ${primaryWaitDate} for sea state clearance, or DIVERT to alternate loading port.`;
+        secondarySpotHedgingDirective = `⚠️ CONTRACT DEFAULT RISK: Tender issuance suspended until weather subsides. Avoid committing to unviable laycans.`;
       } else if (compositeRiskScore >= 50 || portCongestionData.trafficRiskScore >= 55 || portCongestionData.avgAnchorageWaitDays >= 3.0) {
-        primaryProcurementDirective = `🟡 HEDGE ${coaSplit}% ON COA (Elevated Anchorage Queue): Lock ${coaSplit}% volume under Fixed COA immediately for Primary Laycan Window (Sep 06 – Sep 13, 2026) to shield buyer from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage exposure across ${portCongestionData.vesselsAtAnchor} queued ships.`;
-        secondarySpotHedgingDirective = `🟢 SECONDARY SPOT ADVICE: Float remaining ${100 - coaSplit}% spot parcel during Secondary Window (${primaryWaitDate}) to capture P10 price dips.`;
+        primaryProcurementDirective = `🟡 PROMPT TENDER NOTICE (Elevated Anchorage Queue): Float tender today (Sep 09) for Oct 01 – Oct 08 Laycan with 48h Weather Working Day (WWD) clause to shield from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage.`;
+        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Issue secondary tender notice by Sep 21 targeting the low freight dip (${primaryWaitDate}).`;
       } else {
-        primaryProcurementDirective = `🟢 EXECUTE PRIMARY COA LAYCAN (Immediate Demand All-Clear): Strike 3-Month COA tender during Primary Laycan Window (Sep 06 – Sep 13, 2026) at target rate ₹${estP10INR.toLocaleString()}/MT ($${estP10.toFixed(2)}/MT) for immediate plant coal basestock.`;
-        secondarySpotHedgingDirective = `🟢 SECONDARY SPOT ADVICE: For optional forward volume, WAIT FOR SECONDARY SPOT SNIPING WINDOW (${primaryWaitDate}) to capture seasonal P10 price dips. Avoid daily spot spike surges.`;
+        primaryProcurementDirective = `🟢 PROMPT TENDER NOTICE (Immediate Baseline Demand): Issue tender notice today (Sep 09) for Oct 01 – Oct 08 Laycan at target rate ₹${estP10INR.toLocaleString()}/MT ($${estP10.toFixed(2)}/MT) for baseline blast furnace feed.`;
+        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Float secondary tender notice on Sep 21 targeting the forecasted dip (${primaryWaitDate}) to capture low freight rates.`;
       }
 
       let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
@@ -678,17 +678,17 @@ export default function WebTerminalModelTrainer({
     - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Pressure 1012.0 hPa
     - Loading Status:${originProper ? '🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.' : '🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.'}
     - CANCELLATION:  ${originProper ? 'No contract cancellation risk detected.' : `⚠️ ${originWeather?.cancellationWarning || 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!'}`}
-    - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || 'Sep 15, 2026'} when swell subsides.`}
+    - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || 'Oct 20, 2026'} when swell subsides.`}
     ${(!originProper && originWeather?.alternatePort) ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
 
   * DESTINATION PORT [${destObj.name || activeDest}]:
     - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Telemetry'}
     - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | Stage: ${destWeather?.stage || 'Normal Synoptic'}
     - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] Outer harbour & deepwater berths operating seamlessly.' : '🔴 [IMPROPER SEA WEATHER] Anchorage delay +' + destDelayDays + 'd adds demurrage exposure.'}
-    - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || 'Sep 15, 2026'} for pilotage clearance.`}
+    - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || 'Oct 20, 2026'} for pilotage clearance.`}
 
 ----------------------------------------------------------------------
-[2] TACTICAL BUY / HOLD & MARKET DIRECTIVES:
+[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
   * Primary Directive:   ${primaryProcurementDirective}
   * Secondary Advice:    ${secondarySpotHedgingDirective}
   * Market Risk Regime:  ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
@@ -714,27 +714,28 @@ export default function WebTerminalModelTrainer({
                       - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
                       - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
                       - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
-  * Active Allocation: ${coaSplit}% COA / ${100 - coaSplit}% Spot
-  * Recommended COA:  ${coaSplit}% (Guarantees Plant Basestock & Hedges Spike)
+  * Active Allocation: 70% COA / 30% Spot (Balanced Regime)
+  * Recommended COA:  70% (Guarantees Plant Basestock & Hedges Spike)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: ${100 - coaSplit}% (Captures P10 Dip Windows)
+  * Recommended Spot: 30% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $${blended.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)  (Saves $${(estSpot - blended).toFixed(2)}/MT vs Spot)
+  * Blended Rate:     $${(estSpot * 0.3 + coaFixed * 0.7).toFixed(2)} /MT  (₹${Math.round((estSpot * 0.3 + coaFixed * 0.7) * 86.5).toLocaleString()} /MT)
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 
 ----------------------------------------------------------------------
 [5] FINANCIAL IMPACT & CANONICAL DEMURRAGE EXPOSURE:
-  * Unhedged 100% Spot Cost: $${unhedgedUSD.toLocaleString()}  (₹${unhedgedINR_Cr} Crore)
+  * Unhedged 100% Spot Cost: $${(activeVolume * estP90).toLocaleString()}  (₹${((activeVolume * estP90 * 86.5) / 10000000).toFixed(2)} Crore)
     ↳ [Meaning: Total bill if buying blindly on spot market at future peak]
-  * NaviFreight Optimized:   $${optUSD.toLocaleString()}  (₹${optINR_Cr} Crore)
-    ↳ [Meaning: Total bill achieved using our AI's smart ${coaSplit}-${100 - coaSplit} allocation]
-  * Net Direct Savings:      $${savingsUSD.toLocaleString()}  (INR ${savingsINR_Cr} Crore)
+  * NaviFreight Optimized:   $${(activeVolume * (estSpot * 0.3 + coaFixed * 0.7)).toLocaleString()}  (₹${((activeVolume * (estSpot * 0.3 + coaFixed * 0.7) * 86.5) / 10000000).toFixed(2)} Crore)
+    ↳ [Meaning: Total bill achieved using our AI's smart 70-30 allocation]
+  * Net Direct Savings:      $${((activeVolume * estP90) - (activeVolume * (estSpot * 0.3 + coaFixed * 0.7))).toLocaleString()}  (INR ${(((activeVolume * estP90) - (activeVolume * (estSpot * 0.3 + coaFixed * 0.7))) * 86.5 / 10000000).toFixed(2)} Crore)
     ↳ [Meaning: Pure corporate money saved for your company]
-  * Demurrage Exposure:      ${totalCongestionDays.toFixed(1)} Days Wait ($${demurrageExposureUSD.toLocaleString()} / INR ${demurrageExposureINR_Lakhs} Lakhs)
+  * Demurrage Exposure:      ${portCongestionData.avgAnchorageWaitDays} Days Wait ($${demurrageExposureUSD.toLocaleString()} / INR ${demurrageExposureINR_Lakhs} Lakhs)
     ↳ [Meaning: Late penalty fee paid to shipowner if port unloading takes too long]
 
 ----------------------------------------------------------------------
-[6] PS PART (D) REAL-TIME PORT CONGESTION & 4-FACTOR RISK DIRECTIVE:
+[6] PORT CONGESTION & SATELLITE RADAR:
+  * Destination Port: ${destObj.name}
   * Port Alert Badge: ${compositeAlertBadge}
   * Port Queue Data:  ${portCongestionData.vesselsAtAnchor} Ships at outer anchorage (${portCongestionData.avgAnchorageWaitDays}d avg queue)
   * Traffic Risk:     Traffic Risk Score ${congestionRiskScore}/100 | Composite Risk Score ${compositeRiskScore}/100
@@ -742,10 +743,10 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [7] OPERATIONAL TIMING & VESSEL FIT:
-  * Primary COA Laycan (Immediate Demand): Sep 06 – Sep 13, 2026
-    ↳ [Immediate Execution: For urgent plant consumption demand requiring immediate September chartering.]
-  * Secondary Spot Sniping (Forward Dip): ${primaryWaitDate}
-    ↳ [Forward Dip Optimization: For optional secondary/spot volume to capture lower P10 market rates.]
+  * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
+    ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
+  * Forward Dip Laycan (Tendered Sep 21):   ${primaryWaitDate}
+    ↳ [Target Dip Optimization: Float tender on Sep 21 to lock in the lowest P10 market freight rate]
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------
