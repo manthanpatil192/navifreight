@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Calendar, Zap, AlertOctagon, ShieldCheck, TrendingDown, TrendingUp, 
   ArrowRight, Clock, Compass, DollarSign, ShieldAlert, CheckCircle2, 
-  AlertTriangle, Flame, Layers, Sparkles, Filter, FileText
+  AlertTriangle, Flame, Layers, Sparkles, Filter, FileText, Ship, Anchor
 } from 'lucide-react';
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
@@ -509,7 +509,57 @@ export default function CharterTimingDecisionMatrix({
               ↳ COA Mechanism: Complies with CVC/GFR tender rules via 1 master long-term tender, while retaining operational flexibility to call off voyages.
             </div>
           </div>
+        </div>
 
+        {/* End-to-End Tender-to-Discharge Sequential Milestone Tracker */}
+        <div className="mt-4 p-3.5 rounded-lg border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-blue-50/30 shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+              <span className="text-[11px] font-bold tracking-wide uppercase text-slate-800">
+                End-to-End Execution Sequence (From Tender Start to Blast Furnace Feed)
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-500 font-mono">
+              21-Day Tender Lead Time + ~{activeTenderPlan.sailingDays}d Ocean Steaming
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 relative">
+            {activeTenderPlan.milestoneSteps?.map((ms, idx) => (
+              <div 
+                key={ms.step} 
+                className="p-2.5 rounded-md border border-slate-200/80 bg-white hover:border-blue-300 hover:shadow-xs transition-all relative flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
+                      Phase 0{ms.step}
+                    </span>
+                    <span className="text-[11px] font-bold text-blue-700 font-mono">
+                      {ms.date}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-900 mt-1 flex items-center gap-1.5">
+                    {idx === 0 && <FileText className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                    {idx === 1 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                    {idx === 2 && <Ship className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                    {idx === 3 && <Anchor className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                    <span>{ms.title}</span>
+                  </h4>
+                  <p className="text-[10.5px] text-slate-500 mt-1.5 leading-snug">
+                    {ms.detail}
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                  <span className="font-medium text-slate-500">
+                    {idx === 0 ? 'Tender Published' : idx === 1 ? 'Charter Party Fixed' : idx === 2 ? 'Loading at Origin' : 'Unloaded in India'}
+                  </span>
+                  {idx < 3 && <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

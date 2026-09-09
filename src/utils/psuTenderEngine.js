@@ -54,6 +54,49 @@ export function buildPsuTenderPlan({
     tenderTag = '6-Month Master COA';
   }
 
+  // Dynamic 4-step tender-to-discharge milestones
+  let bookingDate = 'Oct 10 – Oct 11, 2026';
+  let arrivalDate = 'Oct 27 – Nov 01, 2026';
+
+  if (sailingDays < 10) {
+    bookingDate = 'Sep 20 – Sep 21, 2026';
+    arrivalDate = 'Sep 30 – Oct 05, 2026';
+  } else if (sailingDays > 22) {
+    bookingDate = 'Oct 26 – Oct 27, 2026';
+    arrivalDate = 'Nov 20 – Nov 28, 2026';
+  }
+
+  const milestoneSteps = [
+    {
+      step: 1,
+      title: 'Tender Float (Start)',
+      date: tenderPublishDeadline,
+      detail: 'Publish 21-day notice on mjunction / CPPP portal to open public bidding.',
+      icon: 'FileText'
+    },
+    {
+      step: 2,
+      title: 'Ship Booked (Award)',
+      date: bookingDate,
+      detail: 'Bids open, reverse auction/L1 award finalized, Charter Party fixed.',
+      icon: 'CheckCircle2'
+    },
+    {
+      step: 3,
+      title: 'Vessel Loading (Laycan)',
+      date: targetDipWindow,
+      detail: `Ship tenders NOR & loads ${volumeMT.toLocaleString()} MT at origin during P10 freight dip.`,
+      icon: 'Ship'
+    },
+    {
+      step: 4,
+      title: 'Discharge & Rail Feed',
+      date: arrivalDate,
+      detail: `Arrives at destination after ~${sailingDays}d sea transit; unloaded to rail rakes.`,
+      icon: 'Anchor'
+    }
+  ];
+
   const tenderId = `TDR-2026-${(originObj.name || 'ORG').substring(0, 3).toUpperCase()}-${(destObj.name || 'DST').substring(0, 3).toUpperCase()}-${vesselKey.substring(0, 4).toUpperCase()}`;
 
   return {
@@ -69,6 +112,9 @@ export function buildPsuTenderPlan({
     vesselKey,
     targetDipWindow,
     tenderPublishDeadline,
+    bookingDate,
+    arrivalDate,
+    milestoneSteps,
     tenderNoticeDays: 21,
     tenderContractType,
     tenderLotDescription,
