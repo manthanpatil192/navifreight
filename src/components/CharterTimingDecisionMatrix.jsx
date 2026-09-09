@@ -412,7 +412,7 @@ export default function CharterTimingDecisionMatrix({
 
       </div>
 
-      {/* ================= SECTION 2: PSU STATUTORY TENDER PLANNING & COA ARCHITECTURE ================= */}
+      {/* ================= SECTION 2: PSU STATUTORY TENDER PLANNING & BOOKING TIMELINE ================= */}
       <div className="my-5 p-4 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/50 shadow-xs">
         {/* Header Strip */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
@@ -422,7 +422,7 @@ export default function CharterTimingDecisionMatrix({
             </span>
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                <span>PSU Tender Lead Time & COA Architecture</span>
+                <span>PSU Freight Tender & Booking Timeline</span>
                 <span className="text-[10px] normal-case font-medium text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
                   Coupled to {activeTenderPlan.routeTitle}
                 </span>
@@ -439,75 +439,55 @@ export default function CharterTimingDecisionMatrix({
           </div>
         </div>
 
-        {/* 2 Focused Practical Insights Grid: 21-Day Statutory Notice & COA Master Strategy */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3.5">
-          
-          {/* Card 1: 3-Week Statutory Tender Lead Time Notice */}
-          <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
+        {/* Single Unified Tender Planning Card */}
+        <div className="mt-3.5 p-4 rounded-lg border border-slate-200 bg-white shadow-2xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-slate-100 gap-2">
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-blue-600" />
-                  3-Week Statutory Tender Notice (21-Day Cycle)
+                  PSU Statutory Tender Planning (21-Day Advance Notice)
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                  Mandatory 21 Days
+                  Mandatory 21-Day Window
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Standard public procurement rules (GFR 2017) prescribe a minimum <strong>21-day</strong> bid window for advertised freight tenders. Tender notices must be published 3 weeks prior to the forecasted dip.
+              <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                Under Indian Public Procurement rules (GFR 2017), advertised freight tenders require a minimum <strong>21-day</strong> bidding period. To book a vessel for the forecasted freight rate dip, the tender must be issued 3 weeks in advance.
               </p>
-              <div className="mt-2.5 p-2.5 rounded bg-slate-50 border border-slate-100 space-y-1.5 font-mono text-[11px]">
-                <div className="flex justify-between text-slate-500">
-                  <span>Sea Transit ({activeTenderPlan.distanceNM.toLocaleString()} NM):</span>
-                  <span className="font-bold text-slate-700">~{activeTenderPlan.sailingDays} Sailing Days</span>
-                </div>
-                <div className="flex justify-between text-slate-500">
-                  <span>Target Low Window (P10 Dip):</span>
-                  <span className="font-bold text-slate-700">{activeTenderPlan.targetDipWindow}</span>
-                </div>
-                <div className="flex justify-between text-blue-700 font-semibold border-t border-slate-200/60 pt-1.5 mt-1">
-                  <span>Issue Tender Notice By:</span>
-                  <span className="font-bold text-blue-800">{activeTenderPlan.tenderPublishDeadline}</span>
-                </div>
-              </div>
             </div>
-            <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
-              ↳ Operational Rule: If procurement waits until the dip arrives to float a spot tender, the mandatory 21-day submission window means bids will only open after rates have rebounded.
+            <div className="shrink-0 bg-blue-50/70 border border-blue-200 rounded-lg p-2 text-right">
+              <span className="text-[10px] uppercase font-bold text-blue-800 tracking-wider block">Action Required</span>
+              <span className="text-xs font-mono font-bold text-blue-900">Float Tender by {activeTenderPlan.tenderPublishDeadline}</span>
             </div>
           </div>
 
-          {/* Card 2: COA Master Tender vs Reactive Spot Tenders */}
-          <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-emerald-600" />
-                  COA Master Tender Strategy (Multi-Voyage Execution)
-                </span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                  {activeTenderPlan.tenderTag}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                In public procurement, <strong>COA is awarded through a single Master Global Tender</strong>. Once finalized, individual monthly voyages are called off with zero tender delay, bypassing repeated 21-day tender latency.
-              </p>
-              <div className="mt-2.5 p-2.5 rounded bg-emerald-50/60 border border-emerald-200 space-y-1.5 text-[11px] text-emerald-950 font-medium">
-                <div className="flex items-center gap-1.5 font-bold text-emerald-900">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{activeTenderPlan.tenderContractType}</span>
-                </div>
-                <p className="text-[10.5px] text-slate-600 leading-tight">
-                  {activeTenderPlan.tenderLotDescription}
-                </p>
-                <div className="text-[10px] text-emerald-800 border-t border-emerald-200/60 pt-1 mt-1">
-                  <strong>Procurement Advantage:</strong> 1 Master COA Tender covers continuous blast furnace basestock feed, eliminating 12 separate reactive spot tenders a year.
-                </div>
-              </div>
+          {/* 4 Essential Logistics Spec Points */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
+            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Sea Transit ({activeTenderPlan.distanceNM.toLocaleString()} NM)</span>
+              <span className="text-xs font-mono font-bold text-slate-800">~{activeTenderPlan.sailingDays} Sailing Days</span>
             </div>
-            <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
-              ↳ COA Mechanism: Complies with CVC/GFR tender rules via 1 master long-term tender, while retaining operational flexibility to call off voyages.
+            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Target Low Window (P10 Dip)</span>
+              <span className="text-xs font-mono font-bold text-slate-800">{activeTenderPlan.targetDipWindow}</span>
             </div>
+            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Statutory Bidding Lead Time</span>
+              <span className="text-xs font-mono font-bold text-slate-800">21 Days Notice (GFR 2017)</span>
+            </div>
+            <div className="p-2.5 rounded bg-blue-50/50 border border-blue-200/80">
+              <span className="text-[10px] uppercase font-bold text-blue-700 block">Vessel Booking & Award</span>
+              <span className="text-xs font-mono font-bold text-blue-900">{activeTenderPlan.bookingDate}</span>
+            </div>
+          </div>
+
+          {/* Operational Clarification Note */}
+          <div className="mt-3 p-2.5 rounded bg-amber-50/70 border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-2">
+            <span className="font-bold shrink-0">💡 How "When to Book" connects to Tender:</span>
+            <span>
+              The AI Decision Matrix above indicates <strong>when to book</strong> (Laycan: {activeTenderPlan.targetDipWindow}). In public procurement, "booking" happens by awarding an open tender. Publishing the tender on <strong>{activeTenderPlan.tenderPublishDeadline}</strong> ensures the 21-day bidding and L1 award complete on time to secure the ship for the low freight dip.
+            </span>
           </div>
         </div>
 

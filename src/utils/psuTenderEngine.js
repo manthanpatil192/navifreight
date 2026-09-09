@@ -36,23 +36,11 @@ export function buildPsuTenderPlan({
     tenderPublishDeadline = 'Oct 07, 2026';
   }
 
-  // Dynamic COA vs Spot Contract Architecture
-  let tenderContractType = '3-Month Quarterly COA Master Tender';
-  let tenderLotDescription = `Master COA Program for ${volumeMT.toLocaleString()} MT across 3 monthly shipments (~${Math.round(volumeMT / 3).toLocaleString()} MT/month)`;
-  let tenderStrategyAdvice = 'Float 1 Master COA Tender covering 70% basestock. Individual voyages are then executed via simple laycan call-off notices without floating new tenders.';
-  let tenderTag = 'Quarterly COA Program';
-
-  if (Number(horizonMonths) === 1) {
-    tenderContractType = 'Single-Voyage Spot E-Tender';
-    tenderLotDescription = `1 Prompt Consignment of ${volumeMT.toLocaleString()} MT (+/- 10% MOLOO)`;
-    tenderStrategyAdvice = 'Single-consignment spot fixture. Suitable for prompt demand, but requires a full 21-day tender cycle for this single shipment.';
-    tenderTag = 'Spot Fixture Tender';
-  } else if (Number(horizonMonths) === 6) {
-    tenderContractType = 'Bi-Annual 6-Month Master COA Program';
-    tenderLotDescription = `Master COA Program for ${volumeMT.toLocaleString()} MT across 6 monthly shipments (~${Math.round(volumeMT / 6).toLocaleString()} MT/month)`;
-    tenderStrategyAdvice = 'Float 1 Master Long-Term COA Tender with bunker escalation clause (BAF). Eliminates 6 separate tender cycles and guarantees continuous blast furnace feed.';
-    tenderTag = '6-Month Master COA';
-  }
+  // One Simple Unified Tender Model
+  const tenderContractType = `Global Freight E-Tender (${volumeMT.toLocaleString()} MT ${cargoType})`;
+  const tenderLotDescription = `Procurement of ${volumeMT.toLocaleString()} MT ${cargoType} destined for ${destObj.name.split('(')[0].trim()}`;
+  const tenderStrategyAdvice = `Issue 21-day tender by ${tenderPublishDeadline} to book vessel in time for the ${targetDipWindow} freight dip.`;
+  const tenderTag = '21-Day Statutory Tender';
 
   // Dynamic 4-step tender-to-discharge milestones
   let bookingDate = 'Oct 10 – Oct 11, 2026';
