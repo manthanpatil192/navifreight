@@ -198,19 +198,7 @@ export default function App() {
         {(activeTab === 'part_a' || activeTab === 'all') && (
           <div className="space-y-6 mt-6 animate-in fade-in duration-200">
 
-            {/* OPTIMAL MARKET ENTRY TIMING & CONTRACT HORIZON DECISION MATRIX (PS PART A CORE) */}
-            <CharterTimingDecisionMatrix
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              selectedVessel={selectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
-              currency={currency}
-              terminalMetrics={terminalMetrics}
-            />
-
-            {/* IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
+            {/* 1. FIRST (TOP): IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
             <WebTerminalModelTrainer
               onRunScenario={(params) => {
                 if (params.origin) setSelectedOrigin(params.origin);
@@ -232,7 +220,19 @@ export default function App() {
               contractHorizonMonths={contractHorizonMonths}
             />
 
-            {/* Freight Forecasting Chart - Automatically coupled with terminal execution */}
+            {/* 2. SECOND: OPTIMAL MARKET ENTRY TIMING, PSU TENDER & CONTRACT HORIZON MATRIX */}
+            <CharterTimingDecisionMatrix
+              selectedOrigin={selectedOrigin}
+              selectedDestination={selectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+              onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
+              currency={currency}
+              terminalMetrics={terminalMetrics}
+            />
+
+            {/* 3. THIRD (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}
             <ForecastChart
               forecast={forecast}
               currency={currency}

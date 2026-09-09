@@ -139,7 +139,13 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 
 ----------------------------------------------------------------------
-[4] DYNAMIC CVaR CARGO ALLOCATION MATRIX:
+[4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
+  * Dynamic Strategy: Rejects static 70/30 rules. Dynamically balances based on live market risk:
+                      - Prices Stable:       35% COA / 65% Spot (Captures cheap daily dips)
+                      - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
+                      - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
+                      - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
+  * Active Allocation: 70% COA / 30% Spot (Balanced Regime)
   * Recommended COA:  70% (Guarantees Plant Basestock & Hedges Spike)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
@@ -679,7 +685,13 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 
 ----------------------------------------------------------------------
-[4] DYNAMIC CVaR CARGO ALLOCATION MATRIX:
+[4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
+  * Dynamic Strategy: Rejects static 70/30 rules. Dynamically balances based on live market risk:
+                      - Prices Stable:       35% COA / 65% Spot (Captures cheap daily dips)
+                      - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
+                      - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
+                      - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
+  * Active Allocation: ${coaSplit}% COA / ${100 - coaSplit}% Spot
   * Recommended COA:  ${coaSplit}% (Guarantees Plant Basestock & Hedges Spike)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: ${100 - coaSplit}% (Captures P10 Dip Windows)

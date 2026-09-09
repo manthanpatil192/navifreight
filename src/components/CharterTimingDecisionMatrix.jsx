@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Calendar, Zap, AlertOctagon, ShieldCheck, TrendingDown, TrendingUp, 
   ArrowRight, Clock, Compass, DollarSign, ShieldAlert, CheckCircle2, 
-  AlertTriangle, Flame, Layers, Sparkles, Filter
+  AlertTriangle, Flame, Layers, Sparkles, Filter, FileText
 } from 'lucide-react';
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
@@ -402,85 +402,135 @@ export default function CharterTimingDecisionMatrix({
 
       </div>
 
-      {/* ================= DYNAMIC RISK-BASED ALLOCATION ENGINE CARD (NO FIXED RULES) ================= */}
-      <div className="my-5 p-4 rounded-xl border border-slate-200 bg-slate-900 text-slate-100 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+      {/* ================= SECTION 2: PSU STATUTORY TENDER PLANNING & ROFR INSIGHTS ================= */}
+      <div className="my-5 p-4 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/50 shadow-xs">
+        {/* Header Strip */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              NaviFreight Dynamic Risk-Based Allocation Engine
-            </h3>
+            <span className="p-1.5 rounded-lg bg-blue-100 text-blue-800">
+              <FileText className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                <span>PSU Tender Lead Time & ROFR Planning</span>
+                <span className="text-[10px] normal-case font-medium text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                  Statutory 3-Week (21-Day) Tender Cycle
+                </span>
+              </h3>
+            </div>
           </div>
-          <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
-            Rejects Static 70/30 Rule • Dynamic CVaR Calculation
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+            Target Laycan: {forwardDipWindowDate}
           </span>
         </div>
 
-        <p className="text-xs text-slate-300 mt-2.5 mb-3 leading-relaxed">
-          Don't use a fixed rule like <code className="text-amber-300 font-mono">"Always use 70% long-term + 30% spot."</code> Instead, NaviFreight dynamically calculates the best combination based on live market risk:
-        </p>
+        {/* 3 Simple, Practical Insights Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mt-3.5">
+          
+          {/* Card 1: 3-Week Tender Lead Time Notice */}
+          <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-600" />
+                  3-Week Tender Lead Time
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                  21 Days Notice
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Standard public procurement rules require a minimum <strong>21-day (3-week)</strong> bid window for advertised freight tenders.
+              </p>
+              <div className="mt-2.5 p-2 rounded bg-slate-50 border border-slate-100 space-y-1 font-mono text-[10.5px]">
+                <div className="flex justify-between text-slate-500">
+                  <span>Target Low Window:</span>
+                  <span className="font-bold text-slate-700">Oct 12 – Oct 19</span>
+                </div>
+                <div className="flex justify-between text-blue-700 font-semibold">
+                  <span>Issue Tender Notice By:</span>
+                  <span className="font-bold text-blue-800">Sep 21, 2026</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
+              ↳ Insight: Publish 3 weeks early so bids open right as the market reaches the low.
+            </div>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
-                <th className="py-2 px-3">Market Situation</th>
-                <th className="py-2 px-3">NaviFreight Recommendation</th>
-                <th className="py-2 px-3">Dynamic Allocation Split</th>
-                <th className="py-2 px-3">Calculation Rationale</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono text-[11.5px]">
-              {(() => {
-                const currentCoaSplit = terminalMetrics?.terminalMetricsPayload?.coaSplit || terminalMetrics?.coaSplit || 35;
-                const isHighUncertaintyRow = currentCoaSplit >= 80;
-                const isPricesRisingRow = currentCoaSplit >= 65 && currentCoaSplit < 80;
-                const isPricesFallingRow = currentCoaSplit <= 25;
-                const isPricesStableRow = !isHighUncertaintyRow && !isPricesRisingRow && !isPricesFallingRow;
+          {/* Card 2: Vessel Class ROFR Likelihood */}
+          <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                  Indian Flag ROFR Likelihood
+                </span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                  selectedVessel === 'capesize' 
+                    ? 'bg-slate-100 text-slate-700 border-slate-200' 
+                    : selectedVessel === 'panamax' || selectedVessel === 'post_panamax'
+                    ? 'bg-amber-50 text-amber-800 border-amber-200'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                }`}>
+                  {selectedVessel === 'capesize' ? 'Low (~2.5%)' : selectedVessel === 'panamax' || selectedVessel === 'post_panamax' ? 'Moderate (~28%)' : 'High (~68%)'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                {selectedVessel === 'capesize' 
+                  ? 'Indian-flagged Capesize availability is ~2.5%. ROFR matching is rare; tender award will almost certainly go to foreign L1 bidder.' 
+                  : selectedVessel === 'panamax' || selectedVessel === 'post_panamax'
+                  ? 'Indian-flagged Panamax fleet availability is ~28%. Allow standard 3–5 working days for domestic ROFR matching evaluation.'
+                  : 'Indian-flagged Supramax availability is ~68%. High probability of domestic owners exercising ROFR to match foreign L1.'}
+              </p>
+              <div className="mt-2.5 p-2 rounded bg-slate-50 border border-slate-100 space-y-1 text-[10.5px]">
+                <div className="flex justify-between text-slate-500">
+                  <span>Selected Vessel:</span>
+                  <span className="font-bold text-slate-700">{vesselObj.name}</span>
+                </div>
+                <div className="flex justify-between text-slate-500">
+                  <span>ROFR Waiting Impact:</span>
+                  <span className="font-bold text-slate-700">
+                    {selectedVessel === 'capesize' ? 'Zero Delay (Award Foreign L1)' : '3–5 Days Matching Window'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
+              ↳ Insight: Plan vessel chartering timeline based on domestic fleet availability.
+            </div>
+          </div>
 
-                return (
-                  <>
-                    <tr className={`transition-colors ${isPricesStableRow ? 'bg-emerald-950/40 border-l-4 border-l-emerald-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
-                      <td className="py-2 px-3 font-sans font-medium text-emerald-400 flex items-center justify-between">
-                        <span>Prices Stable</span>
-                        {isPricesStableRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
-                      </td>
-                      <td className="py-2 px-3 font-bold text-emerald-300">More Spot</td>
-                      <td className="py-2 px-3 text-slate-200">35% COA / 65% Spot</td>
-                      <td className="py-2 px-3 font-sans text-slate-400">Captures cheap daily market price dips during calm synoptic conditions.</td>
-                    </tr>
-                    <tr className={`transition-colors ${isPricesRisingRow ? 'bg-cyan-950/40 border-l-4 border-l-cyan-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
-                      <td className="py-2 px-3 font-sans font-medium text-cyan-400 flex items-center justify-between">
-                        <span>Prices Likely to Rise</span>
-                        {isPricesRisingRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
-                      </td>
-                      <td className="py-2 px-3 font-bold text-cyan-300">More Long-Term</td>
-                      <td className="py-2 px-3 text-slate-200">70% COA / 30% Spot</td>
-                      <td className="py-2 px-3 font-sans text-slate-400">Locks in lower contract rates before anticipated market price surge or port queue.</td>
-                    </tr>
-                    <tr className={`transition-colors ${isHighUncertaintyRow ? 'bg-rose-950/40 border-l-4 border-l-rose-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
-                      <td className="py-2 px-3 font-sans font-medium text-rose-400 flex items-center justify-between">
-                        <span>Very High Uncertainty</span>
-                        {isHighUncertaintyRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
-                      </td>
-                      <td className="py-2 px-3 font-bold text-rose-300">More Long-Term</td>
-                      <td className="py-2 px-3 text-slate-200">85% COA / 15% Spot</td>
-                      <td className="py-2 px-3 font-sans text-slate-400">Protects blast furnace basestock against worst-case P90 tail-risk surges.</td>
-                    </tr>
-                    <tr className={`transition-colors ${isPricesFallingRow ? 'bg-amber-950/40 border-l-4 border-l-amber-500 font-semibold' : 'hover:bg-slate-800/40 opacity-75'}`}>
-                      <td className="py-2 px-3 font-sans font-medium text-amber-400 flex items-center justify-between">
-                        <span>Prices Expected to Fall</span>
-                        {isPricesFallingRow && <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 uppercase tracking-widest font-mono">ACTIVE REGIME</span>}
-                      </td>
-                      <td className="py-2 px-3 font-bold text-amber-300">More Spot</td>
-                      <td className="py-2 px-3 text-slate-200">20% COA / 80% Spot</td>
-                      <td className="py-2 px-3 font-sans text-slate-400">Rides the falling market down to capture lower future spot rates.</td>
-                    </tr>
-                  </>
-                );
-              })()}
-            </tbody>
-          </table>
+          {/* Card 3: Master Multi-Voyage Contract Recommendation */}
+          <div className="p-3.5 rounded-lg border border-slate-200 bg-white flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-emerald-600" />
+                  Contract Strategy Recommendation
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                  Recommended
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Floating 12 single-voyage spot tenders a year incurs repeated 3-week tendering delays and spot market volatility exposure.
+              </p>
+              <div className="mt-2.5 p-2 rounded bg-emerald-50/60 border border-emerald-200 space-y-1 text-[10.5px] text-emerald-900 font-medium">
+                <div className="flex items-center gap-1 font-bold">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span>Issue 1 Master COA Tender / 6 Months</span>
+                </div>
+                <p className="text-[10px] text-slate-600 leading-tight">
+                  Covers core basestock with flexible laycans, bypassing repeated 3-week tendering cycles.
+                </p>
+              </div>
+            </div>
+            <div className="mt-2.5 text-[10.5px] text-slate-500 italic">
+              ↳ Insight: 1 master tender preserves statutory compliance while locking wholesale rates.
+            </div>
+          </div>
+
         </div>
       </div>
 
