@@ -1,5 +1,6 @@
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
+import { PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
 
 /**
  * Dynamic Port Evacuation & Part B Diversion Suggestion Engine
@@ -130,3 +131,100 @@ export function evaluatePortDiversion({
       : `🟢 ${currPort.name} has manageable queue (${currPort.avgWaitDays}d wait). Normal berthing clearance confirmed.`
   };
 }
+
+/**
+ * Evaluates whether a port that a vessel is entering or calling is full based on real-time port congestion data,
+ * and ONLY if full, generates a Part B-compliant diversion suggestion tailored to that specific vessel.
+ */
+export function evaluateVesselPortCongestionDiversion({
+  portId,
+  vesselType = '',
+  currentDraught = 0,
+  vesselName = ''
+}) {
+  if (!portId) return null;
+
+  // Normalize port identifier (e.g. 'haldia_zone' -> 'haldia', 'paradip' -> 'paradip')
+  let cleanPortId = portId.toLowerCase().replace('_zone', '').trim();
+  if (cleanPortId.includes('haldia')) cleanPortId = 'haldia';
+  else if (cleanPortId.includes('paradip')) cleanPortId = 'paradip';
+  else if (cleanPortId.includes('gangavaram')) cleanPortId = 'gangavaram';
+  else if (cleanPortId.includes('vizag') || cleanPortId.includes('visakhapatnam')) cleanPortId = 'vizag';
+  else if (cleanPortId.includes('dhamra')) cleanPortId = 'dhamra';
+  else if (cleanPortId.includes('gopalpur')) cleanPortId = 'gopalpur';
+
+  const congestionData = PORT_CONGESTION_STATUS[cleanPortId] || PORT_CONGESTION_STATUS.paradip;
+  const portInfo = INDIAN_EAST_COAST_PORTS[cleanPortId] || INDIAN_EAST_COAST_PORTS.paradip;
+
+  // Port Congestion Data Thresholds:
+  // Port is evaluated as "FULL" / saturated if:
+  // 1. Congestion status is HIGH or MODERATE
+  // 2. OR avg anchorage wait days >= 2.5 days
+  // 3. OR vessels at anchor >= 6 ships
+  const isPortFull = 
+    congestionData.congestionStatus === 'HIGH' ||
+    congestionData.congestionStatus === 'MODERATE' ||
+    congestionData.avgAnchorageWaitDays >= 2.5 ||
+    congestionData.vesselsAtAnchor >= 6 ||
+    portInfo.avgWaitDays >= 2.5;
+
+  // STRICT REQUIREMENT: Only suggest diversion if the port is actually full!
+  if (!isPortFull) {
+    return {
+      isPortFull: false,
+      portName: congestionData.portName || portInfo.name,
+      congestionStatus: congestionData.congestionStatus || 'LOW',
+      avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
+      vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
+      suggestedPort: null
+    };
+  }
+
+  // Resolve vessel class key to Part B specification
+  const vType = vesselType.toLowerCase();
+  let vesselKey = 'capesize';
+  if (vType.includes('handy') || vType.includes('river') || (currentDraught > 0 && currentDraught <= 9.0)) {
+    vesselKey = 'handymax_hdc';
+  } else if (vType.includes('supra') || vType.includes('ultra')) {
+    vesselKey = 'supramax';
+  } else if (vType.includes('kamsar') || vType.includes('panamax')) {
+    vesselKey = 'panamax';
+  } else if (vType.includes('baby')) {
+    vesselKey = 'baby_cape';
+  } else if (vType.includes('cape')) {
+    vesselKey = 'capesize';
+  }
+
+  // Evaluate candidate ports using Part B measurements
+  const diversionResult = evaluatePortDiversion({
+    selectedDestination: cleanPortId,
+    selectedVessel: vesselKey,
+    customDailyDemurrageLakhs: 65
+  });
+
+  if (!diversionResult.suggestedPort) {
+    return {
+      isPortFull: true,
+      portName: congestionData.portName || portInfo.name,
+      congestionStatus: congestionData.congestionStatus,
+      avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
+      vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
+      suggestedPort: null,
+      message: `${congestionData.portName || portInfo.name} is saturated (${congestionData.avgAnchorageWaitDays}d wait), but no alternative port satisfies Part B physical limits.`
+    };
+  }
+
+  return {
+    isPortFull: true,
+    portId: cleanPortId,
+    portName: congestionData.portName || portInfo.name,
+    congestionStatus: congestionData.congestionStatus,
+    avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
+    vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
+    berthTurnaroundHours: congestionData.berthTurnaroundHours || 36,
+    suggestedPort: diversionResult.suggestedPort,
+    vessel: diversionResult.vessel,
+    headlineSuggestion: `Port Full (${congestionData.avgAnchorageWaitDays}d wait • ${congestionData.vesselsAtAnchor} ships queued). SUGGESTION: Divert to ${diversionResult.suggestedPort.portName} (Part B Draft ${diversionResult.suggestedPort.effectiveMaxDraft}m Verified) — Saves ${diversionResult.suggestedPort.waitDaysSaved}d wait & ₹${diversionResult.suggestedPort.demurrageSavedLakhs}L demurrage.`
+  };
+}
+

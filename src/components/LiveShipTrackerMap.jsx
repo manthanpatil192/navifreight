@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/liveAisVessels';
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
-import { evaluatePortDiversion } from '../utils/portDiversionEngine';
+import { evaluatePortDiversion, evaluateVesselPortCongestionDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
 
 // Fix Leaflet default marker icons for Vite
@@ -227,7 +227,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const [showGeofences, setShowGeofences] = useState(true);
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true);
   const [showCorridors, setShowCorridors] = useState(true);
-  const [showDiversionAlert, setShowDiversionAlert] = useState(true);
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('esri'); // 'esri' or 'osm'
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
@@ -830,38 +829,77 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       No recent geofence breaches detected.
                     </div>
                   ) : (
-                    notifications.map(notif => (
-                      <div 
-                        key={notif.id}
-                        className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-slate-100/80 transition-colors flex items-start justify-between gap-2"
-                      >
-                        <div className="space-y-0.5">
-                          <div className="flex items-center space-x-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                            <span className="font-bold text-slate-900 text-xs truncate max-w-[160px]">{notif.vesselName}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
-                          </div>
-                          <div className="text-[11px] text-slate-600 font-medium">
-                            Entered: <b className="text-maritime-800">{notif.portName}</b>
-                          </div>
-                          <div className="text-[10px] text-slate-500 truncate max-w-[210px]">
-                            {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m
-                          </div>
-                        </div>
+                    notifications.map(notif => {
+                      const divAdv = evaluateVesselPortCongestionDiversion({
+                        portId: notif.portId,
+                        vesselType: notif.vesselType,
+                        currentDraught: notif.currentDraught,
+                        vesselName: notif.vesselName
+                      });
+                      const isPortFull = divAdv && divAdv.isPortFull && divAdv.suggestedPort;
 
-                        <button
-                          onClick={() => {
-                            handleFocusVessel(notif);
-                            setShowNotificationDrawer(false);
-                          }}
-                          className="px-2 py-1 bg-white hover:bg-maritime-50 text-maritime-800 border border-slate-200 rounded text-[10px] font-bold shrink-0 flex items-center space-x-0.5 shadow-xs cursor-pointer"
-                          title="Center on Map"
+                      return (
+                        <div 
+                          key={notif.id}
+                          className={`p-2.5 rounded-lg border transition-colors ${
+                            isPortFull 
+                              ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50/70' 
+                              : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/80'
+                          }`}
                         >
-                          <Crosshair className="w-3 h-3" />
-                          <span>Locate</span>
-                        </button>
-                      </div>
-                    ))
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center space-x-1.5">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${isPortFull ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                                <span className="font-bold text-slate-900 text-xs truncate max-w-[160px]">{notif.vesselName}</span>
+                                <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-600 font-medium">
+                                Entered: <b className="text-maritime-800">{notif.portName}</b>
+                              </div>
+                              <div className="text-[10px] text-slate-500 truncate max-w-[210px]">
+                                {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                handleFocusVessel(notif);
+                                setShowNotificationDrawer(false);
+                              }}
+                              className="px-2 py-1 bg-white hover:bg-maritime-50 text-maritime-800 border border-slate-200 rounded text-[10px] font-bold shrink-0 flex items-center space-x-0.5 shadow-xs cursor-pointer"
+                              title="Center on Map"
+                            >
+                              <Crosshair className="w-3 h-3" />
+                              <span>Locate</span>
+                            </button>
+                          </div>
+
+                          {/* Port Saturation & Part B Diversion Suggestion (ONLY shown if port is full) */}
+                          {isPortFull && (
+                            <div className="mt-2 p-2 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-1 shadow-xs">
+                              <div className="flex items-center justify-between font-bold text-amber-900">
+                                <span className="flex items-center space-x-1">
+                                  <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                                  <span>Port Saturated ({divAdv.avgWaitDays}d wait • {divAdv.vesselsAtAnchor} queued)</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 uppercase font-extrabold border border-amber-300">
+                                  {divAdv.congestionStatus} Queue
+                                </span>
+                              </div>
+                              <div className="text-slate-700 leading-snug">
+                                <strong className="text-maritime-900">Suggestion:</strong> Divert to <strong className="text-emerald-700">{divAdv.suggestedPort.portName}</strong>
+                                <span className="text-slate-500"> (Part B Draft {divAdv.suggestedPort.effectiveMaxDraft}m Verified)</span>
+                              </div>
+                              <div className="flex items-center justify-between text-[9px] font-semibold text-emerald-800 border-t border-slate-100 pt-1">
+                                <span>⚡ Saves {divAdv.suggestedPort.waitDaysSaved}d turnaround</span>
+                                <span>₹{divAdv.suggestedPort.demurrageSavedLakhs}L Demurrage Avoided</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -883,39 +921,55 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-          {PORT_GEOFENCES.map(geo => (
-            <div 
-              key={geo.id}
-              onClick={() => {
-                const portKey = geo.id.replace('_zone', '');
-                if (onSelectPort) onSelectPort(portKey);
-              }}
-              className="bg-white p-2 rounded border border-slate-200 hover:border-maritime-400 cursor-pointer transition-all hover:shadow-xs"
-            >
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
-                <span className="truncate">{geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]}</span>
-                <span className={`w-2 h-2 rounded-full ${
-                  geo.status === 'MODERATE_TRAFFIC' ? 'bg-amber-500' :
-                  geo.status === 'TRANSSHIPMENT_ACTIVE' ? 'bg-blue-500' :
-                  geo.status === 'RIVER_PILOTAGE_ACTIVE' ? 'bg-purple-500' : 'bg-emerald-500'
-                }`}></span>
+          {PORT_GEOFENCES.map(geo => {
+            const portKey = geo.id.replace('_zone', '');
+            const portAdv = evaluateVesselPortCongestionDiversion({
+              portId: portKey,
+              vesselType: charterVesselClass
+            });
+            const isFull = portAdv && portAdv.isPortFull && portAdv.suggestedPort;
+
+            return (
+              <div 
+                key={geo.id}
+                onClick={() => {
+                  if (onSelectPort) onSelectPort(portKey);
+                }}
+                className={`p-2 rounded border cursor-pointer transition-all hover:shadow-xs ${
+                  isFull ? 'bg-amber-50/50 border-amber-300 hover:border-amber-400' : 'bg-white border-slate-200 hover:border-maritime-400'
+                }`}
+              >
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
+                  <span className="truncate">{geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]}</span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    isFull ? 'bg-amber-500 animate-pulse' :
+                    geo.status === 'TRANSSHIPMENT_ACTIVE' ? 'bg-blue-500' :
+                    geo.status === 'RIVER_PILOTAGE_ACTIVE' ? 'bg-purple-500' : 'bg-emerald-500'
+                  }`}></span>
+                </div>
+                <div className="text-[10px] text-slate-500 space-y-0.5">
+                  <div className="flex justify-between">
+                    <span>Queue:</span>
+                    <span className="font-bold text-rose-600">{geo.anchoredCount} ships</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Berthed:</span>
+                    <span className="font-semibold text-emerald-700">{geo.berthedCount} ships</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-100 pt-0.5 mt-0.5">
+                    <span>Avg Wait:</span>
+                    <span className="font-bold text-slate-800">{geo.avgWaitHours}h</span>
+                  </div>
+                  {isFull && (
+                    <div className="pt-0.5 text-[9px] font-bold text-amber-900 truncate flex items-center space-x-0.5">
+                      <span>⚡</span>
+                      <span className="truncate">Divert: {portAdv.suggestedPort.portName.split(' ')[0]}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500 space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Queue:</span>
-                  <span className="font-bold text-rose-600">{geo.anchoredCount} ships</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Berthed:</span>
-                  <span className="font-semibold text-emerald-700">{geo.berthedCount} ships</span>
-                </div>
-                <div className="flex justify-between border-t border-slate-100 pt-0.5 mt-0.5">
-                  <span>Avg Wait:</span>
-                  <span className="font-bold text-slate-800">{geo.avgWaitHours}h</span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -1107,6 +1161,28 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       <div>Daily Discharge: <b>{port.handlingRateTPD.toLocaleString()} TPD</b></div>
                       <div>Anchorage Wait: <b>{port.avgWaitDays} Days avg</b></div>
                     </div>
+                    {(() => {
+                      const portAdv = evaluateVesselPortCongestionDiversion({
+                        portId: port.id,
+                        vesselType: charterVesselClass
+                      });
+                      if (!portAdv || !portAdv.isPortFull || !portAdv.suggestedPort) return null;
+                      return (
+                        <div className="mt-2 pt-1.5 border-t border-amber-200 text-[10px] text-amber-900 bg-amber-50 p-1.5 rounded">
+                          <div className="font-bold flex items-center gap-1 text-amber-950">
+                            <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                            <span>Port Saturated ({portAdv.avgWaitDays}d wait)</span>
+                          </div>
+                          <div className="mt-0.5 text-slate-700">
+                            <b>Suggestion:</b> Divert to <b className="text-emerald-700">{portAdv.suggestedPort.portName}</b>
+                          </div>
+                          <div className="text-[9px] text-emerald-800 font-semibold mt-0.5 flex justify-between">
+                            <span>Saves {portAdv.suggestedPort.waitDaysSaved}d</span>
+                            <span>₹{portAdv.suggestedPort.demurrageSavedLakhs}L Saved</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </Popup>
               </Marker>
@@ -1158,122 +1234,107 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             })}
           </MapContainer>
 
-          {/* Floating Part B Port Saturation & Diversion Suggestion Alert Card */}
-          {showDiversionAlert && diversionData.isPortSaturated && diversionData.suggestedPort && (
-            <div className="absolute top-3 left-12 z-[1000] max-w-xs sm:max-w-md bg-slate-900/95 text-white border border-cyan-500/60 rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
-                <div className="flex items-center space-x-1.5">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                  </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-300">
-                    Port Saturation Alert • Diversion Suggestion
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-[10px] font-mono text-amber-400 font-bold">
-                    {diversionData.currentPort.name} ({diversionData.currentPort.avgWaitDays}d wait)
-                  </span>
-                  <button 
-                    onClick={() => setShowDiversionAlert(false)}
-                    className="text-slate-400 hover:text-white"
-                    title="Dismiss Alert"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="mt-2 space-y-1.5 text-xs">
-                <div className="text-slate-200 text-[11px] leading-snug">
-                  <span className="text-rose-400 font-bold">{diversionData.currentPort.name}</span> berths are at capacity. 
-                  Suggested alternative for <span className="text-cyan-300 uppercase font-bold">{diversionData.vessel.name}</span>:
-                </div>
-                
-                <div className="bg-slate-950/80 border border-cyan-600/40 rounded-lg p-2 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="font-bold text-cyan-200 text-xs">
-                      ⚓ Divert to {diversionData.suggestedPort.portName}
-                    </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
-                      Part B Fit: Draft {diversionData.suggestedPort.effectiveMaxDraft}m ≥ {diversionData.vessel.ladenDraft}m • LOA {diversionData.vessel.loa}m OK
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-emerald-400 font-extrabold text-xs">
-                      -{diversionData.suggestedPort.waitDaysSaved}d Wait
-                    </div>
-                    <div className="text-[10px] text-emerald-300 font-mono">
-                      ₹{diversionData.suggestedPort.demurrageSavedLakhs}L Saved
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between text-[9.5px] text-slate-400 pt-0.5">
-                  <span>💡 Advisory recommendation only (Part B compliant)</span>
-                  <span className="text-cyan-400 font-mono">Rate: {diversionData.suggestedPort.handlingRateTPD.toLocaleString()} TPD</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Floating Geofence Entry Toast Notification */}
-          {activeToast && (
-            <div className="absolute top-3 right-3 z-[1050] max-w-xs sm:max-w-sm w-full bg-slate-900/95 text-white border border-emerald-500/50 rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-3 duration-300">
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <div className="flex items-center space-x-1.5">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">
-                    Geofence Entry Alert
-                  </span>
+          {activeToast && (() => {
+            const toastDiv = evaluateVesselPortCongestionDiversion({
+              portId: activeToast.portId,
+              vesselType: activeToast.vesselType,
+              currentDraught: activeToast.currentDraught,
+              vesselName: activeToast.vesselName
+            });
+            const isPortFull = toastDiv && toastDiv.isPortFull && toastDiv.suggestedPort;
+
+            return (
+              <div className={`absolute top-3 right-3 z-[1050] max-w-xs sm:max-w-sm w-full bg-slate-900/95 text-white border rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-3 duration-300 ${
+                isPortFull ? 'border-amber-500/70' : 'border-emerald-500/50'
+              }`}>
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-center space-x-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                        isPortFull ? 'bg-amber-400' : 'bg-emerald-400'
+                      }`}></span>
+                      <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                        isPortFull ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`}></span>
+                    </span>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
+                      isPortFull ? 'text-amber-400' : 'text-emerald-400'
+                    }`}>
+                      {isPortFull ? 'Geofence Entry • Port Congestion Alert' : 'Geofence Entry Alert'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-[10px] font-mono text-slate-400">{activeToast.time}</span>
+                    <button 
+                      onClick={() => setActiveToast(null)}
+                      className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] font-mono text-slate-400">{activeToast.time}</span>
-                  <button 
+
+                <div className="space-y-0.5 mb-2">
+                  <div className="text-xs font-bold text-slate-100 flex items-center justify-between">
+                    <span className="truncate">{activeToast.vesselName}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border shrink-0 ml-1 ${
+                      isPortFull 
+                        ? 'bg-amber-950/70 text-amber-300 border-amber-700/60' 
+                        : 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50'
+                    }`}>
+                      {activeToast.vesselType}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-300">
+                    Entered <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 truncate">
+                    Speed: {activeToast.speedKnots} kts • Draft: {activeToast.currentDraught}m • {activeToast.cargo}
+                  </div>
+
+                  {/* Port Saturation & Part B Diversion Suggestion (ONLY shown if port is full) */}
+                  {isPortFull && (
+                    <div className="mt-2 p-2 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-1">
+                      <div className="flex items-center justify-between text-amber-300 font-bold">
+                        <span className="flex items-center space-x-1">
+                          <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+                          <span>{toastDiv.portName} Saturated ({toastDiv.avgWaitDays}d wait • {toastDiv.vesselsAtAnchor} queued)</span>
+                        </span>
+                        <span className="text-[9px] bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-amber-700">
+                          {toastDiv.congestionStatus}
+                        </span>
+                      </div>
+                      <div className="text-slate-200 leading-snug">
+                        <strong className="text-cyan-300">Suggestion:</strong> Divert to <strong className="text-emerald-300">{toastDiv.suggestedPort.portName}</strong>
+                        <span className="text-slate-400"> (Part B Draft {toastDiv.suggestedPort.effectiveMaxDraft}m Verified)</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] text-emerald-400 border-t border-slate-800/80 pt-1 font-semibold">
+                        <span>⚡ Saves {toastDiv.suggestedPort.waitDaysSaved}d wait</span>
+                        <span>₹{toastDiv.suggestedPort.demurrageSavedLakhs}L Demurrage Avoided</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end space-x-2 pt-1.5 border-t border-slate-800 text-[11px]">
+                  <button
                     onClick={() => setActiveToast(null)}
-                    className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="px-2 py-0.5 text-slate-400 hover:text-slate-200 text-[10px] font-medium cursor-pointer"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    Dismiss
+                  </button>
+                  <button
+                    onClick={() => handleFocusVessel(activeToast)}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-[10px] flex items-center space-x-1 transition-all shadow-xs cursor-pointer"
+                  >
+                    <Crosshair className="w-3 h-3" />
+                    <span>Focus Map</span>
                   </button>
                 </div>
               </div>
-
-              <div className="space-y-0.5 mb-2">
-                <div className="text-xs font-bold text-slate-100 flex items-center justify-between">
-                  <span className="truncate">{activeToast.vesselName}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-semibold border border-emerald-700/50 shrink-0 ml-1">
-                    {activeToast.vesselType}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-300">
-                  Entered <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
-                </div>
-                <div className="text-[10px] text-slate-400 truncate">
-                  Speed: {activeToast.speedKnots} kts • Draft: {activeToast.currentDraught}m • {activeToast.cargo}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end space-x-2 pt-1.5 border-t border-slate-800 text-[11px]">
-                <button
-                  onClick={() => setActiveToast(null)}
-                  className="px-2 py-0.5 text-slate-400 hover:text-slate-200 text-[10px] font-medium cursor-pointer"
-                >
-                  Dismiss
-                </button>
-                <button
-                  onClick={() => handleFocusVessel(activeToast)}
-                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-[10px] flex items-center space-x-1 transition-all shadow-xs cursor-pointer"
-                >
-                  <Crosshair className="w-3 h-3" />
-                  <span>Focus Map</span>
-                </button>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Map Overlay Legend */}
           <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-xs p-2.5 rounded-md border border-slate-300 shadow-sm text-[10px] space-y-1">
