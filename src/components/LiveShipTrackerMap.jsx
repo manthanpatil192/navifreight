@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/liveAisVessels';
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
+import { evaluatePortDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
 
 // Fix Leaflet default marker icons for Vite
@@ -216,7 +217,7 @@ const INITIAL_NOTIFICATIONS = [
   }
 ];
 
-export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }) {
+export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, selectedVessel: charterVesselClass = 'capesize' }) {
   const [vessels, setVessels] = useState(LIVE_AIS_VESSELS);
   const [selectedVessel, setSelectedVessel] = useState(LIVE_AIS_VESSELS[0]);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -226,9 +227,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
   const [showGeofences, setShowGeofences] = useState(true);
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true);
   const [showCorridors, setShowCorridors] = useState(true);
+  const [showDiversionAlert, setShowDiversionAlert] = useState(true);
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('esri'); // 'esri' or 'osm'
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
+
+  // Dynamic Port Saturation & Part B Diversion Evaluation
+  const diversionData = useMemo(() => {
+    return evaluatePortDiversion({
+      selectedDestination,
+      selectedVessel: charterVesselClass
+    });
+  }, [selectedDestination, charterVesselClass]);
 
   // Geofence Notification & Alert State
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
@@ -1037,6 +1047,48 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
               </Circle>
             ))}
 
+            {/* Suggested Part B-Compliant Diversion Route Corridor */}
+            {diversionData.isPortSaturated && diversionData.diversionPathCoordinates.length > 0 && diversionData.suggestedPort && (
+              <>
+                <Polyline
+                  positions={diversionData.diversionPathCoordinates}
+                  pathOptions={{
+                    color: '#06b6d4',
+                    weight: 3.5,
+                    dashArray: '8 10',
+                    opacity: 0.95
+                  }}
+                >
+                  <Tooltip direction="center" opacity={0.95}>
+                    <div className="text-[11px] font-bold text-cyan-950 bg-cyan-50 p-1.5 rounded border border-cyan-300 shadow-sm">
+                      <div>⚡ Suggested Diversion: {diversionData.currentPort.name} ➔ {diversionData.suggestedPort.portName}</div>
+                      <div className="text-[10px] text-cyan-800 font-normal mt-0.5">
+                        Part B Draft Verified ({diversionData.suggestedPort.effectiveMaxDraft}m) • Saves {diversionData.suggestedPort.waitDaysSaved}d wait & ₹{diversionData.suggestedPort.demurrageSavedLakhs}L Demurrage
+                      </div>
+                    </div>
+                  </Tooltip>
+                </Polyline>
+
+                <Circle
+                  center={diversionData.suggestedPort.coordinates}
+                  radius={16000}
+                  pathOptions={{
+                    color: '#06b6d4',
+                    fillColor: '#06b6d4',
+                    fillOpacity: 0.22,
+                    weight: 2,
+                    dashArray: '4 6'
+                  }}
+                >
+                  <Tooltip direction="top" permanent opacity={0.9}>
+                    <div className="text-[10px] font-bold text-cyan-900 bg-white px-1.5 py-0.5 rounded shadow-sm border border-cyan-300">
+                      🎯 Suggested Alternative: {diversionData.suggestedPort.portName}
+                    </div>
+                  </Tooltip>
+                </Circle>
+              </>
+            )}
+
             {/* Indian East Coast Port Markers */}
             {Object.values(INDIAN_EAST_COAST_PORTS).map((port) => (
               <Marker
@@ -1105,6 +1157,66 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort }
               );
             })}
           </MapContainer>
+
+          {/* Floating Part B Port Saturation & Diversion Suggestion Alert Card */}
+          {showDiversionAlert && diversionData.isPortSaturated && diversionData.suggestedPort && (
+            <div className="absolute top-3 left-12 z-[1000] max-w-xs sm:max-w-md bg-slate-900/95 text-white border border-cyan-500/60 rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
+                <div className="flex items-center space-x-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                  </span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-300">
+                    Port Saturation Alert • Diversion Suggestion
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-mono text-amber-400 font-bold">
+                    {diversionData.currentPort.name} ({diversionData.currentPort.avgWaitDays}d wait)
+                  </span>
+                  <button 
+                    onClick={() => setShowDiversionAlert(false)}
+                    className="text-slate-400 hover:text-white"
+                    title="Dismiss Alert"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="mt-2 space-y-1.5 text-xs">
+                <div className="text-slate-200 text-[11px] leading-snug">
+                  <span className="text-rose-400 font-bold">{diversionData.currentPort.name}</span> berths are at capacity. 
+                  Suggested alternative for <span className="text-cyan-300 uppercase font-bold">{diversionData.vessel.name}</span>:
+                </div>
+                
+                <div className="bg-slate-950/80 border border-cyan-600/40 rounded-lg p-2 flex items-center justify-between gap-2">
+                  <div>
+                    <div className="font-bold text-cyan-200 text-xs">
+                      ⚓ Divert to {diversionData.suggestedPort.portName}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      Part B Fit: Draft {diversionData.suggestedPort.effectiveMaxDraft}m ≥ {diversionData.vessel.ladenDraft}m • LOA {diversionData.vessel.loa}m OK
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-emerald-400 font-extrabold text-xs">
+                      -{diversionData.suggestedPort.waitDaysSaved}d Wait
+                    </div>
+                    <div className="text-[10px] text-emerald-300 font-mono">
+                      ₹{diversionData.suggestedPort.demurrageSavedLakhs}L Saved
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-[9.5px] text-slate-400 pt-0.5">
+                  <span>💡 Advisory recommendation only (Part B compliant)</span>
+                  <span className="text-cyan-400 font-mono">Rate: {diversionData.suggestedPort.handlingRateTPD.toLocaleString()} TPD</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Floating Geofence Entry Toast Notification */}
           {activeToast && (

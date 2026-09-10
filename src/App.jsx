@@ -326,12 +326,14 @@ export default function App() {
             <LiveShipTrackerMap
               selectedDestination={selectedDestination}
               onSelectPort={(portId) => setSelectedDestination(portId)}
+              selectedVessel={selectedVessel}
             />
 
             {/* Bay of Bengal Weather & Demurrage Risk Radar */}
             <RiskCongestionRadar
               selectedDestination={selectedDestination}
               currency={currency}
+              selectedVessel={selectedVessel}
             />
           </div>
         )}
