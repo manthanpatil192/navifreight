@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker, Polyline, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
@@ -12,6 +12,9 @@ import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/li
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { evaluatePortDiversion, evaluateVesselPortCongestionDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
+
+// Embedded AISStream.io API Key (Pre-configured for uninterrupted real-time streaming)
+export const DEFAULT_AISSTREAM_API_KEY = '7f5a13a987a858f391f923ab9dedd8a892d3ed38';
 
 // Fix Leaflet default marker icons for Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -192,13 +195,13 @@ const INITIAL_NOTIFICATIONS = [
     vesselName: 'MV OLYMPIC GLORY',
     vesselType: 'Capesize',
     mmsi: '563112000',
-    portName: 'Paradip Port 80 NM Approach Zone',
+    portName: 'Paradip 80 NM Sea Gate',
     portId: 'paradip',
     time: '10:42 IST',
     speedKnots: 12.4,
     currentDraught: 17.8,
     cargo: '165,000 MT Hard Coking Coal',
-    coordinates: [20.2500, 86.7500],
+    coordinates: [19.3194, 87.6699],
     geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 12)
   },
@@ -207,13 +210,13 @@ const INITIAL_NOTIFICATIONS = [
     vesselName: 'MV MAHA JACQUELINE',
     vesselType: 'Capesize',
     mmsi: '419001280',
-    portName: 'Gangavaram 80 NM Approach Zone (GPL)',
+    portName: 'Gangavaram 80 NM Sea Gate (GPL)',
     portId: 'gangavaram',
     time: '09:15 IST',
     speedKnots: 10.5,
     currentDraught: 18.2,
     cargo: '160,000 MT Semi-Soft Coking Coal',
-    coordinates: [17.6100, 83.2900],
+    coordinates: [16.6654, 84.2734],
     geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 35)
   }
@@ -227,11 +230,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const [selectedCorridor, setSelectedCorridor] = useState('ALL');
   const [showCorridors, setShowCorridors] = useState(true);
   const [showGeofences, setShowGeofences] = useState(true);
-  const [showWeatherOverlay, setShowWeatherOverlay] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [simulationSpeed, setSimulationSpeed] = useState(1);
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
-  const [mapTheme, setMapTheme] = useState('esri'); // 'esri' or 'osm'
+  const [mapTheme, setMapTheme] = useState('osm'); // Always colorful OpenStreetMap
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
 
   // Active Diversion Strategy: 'lowFuel' (nearest Part-B port) or 'ampleFuel' (free/lowest wait port)
@@ -261,23 +263,33 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const vesselGeofenceStateRef = useRef(new Map());
   const isInitialRef = useRef(true);
 
-  // Real Live WebSocket State
+  // Real Live WebSocket State with Embedded API Key
   const [isWsConnecting, setIsWsConnecting] = useState(false);
   const [isWsConnected, setIsWsConnected] = useState(false);
   const [wsPacketsCount, setWsPacketsCount] = useState(0);
   const [wsLatencyMs, setWsLatencyMs] = useState(24);
   const [showWsModal, setShowWsModal] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState(() => {
+    try {
+      return localStorage.getItem('aisstream_api_key') || DEFAULT_AISSTREAM_API_KEY;
+    } catch (e) {
+      return DEFAULT_AISSTREAM_API_KEY;
+    }
+  });
   const [wsErrorMessage, setWsErrorMessage] = useState('');
   const wsRef = useRef(null);
 
-  // Connect to Real Live AISStream WebSocket
+  // Connect to Real Live AISStream WebSocket using Embedded / Configured Key
   const handleConnectWebSocket = (keyToUse) => {
-    const key = keyToUse || apiKeyInput.trim();
+    const key = keyToUse || apiKeyInput.trim() || DEFAULT_AISSTREAM_API_KEY;
     if (!key) {
       setWsErrorMessage('Please enter an API Key from aisstream.io (Registration is free).');
       return;
     }
+
+    try {
+      localStorage.setItem('aisstream_api_key', key);
+    } catch (e) {}
 
     setWsErrorMessage('');
     setIsWsConnecting(true);
@@ -687,7 +699,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
         {/* Live Controls & WebSocket Connector Button */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* WebSocket Status Indicator */}
+          {/* WebSocket Status Indicator / 1-Click Connect with Embedded Key */}
           {isWsConnected ? (
             <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
@@ -695,7 +707,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               <span>AISStream: LIVE ({wsLatencyMs}ms • {wsPacketsCount} pkts)</span>
               <button 
                 onClick={handleDisconnectWebSocket}
-                className="ml-1 text-slate-400 hover:text-rose-600"
+                className="ml-1 text-slate-400 hover:text-rose-600 cursor-pointer"
                 title="Disconnect Live WebSocket"
               >
                 <X className="w-3 h-3" />
@@ -703,38 +715,20 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             </div>
           ) : (
             <button
-              onClick={() => setShowWsModal(true)}
-              className="flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1 rounded text-xs font-semibold transition-colors"
-              title="Connect to Real-Time AISStream.io WebSockets"
+              onClick={() => handleConnectWebSocket(DEFAULT_AISSTREAM_API_KEY)}
+              disabled={isWsConnecting}
+              className="flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
+              title="Connect to Real-Time AISStream.io WebSockets (API Key Embedded: 7f5a13...)"
             >
-              <Wifi className="w-3.5 h-3.5 text-maritime-700" />
-              <span>Connect Live AISStream</span>
+              <Wifi className={`w-3.5 h-3.5 text-maritime-700 ${isWsConnecting ? 'animate-pulse' : ''}`} />
+              <span>{isWsConnecting ? 'Connecting AISStream...' : 'Connect Live AISStream'}</span>
             </button>
           )}
-
-          {/* Simulation Play/Pause */}
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold"
-            title="Play/Pause DR Vector Physics"
-          >
-            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-            <span>{isPlaying ? 'Pause' : 'Resume'}</span>
-          </button>
-
-          {/* Speed Toggle */}
-          <button
-            onClick={() => setSimulationSpeed(s => s === 1 ? 2 : s === 2 ? 5 : 1)}
-            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold"
-            title="Toggle Vector Simulation Speed"
-          >
-            {simulationSpeed}x Speed
-          </button>
 
           {/* Corridors Overlay Toggle */}
           <button
             onClick={() => setShowCorridors(!showCorridors)}
-            className={`px-2 py-1 border rounded text-xs font-semibold ${
+            className={`px-2.5 py-1 border rounded text-xs font-semibold cursor-pointer transition-colors ${
               showCorridors ? 'bg-maritime-50 text-maritime-800 border-maritime-300' : 'bg-slate-100 text-slate-600 border-slate-300'
             }`}
             title="Toggle International Shipping Corridors"
@@ -742,104 +736,42 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             🌐 Shipping Lanes
           </button>
 
-          {/* Weather Squall Overlay Toggle */}
-          <button
-            onClick={() => setShowWeatherOverlay(!showWeatherOverlay)}
-            className={`px-2 py-1 border rounded text-xs font-semibold cursor-pointer ${
-              showWeatherOverlay ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-slate-100 text-slate-600 border-slate-300'
-            }`}
-            title="Toggle IMD Weather Squall Zones"
-          >
-            ⛈️ Weather
-          </button>
-
-          {/* Map Layer Switcher */}
-          <button
-            onClick={() => setMapTheme(t => t === 'esri' ? 'osm' : 'esri')}
-            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold"
-            title="Toggle Map Tile Theme"
-          >
-            {mapTheme === 'esri' ? '🗺️ OSM' : '🏙️ Light Gray'}
-          </button>
-
           {/* 80 NM Geofence Overlay Toggle */}
           <button
             onClick={() => setShowGeofences(!showGeofences)}
-            className={`px-2 py-1 border rounded text-xs font-semibold flex items-center space-x-1 transition-all cursor-pointer ${
+            className={`px-2.5 py-1 border rounded text-xs font-semibold flex items-center space-x-1 transition-all cursor-pointer ${
               showGeofences 
                 ? 'bg-amber-100 text-amber-900 border-amber-400 font-bold shadow-xs' 
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'
             }`}
-            title="Toggle 80 Nautical Miles (148.2 km) Approach Geofences"
+            title="Toggle 80 Nautical Miles Offshore Approach Sea Gates"
           >
             <CircleDot className="w-3.5 h-3.5 text-amber-600" />
             <span>⭕ 80 NM Geofences</span>
           </button>
 
-          {/* Fit 80 NM View Zoom Button */}
-          <button
-            onClick={() => {
-              const targetPort = PORT_GEOFENCES.find(g => g.id.includes(selectedDestination)) || PORT_GEOFENCES[0];
-              setMapFocusTarget({
-                coords: targetPort.center,
-                zoom: 7,
-                timestamp: Date.now()
-              });
-            }}
-            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold cursor-pointer"
-            title="Zoom out to view complete 80 NM geofence circle for current destination"
-          >
-            🔍 Fit 80 NM View
-          </button>
-
-          {/* Diversion Strategy Selector (Fuel-Aware Optimization) */}
-          <div className="flex items-center bg-slate-100 border border-slate-300 p-0.5 rounded text-xs">
-            <button
-              onClick={() => setActiveDiversionStrategy('lowFuel')}
-              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                activeDiversionStrategy === 'lowFuel'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Low Fuel Mode: Divert to Nearest Compliant Port (Min Deviation & Bunker Burn)"
-            >
-              ⛽ Low Fuel (Closest)
-            </button>
-            <button
-              onClick={() => setActiveDiversionStrategy('ampleFuel')}
-              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                activeDiversionStrategy === 'ampleFuel'
-                  ? 'bg-cyan-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Ample Fuel Mode: Divert to Free Port (Lowest Queue & Max Demurrage Saved)"
-            >
-              ⚡ Ample Fuel (Free Port)
-            </button>
-          </div>
-
-          {/* Notification Controls: Bell, Audio Mute, Demo Trigger */}
+          {/* Railway Alert Button & Sonar Audio Toggle */}
           <div className="relative flex items-center">
             <button
               onClick={() => {
                 setShowNotificationDrawer(!showNotificationDrawer);
                 setUnreadCount(0);
               }}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 border rounded text-xs font-semibold transition-all relative ${
+              className={`flex items-center space-x-1.5 px-2.5 py-1 border rounded text-xs font-semibold transition-all relative cursor-pointer ${
                 showNotificationDrawer 
                   ? 'bg-maritime-900 text-white border-maritime-900 shadow-sm' 
                   : unreadCount > 0 
                   ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
               }`}
-              title="80 NM Geofence Entry Notifications"
+              title="Railway Multi-Modal Dispatch & 80 NM Port Geofence Alerts"
             >
               {unreadCount > 0 ? (
                 <BellRing className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
               ) : (
                 <Bell className="w-3.5 h-3.5 text-slate-600" />
               )}
-              <span>Alerts</span>
+              <span>Railway Alert</span>
               {unreadCount > 0 && (
                 <span className="ml-0.5 px-1.5 py-0.2 bg-rose-600 text-white text-[10px] font-extrabold rounded-full">
                   {unreadCount}
@@ -850,7 +782,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             {/* Sound Mute/Unmute */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-1 border rounded text-xs transition-colors ml-1 ${
+              className={`p-1 border rounded text-xs transition-colors ml-1 cursor-pointer ${
                 soundEnabled 
                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300' 
                   : 'bg-rose-50 text-rose-500 border-rose-200'
@@ -858,15 +790,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               title={soundEnabled ? 'Mute Sonar Alert Chime' : 'Enable Sonar Alert Chime'}
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            </button>
-
-            {/* Demo Simulation Trigger */}
-            <button
-              onClick={handleSimulateEntryAlert}
-              className="flex items-center space-x-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold ml-1 transition-colors"
-              title="Simulate incoming vessel crossing into 80 NM approach geofence"
-            >
-              <span>⚡ 80 NM Demo Alert</span>
             </button>
 
             {/* Notifications Dropdown Popover */}
@@ -1179,54 +1102,68 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               </Polyline>
             ))}
 
-            {/* Port Geofence Circles (Single 80 Nautical Miles Approach Ring) */}
+            {/* Port Geofence: Small Non-Colliding 80 NM Sea Gates in the Bay of Bengal */}
             {showGeofences && PORT_GEOFENCES.map((geo) => {
               const isSelectedPort = geo.id.includes(selectedDestination);
               const circleColor = isSelectedPort ? '#f59e0b' : (geo.color || '#0284c7');
+              const seaCenter = geo.seaGateCoordinates || geo.center;
+              const portCenter = geo.portCoordinates;
 
               return (
                 <React.Fragment key={geo.id}>
-                  {/* Outer 80 NM (148.2 km) Geofence Boundary */}
+                  {/* Seaward Approach Fairway (Dashed Line connecting Port to 80 NM Sea Gate) */}
+                  {portCenter && (
+                    <Polyline
+                      positions={[portCenter, seaCenter]}
+                      pathOptions={{
+                        color: isSelectedPort ? '#f59e0b' : '#64748b',
+                        weight: isSelectedPort ? 2.5 : 1.5,
+                        dashArray: '4 6',
+                        opacity: isSelectedPort ? 0.75 : 0.35
+                      }}
+                    />
+                  )}
+
+                  {/* Coastal Port Location Beacon */}
+                  {portCenter && (
+                    <CircleMarker
+                      center={portCenter}
+                      radius={4}
+                      pathOptions={{
+                        color: circleColor,
+                        fillColor: circleColor,
+                        fillOpacity: 0.9,
+                        weight: 1.5
+                      }}
+                    />
+                  )}
+
+                  {/* Small Non-Colliding 80 NM Sea Gate Circle */}
                   <Circle
-                    center={geo.center}
-                    radius={geo.radiusKm * 1000}
+                    center={seaCenter}
+                    radius={geo.radiusMeters || 18000}
                     pathOptions={{
                       color: circleColor,
                       fillColor: circleColor,
-                      fillOpacity: isSelectedPort ? 0.12 : 0.06,
-                      weight: isSelectedPort ? 3.5 : 2.5,
-                      dashArray: isSelectedPort ? '8 6' : '6 6'
+                      fillOpacity: isSelectedPort ? 0.22 : 0.10,
+                      weight: isSelectedPort ? 3.0 : 2.0,
+                      dashArray: isSelectedPort ? '6 4' : '4 4'
                     }}
                   >
-                    <Tooltip direction="top" permanent opacity={0.92}>
-                      <div className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-md border flex items-center space-x-1.5 ${
+                    <Tooltip 
+                      direction="top" 
+                      permanent={isSelectedPort} 
+                      opacity={0.95}
+                    >
+                      <div className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-md border flex items-center space-x-1.5 whitespace-nowrap ${
                         isSelectedPort 
-                          ? 'bg-amber-950 text-amber-300 border-amber-600' 
-                          : 'bg-white text-slate-900 border-slate-300'
+                          ? 'bg-amber-950 text-amber-300 border-amber-500 font-extrabold' 
+                          : 'bg-white/95 text-slate-800 border-slate-300'
                       }`}>
                         <span className={`w-2 h-2 rounded-full ${isSelectedPort ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
-                        <span>⭕ {geo.name} (80 NM / 148.2 km)</span>
-                      </div>
-                    </Tooltip>
-                  </Circle>
-
-                  {/* Inner Port Approach Beacon (Guarantees Visibility Even When Zoomed In) */}
-                  <Circle
-                    center={geo.center}
-                    radius={16000}
-                    pathOptions={{
-                      color: circleColor,
-                      fillColor: circleColor,
-                      fillOpacity: isSelectedPort ? 0.20 : 0.12,
-                      weight: 2,
-                      dashArray: '4 4'
-                    }}
-                  >
-                    <Tooltip direction="center" permanent opacity={0.92}>
-                      <div className="text-[10px] font-extrabold text-slate-900 bg-white/95 px-2 py-0.5 rounded shadow-sm border border-slate-300">
-                        ⭕ {geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]} 80 NM Zone
-                        <span className="text-[9px] block font-semibold text-slate-500">
-                          {geo.anchoredCount} Anchored • {geo.avgWaitHours}h Wait
+                        <span>⭕ {geo.name} (80 NM Offshore)</span>
+                        <span className="text-[9px] text-slate-500 font-normal">
+                          • {geo.anchoredCount} Waiting
                         </span>
                       </div>
                     </Tooltip>
@@ -1349,27 +1286,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 </Popup>
               </Marker>
             ))}
-
-            {/* Weather Overlay */}
-            {showWeatherOverlay && (
-              <Circle
-                center={[19.8000, 87.5000]}
-                radius={85000}
-                pathOptions={{
-                  color: '#f59e0b',
-                  fillColor: '#f59e0b',
-                  fillOpacity: 0.16,
-                  weight: 2,
-                  dashArray: '6 6'
-                }}
-              >
-                <Tooltip direction="center" permanent opacity={0.85}>
-                  <div className="text-[10px] font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
-                    ⚠ IMD Squall Zone (28 kts)
-                  </div>
-                </Tooltip>
-              </Circle>
-            )}
 
             {/* Live Commercial Vessels */}
             {filteredVessels.map((v) => {

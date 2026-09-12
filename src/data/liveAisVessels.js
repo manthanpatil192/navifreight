@@ -4465,10 +4465,15 @@ export const LIVE_AIS_VESSELS = [
 export const PORT_GEOFENCES = [
   {
     id: 'paradip_zone',
-    name: 'Paradip Port 80 NM Approach Zone',
-    center: [20.2500, 86.7500],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Paradip 80 NM Sea Gate',
+    portName: 'Paradip Port (PPT)',
+    portCoordinates: [20.2644, 86.6715],
+    seaGateCoordinates: [19.3194, 87.6699], // Exactly 80 NM offshore into Bay of Bengal
+    center: [19.3194, 87.6699],
+    radiusMeters: 18000, // Small non-colliding 18 km circle
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 16,
     berthedCount: 5,
     anchoredCount: 9,
@@ -4478,10 +4483,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'vizag_zone',
-    name: 'Visakhapatnam 80 NM Approach Zone (VPT)',
-    center: [17.6850, 83.3300],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Visakhapatnam 80 NM Sea Gate',
+    portName: 'Visakhapatnam Port (VPT)',
+    portCoordinates: [17.6868, 83.2185],
+    seaGateCoordinates: [17.0169, 84.4252], // Exactly 80 NM offshore into Bay of Bengal
+    center: [17.0169, 84.4252],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 15,
     berthedCount: 5,
     anchoredCount: 8,
@@ -4491,10 +4501,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'gangavaram_zone',
-    name: 'Gangavaram 80 NM Approach Zone (GPL)',
-    center: [17.6100, 83.2900],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Gangavaram 80 NM Sea Gate',
+    portName: 'Gangavaram Port (GPL)',
+    portCoordinates: [17.6100, 83.2900],
+    seaGateCoordinates: [16.6654, 84.2734], // Exactly 80 NM offshore into Bay of Bengal
+    center: [16.6654, 84.2734],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 11,
     berthedCount: 3,
     anchoredCount: 6,
@@ -4504,10 +4519,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'dhamra_zone',
-    name: 'Dhamra 80 NM Approach Zone (DPCL)',
-    center: [20.8200, 87.0500],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Dhamra 80 NM Sea Gate',
+    portName: 'Dhamra Port (DPCL)',
+    portCoordinates: [20.8333, 86.9667],
+    seaGateCoordinates: [20.0652, 88.1287], // Exactly 80 NM offshore into Bay of Bengal
+    center: [20.0652, 88.1287],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 12,
     berthedCount: 4,
     anchoredCount: 6,
@@ -4517,10 +4537,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'sandheads_zone',
-    name: 'Sagar / Sandheads 80 NM Transshipment Zone',
-    center: [21.0500, 88.2000],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Sandheads 80 NM Sea Gate',
+    portName: 'Sagar / Sandheads Anchorage',
+    portCoordinates: [21.0000, 88.2000],
+    seaGateCoordinates: [19.7472, 88.6842], // Exactly 80 NM offshore into Bay of Bengal
+    center: [19.7472, 88.6842],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 14,
     berthedCount: 3,
     anchoredCount: 9,
@@ -4530,10 +4555,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'haldia_zone',
-    name: 'Haldia 80 NM Approach Basin',
-    center: [21.9800, 88.0800],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Haldia 80 NM Sea Gate',
+    portName: 'Haldia Dock Complex (HDC)',
+    portCoordinates: [22.0220, 88.0720],
+    seaGateCoordinates: [20.8133, 88.6744], // Exactly 80 NM offshore into Bay of Bengal
+    center: [20.8133, 88.6744],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 15,
     berthedCount: 6,
     anchoredCount: 7,
@@ -4543,10 +4573,15 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'gopalpur_zone',
-    name: 'Gopalpur 80 NM Approach Roads',
-    center: [19.2800, 85.0300],
-    radiusKm: 148.16, // 80 Nautical Miles
-    radiusNm: 80,
+    name: 'Gopalpur 80 NM Sea Gate',
+    portName: 'Gopalpur Port (GPL)',
+    portCoordinates: [19.2800, 85.0300],
+    seaGateCoordinates: [18.4204, 86.1058], // Exactly 80 NM offshore into Bay of Bengal
+    center: [18.4204, 86.1058],
+    radiusMeters: 18000,
+    radiusKm: 18,
+    radiusNm: 9.7,
+    distanceFromPortNm: 80,
     vesselCount: 11,
     berthedCount: 3,
     anchoredCount: 6,
