@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NaviFreight AI — Project Impact Card</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 820px;
+      position: relative;
+      background: #ffffff;
+      padding: 10px 16px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top partial purple oval arc */
+    .top-arc-container {
+      width: 100%;
+      height: 48px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+    .purple-oval {
+      width: 440px;
+      height: 140px;
+      border: 4px solid #7c5c99;
+      border-radius: 50%;
+      position: absolute;
+      top: -95px;
+    }
+
+    /* Grey Impact Badge */
+    .impact-badge {
+      background: #cfd4d9;
+      color: #1a1a1a;
+      font-size: 26px;
+      font-weight: 400;
+      padding: 6px 36px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      margin-bottom: 14px;
+      display: inline-block;
+      text-align: center;
+    }
+
+    /* White content box with thin border */
+    .content-box {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Bullet Row */
+    .bullet-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      line-height: 1.45;
+      font-size: 15.5px;
+      color: #1f2937;
+    }
+
+    .arrow-bullet {
+      font-size: 19px;
+      color: #000000;
+      line-height: 1.25;
+      user-select: none;
+      flex-shrink: 0;
+      transform: scaleY(0.9);
+    }
+
+    .bullet-text {
+      flex: 1;
+    }
+
+    .bullet-title {
+      font-weight: 700;
+      color: #000000;
+    }
+
+    .bullet-arrow {
+      font-weight: 700;
+      margin: 0 4px;
+      color: #000000;
+    }
+
+    .bullet-desc {
+      color: #1f2937;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Purple arc from user's slide -->
+    <div class="top-arc-container">
+      <div class="purple-oval"></div>
+    </div>
+
+    <!-- Impact Badge -->
+    <div class="impact-badge">
+      Impact
+    </div>
+
+    <!-- Impact Content Box -->
+    <div class="content-box">
+      <!-- Item 1 -->
+      <div class="bullet-row">
+        <span class="arrow-bullet">&#10148;</span>
+        <div class="bullet-text">
+          <span class="bullet-title">Demurrage Elimination & Port Efficiency</span>
+          <span class="bullet-arrow">&#8594;</span>
+          <span class="bullet-desc">Eradicates catastrophic &#8377;65L/day anchorage penalties by predicting congestion 80 NM out and coordinating high-tide river lock transits.</span>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="bullet-row">
+        <span class="arrow-bullet">&#10148;</span>
+        <div class="bullet-text">
+          <span class="bullet-title">Operational & Multimodal Resilience</span>
+          <span class="bullet-arrow">&#8594;</span>
+          <span class="bullet-desc">Secures 100% raw material continuity for steel plants by balancing vessel discharge ETA with FOIS rail rake and highway truck evacuation availability.</span>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="bullet-row">
+        <span class="arrow-bullet">&#10148;</span>
+        <div class="bullet-text">
+          <span class="bullet-title">Economic Efficiency & Working Capital Optimization</span>
+          <span class="bullet-arrow">&#8594;</span>
+          <span class="bullet-desc">Cuts chartering deadweight losses and avoids &#8377;2.5Cr+ emergency road trucking surcharges via dynamic fuel-aware diversion arbitrage.</span>
+        </div>
+      </div>
+
+      <!-- Item 4 -->
+      <div class="bullet-row">
+        <span class="arrow-bullet">&#10148;</span>
+        <div class="bullet-text">
+          <span class="bullet-title">Sustainability & Decarbonization Compliance</span>
+          <span class="bullet-arrow">&#8594;</span>
+          <span class="bullet-desc">Reduces auxiliary bunker burn and anchorage idling emissions, directly optimizing IMO Carbon Intensity Indicator (CII) and corporate ESG ratings.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

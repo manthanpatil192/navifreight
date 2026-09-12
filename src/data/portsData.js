@@ -23,7 +23,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 1.8,
     transshipmentRequiredFor: ['Capesize (Fully Laden >16.0m draft)'],
     officialSource: 'Paradip Port Authority Official Gazette Berth Particulars 2024-2026 (Berths 03, 05, 06)',
-    description: 'Premier deepwater port in Odisha with automated coal handling terminal and tidal draft constraints for large Capesize vessels.'
+    description: 'Premier deepwater port in Odisha with automated coal handling terminal and tidal draft constraints for large Capesize vessels.',
+    hinterlandEvacuation: {
+      primaryCluster: 'Kalinganagar & Angul Steel Belt',
+      distanceKm: 135,
+      railRakesAvailablePerDay: 5.5,
+      railTariffPerNTKM: 1.85, // Indian Railways FOIS Class 145/150 (Coal)
+      rakeCapacityMT: 3900,   // Standard BOXN rake payload
+      truckFreightTariffPerTKM: 4.15, // MoRTH / PPAC Diesel-indexed road tariff
+      truckPayloadMT: 30,     // 10/12-wheeler multi-axle tipper/dumper
+      railCongestionRisk: 'MODERATE'
+    }
   },
   vizag: {
     id: 'vizag',
@@ -45,7 +55,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 1.2,
     transshipmentRequiredFor: ['Capesize at Inner Harbour berths (>14.0m draft)'],
     officialSource: 'Visakhapatnam Port Authority Trade Circular No. 168 (2025) & Outer Harbour Gazette',
-    description: 'Dual-harbour configuration: 14.0m permissible draft at Inner Harbour, and 18.1m deep-water berth at Outer Harbour (VGCB).'
+    description: 'Dual-harbour configuration: 14.0m permissible draft at Inner Harbour, and 18.1m deep-water berth at Outer Harbour (VGCB).',
+    hinterlandEvacuation: {
+      primaryCluster: 'RINL Visakhapatnam & Raipur Belt',
+      distanceKm: 45,
+      railRakesAvailablePerDay: 7.0,
+      railTariffPerNTKM: 1.95,
+      rakeCapacityMT: 3900,
+      truckFreightTariffPerTKM: 4.25,
+      truckPayloadMT: 30,
+      railCongestionRisk: 'LOW'
+    }
   },
   gangavaram: {
     id: 'gangavaram',
@@ -66,7 +86,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 0.8,
     transshipmentRequiredFor: [],
     officialSource: 'Adani Gangavaram Port Ltd Deep-Draft Technical Operations Manual 2025',
-    description: 'Deepest port on India East Coast; handles Super-Capesize with fast turnaround and direct rail connectivity to steel plants.'
+    description: 'Deepest port on India East Coast; handles Super-Capesize with fast turnaround and direct rail connectivity to steel plants.',
+    hinterlandEvacuation: {
+      primaryCluster: 'RINL Visakhapatnam & Bellary/Jindal Steel Belt',
+      distanceKm: 25,
+      railRakesAvailablePerDay: 9.5,
+      railTariffPerNTKM: 1.80,
+      rakeCapacityMT: 3900,
+      truckFreightTariffPerTKM: 4.10,
+      truckPayloadMT: 32,
+      railCongestionRisk: 'VERY LOW'
+    }
   },
   dhamra: {
     id: 'dhamra',
@@ -87,7 +117,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 1.5,
     transshipmentRequiredFor: [],
     officialSource: 'Adani Ports Dhamra DPCL Bulk Terminal Guidelines 2025',
-    description: 'Modern privately operated deep draught port with quick Cape turnaround and dedicated conveyor systems.'
+    description: 'Modern privately operated deep draught port with quick Cape turnaround and dedicated conveyor systems.',
+    hinterlandEvacuation: {
+      primaryCluster: 'Kalinganagar & Tata Steel Jamshedpur Belt',
+      distanceKm: 145,
+      railRakesAvailablePerDay: 8.0,
+      railTariffPerNTKM: 1.82,
+      rakeCapacityMT: 3900,
+      truckFreightTariffPerTKM: 4.05,
+      truckPayloadMT: 32,
+      railCongestionRisk: 'LOW'
+    }
   },
   gopalpur: {
     id: 'gopalpur',
@@ -108,7 +148,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 1.4,
     transshipmentRequiredFor: ['Capesize', 'Kamsarmax'],
     officialSource: 'Gopalpur Ports Limited Berth Capacity Notification 2024',
-    description: 'All-weather port ideal for Panamax and geared Supramax bulk parcels.'
+    description: 'All-weather port ideal for Panamax and geared Supramax bulk parcels.',
+    hinterlandEvacuation: {
+      primaryCluster: 'South Odisha Sponge Iron & Angul Industrial Hub',
+      distanceKm: 180,
+      railRakesAvailablePerDay: 3.0,
+      railTariffPerNTKM: 1.90,
+      rakeCapacityMT: 3900,
+      truckFreightTariffPerTKM: 4.30,
+      truckPayloadMT: 28,
+      railCongestionRisk: 'HIGH'
+    }
   },
   haldia: {
     id: 'haldia',
@@ -129,7 +179,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 3.8, // Severe tidal lock window
     transshipmentRequiredFor: ['Capesize', 'Kamsarmax', 'Panamax'],
     officialSource: 'Syama Prasad Mookerjee Port Kolkata (HDC) Lock Channel Circular 2025',
-    description: 'Riverine port with strict lock gate and draft limits (8.5m). Deep vessels require Sagar/Sandheads transshipment.'
+    description: 'Riverine port with strict lock gate and draft limits (8.5m). Deep vessels require Sagar/Sandheads transshipment.',
+    hinterlandEvacuation: {
+      primaryCluster: 'SAIL Durgapur & Bokaro Steel Plants',
+      distanceKm: 220,
+      railRakesAvailablePerDay: 2.5,
+      railTariffPerNTKM: 1.88,
+      rakeCapacityMT: 3900,
+      truckFreightTariffPerTKM: 4.40,
+      truckPayloadMT: 28,
+      railCongestionRisk: 'HIGH'
+    }
   },
   sandheads: {
     id: 'sandheads',
@@ -150,7 +210,17 @@ export const INDIAN_EAST_COAST_PORTS = {
     tidalRangeMeters: 2.2,
     transshipmentRequiredFor: [],
     officialSource: 'Kolkata Port Trust Sandheads Offshore Transshipment Gazette',
-    description: 'Open sea transshipment hub where Capesize vessels discharge partial parcels into daughter barges bound for Haldia/Kolkata.'
+    description: 'Open sea transshipment hub where Capesize vessels discharge partial parcels into daughter barges bound for Haldia/Kolkata.',
+    hinterlandEvacuation: {
+      primaryCluster: 'River Barge Lightering -> Haldia HDC Berths',
+      distanceKm: 90,
+      railRakesAvailablePerDay: 0,
+      railTariffPerNTKM: 0,
+      rakeCapacityMT: 0,
+      truckFreightTariffPerTKM: 0,
+      truckPayloadMT: 0,
+      railCongestionRisk: 'N/A'
+    }
   }
 };
 

@@ -1421,7 +1421,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               currentDraught: activeToast.currentDraught,
               vesselName: activeToast.vesselName,
               vesselCoordinates: activeToast.coordinates,
-              speedKnots: activeToast.speedKnots
+              speedKnots: activeToast.speedKnots,
+              dwt: activeToast.dwt,
+              cargo: activeToast.cargo
             });
             const isPortFull = toastDiv && toastDiv.isPortFull && (toastDiv.lowFuelOption || toastDiv.ampleFuelOption);
             const activeOption = activeDiversionStrategy === 'ampleFuel'
@@ -1490,17 +1492,17 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         </span>
                       </div>
 
-                      {/* Anchorage Loss Baseline */}
+                      {/* Anchorage Loss Baseline in Crores & Lakhs */}
                       <div className="bg-rose-950/50 border border-rose-900/60 rounded p-1.5 text-rose-200 flex items-center justify-between">
                         <span>⚓ <strong>Anchorage Loss:</strong> {toastDiv.avgWaitDays}d queue</span>
                         <span className="font-mono font-bold text-rose-400">
-                          -₹{toastDiv.anchorageLoss?.totalLossLakhs}L (Demurrage + Aux Fuel)
+                          -₹{toastDiv.anchorageLoss?.totalLossCr} Cr (-₹{toastDiv.anchorageLoss?.totalLossLakhs}L)
                         </span>
                       </div>
 
-                      {/* Fuel Strategy Switcher Buttons */}
+                      {/* Strategy Switcher Buttons */}
                       <div className="flex items-center justify-between gap-1 pt-0.5">
-                        <span className="text-slate-400 font-bold text-[9px] uppercase tracking-wider">Fuel Strategy:</span>
+                        <span className="text-slate-400 font-bold text-[9px] uppercase tracking-wider">Strategy:</span>
                         <div className="flex items-center space-x-1">
                           <button
                             type="button"
@@ -1512,7 +1514,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                             }`}
                             title="Lowest Deviation Distance & Minimum Fuel Burn"
                           >
-                            ⛽ Low Fuel (Closest)
+                            ⛽ Low Fuel
                           </button>
                           <button
                             type="button"
@@ -1524,13 +1526,25 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                             }`}
                             title="Free / Lowest Queue Port — Maximum Demurrage Avoided"
                           >
-                            ⚡ Ample Fuel (Free Port)
+                            ⚡ Ample Fuel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDiversionStrategy('waitAnchor')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
+                              activeDiversionStrategy === 'waitAnchor'
+                                ? 'bg-purple-500 text-white border-purple-400 shadow-xs'
+                                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                            }`}
+                            title="Compare WAIT (slow steam) vs ANCHOR (outer roads) cost profiles"
+                          >
+                            ⚓ Wait vs Anchor
                           </button>
                         </div>
                       </div>
 
                       {/* Active Strategy Details Card */}
-                      {activeOption && (
+                      {activeDiversionStrategy !== 'waitAnchor' && activeOption && (
                         <div className="p-2 rounded bg-slate-900 border border-slate-700 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-slate-300">
@@ -1549,19 +1563,81 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                               Deviation Dist: <b className="text-white">{activeOption.distNM} NM</b>
                             </div>
                             <div>
-                              Fuel Burn: <b className="text-amber-300">{activeOption.fuelBurnMT} MT (₹{activeOption.fuelCostLakhs}L)</b>
+                              Fuel Burn: <b className="text-amber-300">{activeOption.fuelBurnMT} MT (₹{activeOption.fuelCostCr} Cr)</b>
                             </div>
                             <div>
                               Wait Saved: <b className="text-emerald-400">-{activeOption.waitDaysSaved} Days</b>
                             </div>
                             <div>
-                              Demurrage Avoided: <b className="text-emerald-400">₹{activeOption.demurrageSavedLakhs}L</b>
+                              Demurrage Avoided: <b className="text-emerald-400">₹{activeOption.demurrageSavedCr} Cr (₹{activeOption.demurrageSavedLakhs}L)</b>
                             </div>
                           </div>
 
+                          {/* Railway Evacuation Alert (FOIS Rail Rake vs. Highway Truck Fleet) */}
+                          {activeOption.evacuation && (
+                            <div className="p-2 rounded bg-slate-950/90 border border-indigo-500/50 text-[9px] space-y-1 mt-1.5">
+                              <div className="flex items-center justify-between font-bold text-indigo-300">
+                                <span className="flex items-center space-x-1">
+                                  <span>🚂</span>
+                                  <span>Hinterland Evacuation: {activeOption.evacuation.cluster} ({activeOption.evacuation.distanceKm} km)</span>
+                                </span>
+                                <span className={`px-1.5 py-0.2 rounded font-extrabold text-[8px] uppercase border ${
+                                  activeOption.evacuation.railRisk === 'VERY LOW' || activeOption.evacuation.railRisk === 'LOW'
+                                    ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                                    : 'bg-amber-950 text-amber-300 border-amber-800'
+                                }`}>
+                                  {activeOption.evacuation.railRisk === 'VERY LOW' ? '🟢 Rakes Guaranteed' : activeOption.evacuation.railRisk === 'LOW' ? '🟢 Rakes Available' : '⚠️ Rake Deficit Risk'}
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-1 text-slate-300 pt-0.5">
+                                <div>
+                                  FOIS Rail Freight: <b className="text-white">₹{activeOption.evacuation.trainCostCr} Cr</b> <span className="text-slate-400">({activeOption.evacuation.trainRakesNeeded} rakes)</span>
+                                </div>
+                                <div>
+                                  Truck Freight (Road): <b className="text-amber-300">₹{activeOption.evacuation.truckCostCr} Cr</b> <span className="text-slate-400">({activeOption.evacuation.trucksNeeded?.toLocaleString()} trucks)</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
+                                <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{activeOption.evacuation.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                                <span className="text-cyan-400 font-semibold">PPAC Diesel-Indexed</span>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between text-[10px] font-bold text-emerald-300 bg-emerald-950/50 p-1.5 rounded border border-emerald-900/60 mt-1">
-                            <span>⚡ Net Arbitrage Savings:</span>
-                            <span className="font-mono text-emerald-400">+₹{activeOption.netArbitrageLakhs} Lakhs</span>
+                            <span>⚡ Net Landed Savings:</span>
+                            <span className="font-mono text-emerald-400">+₹{activeOption.netArbitrageCr} Cr (+₹{activeOption.netArbitrageLakhs}L)</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* WAIT vs ANCHOR Cost Profile Breakdown */}
+                      {activeDiversionStrategy === 'waitAnchor' && (
+                        <div className="p-2 rounded bg-slate-900 border border-slate-700 space-y-1.5 text-[9px]">
+                          <div className="text-amber-300 font-bold flex items-center justify-between">
+                            <span>⚓ Terminal Option Comparison (WAIT vs. ANCHOR)</span>
+                          </div>
+                          
+                          <div className="bg-slate-950/80 p-1.5 rounded border border-slate-800 space-y-0.5">
+                            <div className="flex items-center justify-between text-cyan-300 font-bold">
+                              <span>1. WAIT: Slow Steaming / Virtual Arrival</span>
+                              <span className="font-mono text-white">₹{toastDiv.waitOption?.totalCostCr} Cr ({toastDiv.waitOption?.totalCostLakhs}L)</span>
+                            </div>
+                            <p className="text-slate-400 text-[8.5px]">
+                              Continue transit at reduced eco-speed (7.5 kts). Burns ~{toastDiv.waitOption?.fuelBurnMT} MT propulsion fuel, but incurs <b>ZERO port anchorage dues</b>.
+                            </p>
+                          </div>
+
+                          <div className="bg-slate-950/80 p-1.5 rounded border border-slate-800 space-y-0.5">
+                            <div className="flex items-center justify-between text-rose-300 font-bold">
+                              <span>2. ANCHOR: Outer Roads Holding</span>
+                              <span className="font-mono text-rose-400">₹{toastDiv.anchorOption?.totalCostCr} Cr ({toastDiv.anchorOption?.totalCostLakhs}L)</span>
+                            </div>
+                            <p className="text-slate-400 text-[8.5px]">
+                              Hold position at outer anchorage. Minimal fuel burn (~{toastDiv.anchorOption?.fuelBurnMT} MT aux load), but incurs <b>full demurrage (₹{toastDiv.anchorOption?.demurrageLossCr} Cr)</b> and port dues.
+                            </p>
                           </div>
                         </div>
                       )}
