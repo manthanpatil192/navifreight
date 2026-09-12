@@ -30,7 +30,7 @@ export const INDIAN_EAST_COAST_PORTS = {
       railRakesAvailablePerDay: 5.5,
       railTariffPerNTKM: 1.85, // Indian Railways FOIS Class 145/150 (Coal)
       rakeCapacityMT: 3900,   // Standard BOXN rake payload
-      truckFreightTariffPerTKM: 4.15, // MoRTH / PPAC Diesel-indexed road tariff
+      truckFreightTariffPerTKM: 4.15, // FreightFox Indian Trucking Price Book / PPAC Diesel-indexed road tariff
       truckPayloadMT: 30,     // 10/12-wheeler multi-axle tipper/dumper
       railCongestionRisk: 'MODERATE'
     }

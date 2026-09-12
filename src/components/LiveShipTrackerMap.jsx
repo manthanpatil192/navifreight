@@ -1078,7 +1078,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                       </div>
                                       <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium">
                                         <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.lowFuelOption.evacuation.roadSurchargeCr} Cr</b></span>
-                                        <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                        <span className="text-cyan-800 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                                       </div>
                                     </div>
                                   )}
@@ -1112,7 +1112,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                       </div>
                                       <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium">
                                         <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.ampleFuelOption.evacuation.roadSurchargeCr} Cr</b></span>
-                                        <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                        <span className="text-cyan-800 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                                       </div>
                                     </div>
                                   )}
@@ -1233,7 +1233,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                                   <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium pt-0.5 border-t border-indigo-200/80">
                                     <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.directEvacuation.roadSurchargeCr} Cr</b></span>
-                                    <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                    <span className="text-cyan-800 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                                   </div>
                                 </div>
                               )}
@@ -1929,7 +1929,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                               <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
                                 <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{activeOption.evacuation.roadSurchargeCr} Cr</b></span>
-                                <span className="text-cyan-400 font-semibold">PPAC Diesel-Indexed</span>
+                                <span className="text-cyan-400 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                               </div>
                             </div>
                           )}
@@ -2012,7 +2012,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                           <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
                             <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{toastDiv.directEvacuation.roadSurchargeCr} Cr</b></span>
-                            <span className="text-cyan-400 font-semibold">PPAC Diesel-Indexed</span>
+                            <span className="text-cyan-400 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                           </div>
                         </div>
                       )}
@@ -2242,7 +2242,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                     <div className="flex items-center justify-between text-[9px] text-slate-600 font-medium pt-0.5 border-t border-indigo-200/80">
                       <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{evac.roadSurchargeCr} Cr</b></span>
-                      <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                      <span className="text-cyan-800 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                     </div>
 
                     {vesselEvacAdv?.bestOption && vesselEvacAdv?.isPortFull && (
