@@ -1959,9 +1959,9 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
                 >
                   <optgroup label="Deepwater Ports (Capesize Capable)">
-                    <option value="dhamra">Dhamra Port (DPCL - 18.0m / Tata Steel)</option>
-                    <option value="gangavaram">Gangavaram (GPL - 19.5m / RINL Steel)</option>
-                    <option value="vizag">Visakhapatnam Outer (18.1m VGCB)</option>
+                    <option value="dhamra">Dhamra Port (DPCL - 18.0m / SAIL Bokaro)</option>
+                    <option value="gangavaram">Gangavaram (GPL - 19.5m / SAIL Bhilai)</option>
+                    <option value="vizag">Visakhapatnam Outer (18.1m VGCB / SAIL Bhilai)</option>
                   </optgroup>
                   <optgroup label="Tidal & Mid-Draft Ports">
                     <option value="paradip">Paradip Port (PPT - 14.5m MCHP / 16.0m KICT)</option>

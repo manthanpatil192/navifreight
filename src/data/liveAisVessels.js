@@ -603,12 +603,12 @@ export const LIVE_AIS_VESSELS = [
     originPort: 'Gladstone (Australia)',
     destinationPort: 'Dhamra Port (DPCL)',
     destinationId: 'dhamra',
-    cargo: '105,000 MT Coking Coal for Kalinganagar Steel Plant',
+    cargo: '105,000 MT Coking Coal for SAIL Bokaro Steel Plant (BSL)',
     etaHours: 2.0,
     etaTimestamp: '2026-09-05 20:30 IST',
     draftClearanceAtDest: 'Optimal (Deep Draft Passage)',
     demurrageExposureRisk: 'LOW',
-    corridor: 'Australia -> Dhamra'
+    corridor: 'Australia -> SAIL Import'
   },
   {
     mmsi: '273491200',
