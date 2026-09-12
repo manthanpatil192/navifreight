@@ -703,14 +703,17 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           let steerStep = Math.max(-8, Math.min(8, headingDiff));
           let nextHeading = (currentHeading + steerStep + 360) % 360;
 
-          // Realistic movement delta with simulationSpeed multiplier
+          // Exact physical maritime navigation formula (1 knot = 1 Nautical Mile/hour = 1/3600 NM/sec)
+          // 1 Nautical Mile of latitude = 1/60 degree
+          const intervalSeconds = 2.5;
           const speedKnots = (v.speedKnots || 12.0) * simulationSpeed;
-          const motionScale = 0.00035; // Calibrated for smooth visible nautical advance across 2.5s ticks
-          let latDelta = Math.cos((nextHeading * Math.PI) / 180) * speedKnots * motionScale;
-          let lngDelta = (Math.sin((nextHeading * Math.PI) / 180) * speedKnots * motionScale) / Math.cos((v.coordinates[0] * Math.PI) / 180);
+          const distanceNM = speedKnots * (intervalSeconds / 3600);
+          
+          let latDelta = Math.cos((nextHeading * Math.PI) / 180) * (distanceNM / 60);
+          let lngDelta = (Math.sin((nextHeading * Math.PI) / 180) * (distanceNM / 60)) / Math.cos((v.coordinates[0] * Math.PI) / 180);
 
-          let nextLat = Number((v.coordinates[0] + latDelta).toFixed(4));
-          let nextLng = Number((v.coordinates[1] + lngDelta).toFixed(4));
+          let nextLat = Number((v.coordinates[0] + latDelta).toFixed(6));
+          let nextLng = Number((v.coordinates[1] + lngDelta).toFixed(6));
 
           // Apply strict navigable water boundary clamp
           const clamped = clampToNavigableWaters(nextLat, nextLng, nextHeading);
