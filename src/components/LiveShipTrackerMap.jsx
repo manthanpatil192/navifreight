@@ -278,6 +278,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   });
   const [wsErrorMessage, setWsErrorMessage] = useState('');
   const wsRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+  const shouldStayConnectedRef = useRef(true);
 
   // Connect to Real Live AISStream WebSocket using Embedded / Configured Key
   const handleConnectWebSocket = (keyToUse) => {
@@ -293,10 +295,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
     setWsErrorMessage('');
     setIsWsConnecting(true);
+    shouldStayConnectedRef.current = true;
 
     try {
       if (wsRef.current) {
-        wsRef.current.close();
+        try { wsRef.current.close(); } catch (e) {}
       }
 
       const socket = new WebSocket('wss://stream.aisstream.io/v0/stream');
@@ -380,46 +383,164 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       };
 
       socket.onerror = (err) => {
-        console.warn('AIS WebSocket Error:', err);
-        setWsErrorMessage('WebSocket connection failed. Falling back to High-Density simulated telemetry.');
+        console.warn('AIS WebSocket Warning:', err);
         setIsWsConnected(false);
         setIsWsConnecting(false);
+        if (shouldStayConnectedRef.current) {
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (shouldStayConnectedRef.current) {
+              handleConnectWebSocket(key);
+            }
+          }, 3000);
+        }
       };
 
       socket.onclose = () => {
         setIsWsConnected(false);
         setIsWsConnecting(false);
+        if (shouldStayConnectedRef.current) {
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (shouldStayConnectedRef.current) {
+              handleConnectWebSocket(key);
+            }
+          }, 2500);
+        }
       };
 
     } catch (err) {
       setWsErrorMessage(err.message);
       setIsWsConnecting(false);
+      if (shouldStayConnectedRef.current) {
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (shouldStayConnectedRef.current) {
+            handleConnectWebSocket(key);
+          }
+        }, 4000);
+      }
     }
   };
 
   const handleDisconnectWebSocket = () => {
+    shouldStayConnectedRef.current = false;
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
     if (wsRef.current) {
-      wsRef.current.close();
+      try { wsRef.current.close(); } catch (e) {}
       wsRef.current = null;
     }
     setIsWsConnected(false);
   };
 
-  // Cleanup on unmount
+  // Keep AISStream on all the time: Auto-connect on mount and maintain connection via watchdog
   useEffect(() => {
+    shouldStayConnectedRef.current = true;
+    handleConnectWebSocket(DEFAULT_AISSTREAM_API_KEY);
+
+    const watchdog = setInterval(() => {
+      if (shouldStayConnectedRef.current) {
+        const ws = wsRef.current;
+        if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+          handleConnectWebSocket(DEFAULT_AISSTREAM_API_KEY);
+        }
+      }
+    }, 8000);
+
     return () => {
-      if (wsRef.current) wsRef.current.close();
+      shouldStayConnectedRef.current = false;
+      clearInterval(watchdog);
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) {
+        try { wsRef.current.close(); } catch (e) {}
+      }
     };
   }, []);
 
-  // Dead Reckoning position simulation loop (advances all 165+ vessels along heading vectors)
+  // Strict physical water-boundary clamp for Indian East Coast and Hooghly Estuary
+  const clampToNavigableWaters = (lat, lng, heading) => {
+    let newLat = lat;
+    let newLng = lng;
+    let newHeading = heading;
+
+    // 1. Hooghly River Channel & Estuary (Haldia, Sagar Island, Balari Bar)
+    if (newLat >= 21.20 && newLat <= 22.05) {
+      // Haldia dock complex & channel basin
+      if (newLat > 22.022) {
+        newLat = 22.0220; // Never go north into Haldia township or Midnapore land
+        newHeading = 180;
+      }
+      if (newLat >= 21.90 && newLat <= 22.022) {
+        // Balari Bar & Haldia reach: strictly west of eastern bank (88.075) and east of western bank (88.040)
+        if (newLng > 88.0750) {
+          newLng = 88.0680; // Keep away from Durgachak / Kakdwip eastern bank
+          newHeading = 210;
+        } else if (newLng < 88.0420) {
+          newLng = 88.0550;
+          newHeading = 30;
+        }
+      } else if (newLat >= 21.58 && newLat < 21.90) {
+        // Sagar Island zone: Western Channel is west of Sagar Island (88.010 - 88.045)
+        // Sagar Island itself is 88.050 to 88.135
+        if (newLng >= 88.0460) {
+          newLng = 88.0350; // Force into Western Channel deep water
+          newHeading = 190;
+        } else if (newLng < 88.0100) {
+          newLng = 88.0250;
+          newHeading = 10;
+        }
+      } else if (newLat < 21.58 && newLat >= 21.20) {
+        // South of Sagar Island towards Sandheads
+        if (newLng > 88.1600) {
+          newLng = 88.1200;
+          newHeading = 200;
+        } else if (newLng < 88.0200) {
+          newLng = 88.0500;
+          newHeading = 20;
+        }
+      }
+      return { lat: newLat, lng: newLng, heading: newHeading };
+    }
+
+    // 2. Open East Coast Boundary (Tamil Nadu to Odisha)
+    let minCoastLng = 80.50;
+    if (newLat < 8.0) minCoastLng = 77.50;
+    else if (newLat < 10.0) minCoastLng = 79.95;
+    else if (newLat < 13.5) minCoastLng = 80.32; // Chennai / Ennore
+    else if (newLat < 15.5) minCoastLng = 80.15; // Krishnapatnam
+    else if (newLat < 17.0) minCoastLng = 82.35; // Kakinada
+    else if (newLat < 17.8) minCoastLng = 83.26; // Vizag / Gangavaram
+    else if (newLat < 19.5) minCoastLng = 84.98; // Gopalpur
+    else if (newLat < 20.6) minCoastLng = 86.68; // Paradip
+    else minCoastLng = 86.98;                   // Dhamra
+
+    if (newLng < minCoastLng) {
+      newLng = minCoastLng + 0.08;
+      newHeading = (newHeading + 180) % 360;
+    }
+    if (newLat < 5.0) {
+      newLat = 5.5;
+      newHeading = 45;
+    }
+    if (newLng > 95.0) {
+      newLng = 94.5;
+      newHeading = 225;
+    }
+
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  };
+
+  // Dead Reckoning position simulation loop (advances all 165+ vessels safely along water channels)
   useEffect(() => {
     if (!isPlaying || isWsConnected) return;
 
     const interval = setInterval(() => {
       setVessels(prevVessels =>
         prevVessels.map(v => {
-          if (v.status.includes('Anchor') || v.status.includes('Berth') || v.status.includes('Moored')) return v;
+          if (v.status.includes('Anchor') || v.status.includes('Berth') || v.status.includes('Moored') || v.speedKnots === 0) return v;
 
           const speedKnots = v.speedKnots * simulationSpeed;
           let latDelta = (Math.cos((v.headingDegrees * Math.PI) / 180) * speedKnots * 0.00025);
@@ -429,33 +550,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           let nextLng = Number((v.coordinates[1] + lngDelta).toFixed(4));
           let nextHeading = v.headingDegrees;
 
-          // Strict East Coast coastline safe water boundary check
-          let minSeaLng = 80.5;
-          if (nextLat < 8.0) minSeaLng = 77.5;
-          else if (nextLat < 10.0) minSeaLng = 80.0;
-          else if (nextLat < 13.5) minSeaLng = 80.45;
-          else if (nextLat < 15.5) minSeaLng = 80.30;
-          else if (nextLat < 17.0) minSeaLng = 82.50;
-          else if (nextLat < 18.0) minSeaLng = 83.40;
-          else if (nextLat < 19.5) minSeaLng = 85.10;
-          else if (nextLat < 20.5) minSeaLng = 86.75;
-          else if (nextLat < 21.5) minSeaLng = 87.10;
-          else minSeaLng = 87.90;
-
-          // Designated deepwater river fairway exception (Haldia & Sandheads approaches only)
-          const isRiverFairway = (nextLat >= 21.50 && nextLat <= 22.03 && nextLng >= 88.02 && nextLng <= 88.18);
-
-          // If vessel reaches close to the shoreline or exceeds navigable waters, steer safely back to open sea
-          if (!isRiverFairway && (nextLng <= minSeaLng + 0.05 || nextLat >= 22.03 || nextLng >= 95.5 || nextLat <= 5.5)) {
-            nextHeading = (nextHeading + 180) % 360;
-            nextLng = Math.max(nextLng, minSeaLng + 0.15);
-            if (nextLat > 22.02) nextLat = 21.90; // Never allow vessels into urban Kolkata / Bhatpara land
-          }
+          // Apply strict navigable water boundary clamp
+          const clamped = clampToNavigableWaters(nextLat, nextLng, nextHeading);
 
           return {
             ...v,
-            headingDegrees: nextHeading,
-            coordinates: [nextLat, nextLng]
+            headingDegrees: clamped.heading,
+            coordinates: [clamped.lat, clamped.lng]
           };
         })
       );

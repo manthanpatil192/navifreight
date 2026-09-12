@@ -184,7 +184,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.1,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [17.6868, 83.2185],
+    coordinates: [17.6890, 83.2980],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Inner Harbour',
@@ -646,7 +646,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 175,
     beamMeters: 27.0,
-    coordinates: [22.0250, 88.0700],
+    coordinates: [22.0220, 88.0710],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth (HDC Berth 4B)',
@@ -694,7 +694,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.6500, 88.0800],
+    coordinates: [21.6500, 88.0250],
     headingDegrees: 0,
     speedKnots: 8.5,
     status: 'Inland River Transit',
@@ -718,7 +718,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.3,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.3200, 88.1500],
+    coordinates: [21.3200, 88.1100],
     headingDegrees: 350,
     speedKnots: 8.8,
     status: 'Inland River Transit',
@@ -766,7 +766,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.5500, 88.1100],
+    coordinates: [21.5500, 88.0400],
     headingDegrees: 5,
     speedKnots: 8.0,
     status: 'Inland River Transit',
@@ -2960,11 +2960,11 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 260,
   "beamMeters": 32.2,
   "coordinates": [
-    22.028,
-    88.07
+    22.0225,
+    88.0725
   ],
-  "headingDegrees": 333,
-  "speedKnots": 14.3,
+  "headingDegrees": 0,
+  "speedKnots": 0.0,
   "status": "Discharging at Berth",
   "originPort": "Port of Colombo (Sri Lanka)",
   "destinationPort": "Haldia Dock Complex (HDC)",
@@ -3968,11 +3968,11 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 116,
   "beamMeters": 21.5,
   "coordinates": [
-    22.04,
-    88.08
+    21.9850,
+    88.0620
   ],
-  "headingDegrees": 90,
-  "speedKnots": 2.5,
+  "headingDegrees": 180,
+  "speedKnots": 1.0,
   "status": "Maintenance Dredging Operations",
   "originPort": "Haldia Navigational Channel",
   "destinationPort": "Haldia Navigational Channel",
@@ -4276,8 +4276,8 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 32,
   "beamMeters": 11,
   "coordinates": [
-    17.625,
-    83.24
+    17.6250,
+    83.2850
   ],
   "headingDegrees": 90,
   "speedKnots": 6.5,
