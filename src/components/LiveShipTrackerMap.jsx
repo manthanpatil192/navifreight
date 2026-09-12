@@ -419,11 +419,16 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           APIKey: key,
           BoundingBoxes: [
             [
-              [4.0, 68.0],
-              [24.5, 96.0]
+              [24.5, 68.0],
+              [4.0, 96.0]
             ]
           ],
-          FilterMessageTypes: ['PositionReport', 'ShipStaticData']
+          FilterMessageTypes: [
+            'PositionReport',
+            'StandardClassBPositionReport',
+            'ExtendedClassBPositionReport',
+            'ShipStaticData'
+          ]
         };
 
         socket.send(JSON.stringify(subscriptionMessage));
@@ -435,13 +440,23 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           setWsPacketsCount(prev => prev + 1);
           setWsLatencyMs(Math.floor(18 + Math.random() * 12));
 
-          if (aisMsg.MessageType === 'PositionReport') {
-            const pos = aisMsg.Message?.PositionReport;
+          if (
+            aisMsg.MessageType === 'PositionReport' ||
+            aisMsg.MessageType === 'StandardClassBPositionReport' ||
+            aisMsg.MessageType === 'ExtendedClassBPositionReport'
+          ) {
+            const pos =
+              aisMsg.Message?.PositionReport ||
+              aisMsg.Message?.StandardClassBPositionReport ||
+              aisMsg.Message?.ExtendedClassBPositionReport;
             const meta = aisMsg.MetaData;
 
-            if (pos && meta && pos.Latitude && pos.Longitude) {
+            const lat = pos?.Latitude ?? meta?.latitude ?? pos?.latitude;
+            const lng = pos?.Longitude ?? meta?.longitude ?? pos?.longitude;
+
+            if (lat && lng && meta) {
               setVessels(prevList => {
-                const mmsiStr = String(meta.MMSI);
+                const mmsiStr = String(meta.MMSI || meta.MMSI_String);
                 const existingIdx = prevList.findIndex(v => v.mmsi === mmsiStr);
 
                 const liveObj = {
@@ -455,16 +470,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   maxDraughtMeters: 14.0,
                   loaMeters: 225,
                   beamMeters: 32.2,
-                  coordinates: [pos.Latitude, pos.Longitude],
-                  headingDegrees: Math.round(pos.Cog || 0),
-                  speedKnots: Number((pos.Sog || 0).toFixed(1)),
-                  status: (pos.Sog || 0) < 0.5 ? 'At Anchor - Port Queue' : 'Underway Using Engine',
-                  originPort: 'AIS Live Feed',
+                  coordinates: [Number(lat), Number(lng)],
+                  headingDegrees: Math.round(pos?.Cog ?? pos?.TrueHeading ?? 0),
+                  speedKnots: Number((pos?.Sog ?? 0).toFixed(1)),
+                  status: (pos?.Sog ?? 0) < 0.5 ? 'At Anchor - Port Queue' : 'Underway Using Engine',
+                  originPort: 'AIS Live Satellite Stream',
                   destinationPort: 'Indian Coast Waypoint',
                   destinationId: 'paradip',
                   cargo: 'Live AIS Satellite Broadcast',
                   etaHours: 12,
                   etaTimestamp: 'Telemetry Active',
+                  lastAisUpdate: Date.now(),
+                  isLiveAisStream: true,
                   draftClearanceAtDest: 'AIS Verified',
                   demurrageExposureRisk: 'LOW',
                   corridor: 'Live AIS Stream'
@@ -2270,6 +2287,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <div className="flex justify-between">
                   <span className="text-slate-500">ETA / Arrival:</span>
                   <span className="font-bold text-slate-900">{calculateVesselEta(selectedVessel)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px]">
+                  <span className="text-slate-500">Telemetry Engine:</span>
+                  <span className={`font-semibold flex items-center space-x-1 ${selectedVessel.isLiveAisStream ? 'text-emerald-700 font-bold' : 'text-slate-700'}`}>
+                    <span>{selectedVessel.isLiveAisStream ? '🛰️ AISStream.io (Live Satellite)' : '🧭 ECDIS Dead Reckoning (1:1 Physics)'}</span>
+                  </span>
                 </div>
               </div>
 
