@@ -346,6 +346,70 @@ export function evaluatePortDiversion({
     ? generateWaypoints(currPort.coordinates, lowFuelOption.coordinates)
     : [];
 
+  // Dynamic Best Option synthesis across all choices
+  let bestOption = null;
+  if (isPortSaturated) {
+    if (ampleFuelOption && (!lowFuelOption || ampleFuelOption.netArbitrageCr >= lowFuelOption.netArbitrageCr)) {
+      bestOption = {
+        type: 'DIVERSION_AMPLE',
+        title: `Divert to ${ampleFuelOption.portName}`,
+        strategyLabel: 'Ample Fuel Strategy',
+        portName: ampleFuelOption.portName,
+        portId: ampleFuelOption.portId,
+        distNM: ampleFuelOption.distNM,
+        netPayoffCr: ampleFuelOption.netArbitrageCr,
+        netPayoffLakhs: ampleFuelOption.netArbitrageLakhs,
+        timeSavedDays: ampleFuelOption.waitDaysSaved,
+        fuelCostCr: ampleFuelOption.fuelCostCr,
+        fuelCostLakhs: ampleFuelOption.fuelCostLakhs,
+        fuelBurnMT: ampleFuelOption.fuelBurnMT,
+        evacuationCluster: ampleFuelOption.evacuation?.cluster || 'SAIL Plant',
+        rationale: `Highest net gain (+₹${ampleFuelOption.netArbitrageCr} Cr) among all choices. Eliminates ${ampleFuelOption.waitDaysSaved}d wait at ${currPort.name} and secures direct FOIS rail dispatch to ${ampleFuelOption.evacuation?.cluster || 'SAIL Plant'}.`
+      };
+    } else if (lowFuelOption) {
+      bestOption = {
+        type: 'DIVERSION_LOW',
+        title: `Divert to ${lowFuelOption.portName}`,
+        strategyLabel: 'Low Fuel Strategy',
+        portName: lowFuelOption.portName,
+        portId: lowFuelOption.portId,
+        distNM: lowFuelOption.distNM,
+        netPayoffCr: lowFuelOption.netArbitrageCr,
+        netPayoffLakhs: lowFuelOption.netArbitrageLakhs,
+        timeSavedDays: lowFuelOption.waitDaysSaved,
+        fuelCostCr: lowFuelOption.fuelCostCr,
+        fuelCostLakhs: lowFuelOption.fuelCostLakhs,
+        fuelBurnMT: lowFuelOption.fuelBurnMT,
+        evacuationCluster: lowFuelOption.evacuation?.cluster || 'SAIL Plant',
+        rationale: `Optimal low-fuel path. Closest candidate (${lowFuelOption.distNM} NM) with minimal bunker burn while capturing +₹${lowFuelOption.netArbitrageCr} Cr net arbitrage.`
+      };
+    } else {
+      bestOption = {
+        type: 'WAIT_SLOW_STEAM',
+        title: 'WAIT: Eco Slow Steaming (Virtual Arrival)',
+        strategyLabel: 'Virtual Arrival',
+        portName: currPort.name,
+        netPayoffCr: Number(Math.max(0, totalAnchorageLossCr - waitOption.totalCostCr).toFixed(2)),
+        timeSavedDays: 0,
+        fuelCostCr: waitOption.totalCostCr,
+        evacuationCluster: currEvacuationProfile.cluster,
+        rationale: `Best terminal choice. Eco-speed 7.5 kts avoids ₹${totalAnchorageLossCr} Cr outer anchorage demurrage while burning only ₹${waitOption.totalCostCr} Cr fuel with 0 port dues.`
+      };
+    }
+  } else {
+    bestOption = {
+      type: 'DIRECT_BERTH',
+      title: `Direct Berthing at ${currPort.name}`,
+      strategyLabel: 'Direct Berthing',
+      portName: currPort.name,
+      netPayoffCr: 0,
+      timeSavedDays: 0,
+      fuelCostCr: 0,
+      evacuationCluster: currEvacuationProfile.cluster,
+      rationale: `Optimal path. Berth clearance confirmed (${currPort.avgWaitDays}d wait). Proceed for immediate discharge and rail evacuation to ${currEvacuationProfile.cluster}.`
+    };
+  }
+
   return {
     currentPort: {
       id: currPort.id,
@@ -376,6 +440,7 @@ export function evaluatePortDiversion({
     ampleFuelOption,
     lowFuelOption,
     suggestedPort,
+    bestOption,
     compliantPorts,
     disqualifiedPorts,
     diversionPathCoordinates,
@@ -495,6 +560,7 @@ export function evaluateVesselPortCongestionDiversion({
     ampleFuelOption: ample,
     lowFuelOption: low,
     suggestedPort: primary,
+    bestOption: diversionResult.bestOption,
     vessel: diversionResult.vessel,
     headlineSuggestion: isPortFull && primary
       ? low && ample && low.portId === ample.portId
