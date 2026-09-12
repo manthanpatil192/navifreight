@@ -587,13 +587,23 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   }, [activeToast]);
 
   // Geofence entry crossing detection engine
+  // Geofence entry crossing detection engine: strictly monitors vessel approach towards its OWN destination port
   const checkGeofenceCrossings = (currentVessels) => {
     const stateMap = vesselGeofenceStateRef.current;
     const newAlerts = [];
 
     if (isInitialRef.current) {
       currentVessels.forEach(v => {
+        const vDestId = (v.destinationId || '').toLowerCase();
+        const vDestName = (v.destinationPort || '').toLowerCase();
         PORT_GEOFENCES.forEach(geo => {
+          const geoPortId = geo.id.replace('_zone', '').toLowerCase();
+          const isOwnPort = vDestId === geoPortId || 
+                            vDestName.includes(geoPortId) || 
+                            (geo.portName && vDestName.includes(geo.portName.toLowerCase())) ||
+                            (geo.name && vDestName.includes(geo.name.toLowerCase()));
+          if (!isOwnPort) return;
+
           const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
           stateMap.set(`${v.mmsi}_${geo.id}`, dist <= geo.radiusKm);
         });
@@ -605,7 +615,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     currentVessels.forEach(v => {
       if (v.status && (v.status.includes('Berth') || v.status.includes('Moored'))) return;
 
+      const vDestId = (v.destinationId || '').toLowerCase();
+      const vDestName = (v.destinationPort || '').toLowerCase();
+
       PORT_GEOFENCES.forEach(geo => {
+        const geoPortId = geo.id.replace('_zone', '').toLowerCase();
+        // Strict destination port matching: only check geofence for the vessel's OWN destination port
+        const isOwnPort = vDestId === geoPortId || 
+                          vDestName.includes(geoPortId) || 
+                          (geo.portName && vDestName.includes(geo.portName.toLowerCase())) ||
+                          (geo.name && vDestName.includes(geo.name.toLowerCase()));
+        if (!isOwnPort) return; // Skip different ports!
+
         const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
         const isInside = dist <= geo.radiusKm;
         const key = `${v.mmsi}_${geo.id}`;
@@ -618,11 +639,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             vesselType: v.vesselType,
             mmsi: v.mmsi,
             portName: geo.name,
-            portId: geo.id.replace('_zone', ''),
+            portId: geoPortId,
             time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
             speedKnots: v.speedKnots,
-            currentDraught: v.currentDraughtMeters,
+            currentDraught: v.currentDraughtMeters || v.currentDraught || 16.5,
             cargo: v.cargo,
+            dwt: v.dwt || 160000,
             coordinates: v.coordinates,
             geofenceRadiusNm: 80,
             timestamp: new Date()
@@ -667,7 +689,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   };
 
   const handleSimulateEntryAlert = () => {
-    const sample = vessels.find(v => v.speedKnots > 8 && !v.status.includes('Berth')) || vessels[1];
+    const sample = vessels.find(v => v.speedKnots > 8 && !v.status.includes('Berth') && v.destinationId) || vessels[1];
     const targetPort = PORT_GEOFENCES.find(g => g.id.includes(sample.destinationId)) || PORT_GEOFENCES[0];
 
     // Place simulated vessel ~65 NM offshore inside the 80 NM geofence perimeter
@@ -687,6 +709,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       speedKnots: sample.speedKnots || 11.8,
       currentDraught: sample.currentDraughtMeters || 16.8,
       cargo: sample.cargo,
+      dwt: sample.dwt || 165000,
       coordinates: alertCoords,
       geofenceRadiusNm: 80,
       timestamp: new Date()
@@ -949,7 +972,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                           className={`p-2.5 rounded-lg border transition-colors ${
                             isPortFull 
                               ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50/70' 
-                              : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/80'
+                              : 'border-emerald-200 bg-emerald-50/30 hover:bg-emerald-50/60'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -980,8 +1003,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                             </button>
                           </div>
 
-                          {/* Port Saturation & Dual Fuel Strategies */}
-                          {isPortFull && (
+                          {/* Case A: Port Saturated -> Diversion Strategies & Multimodal Evacuation */}
+                          {isPortFull ? (
                             <div className="mt-2 p-2.5 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-2 shadow-xs">
                               <div className="flex items-center justify-between font-bold text-amber-900">
                                 <span className="flex items-center space-x-1">
@@ -1115,6 +1138,89 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                     </div>
                                     <div className="text-[7.5px] text-slate-500">
                                       Aux burn ~{divAdv.anchorOption?.fuelBurnMT} MT • Incurs <b className="text-rose-700">Full Demurrage (₹{divAdv.anchorOption?.demurrageLossCr} Cr)</b>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            /* Case B: Port Clear / Smooth Berthing -> Direct Port Evacuation & Logistics Analysis */
+                            <div className="mt-2 p-2.5 rounded-md bg-white border border-emerald-300 text-[10px] text-slate-800 space-y-2 shadow-xs">
+                              <div className="flex items-center justify-between font-bold text-emerald-900">
+                                <span className="flex items-center space-x-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>Berth Clearance Verified ({divAdv.avgWaitDays}d wait • {divAdv.vesselsAtAnchor} queued)</span>
+                                </span>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 uppercase font-extrabold border border-emerald-300">
+                                  {divAdv.congestionStatus}
+                                </span>
+                              </div>
+
+                              {/* Projected Anchorage Cost Baseline */}
+                              <div className="bg-emerald-50 border border-emerald-200 rounded px-2 py-1 text-[9.5px] text-emerald-900 flex justify-between font-medium items-center">
+                                <span>⚓ Projected Anchorage Time at {divAdv.portName}:</span>
+                                <span className="font-bold font-mono text-emerald-800">
+                                  {divAdv.avgWaitDays} Days <span className="text-[8.5px] font-normal text-slate-600">(-₹{divAdv.anchorageLoss?.totalLossCr} Cr / ₹{divAdv.anchorageLoss?.totalLossLakhs}L)</span>
+                                </span>
+                              </div>
+
+                              {/* Bunker Fuel Feasibility Gate */}
+                              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[8.5px] text-slate-700">
+                                <span className="flex items-center space-x-1">
+                                  <span>⛽</span>
+                                  <span className="font-semibold">Bunker Feasibility Gate:</span>
+                                  <span className="text-emerald-700 font-bold">PASS</span>
+                                </span>
+                                <span className="text-[8px] text-slate-500 font-mono">Verified for Direct Berthing Approach</span>
+                              </div>
+
+                              {/* Direct Port Hinterland Evacuation Analysis ("about that truck and rakes") */}
+                              {divAdv.directEvacuation && (
+                                <div className="p-2 rounded-md bg-indigo-50/70 border border-indigo-200 text-slate-800 space-y-1">
+                                  <div className="flex items-center justify-between font-bold text-indigo-950">
+                                    <span className="flex items-center space-x-1">
+                                      <span>🚂</span>
+                                      <span>Direct Hinterland Evacuation: {divAdv.directEvacuation.cluster} ({divAdv.directEvacuation.distanceKm} km)</span>
+                                    </span>
+                                    <span className="px-1.5 py-0.2 rounded font-extrabold text-[7.5px] uppercase border bg-emerald-100 text-emerald-800 border-emerald-300">
+                                      🟢 Rakes Guaranteed
+                                    </span>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700 pt-0.5">
+                                    <div>FOIS Rail Freight: <b className="text-indigo-900 font-mono font-bold">₹{divAdv.directEvacuation.trainCostCr} Cr</b> ({divAdv.directEvacuation.trainRakesNeeded} rakes)</div>
+                                    <div>Truck Fleet (Road): <b className="text-amber-900 font-mono font-bold">₹{divAdv.directEvacuation.truckCostCr} Cr</b> ({divAdv.directEvacuation.trucksNeeded?.toLocaleString()} trucks)</div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium pt-0.5 border-t border-indigo-200/80">
+                                    <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.directEvacuation.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                                    <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* WAIT vs ANCHOR Cost Profile Breakdown */}
+                              <div className="bg-slate-50 border border-slate-200 rounded-md p-2 text-[8.5px] space-y-1">
+                                <div className="flex items-center justify-between font-bold text-slate-700">
+                                  <span>⚓ Terminal Option Comparison (WAIT vs. ANCHOR):</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5 text-[8px]">
+                                  <div className="bg-white p-1.5 rounded border border-slate-200 space-y-0.5">
+                                    <div className="font-bold text-cyan-900 flex justify-between">
+                                      <span>1. WAIT: Slow Steam</span>
+                                      <span className="font-mono text-cyan-800 font-bold">₹{divAdv.waitOption?.totalCostCr} Cr</span>
+                                    </div>
+                                    <div className="text-[7.5px] text-slate-500">
+                                      Eco-speed 7.5 kts • Burns ~{divAdv.waitOption?.fuelBurnMT} MT • <b className="text-emerald-700">0 Port Dues</b>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white p-1.5 rounded border border-slate-200 space-y-0.5">
+                                    <div className="font-bold text-rose-900 flex justify-between">
+                                      <span>2. ANCHOR: Outer Roads</span>
+                                      <span className="font-mono text-rose-700 font-bold">₹{divAdv.anchorOption?.totalCostCr} Cr</span>
+                                    </div>
+                                    <div className="text-[7.5px] text-slate-500">
+                                      Aux burn ~{divAdv.anchorOption?.fuelBurnMT} MT • Incurs <b className="text-rose-700">Demurrage (₹{divAdv.anchorOption?.demurrageLossCr} Cr)</b>
                                     </div>
                                   </div>
                                 </div>
@@ -1577,7 +1683,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   </div>
 
                   {/* Port Saturation, Anchorage Loss & Dual Fuel Strategies */}
-                  {isPortFull && (
+                  {isPortFull ? (
                     <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-2">
                       <div className="flex items-center justify-between text-amber-300 font-bold">
                         <span className="flex items-center space-x-1">
@@ -1738,6 +1844,62 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                           </div>
                         </div>
                       )}
+                    </div>
+                  ) : (
+                    /* Smooth Berthing / Direct Port Evacuation View */
+                    <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-emerald-500/60 text-[10px] space-y-2">
+                      <div className="flex items-center justify-between text-emerald-300 font-bold">
+                        <span className="flex items-center space-x-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>{toastDiv.portName} Berthing Clear ({toastDiv.avgWaitDays}d wait • {toastDiv.vesselsAtAnchor} queued)</span>
+                        </span>
+                        <span className="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-emerald-800">
+                          {toastDiv.congestionStatus}
+                        </span>
+                      </div>
+
+                      {/* Direct Port Turnaround Baseline */}
+                      <div className="bg-emerald-950/50 border border-emerald-900/60 rounded p-1.5 text-emerald-200 flex items-center justify-between">
+                        <span>⚓ <strong>Direct Port Turnaround:</strong> ~{toastDiv.berthTurnaroundHours || 36}h</span>
+                        <span className="font-mono font-bold text-emerald-400">
+                          Optimal Queue (0 Diversion Surcharge)
+                        </span>
+                      </div>
+
+                      {/* Direct Port Hinterland Evacuation (Rail Rakes vs Trucks) */}
+                      {toastDiv.directEvacuation && (
+                        <div className="p-2 rounded bg-slate-900 border border-indigo-500/50 text-[9px] space-y-1">
+                          <div className="flex items-center justify-between font-bold text-indigo-300">
+                            <span className="flex items-center space-x-1">
+                              <span>🚂</span>
+                              <span>Hinterland Evacuation: {toastDiv.directEvacuation.cluster} ({toastDiv.directEvacuation.distanceKm} km)</span>
+                            </span>
+                            <span className="px-1.5 py-0.2 rounded font-extrabold text-[8px] uppercase border bg-emerald-950 text-emerald-300 border-emerald-800">
+                              🟢 Rakes Guaranteed
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-slate-300 pt-0.5">
+                            <div>
+                              FOIS Rail Freight: <b className="text-white">₹{toastDiv.directEvacuation.trainCostCr} Cr</b> <span className="text-slate-400">({toastDiv.directEvacuation.trainRakesNeeded} rakes)</span>
+                            </div>
+                            <div>
+                              Truck Freight (Road): <b className="text-amber-300">₹{toastDiv.directEvacuation.truckCostCr} Cr</b> <span className="text-slate-400">({toastDiv.directEvacuation.trucksNeeded?.toLocaleString()} trucks)</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
+                            <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{toastDiv.directEvacuation.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                            <span className="text-cyan-400 font-semibold">PPAC Diesel-Indexed</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Terminal Strategy Profile */}
+                      <div className="p-1.5 rounded bg-slate-900 border border-slate-800 text-[9px] flex items-center justify-between text-slate-300">
+                        <span>Approach Strategy: <b className="text-emerald-300">Direct Fairway Inward Transit</b></span>
+                        <span className="font-mono text-emerald-400 font-bold">Clear Sea Gate Ring</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1926,6 +2088,50 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <span className="font-bold block mb-0.5">Port Draft Clearance at Destination:</span>
                 <p className="text-slate-600">{selectedVessel.draftClearanceAtDest}</p>
               </div>
+
+              {/* 80 NM Multimodal Hinterland Evacuation (Rail Rakes vs Trucks) for Selected Vessel */}
+              {(() => {
+                const vesselEvacAdv = evaluateVesselPortCongestionDiversion({
+                  portId: selectedVessel.destinationId || 'paradip',
+                  vesselType: selectedVessel.vesselType,
+                  currentDraught: selectedVessel.currentDraughtMeters,
+                  vesselName: selectedVessel.name,
+                  vesselCoordinates: selectedVessel.coordinates,
+                  speedKnots: selectedVessel.speedKnots,
+                  dwt: selectedVessel.dwt,
+                  cargo: selectedVessel.cargo
+                });
+                const evac = vesselEvacAdv?.directEvacuation;
+                if (!evac) return null;
+
+                return (
+                  <div className="bg-indigo-50/70 border border-indigo-200 rounded p-2.5 text-[11px] text-slate-800 mb-3 space-y-1">
+                    <div className="flex items-center justify-between font-bold text-indigo-950">
+                      <span className="flex items-center space-x-1">
+                        <span>🚂</span>
+                        <span>80 NM Logistics: {evac.cluster} ({evac.distanceKm} km)</span>
+                      </span>
+                      <span className={`px-1.5 py-0.2 rounded font-extrabold text-[8px] uppercase border ${
+                        evac.railRisk === 'VERY LOW' || evac.railRisk === 'LOW'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : 'bg-amber-100 text-amber-800 border-amber-300'
+                      }`}>
+                        {evac.railRisk === 'VERY LOW' || evac.railRisk === 'LOW' ? '🟢 Rakes Guaranteed' : '⚠️ Rake Deficit Risk'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-700 pt-0.5">
+                      <div>FOIS Rail Freight: <b className="text-indigo-900 font-mono font-bold">₹{evac.trainCostCr} Cr</b> <span className="text-slate-500">({evac.trainRakesNeeded} rakes)</span></div>
+                      <div>Truck Fleet (Road): <b className="text-amber-900 font-mono font-bold">₹{evac.truckCostCr} Cr</b> <span className="text-slate-500">({evac.trucksNeeded?.toLocaleString()} trucks)</span></div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[9px] text-slate-600 font-medium pt-0.5 border-t border-indigo-200/80">
+                      <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{evac.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                      <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : null}
 

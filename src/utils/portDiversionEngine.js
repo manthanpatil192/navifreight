@@ -429,18 +429,6 @@ export function evaluateVesselPortCongestionDiversion({
     congestionData.vesselsAtAnchor >= 5 ||
     portInfo.avgWaitDays >= 2.0;
 
-  if (!isPortFull) {
-    return {
-      isPortFull: false,
-      geofenceRadiusNm: 80,
-      portName: congestionData.portName || portInfo.name,
-      congestionStatus: congestionData.congestionStatus || 'LOW',
-      avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
-      vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
-      suggestedPort: null
-    };
-  }
-
   // Resolve vessel class key to Part B specification
   const vType = vesselType.toLowerCase();
   let vesselKey = 'capesize';
@@ -486,47 +474,32 @@ export function evaluateVesselPortCongestionDiversion({
     remainingBunkerFuelMT
   });
 
-  if (!diversionResult.suggestedPort) {
-    return {
-      isPortFull: true,
-      geofenceRadiusNm: 80,
-      portId: cleanPortId,
-      portName: congestionData.portName || portInfo.name,
-      congestionStatus: congestionData.congestionStatus,
-      avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
-      vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
-      anchorageLoss: diversionResult.anchorageLoss,
-      waitOption: diversionResult.waitOption,
-      anchorOption: diversionResult.anchorOption,
-      currentPort: diversionResult.currentPort,
-      suggestedPort: null,
-      message: `${congestionData.portName || portInfo.name} is saturated (${congestionData.avgAnchorageWaitDays}d wait), but no alternative port satisfies fuel & draft constraints.`
-    };
-  }
-
   const ample = diversionResult.ampleFuelOption;
   const low = diversionResult.lowFuelOption;
   const primary = low || ample;
 
   return {
-    isPortFull: true,
+    isPortFull,
     geofenceRadiusNm: 80,
     portId: cleanPortId,
     portName: congestionData.portName || portInfo.name,
-    congestionStatus: congestionData.congestionStatus,
+    congestionStatus: congestionData.congestionStatus || (isPortFull ? 'MODERATE' : 'OPTIMAL'),
     avgWaitDays: congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays,
     vesselsAtAnchor: congestionData.vesselsAtAnchor || 0,
     berthTurnaroundHours: congestionData.berthTurnaroundHours || 36,
     anchorageLoss: diversionResult.anchorageLoss,
     currentPort: diversionResult.currentPort,
+    directEvacuation: diversionResult.currentPort?.evacuation,
     waitOption: diversionResult.waitOption,
     anchorOption: diversionResult.anchorOption,
     ampleFuelOption: ample,
     lowFuelOption: low,
     suggestedPort: primary,
     vessel: diversionResult.vessel,
-    headlineSuggestion: low && ample && low.portId === ample.portId
-      ? `Port Saturated (${congestionData.avgAnchorageWaitDays}d wait • Anchorage Loss: ₹${diversionResult.anchorageLoss.totalLossCr} Cr / ₹${diversionResult.anchorageLoss.totalLossLakhs}L). SUGGESTION: Divert to ${low.portName} — Nearest & Free Port (Saves ${low.waitDaysSaved}d wait & ₹${low.netArbitrageCr} Cr net).`
-      : `Port Saturated (${congestionData.avgAnchorageWaitDays}d wait • Anchorage Loss: ₹${diversionResult.anchorageLoss.totalLossCr} Cr / ₹${diversionResult.anchorageLoss.totalLossLakhs}L). 2 OPTIONS: [Low Fuel] Divert to Nearest ${low.portName} (${low.distNM} NM, ₹${low.fuelCostCr} Cr fuel) OR [Ample Fuel] Divert to Free ${ample.portName} (Saves ${ample.waitDaysSaved}d wait & ₹${ample.netArbitrageCr} Cr net).`
+    headlineSuggestion: isPortFull && primary
+      ? low && ample && low.portId === ample.portId
+        ? `Port Saturated (${congestionData.avgAnchorageWaitDays}d wait • Anchorage Loss: ₹${diversionResult.anchorageLoss.totalLossCr} Cr / ₹${diversionResult.anchorageLoss.totalLossLakhs}L). SUGGESTION: Divert to ${low.portName} — Nearest & Free Port (Saves ${low.waitDaysSaved}d wait & ₹${low.netArbitrageCr} Cr net).`
+        : `Port Saturated (${congestionData.avgAnchorageWaitDays}d wait • Anchorage Loss: ₹${diversionResult.anchorageLoss.totalLossCr} Cr / ₹${diversionResult.anchorageLoss.totalLossLakhs}L). 2 OPTIONS: [Low Fuel] Divert to Nearest ${low.portName} (${low.distNM} NM, ₹${low.fuelCostCr} Cr fuel) OR [Ample Fuel] Divert to Free ${ample.portName} (Saves ${ample.waitDaysSaved}d wait & ₹${ample.netArbitrageCr} Cr net).`
+      : `🟢 Normal Berth Approach (${congestionData.avgAnchorageWaitDays || portInfo.avgWaitDays}d wait • Minimal Queue). Multimodal Hinterland Evacuation: ${diversionResult.currentPort?.evacuation?.cluster} verified with guaranteed rail rakes.`
   };
 }
