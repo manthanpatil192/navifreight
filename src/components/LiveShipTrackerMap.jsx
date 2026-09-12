@@ -1145,45 +1145,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                   </div>
                                 </div>
                               </div>
-
-                              {/* Best Option Out of All Choices */}
-                              <div className="p-2.5 rounded-md bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/80 border-2 border-emerald-500 text-slate-800 space-y-1.5 shadow-xs">
-                                <div className="flex items-center justify-between font-bold">
-                                  <span className="flex items-center space-x-1.5 text-emerald-950 text-[10.5px]">
-                                    <span className="text-sm">⭐</span>
-                                    <span className="font-extrabold uppercase tracking-wide">Best Option Out of All Choices:</span>
-                                  </span>
-                                  <span className="px-2 py-0.5 rounded bg-emerald-700 text-white font-extrabold text-[8px] uppercase tracking-wider shadow-xs flex items-center space-x-1">
-                                    <span>🏆</span>
-                                    <span>AI Recommended Winner</span>
-                                  </span>
-                                </div>
-
-                                <div className="bg-white/95 p-2 rounded border border-emerald-300 space-y-1 shadow-2xs">
-                                  <div className="flex justify-between items-center font-bold text-emerald-950 text-[10px]">
-                                    <span className="flex items-center space-x-1">
-                                      <span className="text-emerald-700 font-extrabold">🎯</span>
-                                      <span className="text-emerald-950 font-black">{divAdv.bestOption?.title || 'Divert to Gangavaram Port (GPL)'}</span>
-                                    </span>
-                                    <span className="font-mono text-emerald-800 font-extrabold text-[10.5px] bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">
-                                      Net Gain: +₹{divAdv.bestOption?.netPayoffCr || '1.15'} Cr {divAdv.bestOption?.netPayoffLakhs ? `(+₹${divAdv.bestOption.netPayoffLakhs}L)` : '(+₹115L)'}
-                                    </span>
-                                  </div>
-
-                                  <div className="text-[8.5px] text-slate-700 leading-snug bg-slate-50/80 p-1.5 rounded border border-slate-200/80">
-                                    <span className="font-semibold text-slate-900">Optimal Action: </span>
-                                    {divAdv.bestOption?.rationale || 'Highest net landed savings (+₹1.15 Cr) among all choices. Eliminates 2.1d wait at Paradip and secures direct FOIS rail dispatch to SAIL Bhilai Steel Plant (BSP).'}
-                                  </div>
-
-                                  <div className="flex items-center justify-between text-[8px] text-slate-600 pt-0.5 border-t border-emerald-200">
-                                    <span>Hinterland Link: <b className="text-indigo-950 font-bold">{divAdv.bestOption?.evacuationCluster || 'SAIL Bhilai Steel Plant (BSP)'}</b></span>
-                                    <span className="text-emerald-700 font-bold flex items-center space-x-1">
-                                      <span>✓</span>
-                                      <span>100% SOLAS & Part-B Compliant</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
                             </div>
                           ) : (
                             /* Case B: Port Clear / Smooth Berthing -> Direct Port Evacuation & Logistics Analysis */
@@ -1261,45 +1222,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                     <div className="text-[7.5px] text-slate-500">
                                       Aux burn ~{divAdv.anchorOption?.fuelBurnMT} MT • Incurs <b className="text-rose-700">Demurrage (₹{divAdv.anchorOption?.demurrageLossCr} Cr)</b>
                                     </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Best Option Out of All Choices (Clear Port) */}
-                              <div className="p-2.5 rounded-md bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50/80 border-2 border-emerald-500 text-slate-800 space-y-1.5 shadow-xs">
-                                <div className="flex items-center justify-between font-bold">
-                                  <span className="flex items-center space-x-1.5 text-emerald-950 text-[10.5px]">
-                                    <span className="text-sm">⭐</span>
-                                    <span className="font-extrabold uppercase tracking-wide">Best Option Out of All Choices:</span>
-                                  </span>
-                                  <span className="px-2 py-0.5 rounded bg-emerald-700 text-white font-extrabold text-[8px] uppercase tracking-wider shadow-xs flex items-center space-x-1">
-                                    <span>🏆</span>
-                                    <span>AI Recommended Winner</span>
-                                  </span>
-                                </div>
-
-                                <div className="bg-white/95 p-2 rounded border border-emerald-300 space-y-1 shadow-2xs">
-                                  <div className="flex justify-between items-center font-bold text-emerald-950 text-[10px]">
-                                    <span className="flex items-center space-x-1">
-                                      <span className="text-emerald-700 font-extrabold">🎯</span>
-                                      <span className="text-emerald-950 font-black">{divAdv.bestOption?.title || `Direct Berthing at ${divAdv.portName}`}</span>
-                                    </span>
-                                    <span className="font-mono text-emerald-800 font-extrabold text-[10px] bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">
-                                      Clear Berth (0 Wait)
-                                    </span>
-                                  </div>
-
-                                  <div className="text-[8.5px] text-slate-700 leading-snug bg-slate-50/80 p-1.5 rounded border border-slate-200/80">
-                                    <span className="font-semibold text-slate-900">Optimal Action: </span>
-                                    {divAdv.bestOption?.rationale || `Berth clearance confirmed (${divAdv.avgWaitDays}d wait). Proceed for immediate discharge and rail evacuation to ${divAdv.directEvacuation?.cluster}.`}
-                                  </div>
-
-                                  <div className="flex items-center justify-between text-[8px] text-slate-600 pt-0.5 border-t border-emerald-200">
-                                    <span>Hinterland Link: <b className="text-indigo-950 font-bold">{divAdv.directEvacuation?.cluster}</b></span>
-                                    <span className="text-emerald-700 font-bold flex items-center space-x-1">
-                                      <span>✓</span>
-                                      <span>Direct Rail Dispatch Ready</span>
-                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -1558,9 +1480,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             {diversionData.isPortSaturated && (() => {
               const activePort = activeDiversionStrategy === 'lowFuel'
                 ? (diversionData.lowFuelOption || diversionData.suggestedPort)
-                : activeDiversionStrategy === 'bestChoice'
-                  ? (diversionData.bestOption?.portId && diversionData.lowFuelOption?.portId === diversionData.bestOption.portId ? diversionData.lowFuelOption : (diversionData.ampleFuelOption || diversionData.suggestedPort))
-                  : (diversionData.ampleFuelOption || diversionData.suggestedPort);
+                : (diversionData.ampleFuelOption || diversionData.suggestedPort);
 
               const pathCoords = activeDiversionStrategy === 'lowFuel'
                 ? (diversionData.diversionPathCoordinatesLowFuel && diversionData.diversionPathCoordinatesLowFuel.length > 0
@@ -1572,9 +1492,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
               if (!activePort || !pathCoords || pathCoords.length === 0) return null;
 
-              const isBestChoice = activeDiversionStrategy === 'bestChoice';
               const isLowFuel = activeDiversionStrategy === 'lowFuel';
-              const themeColor = isBestChoice ? '#10b981' : isLowFuel ? '#f59e0b' : '#06b6d4';
+              const themeColor = isLowFuel ? '#f59e0b' : '#06b6d4';
 
               return (
                 <>
@@ -1590,7 +1509,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     <Tooltip direction="center" opacity={0.95}>
                       <div className="text-[11px] font-bold text-slate-900 bg-white p-2 rounded-lg border border-slate-300 shadow-md space-y-0.5">
                         <div className="flex items-center space-x-1">
-                          <span>{isBestChoice ? '⭐ Best Option Winner (AI Recommended)' : isLowFuel ? '⛽ Low Fuel Strategy (Nearest Port)' : '⚡ Ample Fuel Strategy (Free Port)'}:</span>
+                          <span>{isLowFuel ? '⛽ Low Fuel Strategy (Nearest Port)' : '⚡ Ample Fuel Strategy (Free Port)'}:</span>
                           <span className="text-maritime-900 font-extrabold">{diversionData.currentPort.name} ➔ {activePort.portName}</span>
                         </div>
                         <div className="text-[10px] text-slate-600 font-normal">
@@ -1616,8 +1535,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   >
                     <Tooltip direction="top" permanent opacity={0.95}>
                       <div className="text-[10px] font-bold bg-white px-2 py-0.5 rounded shadow-sm border border-slate-300 text-slate-900">
-                        {isBestChoice ? '⭐ AI Recommended Best Option: ' : isLowFuel ? '🎯 Nearest Alternative: ' : '🎯 Free Port Alternative: '}
-                        <span className={isBestChoice ? 'text-emerald-800' : isLowFuel ? 'text-amber-800' : 'text-cyan-800'}>
+                        {isLowFuel ? '🎯 Nearest Alternative: ' : '🎯 Free Port Alternative: '}
+                        <span className={isLowFuel ? 'text-amber-800' : 'text-cyan-800'}>
                           {activePort.portName}
                         </span>
                       </div>
@@ -1790,18 +1709,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         <div className="flex items-center space-x-1">
                           <button
                             type="button"
-                            onClick={() => setActiveDiversionStrategy('bestChoice')}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
-                              activeDiversionStrategy === 'bestChoice'
-                                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
-                                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                            }`}
-                            title="AI Recommended Best Option Across All Choices"
-                          >
-                            ⭐ Best Option
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => setActiveDiversionStrategy('lowFuel')}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
                               activeDiversionStrategy === 'lowFuel'
@@ -1839,47 +1746,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         </div>
                       </div>
 
-                      {/* Best Choice Strategy Details Card */}
-                      {activeDiversionStrategy === 'bestChoice' && (
-                        <div className="p-2 rounded bg-gradient-to-br from-slate-900 via-emerald-950/70 to-slate-900 border border-emerald-500/70 space-y-1.5 text-[9.5px]">
-                          <div className="flex items-center justify-between font-bold">
-                            <span className="text-emerald-300 flex items-center space-x-1">
-                              <span>⭐</span>
-                              <span>Best Option Out of All Choices:</span>
-                            </span>
-                            <span className="text-[8px] bg-emerald-600 text-white font-extrabold px-1.5 py-0.5 rounded shadow-xs uppercase tracking-wider">
-                              AI Winner
-                            </span>
-                          </div>
-
-                          <div className="flex items-center justify-between font-bold text-white text-[10px] bg-emerald-950/60 p-1.5 rounded border border-emerald-800/80">
-                            <span className="text-emerald-200">🎯 {toastDiv.bestOption?.title || 'Divert to Gangavaram Port (GPL)'}</span>
-                            <span className="font-mono text-emerald-400 font-extrabold text-[10.5px]">
-                              Net Gain: +₹{toastDiv.bestOption?.netPayoffCr || '1.15'} Cr {toastDiv.bestOption?.netPayoffLakhs ? `(+₹${toastDiv.bestOption.netPayoffLakhs}L)` : '(+₹115L)'}
-                            </span>
-                          </div>
-
-                          <div className="text-[8.5px] text-slate-300 leading-snug bg-slate-950/80 p-1.5 rounded border border-slate-800">
-                            <span className="font-semibold text-emerald-400">Why it wins: </span>
-                            {toastDiv.bestOption?.rationale || 'Highest net landed savings (+₹1.15 Cr) among all choices. Eliminates 2.1d wait at Paradip and secures direct FOIS rail dispatch to SAIL Bhilai Steel Plant (BSP).'}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-1 text-[8.5px] text-slate-300 pt-1 border-t border-slate-800">
-                            <div>
-                              Net Arbitrage: <b className="text-emerald-400 font-mono">+₹{toastDiv.bestOption?.netPayoffCr} Cr</b>
-                            </div>
-                            <div>
-                              Queue Saved: <b className="text-emerald-400">-{toastDiv.bestOption?.timeSavedDays || 2.1} Days</b>
-                            </div>
-                            <div className="col-span-2 text-indigo-300">
-                              Evacuation Link: <b className="text-white">{toastDiv.bestOption?.evacuationCluster || 'SAIL Plant'}</b>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Active Strategy Details Card */}
-                      {activeDiversionStrategy !== 'waitAnchor' && activeDiversionStrategy !== 'bestChoice' && activeOption && (
+                      {activeDiversionStrategy !== 'waitAnchor' && activeOption && (
                         <div className="p-2 rounded bg-slate-900 border border-slate-700 space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-slate-300">
@@ -2244,27 +2112,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{evac.roadSurchargeCr} Cr</b></span>
                       <span className="text-cyan-800 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
                     </div>
-
-                    {vesselEvacAdv?.bestOption && vesselEvacAdv?.isPortFull && (
-                      <div className="mt-2 p-2 rounded bg-emerald-50/90 border border-emerald-300 space-y-1">
-                        <div className="flex justify-between items-center text-[10px] font-bold text-emerald-950">
-                          <span className="flex items-center space-x-1">
-                            <span>⭐</span>
-                            <span>Best Option Out of All Choices:</span>
-                          </span>
-                          <span className="text-[8px] bg-emerald-700 text-white px-1.5 py-0.2 rounded font-extrabold uppercase shadow-2xs">
-                            AI Winner
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-[9.5px]">
-                          <span className="font-extrabold text-emerald-900">{vesselEvacAdv.bestOption.title}</span>
-                          <span className="font-mono font-bold text-emerald-800">+₹{vesselEvacAdv.bestOption.netPayoffCr} Cr</span>
-                        </div>
-                        <div className="text-[8.5px] text-slate-600 leading-snug">
-                          {vesselEvacAdv.bestOption.rationale}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })()}
