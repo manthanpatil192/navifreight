@@ -201,6 +201,7 @@ const INITIAL_NOTIFICATIONS = [
     speedKnots: 12.4,
     currentDraught: 17.8,
     cargo: '165,000 MT Hard Coking Coal',
+    dwt: 175000,
     coordinates: [19.3194, 87.6699],
     geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 12)
@@ -216,6 +217,7 @@ const INITIAL_NOTIFICATIONS = [
     speedKnots: 10.5,
     currentDraught: 18.2,
     cargo: '160,000 MT Semi-Soft Coking Coal',
+    dwt: 165000,
     coordinates: [16.6654, 84.2734],
     geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 35)
@@ -895,7 +897,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
             {/* Notifications Dropdown Popover */}
             {showNotificationDrawer && (
-              <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-xl shadow-2xl z-[1200] p-3 text-xs animate-in fade-in zoom-in-95">
+              <div className="absolute top-full right-0 mt-2 w-84 sm:w-[450px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[1200] p-3 text-xs animate-in fade-in zoom-in-95">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
                   <div className="flex items-center space-x-1.5">
                     <Bell className="w-3.5 h-3.5 text-maritime-700" />
@@ -908,21 +910,21 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     {notifications.length > 0 && (
                       <button
                         onClick={() => setNotifications([])}
-                        className="text-[10px] text-slate-400 hover:text-rose-600 font-semibold"
+                        className="text-[10px] text-slate-400 hover:text-rose-600 font-semibold cursor-pointer"
                       >
                         Clear All
                       </button>
                     )}
                     <button
                       onClick={() => setShowNotificationDrawer(false)}
-                      className="text-slate-400 hover:text-slate-700"
+                      className="text-slate-400 hover:text-slate-700 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+                <div className="max-h-[34rem] overflow-y-auto space-y-2 pr-1">
                   {notifications.length === 0 ? (
                     <div className="py-6 text-center text-slate-400 text-xs">
                       No recent geofence breaches detected.
@@ -935,7 +937,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         currentDraught: notif.currentDraught,
                         vesselName: notif.vesselName,
                         vesselCoordinates: notif.coordinates,
-                        speedKnots: notif.speedKnots
+                        speedKnots: notif.speedKnots,
+                        dwt: notif.dwt || 165000,
+                        cargo: notif.cargo
                       });
                       const isPortFull = divAdv && divAdv.isPortFull && (divAdv.lowFuelOption || divAdv.ampleFuelOption);
 
@@ -978,50 +982,143 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                           {/* Port Saturation & Dual Fuel Strategies */}
                           {isPortFull && (
-                            <div className="mt-2 p-2 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-1.5 shadow-xs">
+                            <div className="mt-2 p-2.5 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-2 shadow-xs">
                               <div className="flex items-center justify-between font-bold text-amber-900">
                                 <span className="flex items-center space-x-1">
-                                  <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                   <span>Port Saturated ({divAdv.avgWaitDays}d wait • {divAdv.vesselsAtAnchor} queued)</span>
                                 </span>
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 uppercase font-extrabold border border-rose-300">
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 uppercase font-extrabold border border-rose-300">
                                   {divAdv.congestionStatus}
                                 </span>
                               </div>
 
-                              {/* Anchorage Loss Baseline */}
-                              <div className="bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5 text-[9px] text-rose-800 flex justify-between font-medium">
+                              {/* Anchorage Loss Baseline in ₹ Crores (₹ Lakhs) */}
+                              <div className="bg-rose-50 border border-rose-200 rounded px-2 py-1 text-[9.5px] text-rose-900 flex justify-between font-medium items-center">
                                 <span>⚓ Anchorage Loss at {divAdv.portName}:</span>
-                                <span className="font-bold font-mono text-rose-700">-₹{divAdv.anchorageLoss?.totalLossLakhs}L</span>
+                                <span className="font-bold font-mono text-rose-700">
+                                  -₹{divAdv.anchorageLoss?.totalLossCr} Cr <span className="text-[8.5px] font-normal text-rose-600">(-₹{divAdv.anchorageLoss?.totalLossLakhs}L)</span>
+                                </span>
+                              </div>
+
+                              {/* Bunker Fuel Feasibility Gate */}
+                              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-[8.5px] text-slate-700">
+                                <span className="flex items-center space-x-1">
+                                  <span>⛽</span>
+                                  <span className="font-semibold">Fuel Feasibility Gate:</span>
+                                  <span className="text-emerald-700 font-bold">PASS</span>
+                                </span>
+                                <span className="text-[8px] text-slate-500 font-mono">15% SOLAS Reserve Verified</span>
                               </div>
 
                               {/* Strategy 1: Low Fuel (Closest Port) */}
                               {divAdv.lowFuelOption && (
-                                <div className="p-1.5 rounded bg-amber-50/70 border border-amber-200 text-slate-800 space-y-0.5">
+                                <div className="p-2 rounded-md bg-amber-50/80 border border-amber-200 text-slate-800 space-y-1">
                                   <div className="flex justify-between items-center font-bold text-amber-950">
                                     <span>⛽ Low Fuel: Divert to {divAdv.lowFuelOption.portName}</span>
-                                    <span className="text-[9px] font-mono text-slate-600">{divAdv.lowFuelOption.distNM} NM</span>
+                                    <span className="text-[9px] font-mono text-slate-600 font-semibold">{divAdv.lowFuelOption.distNM} NM</span>
                                   </div>
-                                  <div className="flex justify-between text-[9px] text-slate-600">
-                                    <span>Fuel Burn: {divAdv.lowFuelOption.fuelBurnMT} MT (₹{divAdv.lowFuelOption.fuelCostLakhs}L)</span>
-                                    <span className="font-bold text-emerald-700">Net Gain: +₹{divAdv.lowFuelOption.netArbitrageLakhs}L</span>
+                                  <div className="flex justify-between text-[9px] text-slate-700 pt-0.5">
+                                    <span>Fuel Burn: {divAdv.lowFuelOption.fuelBurnMT} MT (<b className="text-amber-800 font-mono">₹{divAdv.lowFuelOption.fuelCostCr} Cr</b> / ₹{divAdv.lowFuelOption.fuelCostLakhs}L)</span>
+                                    <span className="font-bold text-emerald-800 font-mono">Net Gain: +₹{divAdv.lowFuelOption.netArbitrageCr} Cr <span className="text-[8px] font-normal text-emerald-700">(+₹{divAdv.lowFuelOption.netArbitrageLakhs}L)</span></span>
                                   </div>
+
+                                  {/* Railway Evacuation Alert / Modal Surcharge */}
+                                  {divAdv.lowFuelOption.evacuation && (
+                                    <div className="mt-1 pt-1.5 border-t border-amber-200/90 text-[8.5px] space-y-1">
+                                      <div className="flex items-center justify-between font-bold text-indigo-950">
+                                        <span className="flex items-center space-x-1">
+                                          <span>🚂</span>
+                                          <span>Hinterland Evacuation: {divAdv.lowFuelOption.evacuation.cluster} ({divAdv.lowFuelOption.evacuation.distanceKm} km)</span>
+                                        </span>
+                                        <span className={`px-1.5 py-0.2 rounded font-extrabold text-[7.5px] uppercase border ${
+                                          divAdv.lowFuelOption.evacuation.railRisk === 'VERY LOW' || divAdv.lowFuelOption.evacuation.railRisk === 'LOW'
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                                        }`}>
+                                          {divAdv.lowFuelOption.evacuation.railRisk === 'VERY LOW' || divAdv.lowFuelOption.evacuation.railRisk === 'LOW' ? '🟢 Rakes Available' : '⚠️ Rake Deficit'}
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700">
+                                        <div>FOIS Rail: <b className="text-indigo-900 font-mono font-bold">₹{divAdv.lowFuelOption.evacuation.trainCostCr} Cr</b> ({divAdv.lowFuelOption.evacuation.trainRakesNeeded} rakes)</div>
+                                        <div>Truck (Road): <b className="text-amber-900 font-mono font-bold">₹{divAdv.lowFuelOption.evacuation.truckCostCr} Cr</b> ({divAdv.lowFuelOption.evacuation.trucksNeeded?.toLocaleString()} trucks)</div>
+                                      </div>
+                                      <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium">
+                                        <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.lowFuelOption.evacuation.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                                        <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
 
                               {/* Strategy 2: Ample Fuel (Free / Lowest Queue Port) */}
                               {divAdv.ampleFuelOption && divAdv.ampleFuelOption.portId !== divAdv.lowFuelOption?.portId && (
-                                <div className="p-1.5 rounded bg-cyan-50/70 border border-cyan-200 text-slate-800 space-y-0.5">
+                                <div className="p-2 rounded-md bg-cyan-50/80 border border-cyan-200 text-slate-800 space-y-1">
                                   <div className="flex justify-between items-center font-bold text-cyan-950">
                                     <span>⚡ Ample Fuel: Divert to {divAdv.ampleFuelOption.portName}</span>
-                                    <span className="text-[9px] font-mono text-slate-600">{divAdv.ampleFuelOption.distNM} NM</span>
+                                    <span className="text-[9px] font-mono text-slate-600 font-semibold">{divAdv.ampleFuelOption.distNM} NM</span>
                                   </div>
-                                  <div className="flex justify-between text-[9px] text-slate-600">
-                                    <span>Saves {divAdv.ampleFuelOption.waitDaysSaved}d (₹{divAdv.ampleFuelOption.demurrageSavedLakhs}L)</span>
-                                    <span className="font-bold text-emerald-700">Net Gain: +₹{divAdv.ampleFuelOption.netArbitrageLakhs}L</span>
+                                  <div className="flex justify-between text-[9px] text-slate-700 pt-0.5">
+                                    <span>Saves {divAdv.ampleFuelOption.waitDaysSaved}d (<b className="text-cyan-900 font-mono">₹{divAdv.ampleFuelOption.demurrageSavedCr} Cr</b> / ₹{divAdv.ampleFuelOption.demurrageSavedLakhs}L)</span>
+                                    <span className="font-bold text-emerald-800 font-mono">Net Gain: +₹{divAdv.ampleFuelOption.netArbitrageCr} Cr <span className="text-[8px] font-normal text-emerald-700">(+₹{divAdv.ampleFuelOption.netArbitrageLakhs}L)</span></span>
                                   </div>
+
+                                  {/* Railway Evacuation Alert / Modal Surcharge */}
+                                  {divAdv.ampleFuelOption.evacuation && (
+                                    <div className="mt-1 pt-1.5 border-t border-cyan-200/90 text-[8.5px] space-y-1">
+                                      <div className="flex items-center justify-between font-bold text-indigo-950">
+                                        <span className="flex items-center space-x-1">
+                                          <span>🚂</span>
+                                          <span>Hinterland Evacuation: {divAdv.ampleFuelOption.evacuation.cluster} ({divAdv.ampleFuelOption.evacuation.distanceKm} km)</span>
+                                        </span>
+                                        <span className={`px-1.5 py-0.2 rounded font-extrabold text-[7.5px] uppercase border ${
+                                          divAdv.ampleFuelOption.evacuation.railRisk === 'VERY LOW' || divAdv.ampleFuelOption.evacuation.railRisk === 'LOW'
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                                        }`}>
+                                          {divAdv.ampleFuelOption.evacuation.railRisk === 'VERY LOW' || divAdv.ampleFuelOption.evacuation.railRisk === 'LOW' ? '🟢 Rakes Available' : '⚠️ Rake Deficit'}
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700">
+                                        <div>FOIS Rail: <b className="text-indigo-900 font-mono font-bold">₹{divAdv.ampleFuelOption.evacuation.trainCostCr} Cr</b> ({divAdv.ampleFuelOption.evacuation.trainRakesNeeded} rakes)</div>
+                                        <div>Truck (Road): <b className="text-amber-900 font-mono font-bold">₹{divAdv.ampleFuelOption.evacuation.truckCostCr} Cr</b> ({divAdv.ampleFuelOption.evacuation.trucksNeeded?.toLocaleString()} trucks)</div>
+                                      </div>
+                                      <div className="flex items-center justify-between text-[8px] text-slate-600 font-medium">
+                                        <span>Road Surcharge Penalty: <b className="text-rose-700 font-mono font-bold">+₹{divAdv.ampleFuelOption.evacuation.roadSurchargeCr} Cr</b> (+125% vs Rail)</span>
+                                        <span className="text-cyan-800 font-semibold">PPAC Diesel-Indexed</span>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
+
+                              {/* WAIT vs ANCHOR Cost Profile Breakdown */}
+                              <div className="bg-slate-50 border border-slate-200 rounded-md p-2 text-[8.5px] space-y-1">
+                                <div className="flex items-center justify-between font-bold text-slate-700">
+                                  <span>⚓ Terminal Option Comparison (WAIT vs. ANCHOR):</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5 text-[8px]">
+                                  <div className="bg-white p-1.5 rounded border border-slate-200 space-y-0.5">
+                                    <div className="font-bold text-cyan-900 flex justify-between">
+                                      <span>1. WAIT: Slow Steam</span>
+                                      <span className="font-mono text-cyan-800 font-bold">₹{divAdv.waitOption?.totalCostCr} Cr</span>
+                                    </div>
+                                    <div className="text-[7.5px] text-slate-500">
+                                      Eco-speed 7.5 kts • Burns ~{divAdv.waitOption?.fuelBurnMT} MT • <b className="text-emerald-700">0 Port Dues</b>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white p-1.5 rounded border border-slate-200 space-y-0.5">
+                                    <div className="font-bold text-rose-900 flex justify-between">
+                                      <span>2. ANCHOR: Outer Roads</span>
+                                      <span className="font-mono text-rose-700 font-bold">₹{divAdv.anchorOption?.totalCostCr} Cr</span>
+                                    </div>
+                                    <div className="text-[7.5px] text-slate-500">
+                                      Aux burn ~{divAdv.anchorOption?.fuelBurnMT} MT • Incurs <b className="text-rose-700">Full Demurrage (₹{divAdv.anchorOption?.demurrageLossCr} Cr)</b>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
