@@ -181,7 +181,7 @@ TRANSIT_BULK_NAMES.forEach((name, i) => {
     destinationId: p.id,
     cargo: `${(dwt * 0.92).toLocaleString()} MT Thermal / Coking Coal`,
     etaHours: 12 + (i * 3) % 48,
-    etaTimestamp: `2026-09-0${6 + (i % 3)} ${10 + (i % 12)}:00 IST`,
+    etaTimestamp: `2026-09-${12 + (i % 3)} ${10 + (i % 12)}:00 IST`,
     draftClearanceAtDest: `Assessed for ${p.name}`,
     demurrageExposureRisk: i % 3 === 0 ? 'MODERATE' : 'LOW',
     corridor: 'Bay of Bengal Bulk Shipping Lane'
@@ -250,7 +250,7 @@ TANKER_NAMES.forEach((name, i) => {
     destinationId: destPort.id,
     cargo: `${(dwt * 0.9).toLocaleString()} MT Crude Oil / Refined Petroleum`,
     etaHours: 8 + (i * 4) % 60,
-    etaTimestamp: `2026-09-0${6 + (i % 3)} ${8 + (i % 14)}:30 IST`,
+    etaTimestamp: `2026-09-${12 + (i % 3)} ${8 + (i % 14)}:30 IST`,
     draftClearanceAtDest: 'Clear at Dedicated Terminal / Offshore SPM',
     demurrageExposureRisk: 'LOW',
     corridor: 'Persian Gulf -> India East Coast Crude Route'
@@ -317,7 +317,7 @@ CONTAINER_NAMES.forEach((name, i) => {
     destinationId: destPort.id,
     cargo: `${2000 + i * 200} TEU Scheduled Container Freight`,
     etaHours: 10 + (i * 3) % 40,
-    etaTimestamp: `2026-09-0${6 + (i % 2)} ${11 + (i % 10)}:00 IST`,
+    etaTimestamp: `2026-09-${12 + (i % 2)} ${11 + (i % 10)}:00 IST`,
     draftClearanceAtDest: 'Clear at Container Terminal',
     demurrageExposureRisk: 'LOW',
     corridor: 'Southeast Asia -> East Coast Container Line'
@@ -374,7 +374,7 @@ GAS_NAMES.forEach((name, i) => {
     destinationId: destPort.id,
     cargo: isLNG ? '165,000 cbm LNG for GAIL / Indian Gas Grid' : '45,000 MT LPG for Ujjwala Distribution',
     etaHours: 12 + (i * 4) % 36,
-    etaTimestamp: `2026-09-0${6 + (i % 2)} ${9 + (i % 12)}:00 IST`,
+    etaTimestamp: `2026-09-${12 + (i % 2)} ${9 + (i % 12)}:00 IST`,
     draftClearanceAtDest: 'Clear at Dedicated Cryogenic Terminal',
     demurrageExposureRisk: 'LOW',
     corridor: 'Middle East -> India Clean Energy Corridor'

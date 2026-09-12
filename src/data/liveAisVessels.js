@@ -47,7 +47,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'paradip',
     cargo: '165,000 MT Hard Coking Coal',
     etaHours: 8,
-    etaTimestamp: 'Approaching 80 NM Gate',
+    etaTimestamp: '2026-09-13 00:45 IST',
     draftClearanceAtDest: 'Requires High-Tide Window (+1.2m) or Anchorage Lighterage',
     demurrageExposureRisk: 'MODERATE',
     corridor: 'Australia -> India East Coast'
@@ -119,7 +119,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'paradip',
     cargo: '105,000 MT Semi-Soft Coking Coal',
     etaHours: 5.5,
-    etaTimestamp: '2026-09-05 23:45 IST',
+    etaTimestamp: '2026-09-12 23:45 IST',
     draftClearanceAtDest: 'Optimal Fit (High-Tide KICT Berth 03)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> India East Coast'
@@ -143,7 +143,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'paradip',
     cargo: '54,000 MT Indonesian Thermal Coal',
     etaHours: 1.5,
-    etaTimestamp: '2026-09-05 19:45 IST',
+    etaTimestamp: '2026-09-12 19:45 IST',
     draftClearanceAtDest: 'Clear (+2.3m Under-Keel Margin)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Indonesia -> India East Coast'
@@ -265,7 +265,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'vizag',
     cargo: '78,000 MT Indonesian Steam Coal',
     etaHours: 2.5,
-    etaTimestamp: '2026-09-05 21:00 IST',
+    etaTimestamp: '2026-09-12 21:00 IST',
     draftClearanceAtDest: 'Clear (Scheduled for EQ-1)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Indonesia -> India East Coast'
@@ -289,7 +289,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'vizag',
     cargo: '70,000 MT High-Vol US Coking Coal',
     etaHours: 7.0,
-    etaTimestamp: '2026-09-06 01:30 IST',
+    etaTimestamp: '2026-09-13 01:30 IST',
     draftClearanceAtDest: 'Clear (14.0m Draft Inner Channel)',
     demurrageExposureRisk: 'LOW',
     corridor: 'USA -> India East Coast'
@@ -337,7 +337,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'vizag',
     cargo: '55,000 MT Russian Anthracite & PCI Coal',
     etaHours: 1.0,
-    etaTimestamp: '2026-09-05 19:30 IST',
+    etaTimestamp: '2026-09-12 19:30 IST',
     draftClearanceAtDest: 'Clear (Inner Harbour WQ-2)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Russia -> India East Coast'
@@ -387,7 +387,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'paradip',
     cargo: '160,000 MT Semi-Soft Coking Coal',
     etaHours: 10,
-    etaTimestamp: 'Approaching 80 NM Gate',
+    etaTimestamp: '2026-09-13 00:45 IST',
     draftClearanceAtDest: 'Clear (Deepwater Channel +2.0m Margin)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> India East Coast'
@@ -411,7 +411,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gangavaram',
     cargo: '195,000 MT Hard Coking Coal for Steel Plant',
     etaHours: 2.0,
-    etaTimestamp: '2026-09-05 20:30 IST',
+    etaTimestamp: '2026-09-12 20:30 IST',
     draftClearanceAtDest: 'Optimal (19.5m Max Draft Approved)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> Gangavaram Direct'
@@ -435,7 +435,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gangavaram',
     cargo: '172,000 MT Low-Vol US Metallurgical Coal',
     etaHours: 3.5,
-    etaTimestamp: '2026-09-05 22:00 IST',
+    etaTimestamp: '2026-09-12 22:00 IST',
     draftClearanceAtDest: 'Clear (Safe Deepwater Berth)',
     demurrageExposureRisk: 'LOW',
     corridor: 'USA -> Gangavaram'
@@ -459,7 +459,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gangavaram',
     cargo: '108,000 MT Mozambique Coking Coal',
     etaHours: 1.0,
-    etaTimestamp: '2026-09-05 19:30 IST',
+    etaTimestamp: '2026-09-12 19:30 IST',
     draftClearanceAtDest: 'Optimal (Clearance +4.5m)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Mozambique -> Gangavaram'
@@ -557,7 +557,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'dhamra',
     cargo: '78,000 MT Coking Coal',
     etaHours: 1.0,
-    etaTimestamp: '2026-09-05 19:30 IST',
+    etaTimestamp: '2026-09-12 19:30 IST',
     draftClearanceAtDest: 'Optimal (+3.9m Depth Clearance)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Mozambique -> Dhamra'
@@ -581,7 +581,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'dhamra',
     cargo: '168,000 MT Semi-Soft Coking Coal',
     etaHours: 3.5,
-    etaTimestamp: '2026-09-05 22:00 IST',
+    etaTimestamp: '2026-09-12 22:00 IST',
     draftClearanceAtDest: 'Clear (18.0m All-Weather Berth)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> Dhamra'
@@ -605,7 +605,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'dhamra',
     cargo: '105,000 MT Coking Coal for SAIL Bokaro Steel Plant (BSL)',
     etaHours: 2.0,
-    etaTimestamp: '2026-09-05 20:30 IST',
+    etaTimestamp: '2026-09-12 20:30 IST',
     draftClearanceAtDest: 'Optimal (Deep Draft Passage)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> SAIL Import'
@@ -629,7 +629,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'dhamra',
     cargo: '72,000 MT Russian High-Rank Coking Coal',
     etaHours: 1.5,
-    etaTimestamp: '2026-09-05 20:00 IST',
+    etaTimestamp: '2026-09-12 20:00 IST',
     draftClearanceAtDest: 'Clear',
     demurrageExposureRisk: 'LOW',
     corridor: 'Russia -> Dhamra'
@@ -679,7 +679,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'haldia',
     cargo: '26,000 MT Low-Ash Thermal Coal',
     etaHours: 1.8,
-    etaTimestamp: '2026-09-05 20:00 IST',
+    etaTimestamp: '2026-09-12 20:00 IST',
     draftClearanceAtDest: 'Clear (High Tide Lock Window Synchronized)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Indonesia -> Haldia Direct'
@@ -703,7 +703,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'haldia',
     cargo: '32,000 MT Lightened Coking Coal',
     etaHours: 2.0,
-    etaTimestamp: '2026-09-05 20:30 IST',
+    etaTimestamp: '2026-09-12 20:30 IST',
     draftClearanceAtDest: 'High Tide Lock Gate Synchronized',
     demurrageExposureRisk: 'LOW',
     corridor: 'Sandheads Lightening -> Haldia'
@@ -727,7 +727,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'haldia',
     cargo: '31,500 MT Lightered Coking Coal for Steel Plant',
     etaHours: 3.2,
-    etaTimestamp: '2026-09-05 22:00 IST',
+    etaTimestamp: '2026-09-12 22:00 IST',
     draftClearanceAtDest: 'Clear (Within 8.5m HDC River Draught)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Sandheads -> Haldia Shuttle'
@@ -751,7 +751,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'haldia',
     cargo: '28,000 MT Thermal Coal',
     etaHours: 0.5,
-    etaTimestamp: '2026-09-05 19:00 IST',
+    etaTimestamp: '2026-09-12 19:00 IST',
     draftClearanceAtDest: 'Clear (Neap Tide Clearance OK)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Indonesia -> Haldia'
@@ -775,7 +775,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'haldia',
     cargo: '33,000 MT Coking Coal for SAIL Durgapur Plant',
     etaHours: 2.5,
-    etaTimestamp: '2026-09-05 21:00 IST',
+    etaTimestamp: '2026-09-12 21:00 IST',
     draftClearanceAtDest: 'Clear (High Tide Lock Safe)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Sandheads -> Haldia'
@@ -897,7 +897,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'sandheads',
     cargo: '31,000 MT Lightened Coking Coal',
     etaHours: 1.0,
-    etaTimestamp: '2026-09-05 19:30 IST',
+    etaTimestamp: '2026-09-12 19:30 IST',
     draftClearanceAtDest: 'Clear',
     demurrageExposureRisk: 'LOW',
     corridor: 'Sandheads Offshore Transshipment'
@@ -921,7 +921,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'sandheads',
     cargo: '70,000 MT Premium US Met Coal for Lightering',
     etaHours: 2.0,
-    etaTimestamp: '2026-09-05 20:30 IST',
+    etaTimestamp: '2026-09-12 20:30 IST',
     draftClearanceAtDest: 'Clear (14.8m Anchorage Depth)',
     demurrageExposureRisk: 'LOW',
     corridor: 'USA -> Sandheads'
@@ -1019,7 +1019,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gopalpur',
     cargo: '52,000 MT Mozambique Met Coke',
     etaHours: 1.2,
-    etaTimestamp: '2026-09-05 19:45 IST',
+    etaTimestamp: '2026-09-12 19:45 IST',
     draftClearanceAtDest: 'Clear (+1.0m Under-Keel Margin)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Mozambique -> Gopalpur'
@@ -1043,7 +1043,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gopalpur',
     cargo: '68,000 MT Australian Coking Coal',
     etaHours: 2.5,
-    etaTimestamp: '2026-09-05 21:00 IST',
+    etaTimestamp: '2026-09-12 21:00 IST',
     draftClearanceAtDest: 'Clear (High Tide Allowance 14.0m)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Australia -> Gopalpur'
@@ -1067,7 +1067,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gopalpur',
     cargo: '30,000 MT Thermal Coal for Local Captive Power',
     etaHours: 0.8,
-    etaTimestamp: '2026-09-05 19:15 IST',
+    etaTimestamp: '2026-09-12 19:15 IST',
     draftClearanceAtDest: 'Clear (+4.3m Depth Clearance)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Indonesia -> Gopalpur'
@@ -1091,7 +1091,7 @@ export const LIVE_AIS_VESSELS = [
     destinationId: 'gopalpur',
     cargo: '58,000 MT Russian Anthracite Lump Coal',
     etaHours: 4.0,
-    etaTimestamp: '2026-09-05 22:30 IST',
+    etaTimestamp: '2026-09-12 22:30 IST',
     draftClearanceAtDest: 'Clear (13.5m Port Draft Limit)',
     demurrageExposureRisk: 'LOW',
     corridor: 'Russia -> Gopalpur'
@@ -1123,7 +1123,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "1,65,600 MT Thermal / Coking Coal",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-06 10:00 IST",
+  "etaTimestamp": "2026-09-13 10:00 IST",
   "draftClearanceAtDest": "Assessed for Paradip Port (PPT)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1151,7 +1151,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "1,91,360 MT Thermal / Coking Coal",
   "etaHours": 15,
-  "etaTimestamp": "2026-09-07 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Assessed for Visakhapatnam (Vizag)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1179,7 +1179,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gangavaram",
   "cargo": "75,900 MT Thermal / Coking Coal",
   "etaHours": 18,
-  "etaTimestamp": "2026-09-08 12:00 IST",
+  "etaTimestamp": "2026-09-14 12:00 IST",
   "draftClearanceAtDest": "Assessed for Gangavaram Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1207,7 +1207,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "69,000 MT Thermal / Coking Coal",
   "etaHours": 21,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Assessed for Dhamra Port (DPCL)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1235,7 +1235,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gopalpur",
   "cargo": "58,880 MT Thermal / Coking Coal",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Assessed for Gopalpur Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1263,7 +1263,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "sandheads",
   "cargo": "52,440 MT Thermal / Coking Coal",
   "etaHours": 27,
-  "etaTimestamp": "2026-09-08 15:00 IST",
+  "etaTimestamp": "2026-09-14 15:00 IST",
   "draftClearanceAtDest": "Assessed for Sandheads Anchorage",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1291,7 +1291,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "32,200 MT Thermal / Coking Coal",
   "etaHours": 30,
-  "etaTimestamp": "2026-09-06 16:00 IST",
+  "etaTimestamp": "2026-09-13 16:00 IST",
   "draftClearanceAtDest": "Assessed for Haldia Dock Complex (HDC)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1319,7 +1319,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "25,760 MT Thermal / Coking Coal",
   "etaHours": 33,
-  "etaTimestamp": "2026-09-07 17:00 IST",
+  "etaTimestamp": "2026-09-13 17:00 IST",
   "draftClearanceAtDest": "Assessed for Paradip Port (PPT)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1347,7 +1347,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "1,65,600 MT Thermal / Coking Coal",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-08 18:00 IST",
+  "etaTimestamp": "2026-09-14 18:00 IST",
   "draftClearanceAtDest": "Assessed for Visakhapatnam (Vizag)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1375,7 +1375,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gangavaram",
   "cargo": "1,91,360 MT Thermal / Coking Coal",
   "etaHours": 39,
-  "etaTimestamp": "2026-09-06 19:00 IST",
+  "etaTimestamp": "2026-09-13 19:00 IST",
   "draftClearanceAtDest": "Assessed for Gangavaram Port (GPL)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1403,7 +1403,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "75,900 MT Thermal / Coking Coal",
   "etaHours": 42,
-  "etaTimestamp": "2026-09-07 20:00 IST",
+  "etaTimestamp": "2026-09-13 20:00 IST",
   "draftClearanceAtDest": "Assessed for Dhamra Port (DPCL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1431,7 +1431,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gopalpur",
   "cargo": "69,000 MT Thermal / Coking Coal",
   "etaHours": 45,
-  "etaTimestamp": "2026-09-08 21:00 IST",
+  "etaTimestamp": "2026-09-14 21:00 IST",
   "draftClearanceAtDest": "Assessed for Gopalpur Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1459,7 +1459,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "sandheads",
   "cargo": "58,880 MT Thermal / Coking Coal",
   "etaHours": 48,
-  "etaTimestamp": "2026-09-06 10:00 IST",
+  "etaTimestamp": "2026-09-13 10:00 IST",
   "draftClearanceAtDest": "Assessed for Sandheads Anchorage",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1487,7 +1487,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "52,440 MT Thermal / Coking Coal",
   "etaHours": 51,
-  "etaTimestamp": "2026-09-07 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Assessed for Haldia Dock Complex (HDC)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1515,7 +1515,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "32,200 MT Thermal / Coking Coal",
   "etaHours": 54,
-  "etaTimestamp": "2026-09-08 12:00 IST",
+  "etaTimestamp": "2026-09-14 12:00 IST",
   "draftClearanceAtDest": "Assessed for Paradip Port (PPT)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1543,7 +1543,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "25,760 MT Thermal / Coking Coal",
   "etaHours": 57,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Assessed for Visakhapatnam (Vizag)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1571,7 +1571,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gangavaram",
   "cargo": "1,65,600 MT Thermal / Coking Coal",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Assessed for Gangavaram Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1599,7 +1599,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "1,91,360 MT Thermal / Coking Coal",
   "etaHours": 15,
-  "etaTimestamp": "2026-09-08 15:00 IST",
+  "etaTimestamp": "2026-09-14 15:00 IST",
   "draftClearanceAtDest": "Assessed for Dhamra Port (DPCL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1627,7 +1627,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gopalpur",
   "cargo": "75,900 MT Thermal / Coking Coal",
   "etaHours": 18,
-  "etaTimestamp": "2026-09-06 16:00 IST",
+  "etaTimestamp": "2026-09-13 16:00 IST",
   "draftClearanceAtDest": "Assessed for Gopalpur Port (GPL)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1655,7 +1655,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "sandheads",
   "cargo": "69,000 MT Thermal / Coking Coal",
   "etaHours": 21,
-  "etaTimestamp": "2026-09-07 17:00 IST",
+  "etaTimestamp": "2026-09-13 17:00 IST",
   "draftClearanceAtDest": "Assessed for Sandheads Anchorage",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1683,7 +1683,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "58,880 MT Thermal / Coking Coal",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-08 18:00 IST",
+  "etaTimestamp": "2026-09-14 18:00 IST",
   "draftClearanceAtDest": "Assessed for Haldia Dock Complex (HDC)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1711,7 +1711,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "52,440 MT Thermal / Coking Coal",
   "etaHours": 27,
-  "etaTimestamp": "2026-09-06 19:00 IST",
+  "etaTimestamp": "2026-09-13 19:00 IST",
   "draftClearanceAtDest": "Assessed for Paradip Port (PPT)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1739,7 +1739,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "32,200 MT Thermal / Coking Coal",
   "etaHours": 30,
-  "etaTimestamp": "2026-09-07 20:00 IST",
+  "etaTimestamp": "2026-09-13 20:00 IST",
   "draftClearanceAtDest": "Assessed for Visakhapatnam (Vizag)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1767,7 +1767,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gangavaram",
   "cargo": "25,760 MT Thermal / Coking Coal",
   "etaHours": 33,
-  "etaTimestamp": "2026-09-08 21:00 IST",
+  "etaTimestamp": "2026-09-14 21:00 IST",
   "draftClearanceAtDest": "Assessed for Gangavaram Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1795,7 +1795,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "1,65,600 MT Thermal / Coking Coal",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-06 10:00 IST",
+  "etaTimestamp": "2026-09-13 10:00 IST",
   "draftClearanceAtDest": "Assessed for Dhamra Port (DPCL)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1823,7 +1823,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "gopalpur",
   "cargo": "1,91,360 MT Thermal / Coking Coal",
   "etaHours": 39,
-  "etaTimestamp": "2026-09-07 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Assessed for Gopalpur Port (GPL)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1851,7 +1851,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "sandheads",
   "cargo": "75,900 MT Thermal / Coking Coal",
   "etaHours": 42,
-  "etaTimestamp": "2026-09-08 12:00 IST",
+  "etaTimestamp": "2026-09-14 12:00 IST",
   "draftClearanceAtDest": "Assessed for Sandheads Anchorage",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1879,7 +1879,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "69,000 MT Thermal / Coking Coal",
   "etaHours": 45,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Assessed for Haldia Dock Complex (HDC)",
   "demurrageExposureRisk": "MODERATE",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1907,7 +1907,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "58,880 MT Thermal / Coking Coal",
   "etaHours": 48,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Assessed for Paradip Port (PPT)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1935,7 +1935,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "52,440 MT Thermal / Coking Coal",
   "etaHours": 51,
-  "etaTimestamp": "2026-09-08 15:00 IST",
+  "etaTimestamp": "2026-09-14 15:00 IST",
   "draftClearanceAtDest": "Assessed for Visakhapatnam (Vizag)",
   "demurrageExposureRisk": "LOW",
   "corridor": "Bay of Bengal Bulk Shipping Lane"
@@ -1963,7 +1963,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 8,
-  "etaTimestamp": "2026-09-06 8:30 IST",
+  "etaTimestamp": "2026-09-13 8:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -1991,7 +1991,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-07 9:30 IST",
+  "etaTimestamp": "2026-09-13 9:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2019,7 +2019,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 16,
-  "etaTimestamp": "2026-09-08 10:30 IST",
+  "etaTimestamp": "2026-09-14 10:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2047,7 +2047,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "sandheads",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 20,
-  "etaTimestamp": "2026-09-06 11:30 IST",
+  "etaTimestamp": "2026-09-13 11:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2075,7 +2075,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-07 12:30 IST",
+  "etaTimestamp": "2026-09-13 12:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2103,7 +2103,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 28,
-  "etaTimestamp": "2026-09-08 13:30 IST",
+  "etaTimestamp": "2026-09-14 13:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2131,7 +2131,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 32,
-  "etaTimestamp": "2026-09-06 14:30 IST",
+  "etaTimestamp": "2026-09-13 14:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2159,7 +2159,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-07 15:30 IST",
+  "etaTimestamp": "2026-09-13 15:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2187,7 +2187,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 40,
-  "etaTimestamp": "2026-09-08 16:30 IST",
+  "etaTimestamp": "2026-09-14 16:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2215,7 +2215,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 44,
-  "etaTimestamp": "2026-09-06 17:30 IST",
+  "etaTimestamp": "2026-09-13 17:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2243,7 +2243,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 48,
-  "etaTimestamp": "2026-09-07 18:30 IST",
+  "etaTimestamp": "2026-09-13 18:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2271,7 +2271,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 52,
-  "etaTimestamp": "2026-09-08 19:30 IST",
+  "etaTimestamp": "2026-09-14 19:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2299,7 +2299,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 56,
-  "etaTimestamp": "2026-09-06 20:30 IST",
+  "etaTimestamp": "2026-09-13 20:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2327,7 +2327,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 60,
-  "etaTimestamp": "2026-09-07 21:30 IST",
+  "etaTimestamp": "2026-09-13 21:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2355,7 +2355,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 64,
-  "etaTimestamp": "2026-09-08 8:30 IST",
+  "etaTimestamp": "2026-09-14 8:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2383,7 +2383,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 8,
-  "etaTimestamp": "2026-09-06 9:30 IST",
+  "etaTimestamp": "2026-09-13 9:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2411,7 +2411,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-07 10:30 IST",
+  "etaTimestamp": "2026-09-13 10:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2439,7 +2439,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 16,
-  "etaTimestamp": "2026-09-08 11:30 IST",
+  "etaTimestamp": "2026-09-14 11:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2467,7 +2467,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 20,
-  "etaTimestamp": "2026-09-06 12:30 IST",
+  "etaTimestamp": "2026-09-13 12:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2495,7 +2495,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-07 13:30 IST",
+  "etaTimestamp": "2026-09-13 13:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2523,7 +2523,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 28,
-  "etaTimestamp": "2026-09-08 14:30 IST",
+  "etaTimestamp": "2026-09-14 14:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2551,7 +2551,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 32,
-  "etaTimestamp": "2026-09-06 15:30 IST",
+  "etaTimestamp": "2026-09-13 15:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2579,7 +2579,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-07 16:30 IST",
+  "etaTimestamp": "2026-09-13 16:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2607,7 +2607,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 40,
-  "etaTimestamp": "2026-09-08 17:30 IST",
+  "etaTimestamp": "2026-09-14 17:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2635,7 +2635,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 44,
-  "etaTimestamp": "2026-09-06 18:30 IST",
+  "etaTimestamp": "2026-09-13 18:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2663,7 +2663,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 48,
-  "etaTimestamp": "2026-09-07 19:30 IST",
+  "etaTimestamp": "2026-09-13 19:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2691,7 +2691,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 52,
-  "etaTimestamp": "2026-09-08 20:30 IST",
+  "etaTimestamp": "2026-09-14 20:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2719,7 +2719,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 56,
-  "etaTimestamp": "2026-09-06 21:30 IST",
+  "etaTimestamp": "2026-09-13 21:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2747,7 +2747,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 60,
-  "etaTimestamp": "2026-09-07 8:30 IST",
+  "etaTimestamp": "2026-09-13 8:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2775,7 +2775,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 64,
-  "etaTimestamp": "2026-09-08 9:30 IST",
+  "etaTimestamp": "2026-09-14 9:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2803,7 +2803,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "2,70,000 MT Crude Oil / Refined Petroleum",
   "etaHours": 8,
-  "etaTimestamp": "2026-09-06 10:30 IST",
+  "etaTimestamp": "2026-09-13 10:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2831,7 +2831,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "1,42,200 MT Crude Oil / Refined Petroleum",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-07 11:30 IST",
+  "etaTimestamp": "2026-09-13 11:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2859,7 +2859,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "94,500 MT Crude Oil / Refined Petroleum",
   "etaHours": 16,
-  "etaTimestamp": "2026-09-08 12:30 IST",
+  "etaTimestamp": "2026-09-14 12:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2887,7 +2887,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "44,910 MT Crude Oil / Refined Petroleum",
   "etaHours": 20,
-  "etaTimestamp": "2026-09-06 13:30 IST",
+  "etaTimestamp": "2026-09-13 13:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2915,7 +2915,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "29,700 MT Crude Oil / Refined Petroleum",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-07 14:30 IST",
+  "etaTimestamp": "2026-09-13 14:30 IST",
   "draftClearanceAtDest": "Clear at Dedicated Terminal / Offshore SPM",
   "demurrageExposureRisk": "LOW",
   "corridor": "Persian Gulf -> India East Coast Crude Route"
@@ -2943,7 +2943,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "2000 TEU Scheduled Container Freight",
   "etaHours": 10,
-  "etaTimestamp": "2026-09-06 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -2971,7 +2971,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "2200 TEU Scheduled Container Freight",
   "etaHours": 13,
-  "etaTimestamp": "2026-09-07 12:00 IST",
+  "etaTimestamp": "2026-09-13 12:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3027,7 +3027,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "paradip",
   "cargo": "2600 TEU Scheduled Container Freight",
   "etaHours": 19,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3055,7 +3055,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "2800 TEU Scheduled Container Freight",
   "etaHours": 22,
-  "etaTimestamp": "2026-09-06 15:00 IST",
+  "etaTimestamp": "2026-09-13 15:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3083,7 +3083,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "3000 TEU Scheduled Container Freight",
   "etaHours": 25,
-  "etaTimestamp": "2026-09-07 16:00 IST",
+  "etaTimestamp": "2026-09-13 16:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3111,7 +3111,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "3200 TEU Scheduled Container Freight",
   "etaHours": 28,
-  "etaTimestamp": "2026-09-06 17:00 IST",
+  "etaTimestamp": "2026-09-13 17:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3139,7 +3139,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "3400 TEU Scheduled Container Freight",
   "etaHours": 31,
-  "etaTimestamp": "2026-09-07 18:00 IST",
+  "etaTimestamp": "2026-09-13 18:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3167,7 +3167,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "3600 TEU Scheduled Container Freight",
   "etaHours": 34,
-  "etaTimestamp": "2026-09-06 19:00 IST",
+  "etaTimestamp": "2026-09-13 19:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3195,7 +3195,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "3800 TEU Scheduled Container Freight",
   "etaHours": 37,
-  "etaTimestamp": "2026-09-07 20:00 IST",
+  "etaTimestamp": "2026-09-13 20:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3223,7 +3223,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "4000 TEU Scheduled Container Freight",
   "etaHours": 40,
-  "etaTimestamp": "2026-09-06 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3251,7 +3251,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "4200 TEU Scheduled Container Freight",
   "etaHours": 43,
-  "etaTimestamp": "2026-09-07 12:00 IST",
+  "etaTimestamp": "2026-09-13 12:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3279,7 +3279,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "4400 TEU Scheduled Container Freight",
   "etaHours": 46,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3307,7 +3307,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "4600 TEU Scheduled Container Freight",
   "etaHours": 49,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3335,7 +3335,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "4800 TEU Scheduled Container Freight",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-06 15:00 IST",
+  "etaTimestamp": "2026-09-13 15:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3363,7 +3363,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "5000 TEU Scheduled Container Freight",
   "etaHours": 15,
-  "etaTimestamp": "2026-09-07 16:00 IST",
+  "etaTimestamp": "2026-09-13 16:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3391,7 +3391,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "5200 TEU Scheduled Container Freight",
   "etaHours": 18,
-  "etaTimestamp": "2026-09-06 17:00 IST",
+  "etaTimestamp": "2026-09-13 17:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3419,7 +3419,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "5400 TEU Scheduled Container Freight",
   "etaHours": 21,
-  "etaTimestamp": "2026-09-07 18:00 IST",
+  "etaTimestamp": "2026-09-13 18:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3447,7 +3447,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "5600 TEU Scheduled Container Freight",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-06 19:00 IST",
+  "etaTimestamp": "2026-09-13 19:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3475,7 +3475,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "5800 TEU Scheduled Container Freight",
   "etaHours": 27,
-  "etaTimestamp": "2026-09-07 20:00 IST",
+  "etaTimestamp": "2026-09-13 20:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3503,7 +3503,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "6000 TEU Scheduled Container Freight",
   "etaHours": 30,
-  "etaTimestamp": "2026-09-06 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3531,7 +3531,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "6200 TEU Scheduled Container Freight",
   "etaHours": 33,
-  "etaTimestamp": "2026-09-07 12:00 IST",
+  "etaTimestamp": "2026-09-13 12:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3559,7 +3559,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "6400 TEU Scheduled Container Freight",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3587,7 +3587,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "haldia",
   "cargo": "6600 TEU Scheduled Container Freight",
   "etaHours": 39,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3615,7 +3615,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "6800 TEU Scheduled Container Freight",
   "etaHours": 42,
-  "etaTimestamp": "2026-09-06 15:00 IST",
+  "etaTimestamp": "2026-09-13 15:00 IST",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -3643,7 +3643,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-06 9:00 IST",
+  "etaTimestamp": "2026-09-13 9:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3671,7 +3671,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 16,
-  "etaTimestamp": "2026-09-07 10:00 IST",
+  "etaTimestamp": "2026-09-13 10:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3699,7 +3699,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "45,000 MT LPG for Ujjwala Distribution",
   "etaHours": 20,
-  "etaTimestamp": "2026-09-06 11:00 IST",
+  "etaTimestamp": "2026-09-13 11:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3727,7 +3727,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "45,000 MT LPG for Ujjwala Distribution",
   "etaHours": 24,
-  "etaTimestamp": "2026-09-07 12:00 IST",
+  "etaTimestamp": "2026-09-13 12:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3755,7 +3755,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 28,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaTimestamp": "2026-09-13 13:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3783,7 +3783,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 32,
-  "etaTimestamp": "2026-09-07 14:00 IST",
+  "etaTimestamp": "2026-09-13 14:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3811,7 +3811,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 36,
-  "etaTimestamp": "2026-09-06 15:00 IST",
+  "etaTimestamp": "2026-09-13 15:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3839,7 +3839,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "45,000 MT LPG for Ujjwala Distribution",
   "etaHours": 40,
-  "etaTimestamp": "2026-09-07 16:00 IST",
+  "etaTimestamp": "2026-09-13 16:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3867,7 +3867,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "45,000 MT LPG for Ujjwala Distribution",
   "etaHours": 44,
-  "etaTimestamp": "2026-09-06 17:00 IST",
+  "etaTimestamp": "2026-09-13 17:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3895,7 +3895,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "vizag",
   "cargo": "45,000 MT LPG for Ujjwala Distribution",
   "etaHours": 12,
-  "etaTimestamp": "2026-09-07 18:00 IST",
+  "etaTimestamp": "2026-09-13 18:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3923,7 +3923,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 16,
-  "etaTimestamp": "2026-09-06 19:00 IST",
+  "etaTimestamp": "2026-09-13 19:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
@@ -3951,7 +3951,7 @@ export const LIVE_AIS_VESSELS = [
   "destinationId": "dhamra",
   "cargo": "165,000 cbm LNG for GAIL / Indian Gas Grid",
   "etaHours": 20,
-  "etaTimestamp": "2026-09-07 20:00 IST",
+  "etaTimestamp": "2026-09-13 20:00 IST",
   "draftClearanceAtDest": "Clear at Dedicated Cryogenic Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Middle East -> India Clean Energy Corridor"
