@@ -2988,18 +2988,18 @@ export const LIVE_AIS_VESSELS = [
   "loaMeters": 210,
   "beamMeters": 29.8,
   "coordinates": [
-    22.54,
-    88.31
+    22.022,
+    88.072
   ],
-  "headingDegrees": 341,
-  "speedKnots": 14.6,
+  "headingDegrees": 0,
+  "speedKnots": 0.0,
   "status": "Discharging at Berth",
   "originPort": "Port of Singapore (PSA)",
-  "destinationPort": "Kolkata Kidderpore Docks (SMPK)",
+  "destinationPort": "Haldia Dock Complex (HDC Container Terminal)",
   "destinationId": "haldia",
   "cargo": "2400 TEU Scheduled Container Freight",
-  "etaHours": 16,
-  "etaTimestamp": "2026-09-06 13:00 IST",
+  "etaHours": 0,
+  "etaTimestamp": "At Berth",
   "draftClearanceAtDest": "Clear at Container Terminal",
   "demurrageExposureRisk": "LOW",
   "corridor": "Southeast Asia -> East Coast Container Line"
@@ -4465,9 +4465,10 @@ export const LIVE_AIS_VESSELS = [
 export const PORT_GEOFENCES = [
   {
     id: 'paradip_zone',
-    name: 'Paradip Port Outer Anchorage',
+    name: 'Paradip Port 80 NM Approach Zone',
     center: [20.2500, 86.7500],
-    radiusKm: 20,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 16,
     berthedCount: 5,
     anchoredCount: 9,
@@ -4477,9 +4478,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'vizag_zone',
-    name: 'Visakhapatnam Outer Anchorage (VPT)',
+    name: 'Visakhapatnam 80 NM Approach Zone (VPT)',
     center: [17.6850, 83.3300],
-    radiusKm: 18,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 15,
     berthedCount: 5,
     anchoredCount: 8,
@@ -4489,9 +4491,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'gangavaram_zone',
-    name: 'Gangavaram Port Approaches (GPL)',
+    name: 'Gangavaram 80 NM Approach Zone (GPL)',
     center: [17.6100, 83.2900],
-    radiusKm: 16,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 11,
     berthedCount: 3,
     anchoredCount: 6,
@@ -4501,9 +4504,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'dhamra_zone',
-    name: 'Dhamra Deepwater Fairway (DPCL)',
+    name: 'Dhamra 80 NM Approach Zone (DPCL)',
     center: [20.8200, 87.0500],
-    radiusKm: 18,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 12,
     berthedCount: 4,
     anchoredCount: 6,
@@ -4513,9 +4517,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'sandheads_zone',
-    name: 'Sagar / Sandheads Transshipment Zone',
+    name: 'Sagar / Sandheads 80 NM Transshipment Zone',
     center: [21.0500, 88.2000],
-    radiusKm: 26,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 14,
     berthedCount: 3,
     anchoredCount: 9,
@@ -4525,9 +4530,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'haldia_zone',
-    name: 'Haldia River Lock Basin',
+    name: 'Haldia 80 NM Approach Basin',
     center: [21.9800, 88.0800],
-    radiusKm: 15,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 15,
     berthedCount: 6,
     anchoredCount: 7,
@@ -4537,9 +4543,10 @@ export const PORT_GEOFENCES = [
   },
   {
     id: 'gopalpur_zone',
-    name: 'Gopalpur Port Basin & Roads',
+    name: 'Gopalpur 80 NM Approach Roads',
     center: [19.2800, 85.0300],
-    radiusKm: 16,
+    radiusKm: 148.16, // 80 Nautical Miles
+    radiusNm: 80,
     vesselCount: 11,
     berthedCount: 3,
     anchoredCount: 6,

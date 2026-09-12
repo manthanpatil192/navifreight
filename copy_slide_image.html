@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviFreight — Presentation Visuals Hub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0b1329; color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 2rem; min-height: 100vh; }
+    .container { max-width: 1400px; width: 100%; display: flex; flex-direction: column; gap: 1.5rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 1.25rem 1.75rem; border-radius: 12px; border: 1px solid #334155; }
+    .header h1 { font-size: 1.35rem; font-weight: 600; color: #38bdf8; }
+    .tabs { display: flex; gap: 0.5rem; background: #0f172a; padding: 0.35rem; border-radius: 10px; border: 1px solid #334155; }
+    .tab-btn {
+      background: transparent; color: #94a3b8; border: none; padding: 0.6rem 1.25rem;
+      border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active { background: #0284c7; color: white; }
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    button, a.btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #0284c7; color: white; border: none; padding: 0.65rem 1.25rem;
+      border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+      text-decoration: none; transition: all 0.2s ease;
+    }
+    button:hover, a.btn:hover { background: #0369a1; transform: translateY(-1px); }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    .slide-card {
+      background: #1e293b; border-radius: 14px; padding: 1.25rem; border: 1px solid #334155;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .image-wrapper {
+      background: white; border-radius: 10px; padding: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      border: 1px solid #334155; overflow: hidden; display: flex; justify-content: center;
+    }
+    img { max-width: 100%; height: auto; display: block; border-radius: 6px; }
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; background: #10b981;
+      color: white; padding: 0.85rem 1.5rem; border-radius: 8px; font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); opacity: 0; transform: translateY(10px);
+      transition: all 0.3s ease; pointer-events: none; z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .file-path {
+      background: #0f172a; padding: 0.75rem 1rem; border-radius: 8px;
+      font-family: monospace; font-size: 0.85rem; color: #94a3b8; border: 1px solid #334155;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>NaviFreight (SIH26006) — Presentation Assets</h1>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Operational Challenges & Strategic Mitigations Card (Pic 2 Size & Format)</p>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('card')">Pic 2 Size Card</button>
+        <button class="tab-btn" onclick="switchTab('slide')">Full Presentation Slide</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: PIC 2 SIZE CARD -->
+    <div id="tabCard" class="slide-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.15rem; color: #38bdf8;">Operational Challenges & Strategic Mitigations (Pic 2 Format)</h2>
+          <p style="color: #94a3b8; font-size: 0.85rem;">Formatted into the 2-column cream & mint green card layout with exact Pic 2 aspect ratio.</p>
+        </div>
+        <div class="actions">
+          <button onclick="copyImage('imgCard')">📋 Copy Card to Clipboard</button>
+          <a href="NaviFreight_Challenges_Card_Pic2_Size.png" download="NaviFreight_Challenges_Card_Pic2_Size.png" class="btn secondary">⬇️ Download High-Res</a>
+          <a href="NaviFreight_Challenges_Card_Pic2_Size_305x222.png" download="NaviFreight_Challenges_Card_Pic2_Size_305x222.png" class="btn secondary">⬇️ Download 305x222</a>
+        </div>
+      </div>
+
+      <div class="file-path">
+        <span><strong>File:</strong> c:\Users\Manthan\OneDrive\Desktop\sih26006\NaviFreight_Challenges_Card_Pic2_Size.png</span>
+        <button class="secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText('c:\\Users\\Manthan\\OneDrive\\Desktop\\sih26006\\NaviFreight_Challenges_Card_Pic2_Size.png'); showToast('Path copied to clipboard!')">Copy Path</button>
+      </div>
+
+      <div class="image-wrapper" style="max-height: 650px;">
+        <img id="imgCard" src="NaviFreight_Challenges_Card_Pic2_Size.png" alt="Operational Challenges and Strategic Mitigations Card in Pic 2 format">
+      </div>
+    </div>
+
+    <!-- TAB 2: FULL SLIDE -->
+    <div id="tabSlide" class="slide-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.15rem; color: #38bdf8;">Full Feasibility & Viability Presentation Slide</h2>
+          <p style="color: #94a3b8; font-size: 0.85rem;">Master 16:9 composite slide with all sections.</p>
+        </div>
+        <div class="actions">
+          <button onclick="copyImage('imgSlide')">📋 Copy Slide to Clipboard</button>
+          <a href="NaviFreight_Master_Feasibility_Slide.png" download="NaviFreight_Master_Feasibility_Slide.png" class="btn secondary">⬇️ Download Full Slide</a>
+        </div>
+      </div>
+
+      <div class="file-path">
+        <span><strong>File:</strong> c:\Users\Manthan\OneDrive\Desktop\sih26006\NaviFreight_Master_Feasibility_Slide.png</span>
+        <button class="secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText('c:\\Users\\Manthan\\OneDrive\\Desktop\\sih26006\\NaviFreight_Master_Feasibility_Slide.png'); showToast('Path copied to clipboard!')">Copy Path</button>
+      </div>
+
+      <div class="image-wrapper">
+        <img id="imgSlide" src="NaviFreight_Master_Feasibility_Slide.png" alt="NaviFreight Master Feasibility Slide">
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Action completed!</div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      if (msg) t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function switchTab(tab) {
+      const tabCard = document.getElementById('tabCard');
+      const tabSlide = document.getElementById('tabSlide');
+      const btns = document.querySelectorAll('.tab-btn');
+
+      if (tab === 'card') {
+        tabCard.style.display = 'flex';
+        tabSlide.style.display = 'none';
+        btns[0].classList.add('active');
+        btns[1].classList.remove('active');
+      } else {
+        tabCard.style.display = 'none';
+        tabSlide.style.display = 'flex';
+        btns[0].classList.remove('active');
+        btns[1].classList.add('active');
+      }
+    }
+
+    async function copyImage(imgId) {
+      try {
+        const img = document.getElementById(imgId);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            showToast('Failed to process image');
+            return;
+          }
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          showToast('Image copied to clipboard! Paste directly with Ctrl+V into PowerPoint.');
+        }, 'image/png');
+      } catch (err) {
+        console.error(err);
+        showToast('Direct copy failed. Use right-click > Copy Image or Download PNG.');
+      }
+    }
+  </script>
+</body>
+</html>

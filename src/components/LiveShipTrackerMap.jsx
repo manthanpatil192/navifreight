@@ -6,7 +6,7 @@ import {
   Ship, Radio, Compass, Anchor, Wind, ShieldAlert, CheckCircle2, 
   Play, Pause, RefreshCw, Filter, Layers, Navigation, ArrowUpRight, 
   Clock, FileText, Search, Wifi, WifiOff, Key, X, Activity, Gauge, MapPin,
-  Bell, BellRing, Volume2, VolumeX, Crosshair, AlertTriangle
+  Bell, BellRing, Volume2, VolumeX, Crosshair, AlertTriangle, CircleDot
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/liveAisVessels';
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
@@ -192,13 +192,14 @@ const INITIAL_NOTIFICATIONS = [
     vesselName: 'MV OLYMPIC GLORY',
     vesselType: 'Capesize',
     mmsi: '563112000',
-    portName: 'Paradip Port Outer Anchorage',
+    portName: 'Paradip Port 80 NM Approach Zone',
     portId: 'paradip',
     time: '10:42 IST',
     speedKnots: 12.4,
     currentDraught: 17.8,
     cargo: '165,000 MT Hard Coking Coal',
     coordinates: [20.2500, 86.7500],
+    geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 12)
   },
   {
@@ -206,32 +207,37 @@ const INITIAL_NOTIFICATIONS = [
     vesselName: 'MV MAHA JACQUELINE',
     vesselType: 'Capesize',
     mmsi: '419001280',
-    portName: 'Gangavaram Port Approaches (GPL)',
+    portName: 'Gangavaram 80 NM Approach Zone (GPL)',
     portId: 'gangavaram',
     time: '09:15 IST',
     speedKnots: 10.5,
     currentDraught: 18.2,
     cargo: '160,000 MT Semi-Soft Coking Coal',
     coordinates: [17.6100, 83.2900],
+    geofenceRadiusNm: 80,
     timestamp: new Date(Date.now() - 1000 * 60 * 35)
   }
 ];
 
 export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, selectedVessel: charterVesselClass = 'capesize' }) {
   const [vessels, setVessels] = useState(LIVE_AIS_VESSELS);
-  const [selectedVessel, setSelectedVessel] = useState(LIVE_AIS_VESSELS[0]);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [simulationSpeed, setSimulationSpeed] = useState(1);
-  const [vesselFilter, setVesselFilter] = useState('ALL');
+  const [selectedVessel, setSelectedVessel] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [vesselFilter, setVesselFilter] = useState('ALL');
+  const [selectedCorridor, setSelectedCorridor] = useState('ALL');
+  const [showCorridors, setShowCorridors] = useState(true);
   const [showGeofences, setShowGeofences] = useState(true);
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true);
-  const [showCorridors, setShowCorridors] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [simulationSpeed, setSimulationSpeed] = useState(1);
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('esri'); // 'esri' or 'osm'
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
 
-  // Dynamic Port Saturation & Part B Diversion Evaluation
+  // Active Diversion Strategy: 'lowFuel' (nearest Part-B port) or 'ampleFuel' (free/lowest wait port)
+  const [activeDiversionStrategy, setActiveDiversionStrategy] = useState('lowFuel');
+
+  // Dynamic Port Saturation & Fuel-Aware Part B Diversion Evaluation
   const diversionData = useMemo(() => {
     return evaluatePortDiversion({
       selectedDestination,
@@ -424,15 +430,14 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           else if (nextLat < 21.5) minSeaLng = 87.10;
           else minSeaLng = 87.90;
 
-          // Designated river fairway exception (Haldia & Sandheads approaches)
-          const isRiverFairway = (nextLat >= 21.50 && nextLat <= 22.10 && nextLng >= 88.02 && nextLng <= 88.18) ||
-                                (nextLat >= 22.50 && nextLat <= 22.58 && nextLng >= 88.28 && nextLng <= 88.35);
+          // Designated deepwater river fairway exception (Haldia & Sandheads approaches only)
+          const isRiverFairway = (nextLat >= 21.50 && nextLat <= 22.03 && nextLng >= 88.02 && nextLng <= 88.18);
 
-          // If vessel reaches close to the shoreline, steer it safely back towards open sea
-          if (!isRiverFairway && (nextLng <= minSeaLng + 0.05 || nextLat >= 22.05 || nextLng >= 95.5 || nextLat <= 5.5)) {
+          // If vessel reaches close to the shoreline or exceeds navigable waters, steer safely back to open sea
+          if (!isRiverFairway && (nextLng <= minSeaLng + 0.05 || nextLat >= 22.03 || nextLng >= 95.5 || nextLat <= 5.5)) {
             nextHeading = (nextHeading + 180) % 360;
             nextLng = Math.max(nextLng, minSeaLng + 0.15);
-            if (nextLat > 22.0) nextLat = 21.85;
+            if (nextLat > 22.02) nextLat = 21.90; // Never allow vessels into urban Kolkata / Bhatpara land
           }
 
           return {
@@ -504,6 +509,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             currentDraught: v.currentDraughtMeters,
             cargo: v.cargo,
             coordinates: v.coordinates,
+            geofenceRadiusNm: 80,
             timestamp: new Date()
           };
           newAlerts.push(alertObj);
@@ -549,9 +555,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     const sample = vessels.find(v => v.speedKnots > 8 && !v.status.includes('Berth')) || vessels[1];
     const targetPort = PORT_GEOFENCES.find(g => g.id.includes(sample.destinationId)) || PORT_GEOFENCES[0];
 
+    // Place simulated vessel ~65 NM offshore inside the 80 NM geofence perimeter
     const alertCoords = [
-      Number((targetPort.center[0] + 0.035).toFixed(4)),
-      Number((targetPort.center[1] + 0.035).toFixed(4))
+      Number((targetPort.center[0] - 0.75).toFixed(4)),
+      Number((targetPort.center[1] + 0.65).toFixed(4))
     ];
 
     const alertObj = {
@@ -566,11 +573,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       currentDraught: sample.currentDraughtMeters || 16.8,
       cargo: sample.cargo,
       coordinates: alertCoords,
+      geofenceRadiusNm: 80,
       timestamp: new Date()
     };
 
-    setVessels(prev => prev.map(v => v.mmsi === sample.mmsi ? { ...v, coordinates: alertCoords, status: 'Entering Outer Anchorage' } : v));
-    setSelectedVessel({ ...sample, coordinates: alertCoords, status: 'Entering Outer Anchorage' });
+    setVessels(prev => prev.map(v => v.mmsi === sample.mmsi ? { ...v, coordinates: alertCoords, status: 'Entering 80 NM Geofence Approach' } : v));
+    setSelectedVessel({ ...sample, coordinates: alertCoords, status: 'Entering 80 NM Geofence Approach' });
     setNotifications(prev => [alertObj, ...prev]);
     setUnreadCount(prev => prev + 1);
     setActiveToast(alertObj);
@@ -734,6 +742,17 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             🌐 Shipping Lanes
           </button>
 
+          {/* Weather Squall Overlay Toggle */}
+          <button
+            onClick={() => setShowWeatherOverlay(!showWeatherOverlay)}
+            className={`px-2 py-1 border rounded text-xs font-semibold cursor-pointer ${
+              showWeatherOverlay ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-slate-100 text-slate-600 border-slate-300'
+            }`}
+            title="Toggle IMD Weather Squall Zones"
+          >
+            ⛈️ Weather
+          </button>
+
           {/* Map Layer Switcher */}
           <button
             onClick={() => setMapTheme(t => t === 'esri' ? 'osm' : 'esri')}
@@ -742,6 +761,62 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           >
             {mapTheme === 'esri' ? '🗺️ OSM' : '🏙️ Light Gray'}
           </button>
+
+          {/* 80 NM Geofence Overlay Toggle */}
+          <button
+            onClick={() => setShowGeofences(!showGeofences)}
+            className={`px-2 py-1 border rounded text-xs font-semibold flex items-center space-x-1 transition-all cursor-pointer ${
+              showGeofences 
+                ? 'bg-amber-100 text-amber-900 border-amber-400 font-bold shadow-xs' 
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'
+            }`}
+            title="Toggle 80 Nautical Miles (148.2 km) Approach Geofences"
+          >
+            <CircleDot className="w-3.5 h-3.5 text-amber-600" />
+            <span>⭕ 80 NM Geofences</span>
+          </button>
+
+          {/* Fit 80 NM View Zoom Button */}
+          <button
+            onClick={() => {
+              const targetPort = PORT_GEOFENCES.find(g => g.id.includes(selectedDestination)) || PORT_GEOFENCES[0];
+              setMapFocusTarget({
+                coords: targetPort.center,
+                zoom: 7,
+                timestamp: Date.now()
+              });
+            }}
+            className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-xs font-semibold cursor-pointer"
+            title="Zoom out to view complete 80 NM geofence circle for current destination"
+          >
+            🔍 Fit 80 NM View
+          </button>
+
+          {/* Diversion Strategy Selector (Fuel-Aware Optimization) */}
+          <div className="flex items-center bg-slate-100 border border-slate-300 p-0.5 rounded text-xs">
+            <button
+              onClick={() => setActiveDiversionStrategy('lowFuel')}
+              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                activeDiversionStrategy === 'lowFuel'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="Low Fuel Mode: Divert to Nearest Compliant Port (Min Deviation & Bunker Burn)"
+            >
+              ⛽ Low Fuel (Closest)
+            </button>
+            <button
+              onClick={() => setActiveDiversionStrategy('ampleFuel')}
+              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                activeDiversionStrategy === 'ampleFuel'
+                  ? 'bg-cyan-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="Ample Fuel Mode: Divert to Free Port (Lowest Queue & Max Demurrage Saved)"
+            >
+              ⚡ Ample Fuel (Free Port)
+            </button>
+          </div>
 
           {/* Notification Controls: Bell, Audio Mute, Demo Trigger */}
           <div className="relative flex items-center">
@@ -757,7 +832,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
               }`}
-              title="Geofence Entry Notifications"
+              title="80 NM Geofence Entry Notifications"
             >
               {unreadCount > 0 ? (
                 <BellRing className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
@@ -789,9 +864,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             <button
               onClick={handleSimulateEntryAlert}
               className="flex items-center space-x-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold ml-1 transition-colors"
-              title="Simulate incoming vessel crossing into geofence"
+              title="Simulate incoming vessel crossing into 80 NM approach geofence"
             >
-              <span>⚡ Demo Alert</span>
+              <span>⚡ 80 NM Demo Alert</span>
             </button>
 
             {/* Notifications Dropdown Popover */}
@@ -800,7 +875,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
                   <div className="flex items-center space-x-1.5">
                     <Bell className="w-3.5 h-3.5 text-maritime-700" />
-                    <span className="font-bold text-slate-900">Geofence Entry Logbook</span>
+                    <span className="font-bold text-slate-900">80 NM Geofence Entry Logbook</span>
                     <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-1.5 py-0.5 rounded">
                       {notifications.length}
                     </span>
@@ -834,9 +909,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         portId: notif.portId,
                         vesselType: notif.vesselType,
                         currentDraught: notif.currentDraught,
-                        vesselName: notif.vesselName
+                        vesselName: notif.vesselName,
+                        vesselCoordinates: notif.coordinates,
+                        speedKnots: notif.speedKnots
                       });
-                      const isPortFull = divAdv && divAdv.isPortFull && divAdv.suggestedPort;
+                      const isPortFull = divAdv && divAdv.isPortFull && (divAdv.lowFuelOption || divAdv.ampleFuelOption);
 
                       return (
                         <div 
@@ -855,7 +932,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                 <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
                               </div>
                               <div className="text-[11px] text-slate-600 font-medium">
-                                Entered: <b className="text-maritime-800">{notif.portName}</b>
+                                Entered 80 NM Ring: <b className="text-maritime-800">{notif.portName}</b>
                               </div>
                               <div className="text-[10px] text-slate-500 truncate max-w-[210px]">
                                 {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m
@@ -875,26 +952,52 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                             </button>
                           </div>
 
-                          {/* Port Saturation & Part B Diversion Suggestion (ONLY shown if port is full) */}
+                          {/* Port Saturation & Dual Fuel Strategies */}
                           {isPortFull && (
-                            <div className="mt-2 p-2 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-1 shadow-xs">
+                            <div className="mt-2 p-2 rounded-md bg-white border border-amber-300 text-[10px] text-slate-800 space-y-1.5 shadow-xs">
                               <div className="flex items-center justify-between font-bold text-amber-900">
                                 <span className="flex items-center space-x-1">
                                   <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
                                   <span>Port Saturated ({divAdv.avgWaitDays}d wait • {divAdv.vesselsAtAnchor} queued)</span>
                                 </span>
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 uppercase font-extrabold border border-amber-300">
-                                  {divAdv.congestionStatus} Queue
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 uppercase font-extrabold border border-rose-300">
+                                  {divAdv.congestionStatus}
                                 </span>
                               </div>
-                              <div className="text-slate-700 leading-snug">
-                                <strong className="text-maritime-900">Suggestion:</strong> Divert to <strong className="text-emerald-700">{divAdv.suggestedPort.portName}</strong>
-                                <span className="text-slate-500"> (Part B Draft {divAdv.suggestedPort.effectiveMaxDraft}m Verified)</span>
+
+                              {/* Anchorage Loss Baseline */}
+                              <div className="bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5 text-[9px] text-rose-800 flex justify-between font-medium">
+                                <span>⚓ Anchorage Loss at {divAdv.portName}:</span>
+                                <span className="font-bold font-mono text-rose-700">-₹{divAdv.anchorageLoss?.totalLossLakhs}L</span>
                               </div>
-                              <div className="flex items-center justify-between text-[9px] font-semibold text-emerald-800 border-t border-slate-100 pt-1">
-                                <span>⚡ Saves {divAdv.suggestedPort.waitDaysSaved}d turnaround</span>
-                                <span>₹{divAdv.suggestedPort.demurrageSavedLakhs}L Demurrage Avoided</span>
-                              </div>
+
+                              {/* Strategy 1: Low Fuel (Closest Port) */}
+                              {divAdv.lowFuelOption && (
+                                <div className="p-1.5 rounded bg-amber-50/70 border border-amber-200 text-slate-800 space-y-0.5">
+                                  <div className="flex justify-between items-center font-bold text-amber-950">
+                                    <span>⛽ Low Fuel: Divert to {divAdv.lowFuelOption.portName}</span>
+                                    <span className="text-[9px] font-mono text-slate-600">{divAdv.lowFuelOption.distNM} NM</span>
+                                  </div>
+                                  <div className="flex justify-between text-[9px] text-slate-600">
+                                    <span>Fuel Burn: {divAdv.lowFuelOption.fuelBurnMT} MT (₹{divAdv.lowFuelOption.fuelCostLakhs}L)</span>
+                                    <span className="font-bold text-emerald-700">Net Gain: +₹{divAdv.lowFuelOption.netArbitrageLakhs}L</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Strategy 2: Ample Fuel (Free / Lowest Queue Port) */}
+                              {divAdv.ampleFuelOption && divAdv.ampleFuelOption.portId !== divAdv.lowFuelOption?.portId && (
+                                <div className="p-1.5 rounded bg-cyan-50/70 border border-cyan-200 text-slate-800 space-y-0.5">
+                                  <div className="flex justify-between items-center font-bold text-cyan-950">
+                                    <span>⚡ Ample Fuel: Divert to {divAdv.ampleFuelOption.portName}</span>
+                                    <span className="text-[9px] font-mono text-slate-600">{divAdv.ampleFuelOption.distNM} NM</span>
+                                  </div>
+                                  <div className="flex justify-between text-[9px] text-slate-600">
+                                    <span>Saves {divAdv.ampleFuelOption.waitDaysSaved}d (₹{divAdv.ampleFuelOption.demurrageSavedLakhs}L)</span>
+                                    <span className="font-bold text-emerald-700">Net Gain: +₹{divAdv.ampleFuelOption.netArbitrageLakhs}L</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1076,72 +1179,131 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               </Polyline>
             ))}
 
-            {/* Port Geofence Circles */}
-            {showGeofences && PORT_GEOFENCES.map((geo) => (
-              <Circle
-                key={geo.id}
-                center={geo.center}
-                radius={geo.radiusKm * 1000}
-                pathOptions={{
-                  color: geo.color,
-                  fillColor: geo.color,
-                  fillOpacity: 0.12,
-                  weight: 1.5,
-                  dashArray: '4 4'
-                }}
-              >
-                <Tooltip direction="top" opacity={0.9}>
-                  <div className="text-xs font-bold text-slate-900">
-                    {geo.name}
-                    <div className="text-[10px] text-slate-500 font-normal">
-                      Queue: {geo.anchoredCount} ships • Berthed: {geo.berthedCount} ships • Avg wait: {geo.avgWaitHours}h
-                    </div>
-                  </div>
-                </Tooltip>
-              </Circle>
-            ))}
+            {/* Port Geofence Circles (Single 80 Nautical Miles Approach Ring) */}
+            {showGeofences && PORT_GEOFENCES.map((geo) => {
+              const isSelectedPort = geo.id.includes(selectedDestination);
+              const circleColor = isSelectedPort ? '#f59e0b' : (geo.color || '#0284c7');
 
-            {/* Suggested Part B-Compliant Diversion Route Corridor */}
-            {diversionData.isPortSaturated && diversionData.diversionPathCoordinates.length > 0 && diversionData.suggestedPort && (
-              <>
-                <Polyline
-                  positions={diversionData.diversionPathCoordinates}
-                  pathOptions={{
-                    color: '#06b6d4',
-                    weight: 3.5,
-                    dashArray: '8 10',
-                    opacity: 0.95
-                  }}
-                >
-                  <Tooltip direction="center" opacity={0.95}>
-                    <div className="text-[11px] font-bold text-cyan-950 bg-cyan-50 p-1.5 rounded border border-cyan-300 shadow-sm">
-                      <div>⚡ Suggested Diversion: {diversionData.currentPort.name} ➔ {diversionData.suggestedPort.portName}</div>
-                      <div className="text-[10px] text-cyan-800 font-normal mt-0.5">
-                        Part B Draft Verified ({diversionData.suggestedPort.effectiveMaxDraft}m) • Saves {diversionData.suggestedPort.waitDaysSaved}d wait & ₹{diversionData.suggestedPort.demurrageSavedLakhs}L Demurrage
+              return (
+                <React.Fragment key={geo.id}>
+                  {/* Outer 80 NM (148.2 km) Geofence Boundary */}
+                  <Circle
+                    center={geo.center}
+                    radius={geo.radiusKm * 1000}
+                    pathOptions={{
+                      color: circleColor,
+                      fillColor: circleColor,
+                      fillOpacity: isSelectedPort ? 0.12 : 0.06,
+                      weight: isSelectedPort ? 3.5 : 2.5,
+                      dashArray: isSelectedPort ? '8 6' : '6 6'
+                    }}
+                  >
+                    <Tooltip direction="top" permanent opacity={0.92}>
+                      <div className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-md border flex items-center space-x-1.5 ${
+                        isSelectedPort 
+                          ? 'bg-amber-950 text-amber-300 border-amber-600' 
+                          : 'bg-white text-slate-900 border-slate-300'
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${isSelectedPort ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
+                        <span>⭕ {geo.name} (80 NM / 148.2 km)</span>
                       </div>
-                    </div>
-                  </Tooltip>
-                </Polyline>
+                    </Tooltip>
+                  </Circle>
 
-                <Circle
-                  center={diversionData.suggestedPort.coordinates}
-                  radius={16000}
-                  pathOptions={{
-                    color: '#06b6d4',
-                    fillColor: '#06b6d4',
-                    fillOpacity: 0.22,
-                    weight: 2,
-                    dashArray: '4 6'
-                  }}
-                >
-                  <Tooltip direction="top" permanent opacity={0.9}>
-                    <div className="text-[10px] font-bold text-cyan-900 bg-white px-1.5 py-0.5 rounded shadow-sm border border-cyan-300">
-                      🎯 Suggested Alternative: {diversionData.suggestedPort.portName}
-                    </div>
-                  </Tooltip>
-                </Circle>
-              </>
-            )}
+                  {/* Inner Port Approach Beacon (Guarantees Visibility Even When Zoomed In) */}
+                  <Circle
+                    center={geo.center}
+                    radius={16000}
+                    pathOptions={{
+                      color: circleColor,
+                      fillColor: circleColor,
+                      fillOpacity: isSelectedPort ? 0.20 : 0.12,
+                      weight: 2,
+                      dashArray: '4 4'
+                    }}
+                  >
+                    <Tooltip direction="center" permanent opacity={0.92}>
+                      <div className="text-[10px] font-extrabold text-slate-900 bg-white/95 px-2 py-0.5 rounded shadow-sm border border-slate-300">
+                        ⭕ {geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]} 80 NM Zone
+                        <span className="text-[9px] block font-semibold text-slate-500">
+                          {geo.anchoredCount} Anchored • {geo.avgWaitHours}h Wait
+                        </span>
+                      </div>
+                    </Tooltip>
+                  </Circle>
+                </React.Fragment>
+              );
+            })}
+
+            {/* Suggested Part B-Compliant Diversion Route Corridor (Fuel-Aware Strategy Synced) */}
+            {diversionData.isPortSaturated && (() => {
+              const activePort = activeDiversionStrategy === 'lowFuel'
+                ? (diversionData.lowFuelOption || diversionData.suggestedPort)
+                : (diversionData.ampleFuelOption || diversionData.suggestedPort);
+
+              const pathCoords = activeDiversionStrategy === 'lowFuel'
+                ? (diversionData.diversionPathCoordinatesLowFuel && diversionData.diversionPathCoordinatesLowFuel.length > 0
+                    ? diversionData.diversionPathCoordinatesLowFuel
+                    : diversionData.diversionPathCoordinates)
+                : (diversionData.diversionPathCoordinates && diversionData.diversionPathCoordinates.length > 0
+                    ? diversionData.diversionPathCoordinates
+                    : diversionData.diversionPathCoordinatesLowFuel);
+
+              if (!activePort || !pathCoords || pathCoords.length === 0) return null;
+
+              const isLowFuel = activeDiversionStrategy === 'lowFuel';
+              const themeColor = isLowFuel ? '#f59e0b' : '#06b6d4';
+
+              return (
+                <>
+                  <Polyline
+                    positions={pathCoords}
+                    pathOptions={{
+                      color: themeColor,
+                      weight: 3.5,
+                      dashArray: '8 10',
+                      opacity: 0.95
+                    }}
+                  >
+                    <Tooltip direction="center" opacity={0.95}>
+                      <div className="text-[11px] font-bold text-slate-900 bg-white p-2 rounded-lg border border-slate-300 shadow-md space-y-0.5">
+                        <div className="flex items-center space-x-1">
+                          <span>{isLowFuel ? '⛽ Low Fuel Strategy (Nearest Port)' : '⚡ Ample Fuel Strategy (Free Port)'}:</span>
+                          <span className="text-maritime-900 font-extrabold">{diversionData.currentPort.name} ➔ {activePort.portName}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-600 font-normal">
+                          Part B Draft Verified ({activePort.effectiveMaxDraft}m) • Dist: {activePort.distNM} NM • Fuel: {activePort.fuelBurnMT} MT (₹{activePort.fuelCostLakhs}L)
+                        </div>
+                        <div className="text-[10px] font-semibold text-emerald-700">
+                          Saves {activePort.waitDaysSaved}d wait & ₹{activePort.demurrageSavedLakhs}L Demurrage • Net Gain: +₹{activePort.netArbitrageLakhs}L
+                        </div>
+                      </div>
+                    </Tooltip>
+                  </Polyline>
+
+                  <Circle
+                    center={activePort.coordinates}
+                    radius={22000}
+                    pathOptions={{
+                      color: themeColor,
+                      fillColor: themeColor,
+                      fillOpacity: 0.22,
+                      weight: 2,
+                      dashArray: '4 6'
+                    }}
+                  >
+                    <Tooltip direction="top" permanent opacity={0.95}>
+                      <div className="text-[10px] font-bold bg-white px-2 py-0.5 rounded shadow-sm border border-slate-300 text-slate-900">
+                        {isLowFuel ? '🎯 Nearest Alternative: ' : '🎯 Free Port Alternative: '}
+                        <span className={isLowFuel ? 'text-amber-800' : 'text-cyan-800'}>
+                          {activePort.portName}
+                        </span>
+                      </div>
+                    </Tooltip>
+                  </Circle>
+                </>
+              );
+            })()}
 
             {/* Indian East Coast Port Markers */}
             {Object.values(INDIAN_EAST_COAST_PORTS).map((port) => (
@@ -1240,12 +1402,17 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               portId: activeToast.portId,
               vesselType: activeToast.vesselType,
               currentDraught: activeToast.currentDraught,
-              vesselName: activeToast.vesselName
+              vesselName: activeToast.vesselName,
+              vesselCoordinates: activeToast.coordinates,
+              speedKnots: activeToast.speedKnots
             });
-            const isPortFull = toastDiv && toastDiv.isPortFull && toastDiv.suggestedPort;
+            const isPortFull = toastDiv && toastDiv.isPortFull && (toastDiv.lowFuelOption || toastDiv.ampleFuelOption);
+            const activeOption = activeDiversionStrategy === 'ampleFuel'
+              ? (toastDiv.ampleFuelOption || toastDiv.lowFuelOption)
+              : (toastDiv.lowFuelOption || toastDiv.ampleFuelOption);
 
             return (
-              <div className={`absolute top-3 right-3 z-[1050] max-w-xs sm:max-w-sm w-full bg-slate-900/95 text-white border rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-3 duration-300 ${
+              <div className={`absolute top-3 right-3 z-[1050] max-w-sm sm:max-w-md w-full bg-slate-900/95 text-white border rounded-xl shadow-2xl p-3 backdrop-blur-md animate-in fade-in slide-in-from-top-3 duration-300 ${
                 isPortFull ? 'border-amber-500/70' : 'border-emerald-500/50'
               }`}>
                 <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -1261,7 +1428,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
                       isPortFull ? 'text-amber-400' : 'text-emerald-400'
                     }`}>
-                      {isPortFull ? 'Geofence Entry • Port Congestion Alert' : 'Geofence Entry Alert'}
+                      {isPortFull ? '80 NM Geofence Entry • Port Congestion Alert' : '80 NM Geofence Entry Alert'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1.5">
@@ -1275,7 +1442,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   </div>
                 </div>
 
-                <div className="space-y-0.5 mb-2">
+                <div className="space-y-1 mb-2">
                   <div className="text-xs font-bold text-slate-100 flex items-center justify-between">
                     <span className="truncate">{activeToast.vesselName}</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border shrink-0 ml-1 ${
@@ -1287,32 +1454,100 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-300">
-                    Entered <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
+                    Entered 80 NM Ring: <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">
                     Speed: {activeToast.speedKnots} kts • Draft: {activeToast.currentDraught}m • {activeToast.cargo}
                   </div>
 
-                  {/* Port Saturation & Part B Diversion Suggestion (ONLY shown if port is full) */}
+                  {/* Port Saturation, Anchorage Loss & Dual Fuel Strategies */}
                   {isPortFull && (
-                    <div className="mt-2 p-2 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-1">
+                    <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-2">
                       <div className="flex items-center justify-between text-amber-300 font-bold">
                         <span className="flex items-center space-x-1">
                           <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
                           <span>{toastDiv.portName} Saturated ({toastDiv.avgWaitDays}d wait • {toastDiv.vesselsAtAnchor} queued)</span>
                         </span>
-                        <span className="text-[9px] bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-amber-700">
+                        <span className="text-[9px] bg-rose-950 text-rose-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-rose-800">
                           {toastDiv.congestionStatus}
                         </span>
                       </div>
-                      <div className="text-slate-200 leading-snug">
-                        <strong className="text-cyan-300">Suggestion:</strong> Divert to <strong className="text-emerald-300">{toastDiv.suggestedPort.portName}</strong>
-                        <span className="text-slate-400"> (Part B Draft {toastDiv.suggestedPort.effectiveMaxDraft}m Verified)</span>
+
+                      {/* Anchorage Loss Baseline */}
+                      <div className="bg-rose-950/50 border border-rose-900/60 rounded p-1.5 text-rose-200 flex items-center justify-between">
+                        <span>⚓ <strong>Anchorage Loss:</strong> {toastDiv.avgWaitDays}d queue</span>
+                        <span className="font-mono font-bold text-rose-400">
+                          -₹{toastDiv.anchorageLoss?.totalLossLakhs}L (Demurrage + Aux Fuel)
+                        </span>
                       </div>
-                      <div className="flex items-center justify-between text-[9px] text-emerald-400 border-t border-slate-800/80 pt-1 font-semibold">
-                        <span>⚡ Saves {toastDiv.suggestedPort.waitDaysSaved}d wait</span>
-                        <span>₹{toastDiv.suggestedPort.demurrageSavedLakhs}L Demurrage Avoided</span>
+
+                      {/* Fuel Strategy Switcher Buttons */}
+                      <div className="flex items-center justify-between gap-1 pt-0.5">
+                        <span className="text-slate-400 font-bold text-[9px] uppercase tracking-wider">Fuel Strategy:</span>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            type="button"
+                            onClick={() => setActiveDiversionStrategy('lowFuel')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
+                              activeDiversionStrategy === 'lowFuel'
+                                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xs'
+                                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                            }`}
+                            title="Lowest Deviation Distance & Minimum Fuel Burn"
+                          >
+                            ⛽ Low Fuel (Closest)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDiversionStrategy('ampleFuel')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors cursor-pointer ${
+                              activeDiversionStrategy === 'ampleFuel'
+                                ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-xs'
+                                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                            }`}
+                            title="Free / Lowest Queue Port — Maximum Demurrage Avoided"
+                          >
+                            ⚡ Ample Fuel (Free Port)
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Active Strategy Details Card */}
+                      {activeOption && (
+                        <div className="p-2 rounded bg-slate-900 border border-slate-700 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-300">
+                              <strong className={activeDiversionStrategy === 'lowFuel' ? 'text-amber-300' : 'text-cyan-300'}>
+                                {activeDiversionStrategy === 'lowFuel' ? 'Nearest Safe Port:' : 'Free / Lowest Queue Port:'}
+                              </strong>{' '}
+                              <strong className="text-white">{activeOption.portName}</strong>
+                            </span>
+                            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/80 px-1 py-0.2 rounded border border-emerald-800">
+                              Draft {activeOption.effectiveMaxDraft}m Verified
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-[9px] text-slate-300 pt-1 border-t border-slate-800">
+                            <div>
+                              Deviation Dist: <b className="text-white">{activeOption.distNM} NM</b>
+                            </div>
+                            <div>
+                              Fuel Burn: <b className="text-amber-300">{activeOption.fuelBurnMT} MT (₹{activeOption.fuelCostLakhs}L)</b>
+                            </div>
+                            <div>
+                              Wait Saved: <b className="text-emerald-400">-{activeOption.waitDaysSaved} Days</b>
+                            </div>
+                            <div>
+                              Demurrage Avoided: <b className="text-emerald-400">₹{activeOption.demurrageSavedLakhs}L</b>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-300 bg-emerald-950/50 p-1.5 rounded border border-emerald-900/60 mt-1">
+                            <span>⚡ Net Arbitrage Savings:</span>
+                            <span className="font-mono text-emerald-400">+₹{activeOption.netArbitrageLakhs} Lakhs</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

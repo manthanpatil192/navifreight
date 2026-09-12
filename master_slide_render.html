@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NaviFreight — Master Presentation Slide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1920px;
+      height: 1080px;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      padding: 16px 20px 16px 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* TOP HEADER */
+    .top-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .header-pill {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 9999px;
+      padding: 6px 36px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header-title {
+      font-size: 23px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+    .header-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0284c7;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 1px;
+    }
+
+    /* MAIN BODY: LEFT CONTENT + RIGHT SIDEBAR */
+    .main-body {
+      display: grid;
+      grid-template-columns: 1470px 410px;
+      gap: 14px;
+      flex: 1;
+      height: 980px;
+    }
+
+    /* LEFT CONTAINER: TOP TREE + BOTTOM 3 PANELS */
+    .left-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    /* TOP TREE SECTION */
+    .top-tree-section {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 14px 10px 14px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tree-headers {
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      align-items: center;
+    }
+    .tree-branch-header {
+      background: #f1f5f9;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      padding: 5px 0;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -0.2px;
+    }
+    .tree-arrow {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #0284c7;
+    }
+
+    .tree-columns {
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr;
+      align-items: stretch;
+    }
+    .tree-subgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
+    }
+    .card-icon {
+      font-size: 14px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .card-bullets {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #334155;
+    }
+    .card-bullets li {
+      position: relative;
+      padding-left: 10px;
+    }
+    .card-bullets li::before {
+      content: "•";
+      position: absolute;
+      left: 1px;
+      color: #0284c7;
+      font-weight: bold;
+    }
+
+    /* BOTTOM PANELS ROW */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 460px 470px 512px;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .bottom-panel {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      text-align: center;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 1. SWOT ANALYSIS */
+    .swot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 7px;
+      flex: 1;
+    }
+    .swot-card {
+      border-radius: 8px;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .swot-header {
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding-bottom: 2px;
+    }
+    .swot-bullets {
+      list-style-type: none;
+      font-size: 10.5px;
+      line-height: 1.32;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 2px;
+    }
+    .swot-bullets li {
+      position: relative;
+      padding-left: 9px;
+    }
+    .swot-bullets li::before {
+      content: "•";
+      position: absolute;
+      left: 1px;
+      font-weight: bold;
+    }
+
+    .swot-s { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .swot-s .swot-header { color: #047857; }
+    .swot-s .swot-bullets { color: #064e3b; }
+
+    .swot-w { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .swot-w .swot-header { color: #b45309; }
+    .swot-w .swot-bullets { color: #78350f; }
+
+    .swot-o { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .swot-o .swot-header { color: #1d4ed8; }
+    .swot-o .swot-bullets { color: #1e3a8a; }
+
+    .swot-t { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .swot-t .swot-header { color: #b91c1c; }
+    .swot-t .swot-bullets { color: #7f1d1d; }
+
+    /* 2. BUSINESS POTENTIAL (DRAWING STYLE SCHEMATIC) */
+    .bp-schematic {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      padding: 4px 0;
+    }
+    .bp-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .bp-node {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 5px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .bp-node-icon { font-size: 14px; margin-bottom: 1px; }
+    .bp-node-title { font-size: 11px; font-weight: 800; color: #0f172a; line-height: 1.15; }
+    .bp-node-desc { font-size: 9.5px; color: #475569; line-height: 1.25; margin-top: 1px; }
+
+    .bp-center-hub {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .bp-hub-circle {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border-radius: 9999px;
+      padding: 7px 18px;
+      font-size: 11.5px;
+      font-weight: 800;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+      border: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 3. CHALLENGES & MITIGATIONS (DRAWING-TYPE ARROWS) */
+    .cm-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .cm-row {
+      display: grid;
+      grid-template-columns: 195px 28px 1fr;
+      align-items: center;
+      gap: 5px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 5px 7px;
+    }
+    .cm-challenge {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .cm-badge-warn {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #b45309;
+      background: #fef3c7;
+      border-radius: 4px;
+      padding: 1px 4px;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .cm-c-text {
+      font-size: 10px;
+      color: #334155;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+    .cm-arrow {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 900;
+      color: #0284c7;
+    }
+    .cm-mitigation {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .cm-badge-succ {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #047857;
+      background: #d1fae5;
+      border-radius: 4px;
+      padding: 1px 4px;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .cm-m-text {
+      font-size: 10px;
+      color: #0f172a;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+
+    /* RIGHT SIDEBAR (IMAGE 2 LARGE FONT STYLE) */
+    .right-sidebar {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px 14px;
+      background: #f8fafc;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .sidebar-section {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 4px;
+    }
+    .sidebar-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: #1e293b;
+    }
+    .sidebar-list li {
+      position: relative;
+      padding-left: 18px;
+    }
+    .sidebar-list li strong {
+      color: #0284c7;
+      font-weight: 800;
+    }
+    .sidebar-list li::before {
+      content: "▶";
+      position: absolute;
+      left: 0;
+      font-size: 9px;
+      top: 3px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <div class="header-pill">
+      <div class="header-title">Feasibility & Viability Analysis — NaviFreight Maritime Intelligence</div>
+      <div class="header-subtitle">AI-Driven Bulk Maritime Freight, Port Logistics & Intermodal Evacuation System (SIH26006)</div>
+    </div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="main-body">
+
+    <!-- LEFT CONTAINER -->
+    <div class="left-container">
+
+      <!-- TOP TREE SECTION -->
+      <div class="top-tree-section">
+        <div class="tree-headers">
+          <div class="tree-branch-header">Feasibility Analysis</div>
+          <div class="tree-arrow">➔</div>
+          <div class="tree-branch-header">Viability Analysis</div>
+        </div>
+
+        <div class="tree-columns">
+          <!-- Feasibility Subgrid -->
+          <div class="tree-subgrid">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">🤖</span>
+                <span class="card-title">Technical Feasibility</span>
+              </div>
+              <ul class="card-bullets">
+                <li>AI/ML predictive modeling for freight price trends</li>
+                <li>Ingestion of multiple open-source maritime datasets</li>
+                <li>Mathematical factor decomposition (fuel, distance, weather)</li>
+                <li>Full-stack Python ML backend with React dashboard</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">📡</span>
+                <span class="card-title">Operational Feasibility</span>
+              </div>
+              <ul class="card-bullets">
+                <li>Live berth congestion radar & real-time ship tracking</li>
+                <li>Port diversion recommendation to minimize demurrage losses</li>
+                <li>Automated railway rake alerts for rapid coal evacuation</li>
+                <li>Port turnaround time reduction & laycan tracking</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">💰</span>
+                <span class="card-title">Economic Feasibility</span>
+              </div>
+              <ul class="card-bullets">
+                <li>100% open-source software stack with zero license fees</li>
+                <li>Low deployment overhead (cloud or on-prem PSU deploy)</li>
+                <li>Granular voyage accounting (bunker fuel, port tariffs, demurrage)</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">⚓</span>
+                <span class="card-title">Physical Port Feasibility</span>
+              </div>
+              <ul class="card-bullets">
+                <li>Verification of vessel draft, beam, LOA, and DWT limits</li>
+                <li>Solar-lunar astronomical tide modeling (sun/moon alignment)</li>
+                <li>Berth cargo handling rate (TPD) feasibility checks</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="tree-arrow"></div>
+
+          <!-- Viability Subgrid -->
+          <div class="tree-subgrid">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">🏭</span>
+                <span class="card-title">Market Viability</span>
+              </div>
+              <ul class="card-bullets">
+                <li>High-volume Indian dry bulk imports (coal, iron ore)</li>
+                <li>Serves core industrial cargo receivers (SAIL, NTPC)</li>
+                <li>Scalable across major Indian ports and global lanes</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">📉</span>
+                <span class="card-title">Economic Viability</span>
+              </div>
+              <ul class="card-bullets">
+                <li>Protects buyers from volatile market price dips & bad timing</li>
+                <li>Demurrage penalty avoidance via timely port diversion</li>
+                <li>Voyage bunker fuel cost optimization via speed management</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">🤝</span>
+                <span class="card-title">Industrial Viability</span>
+              </div>
+              <ul class="card-bullets">
+                <li>Seamless alignment with chartering desks & plant logistics</li>
+                <li>Multi-modal coordination: discharge to rail evacuation</li>
+                <li>Transparent data-driven support replacing broker guesswork</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">🔄</span>
+                <span class="card-title">Long-term Sustainability</span>
+              </div>
+              <ul class="card-bullets">
+                <li>Modular microservice architecture for easy feature addition</li>
+                <li>Adaptable to new coastal ports, vessel classes, & commodities</li>
+                <li>Continuous model updates incorporating new freight data</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM 3 PANELS ROW -->
+      <div class="bottom-row">
+
+        <!-- 1. SWOT ANALYSIS -->
+        <div class="bottom-panel">
+          <div class="panel-title">
+            <span>📊</span>
+            <span>SWOT Analysis: AI-Driven Maritime Intelligence</span>
+          </div>
+          <div class="swot-grid">
+            <div class="swot-card swot-s">
+              <div class="swot-header">💪 Strengths</div>
+              <ul class="swot-bullets">
+                <li>Early market price prediction protecting against booking losses</li>
+                <li>Physical port compatibility engine (Draft/LOA/Beam) for safe diversion</li>
+                <li>Live ship tracking with real-time port congestion radar</li>
+                <li>Railway rake evacuation alerts for fast port-to-factory transport</li>
+              </ul>
+            </div>
+
+            <div class="swot-card swot-w">
+              <div class="swot-header">⚠️ Weaknesses</div>
+              <ul class="swot-bullets">
+                <li>Reliance on public AIS feeds with ~40 NM coastal latency</li>
+                <li>Limited direct integration with private terminal TOS</li>
+                <li>Periodic reporting lags in historical freight rate indices</li>
+              </ul>
+            </div>
+
+            <div class="swot-card swot-o">
+              <div class="swot-header">🎯 Opportunities</div>
+              <ul class="swot-bullets">
+                <li>Integration with National Logistics Portal (NLP-Marine)</li>
+                <li>Expansion to coastal container and liquid tanker segments</li>
+                <li>Direct integration with live bunker fuel supplier price feeds</li>
+              </ul>
+            </div>
+
+            <div class="swot-card swot-t">
+              <div class="swot-header">🛡️ Threats</div>
+              <ul class="swot-bullets">
+                <li>Satellite AIS telemetry outages or latency fluctuations</li>
+                <li>Entrenched legacy maritime analytics providers</li>
+                <li>Sudden regulatory import duties or customs tariff revisions</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. BUSINESS POTENTIAL (DRAWING SCHEMATIC) -->
+        <div class="bottom-panel">
+          <div class="panel-title">
+            <span>🌐</span>
+            <span>Business Potential & Adoption Framework</span>
+          </div>
+          <div class="bp-schematic">
+            <div class="bp-row">
+              <div class="bp-node">
+                <div class="bp-node-icon">📦</div>
+                <div class="bp-node-title">Market Need</div>
+                <div class="bp-node-desc">Bulk coal importers facing volatile freight rates</div>
+              </div>
+              <div class="bp-node">
+                <div class="bp-node-icon">💡</div>
+                <div class="bp-node-title">Cost Advantage</div>
+                <div class="bp-node-desc">Open-source stack vs $10k+ commercial terminals</div>
+              </div>
+            </div>
+
+            <div class="bp-center-hub">
+              <div class="bp-hub-circle">
+                <span>🚢</span>
+                <span>NaviFreight Core Platform</span>
+              </div>
+            </div>
+
+            <div class="bp-row">
+              <div class="bp-node">
+                <div class="bp-node-icon">🏭</div>
+                <div class="bp-node-title">Target Users</div>
+                <div class="bp-node-desc">Steel mills, power plants, port planners, charterers</div>
+              </div>
+              <div class="bp-node">
+                <div class="bp-node-icon">🚂</div>
+                <div class="bp-node-title">Multi-Modal Flow</div>
+                <div class="bp-node-desc">Vessel arrival linked directly to railway rakes</div>
+              </div>
+            </div>
+
+            <div class="bp-row" style="margin-top: 4px;">
+              <div class="bp-node">
+                <div class="bp-node-icon">☁️</div>
+                <div class="bp-node-title">Deployment</div>
+                <div class="bp-node-desc">Cloud SaaS portal or on-premise PSU deploy</div>
+              </div>
+              <div class="bp-node">
+                <div class="bp-node-icon">🔭</div>
+                <div class="bp-node-title">Long-Term Vision</div>
+                <div class="bp-node-desc">Unified digital freight standard for coastal trade</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. OPERATIONAL CHALLENGES & STRATEGIC MITIGATIONS -->
+        <div class="bottom-panel">
+          <div class="panel-title">
+            <span>⚡</span>
+            <span>Operational Challenges & Strategic Mitigations</span>
+          </div>
+          <div class="cm-container">
+            <div class="cm-row">
+              <div class="cm-challenge">
+                <span class="cm-badge-warn">⚠️ Telemetry Gaps</span>
+                <span class="cm-c-text">Mid-ocean blindspots beyond 40 NM coastal VHF range</span>
+              </div>
+              <div class="cm-arrow">➔</div>
+              <div class="cm-mitigation">
+                <span class="cm-badge-succ">✅ Dual Telemetry</span>
+                <span class="cm-m-text">Live AISStream WebSockets + Haversine dead-reckoning</span>
+              </div>
+            </div>
+
+            <div class="cm-row">
+              <div class="cm-challenge">
+                <span class="cm-badge-warn">⚠️ Gated INCOIS APIs</span>
+                <span class="cm-c-text">Restricted official real-time tidal gauge access</span>
+              </div>
+              <div class="cm-arrow">➔</div>
+              <div class="cm-mitigation">
+                <span class="cm-badge-succ">✅ Solar-Lunar Tides</span>
+                <span class="cm-m-text">Astronomical sun/moon harmonics for permissible draft</span>
+              </div>
+            </div>
+
+            <div class="cm-row">
+              <div class="cm-challenge">
+                <span class="cm-badge-warn">⚠️ Berth Congestion</span>
+                <span class="cm-c-text">Yard cargo choking and high anchorage demurrage</span>
+              </div>
+              <div class="cm-arrow">➔</div>
+              <div class="cm-mitigation">
+                <span class="cm-badge-succ">✅ Geofence & Loss Arbitrage</span>
+                <span class="cm-m-text">15–26 km radius rake alert & Demurrage vs Diversion loss</span>
+              </div>
+            </div>
+
+            <div class="cm-row">
+              <div class="cm-challenge">
+                <span class="cm-badge-warn">⚠️ Model Adoption</span>
+                <span class="cm-c-text">Hesitancy toward opaque black-box AI recommendations</span>
+              </div>
+              <div class="cm-arrow">➔</div>
+              <div class="cm-mitigation">
+                <span class="cm-badge-succ">✅ Explainable Factors</span>
+                <span class="cm-m-text">Transparent cost breakdown with 100% operator override</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDEBAR (IMAGE 2 LARGE FONT STYLE) -->
+    <div class="right-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          <span>⚖️</span>
+          <span>Feasibility Takeaways:</span>
+        </div>
+        <ul class="sidebar-list">
+          <li><strong>Multi-Source Ingestion:</strong> Integrates AIS transponders, port tariffs, and weather bulletins into a single data pipeline.</li>
+          <li><strong>Rapid MVP Build:</strong> Complete working route optimizer, berth diversion engine, and live congestion radar.</li>
+          <li><strong>Solar-Lunar Tide Model:</strong> Computes high-water tidal windows without relying on gated proprietary APIs.</li>
+          <li><strong>Intermodal Rake Alert:</strong> Synchronizes vessel berthing with Indian Railways rake mobilization for rapid coal clearance.</li>
+        </ul>
+      </div>
+
+      <div style="height: 1px; background: #cbd5e1; margin: 4px 0;"></div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">
+          <span>⚙️</span>
+          <span>Viability Takeaways:</span>
+        </div>
+        <ul class="sidebar-list">
+          <li><strong>Downside Price Protection:</strong> Safeguards charterers against locking in fixtures at peak rates before market dips.</li>
+          <li><strong>Demurrage Elimination:</strong> Early diversion before multi-day outer anchorage congestion queues escalate.</li>
+          <li><strong>Port Network Scalability:</strong> Adaptable across East & West Coast Indian ports (Paradip, Vizag, Haldia, Dhamra, Gangavaram).</li>
+          <li><strong>Sustainable Framework:</strong> Extensible data architecture designed for integration with National Logistics Portal (NLP-Marine).</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

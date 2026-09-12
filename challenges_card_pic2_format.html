@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Operational Challenges & Strategic Mitigations Card</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1220px;
+      height: 888px;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .main-card {
+      width: 100%;
+      height: 100%;
+      background: #0f224a;
+      border: 3px solid #091733;
+      border-radius: 18px;
+      padding: 12px 14px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    /* TOP TITLE BANNER */
+    .title-banner {
+      text-align: center;
+      padding: 4px 0 2px 0;
+    }
+    .main-title {
+      font-size: 30px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .sub-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #93c5fd;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* TWO COLUMNS */
+    .columns-container {
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 12px;
+      flex: 1;
+    }
+
+    /* LEFT COLUMN: OPERATIONAL CHALLENGES */
+    .column-left {
+      background: #fef7e6; /* Warm cream */
+      border: 2.5px solid #1e3a8a;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    /* RIGHT COLUMN: STRATEGIC MITIGATIONS */
+    .column-right {
+      background: #eef8f1; /* Soft mint green */
+      border: 2.5px solid #14532d;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    /* PILL HEADERS */
+    .pill-header-left {
+      background: #0f224a;
+      border: 1.5px solid #091733;
+      border-radius: 10px;
+      padding: 8px 16px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      box-shadow: 0 2px 6px rgba(15,34,74,0.25);
+    }
+
+    .pill-header-right {
+      background: #14532d;
+      border: 1.5px solid #052e16;
+      border-radius: 10px;
+      padding: 8px 16px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      box-shadow: 0 2px 6px rgba(20,83,45,0.25);
+    }
+
+    /* BULLET LISTS */
+    .item-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      padding-top: 4px;
+    }
+
+    .item-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-heading {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 16.5px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .left-heading { color: #0f172a; }
+    .right-heading { color: #064e3b; }
+
+    .bullet-dot {
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .left-bullet { color: #1e3a8a; }
+    .right-bullet { color: #15803d; }
+
+    .item-subtext {
+      padding-left: 20px;
+      font-size: 13.5px;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+    .left-subtext { color: #334155; }
+    .right-subtext { color: #1e3a8a; }
+
+    .sub-bullet-dot {
+      color: #64748b;
+      margin-right: 4px;
+      font-weight: bold;
+    }
+
+    /* BADGES / ICONS */
+    .check-icon {
+      color: #16a34a;
+      font-size: 14px;
+      font-weight: 900;
+      margin-left: 4px;
+    }
+    .warn-icon {
+      color: #d97706;
+      font-size: 13px;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-card">
+    <!-- TOP TITLE BANNER -->
+    <div class="title-banner">
+      <div class="main-title">Operational Challenges & Strategic Mitigations</div>
+      <div class="sub-title">NaviFreight (SIH26006) — Maritime Freight & Port Logistics Intelligence</div>
+    </div>
+
+    <!-- TWO COLUMNS -->
+    <div class="columns-container">
+
+      <!-- LEFT COLUMN: OPERATIONAL CHALLENGES -->
+      <div class="column-left">
+        <div class="pill-header-left">Operational Challenges</div>
+        <ul class="item-list">
+          <!-- 1. AIS Telemetry Gaps -->
+          <li class="item-block">
+            <div class="item-heading left-heading">
+              <span class="bullet-dot left-bullet">•</span>
+              <span>AIS Telemetry & Deep-Sea Gaps</span>
+            </div>
+            <div class="item-subtext left-subtext">
+              <span class="sub-bullet-dot">•</span>Terrestrial VHF range limited to 40 NM offshore<br>
+              <span class="sub-bullet-dot">•</span>Satellite polling latency & packet dropouts
+            </div>
+          </li>
+
+          <!-- 2. Freight Market Volatility -->
+          <li class="item-block">
+            <div class="item-heading left-heading">
+              <span class="bullet-dot left-bullet">•</span>
+              <span>Freight Market Volatility & Shocks</span>
+            </div>
+            <div class="item-subtext left-subtext">
+              <span class="sub-bullet-dot">•</span>Geopolitical chokepoints & fuel fluctuations<br>
+              <span class="sub-bullet-dot">•</span>Point forecasts fail during rapid market shifts
+            </div>
+          </li>
+
+          <!-- 3. Berth Congestion & Restricted INCOIS -->
+          <li class="item-block">
+            <div class="item-heading left-heading">
+              <span class="bullet-dot left-bullet">•</span>
+              <span>Berth Congestion & Restricted INCOIS</span>
+            </div>
+            <div class="item-subtext left-subtext">
+              <span class="sub-bullet-dot">•</span>Gated access to live tidal gauge APIs<br>
+              <span class="sub-bullet-dot">•</span>Dynamic riverine siltation limits safe berthing
+            </div>
+          </li>
+
+          <!-- 4. Intermodal Evacuation Bottlenecks -->
+          <li class="item-block">
+            <div class="item-heading left-heading">
+              <span class="bullet-dot left-bullet">•</span>
+              <span>Intermodal Evacuation & Yard Delays</span>
+            </div>
+            <div class="item-subtext left-subtext">
+              <span class="sub-bullet-dot">•</span>Delayed railway rakes cause wharf cargo choking<br>
+              <span class="sub-bullet-dot">•</span>High demurrage during peak vessel bunching
+            </div>
+          </li>
+
+          <!-- 5. User Trust & Model Adoption -->
+          <li class="item-block">
+            <div class="item-heading left-heading">
+              <span class="bullet-dot left-bullet">•</span>
+              <span>User Trust & Operational Adoption</span>
+            </div>
+            <div class="item-subtext left-subtext">
+              <span class="sub-bullet-dot">•</span>Hesitancy toward opaque black-box algorithms<br>
+              <span class="sub-bullet-dot">•</span>Need for auditable public procurement records
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- RIGHT COLUMN: STRATEGIC MITIGATIONS -->
+      <div class="column-right">
+        <div class="pill-header-right">Strategic Mitigations</div>
+        <ul class="item-list">
+          <!-- 1. Dual-Mode Telemetry -->
+          <li class="item-block">
+            <div class="item-heading right-heading">
+              <span class="bullet-dot right-bullet">•</span>
+              <span>Dual-Mode Telemetry & Geodesic Smoothing</span>
+            </div>
+            <div class="item-subtext right-subtext">
+              <span class="sub-bullet-dot">•</span>Live AISStream WebSockets + local port cache<br>
+              <span class="sub-bullet-dot">•</span>Haversine dead-reckoning across satellite gaps
+            </div>
+          </li>
+
+          <!-- 2. Quantile Ensembles -->
+          <li class="item-block">
+            <div class="item-heading right-heading">
+              <span class="bullet-dot right-bullet">•</span>
+              <span>Quantile Ensembles (P10/P50/P90)</span>
+            </div>
+            <div class="item-subtext right-subtext">
+              <span class="sub-bullet-dot">•</span>Downside dip protection prevents peak booking<br>
+              <span class="sub-bullet-dot">•</span>Probabilistic bounds highlight risk regimes
+            </div>
+          </li>
+
+          <!-- 3. Solar-Lunar Tide Modeling -->
+          <li class="item-block">
+            <div class="item-heading right-heading">
+              <span class="bullet-dot right-bullet">•</span>
+              <span>Solar-Lunar Harmonic Tide Modeling</span>
+            </div>
+            <div class="item-subtext right-subtext">
+              <span class="sub-bullet-dot">•</span>Calculates permissible draft via sun/moon cycles<br>
+              <span class="sub-bullet-dot">•</span>Part-B Draft, LOA, Beam, and DWT verification
+            </div>
+          </li>
+
+          <!-- 4. Geofencing & Loss Arbitrage -->
+          <li class="item-block">
+            <div class="item-heading right-heading">
+              <span class="bullet-dot right-bullet">•</span>
+              <span>Geofencing & Loss Arbitrage Diversion</span>
+            </div>
+            <div class="item-subtext right-subtext">
+              <span class="sub-bullet-dot">•</span>15–26 km radius triggers advance rake staging<br>
+              <span class="sub-bullet-dot">•</span>Loss Arbitrage: Demurrage Loss vs Diversion Cost
+            </div>
+          </li>
+
+          <!-- 5. Explainable Econometrics -->
+          <li class="item-block">
+            <div class="item-heading right-heading">
+              <span class="bullet-dot right-bullet">•</span>
+              <span>Explainable Econometrics & Operator Control</span>
+            </div>
+            <div class="item-subtext right-subtext">
+              <span class="sub-bullet-dot">•</span>Transparent cost factors (Fuel, Port dues, Tides)<br>
+              <span class="sub-bullet-dot">•</span>Decision support with 100% human override
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
