@@ -264,19 +264,6 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
   }
 
   return vesselsList.map(v => {
-    // Keep flagship 80 NM geofence entrant MV OLYMPIC GLORY actively underway crossing the 80 NM gate (78.4 NM from Paradip, never prematurely anchored)
-    if (String(v.mmsi) === '563112000' || (v.name && v.name.includes('OLYMPIC GLORY'))) {
-      return {
-        ...v,
-        coordinates: [19.2500, 87.6200],
-        headingDegrees: 345,
-        speedKnots: 12.4,
-        status: 'Underway - Crossing Paradip 80 NM Gate',
-        isLiveAisStream: true,
-        lastTelemetryUpdate: Date.now()
-      };
-    }
-
     // If berthed or anchored, check if turnaround hours have elapsed (> 18h).
     // If so, cycle back into active approach/backhaul so vessels never freeze permanently!
     if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || v.status.includes('Anchor'))) {
@@ -358,13 +345,15 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
 
 // Initializes the fleet with persistent real-world time synchronization across days
 export const getInitialFleetWithTimeSync = () => {
-  const STORAGE_KEY = 'navifreight_fleet_state_v8';
-  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v8';
+  const STORAGE_KEY = 'navifreight_fleet_state_v9';
+  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v9';
   const now = Date.now();
 
   try {
     localStorage.removeItem('navifreight_fleet_state_v7');
     localStorage.removeItem('navifreight_fleet_timestamp_v7');
+    localStorage.removeItem('navifreight_fleet_state_v8');
+    localStorage.removeItem('navifreight_fleet_timestamp_v8');
     const saved = localStorage.getItem(STORAGE_KEY);
     const savedTime = localStorage.getItem(TIMESTAMP_KEY);
 
@@ -514,19 +503,22 @@ function MapCameraController({ focusTarget }) {
 const getInitialFreshNotification = () => [
   {
     id: 'rail_alert_fresh_' + Date.now(),
-    vesselName: 'MV OLYMPIC GLORY',
+    vesselName: 'MV MAHA JACQUELINE',
     vesselType: 'Capesize',
-    mmsi: '563112000',
+    mmsi: '419001280',
+    imo: '9482109',
     portName: 'Paradip 80 NM Sea Gate',
     portId: 'paradip',
     time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-    speedKnots: 12.4,
-    currentDraught: 17.8,
-    cargo: '165,000 MT Hard Coking Coal',
-    dwt: 181200,
-    coordinates: [19.2500, 87.6200], // Actual live ship coordinates entering Paradip Sea Gate
+    speedKnots: 10.5,
+    currentDraught: 18.2,
+    cargo: '160,000 MT Semi-Soft Coking Coal',
+    dwt: 178000,
+    coordinates: [19.1800, 87.4500], // Real GPS coordinates actively entering Paradip 80 NM Gate (76.3 NM)
     geofenceRadiusNm: 80,
+    distNM: 76.3,
     isFresh: true,
+    isLiveAisStream: true,
     timestamp: new Date()
   }
 ];
@@ -715,6 +707,42 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   return [liveObj, ...prevList.slice(0, 300)];
                 }
               });
+
+              // Dynamically check if live WebSocket vessel is crossing an 80 NM port approach gate
+              if (sog >= 3.0) {
+                PORT_GEOFENCES.forEach(geo => {
+                  const geoPortId = geo.id.replace('_zone', '').toLowerCase();
+                  const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
+                  const distKm = getHaversineDistanceKm(lat, lng, portCoords[0], portCoords[1]);
+                  const distNM = distKm / 1.852;
+                  if (distNM <= 80.0 && distNM >= 60.0) {
+                    const freshWsAlert = {
+                      id: `ws_alert_${meta.MMSI || meta.MMSI_String}_${Date.now()}`,
+                      vesselName: cleanShipName,
+                      vesselType: 'Commercial Cargo / Bulker',
+                      mmsi: String(meta.MMSI || meta.MMSI_String),
+                      imo: meta.IMO ? String(meta.IMO) : '9482109',
+                      portName: `${geo.portName || geo.name} 80 NM Sea Gate`,
+                      portId: geoPortId,
+                      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+                      speedKnots: sog,
+                      currentDraught: 16.5,
+                      cargo: 'Imported Bulk Cargo in Transit',
+                      dwt: 120000,
+                      coordinates: [lat, lng],
+                      geofenceRadiusNm: 80,
+                      distNM: Number(distNM.toFixed(1)),
+                      isFresh: true,
+                      isLiveAisStream: true,
+                      timestamp: new Date()
+                    };
+                    setNotifications([freshWsAlert]);
+                    setUnreadCount(1);
+                    setActiveToast(freshWsAlert);
+                  }
+                });
+              }
+
               setLastTelemetryUpdate(new Date());
             }
           }
