@@ -57,4 +57,8 @@ body {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-
+/* Smooth vessel marker gliding across maritime waters */
+.leaflet-marker-icon.custom-ship-marker {
+  transition: transform 1.0s linear !important;
+  will-change: transform;
+}

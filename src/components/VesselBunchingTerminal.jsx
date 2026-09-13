@@ -9,7 +9,8 @@ import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 export default function VesselBunchingTerminal({
   selectedDestination = 'paradip',
   onSelectPort,
-  vessels = []
+  vessels = [],
+  onUpdateVesselSpeed
 }) {
   const [activeTab, setActiveTab] = useState('radar'); // 'radar', 'cascade', 'actions', 'terminal'
   const [copiedIndex, setCopiedIndex] = useState(null);
@@ -108,10 +109,20 @@ export default function VesselBunchingTerminal({
     }
 
     if (cmd.includes('resolve-bunching')) {
+      if (onUpdateVesselSpeed) {
+        onUpdateVesselSpeed('563112000', 12.4, 'Underway - Priority Berthing Slot CB-01');
+        onUpdateVesselSpeed('419001280', 8.9, 'Underway - Eco-Speed Virtual Arrival');
+        onUpdateVesselSpeed('354890000', 13.5, 'Underway - Diverted to Dhamra Port');
+      }
       newLogs.push({
         time: new Date().toLocaleTimeString(),
         level: 'EXEC',
-        msg: `RESOLVE BUNCHING: Port ${targetPort.name} - Slot CB-01 assigned to MV OLYMPIC GLORY; Eco-Speed directive dispatched to MV CHENNAI VALAM (8.9 kts); Dhamra diversion slot reserved for MV CAPE ASIA.`
+        msg: `RESOLVE BUNCHING: Port ${targetPort.name} - Slot CB-01 assigned to MV OLYMPIC GLORY; Eco-Speed (8.9 kts) dispatched to MV CHENNAI VALAM; Dhamra diversion slot reserved for MV CAPE ASIA.`
+      });
+      newLogs.push({
+        time: new Date().toLocaleTimeString(),
+        level: 'SYS',
+        msg: `[LIVE FLEET MOTION]: Speeds updated across map. MV CHENNAI VALAM throttled to 8.9 kts (-56.4% fuel burn, physical motion slowed in real-time).`
       });
     } else if (cmd.includes('audit-sail-coal')) {
       newLogs.push({
@@ -120,10 +131,19 @@ export default function VesselBunchingTerminal({
         msg: 'SAIL INVENTORY AUDIT: Bokaro (BSL): 4.1 days (CRITICAL) | Rourkela (RSP): 8.4 days (STABLE) | Bhilai (BSP): 11.2 days (HEALTHY). Priority diverted to Dhamra for Bokaro rail link.'
       });
     } else if (cmd.includes('eco-speed')) {
+      if (onUpdateVesselSpeed) {
+        onUpdateVesselSpeed('419001280', 8.9, 'Underway - Eco-Speed Virtual Arrival');
+        onUpdateVesselSpeed('563112000', 8.9, 'Underway - Eco-Speed Virtual Arrival');
+      }
       newLogs.push({
         time: new Date().toLocaleTimeString(),
         level: 'CALC',
         msg: 'ECO-SPEED COMPUTATION: P ~ V^3. Speed reduction: 12.8 kts -> 8.9 kts (-30.4%). Engine load: 85% MCR -> 42% MCR. Fuel burn: 1.10 MT/h -> 0.48 MT/h (-56.4%). Fuel saved: 8.8 MT VLSFO (₹5.46 Lakhs).'
+      });
+      newLogs.push({
+        time: new Date().toLocaleTimeString(),
+        level: 'SYS',
+        msg: `[LIVE FLEET MOTION]: Vessel speed throttled to 8.9 kts. Physical movement on tracking map visibly slowed to Eco-Speed pace.`
       });
     } else if (cmd.includes('prebook-port')) {
       newLogs.push({
@@ -429,11 +449,16 @@ export default function VesselBunchingTerminal({
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleCopyDirective("CONFIRM_EXPRESS_BERTHING: MV OLYMPIC GLORY assigned to Berth CB-01 upon pilot boarding.", 1)}
-                  className="w-full mt-2 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors"
+                  onClick={() => {
+                    handleCopyDirective("CONFIRM_EXPRESS_BERTHING: MV OLYMPIC GLORY assigned to Berth CB-01 upon pilot boarding.", 1);
+                    if (onUpdateVesselSpeed) {
+                      onUpdateVesselSpeed('563112000', 12.4, 'Underway - Priority Berthing Slot CB-01');
+                    }
+                  }}
+                  className="w-full mt-2 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                 >
                   {copiedIndex === 1 ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedIndex === 1 ? 'Directive Copied!' : 'Issue Berthing Order'}</span>
+                  <span>{copiedIndex === 1 ? 'Priority Slot Dispatched!' : 'Issue Berthing Order (12.4 kts)'}</span>
                 </button>
               </div>
 
@@ -474,11 +499,16 @@ export default function VesselBunchingTerminal({
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleCopyDirective("ISSUE_ECO_SPEED: MV CHENNAI VALAM reduce to 8.9 kts. Just-in-Time berth slot reserved.", 2)}
-                  className="w-full mt-2 py-1.5 px-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors"
+                  onClick={() => {
+                    handleCopyDirective("ISSUE_ECO_SPEED: MV CHENNAI VALAM reduce to 8.9 kts. Just-in-Time berth slot reserved.", 2);
+                    if (onUpdateVesselSpeed) {
+                      onUpdateVesselSpeed('419001280', 8.9, 'Underway - Eco-Speed Virtual Arrival');
+                    }
+                  }}
+                  className="w-full mt-2 py-1.5 px-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                 >
                   {copiedIndex === 2 ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedIndex === 2 ? 'Directive Copied!' : 'Issue Eco-Speed Order'}</span>
+                  <span>{copiedIndex === 2 ? 'Eco-Speed Dispatched (8.9 kts)!' : 'Issue Eco-Speed Order (8.9 kts)'}</span>
                 </button>
               </div>
 
@@ -522,8 +552,11 @@ export default function VesselBunchingTerminal({
                   onClick={() => {
                     onSelectPort && onSelectPort('dhamra');
                     handleCopyDirective("PRE-BOOK PORT DHAMRA FOR MV CAPE ASIA — FOIS RAKE PRIORITY: SAIL BOKARO", 3);
+                    if (onUpdateVesselSpeed) {
+                      onUpdateVesselSpeed('354890000', 13.5, 'Underway - Diverted to Dhamra Port');
+                    }
                   }}
-                  className="w-full mt-2 py-1.5 px-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors"
+                  className="w-full mt-2 py-1.5 px-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded flex items-center justify-center space-x-1 transition-colors cursor-pointer"
                 >
                   {copiedIndex === 3 ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedIndex === 3 ? 'Pre-Book Dispatched!' : 'Pre-Book Port Dhamra (PCS)'}</span>

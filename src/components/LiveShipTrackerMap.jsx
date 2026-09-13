@@ -344,8 +344,8 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
 
 // Initializes the fleet with persistent real-world time synchronization across days
 export const getInitialFleetWithTimeSync = () => {
-  const STORAGE_KEY = 'navifreight_fleet_state_v6';
-  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v6';
+  const STORAGE_KEY = 'navifreight_fleet_state_v7';
+  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v7';
   const now = Date.now();
 
   try {
@@ -549,7 +549,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const [showCorridors, setShowCorridors] = useState(true);
   const [showGeofences, setShowGeofences] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [simulationSpeed, setSimulationSpeed] = useState(1);
+  const [simulationSpeed, setSimulationSpeed] = useState(10); // Default to 10x Tactical Glide for smooth visible motion
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('osm'); // Always colorful OpenStreetMap
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
@@ -802,28 +802,55 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       localStorage.removeItem('navifreight_fleet_timestamp_v3');
       localStorage.removeItem('navifreight_fleet_state_v6');
       localStorage.removeItem('navifreight_fleet_timestamp_v6');
+      localStorage.removeItem('navifreight_fleet_state_v7');
+      localStorage.removeItem('navifreight_fleet_timestamp_v7');
     } catch (e) {}
     const fresh = getInitialFleetWithTimeSync();
     setVessels(fresh);
     setLastTelemetryUpdate(new Date());
   };
 
-  // Dead Reckoning position simulation loop (advances all 165+ vessels safely along water channels towards destination)
+  // Real-time speed & propulsion update handler (allows interactive throttle adjustments, Eco-Speed orders, & anchor drops)
+  const handleUpdateVesselSpeed = (mmsi, newSpeed, newStatus = null) => {
+    const numericSpeed = Math.max(0, Math.min(25, Number(newSpeed)));
+    setVessels(prev => prev.map(v => {
+      if (String(v.mmsi) === String(mmsi)) {
+        let status = newStatus;
+        if (!status) {
+          if (numericSpeed <= 0.5) status = 'At Anchor (Port Roads Queue)';
+          else if (numericSpeed <= 9.5) status = 'Underway - Eco-Speed Virtual Arrival';
+          else status = 'Underway - Active Dispatch';
+        }
+        return {
+          ...v,
+          speedKnots: Number(numericSpeed.toFixed(1)),
+          status,
+          _stayTicks: 0,
+          lastTelemetryUpdate: Date.now()
+        };
+      }
+      return v;
+    }));
+  };
+
+  // Dead Reckoning position simulation loop: strictly driven by individual vessel speedKnots
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
       setVessels(prevVessels => {
         const nextList = prevVessels.map(v => {
-          // If vessel is at anchor or berthed, after simulation turnaround cycle release it so ships never freeze permanently!
+          const currentSpeedKnots = typeof v.speedKnots === 'number' ? v.speedKnots : 12.0;
+
+          // If vessel is at anchor or berthed, after turnaround cycle re-dispatch into next voyage leg
           if (
             v.status.includes('Anchor') ||
             v.status.includes('Berth') ||
             v.status.includes('Moored') ||
-            v.speedKnots === 0
+            currentSpeedKnots <= 0.5
           ) {
             const stayCounter = (v._stayTicks || 0) + 1;
-            if (stayCounter > 20) {
+            if (stayCounter > 25) {
               const destId = (v.destinationId || 'paradip').toLowerCase();
               const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
               const seed = Number(String(v.mmsi || '12345').slice(-3)) || 42;
@@ -850,7 +877,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           const destId = (v.destinationId || 'paradip').toLowerCase();
           const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
 
-          // Distance in Nautical Miles
+          // Distance in Nautical Miles to port approach
           const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], targetCoords[0], targetCoords[1]);
           const distNM = distKm / 1.852;
 
@@ -879,11 +906,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           let steerStep = Math.max(-8, Math.min(8, headingDiff));
           let nextHeading = (currentHeading + steerStep + 360) % 360;
 
-          // Smooth, visible maritime progression (1 knot = 1 NM/hour)
-          const paceMultiplier = simulationSpeed === 1 ? 40 : simulationSpeed * 25;
-          const intervalSeconds = 2.0;
-          const speedKnots = (v.speedKnots && v.speedKnots > 1 ? v.speedKnots : 12.0);
-          const distanceNM = speedKnots * ((intervalSeconds * paceMultiplier) / 3600);
+          // Speed-Proportional Movement Physics:
+          // Distance (NM) = speedKnots * (intervalSeconds * effectivePace / 3600)
+          // Faster vessels physically move faster; Eco-speed (8.9 kts) moves slower; Anchored vessels stay stationary!
+          const paceMap = { 1: 60, 5: 180, 10: 420, 25: 1000, 50: 2200 };
+          const effectivePace = paceMap[simulationSpeed] || (simulationSpeed * 42);
+          const intervalSeconds = 1.0;
+          const distanceNM = currentSpeedKnots * ((intervalSeconds * effectivePace) / 3600);
           
           let latDelta = Math.cos((nextHeading * Math.PI) / 180) * (distanceNM / 60);
           let lngDelta = (Math.sin((nextHeading * Math.PI) / 180) * (distanceNM / 60)) / Math.cos((v.coordinates[0] * Math.PI) / 180);
@@ -910,10 +939,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         });
 
         // Periodic background save to localStorage every ~10s
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.15) {
           try {
-            localStorage.setItem('navifreight_fleet_state_v6', JSON.stringify(nextList));
-            localStorage.setItem('navifreight_fleet_timestamp_v6', String(Date.now()));
+            localStorage.setItem('navifreight_fleet_state_v7', JSON.stringify(nextList));
+            localStorage.setItem('navifreight_fleet_timestamp_v7', String(Date.now()));
           } catch (e) {}
         }
 
@@ -921,7 +950,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       });
 
       setLastTelemetryUpdate(new Date());
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [isPlaying, simulationSpeed]);
@@ -1213,7 +1242,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             <span className="text-slate-400 text-[11px]">|</span>
             <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Speed:</span>
             <div className="flex items-center space-x-1">
-              {[1, 10, 50, 150].map((spd) => (
+              {[
+                { spd: 1, label: '1x', title: '1x Authentic Real-Time AIS' },
+                { spd: 5, label: '5x', title: '5x Cruise Transit' },
+                { spd: 10, label: '10x', title: '10x Tactical Motion (Default - Visibly Glide)' },
+                { spd: 25, label: '25x', title: '25x Fast Steaming' },
+                { spd: 50, label: '50x', title: '50x Express Voyage Simulation' }
+              ].map(({ spd, label, title }) => (
                 <button
                   key={spd}
                   onClick={() => setSimulationSpeed(spd)}
@@ -1222,9 +1257,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       ? 'bg-maritime-900 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-200'
                   }`}
-                  title={`Set Ship Navigation Speed to ${spd}x (${spd === 1 ? 'Real-Time' : spd === 10 ? 'Tactical' : spd === 50 ? 'Cruise' : 'High-Speed Transit'})`}
+                  title={title}
                 >
-                  {spd}x
+                  {label}
                 </button>
               ))}
             </div>
@@ -1236,6 +1271,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               <RefreshCw className="w-2.5 h-2.5" />
               <span>Sync</span>
             </button>
+          </div>
+
+          {/* Speed-Proportional Propulsion Status */}
+          <div className="hidden lg:flex items-center space-x-1.5 bg-cyan-50/80 border border-cyan-200 text-cyan-900 px-2 py-1 rounded text-[11px] font-medium">
+            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
+            <span>Speed-Driven Motion: <b className="font-mono text-cyan-800">D = V × Δt</b></span>
           </div>
 
           {/* Time Sync Badge */}
@@ -1993,6 +2034,45 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               </Marker>
             ))}
 
+            {/* ECDIS 12-Minute Speed & Heading Vector for Selected Vessel */}
+            {selectedVessel && selectedVessel.speedKnots > 0.5 && (() => {
+              const [vLat, vLng] = selectedVessel.coordinates;
+              const vectorDistNM = selectedVessel.speedKnots * (12 / 60); // 12-minute projected advance
+              const latDelta = Math.cos((selectedVessel.headingDegrees * Math.PI) / 180) * (vectorDistNM / 60);
+              const lngDelta = (Math.sin((selectedVessel.headingDegrees * Math.PI) / 180) * (vectorDistNM / 60)) / Math.cos((vLat * Math.PI) / 180);
+              const endPoint = [Number((vLat + latDelta).toFixed(6)), Number((vLng + lngDelta).toFixed(6))];
+
+              return (
+                <React.Fragment key="speed-vector">
+                  <Polyline
+                    positions={[selectedVessel.coordinates, endPoint]}
+                    pathOptions={{
+                      color: selectedVessel.speedKnots <= 9.5 ? '#10b981' : '#0284c7',
+                      weight: 3,
+                      dashArray: '5 5',
+                      opacity: 0.95
+                    }}
+                  >
+                    <Tooltip direction="top" opacity={0.95}>
+                      <div className="text-[10px] font-bold bg-slate-950 text-white px-2 py-0.5 rounded border border-slate-700 shadow-md">
+                        {selectedVessel.speedKnots <= 9.5 ? '🌱 Eco-Speed Vector (12-Min Ahead)' : '⚡ Speed Vector (12-Min Ahead)'}: {selectedVessel.speedKnots} kts • Heading {selectedVessel.headingDegrees}°
+                      </div>
+                    </Tooltip>
+                  </Polyline>
+                  <CircleMarker
+                    center={endPoint}
+                    radius={4}
+                    pathOptions={{
+                      color: selectedVessel.speedKnots <= 9.5 ? '#10b981' : '#0284c7',
+                      fillColor: '#ffffff',
+                      fillOpacity: 1,
+                      weight: 2
+                    }}
+                  />
+                </React.Fragment>
+              );
+            })()}
+
             {/* Live Commercial Vessels */}
             {filteredVessels.map((v) => {
               const isSelected = selectedVessel?.mmsi === v.mmsi;
@@ -2007,11 +2087,26 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 >
                   <Tooltip direction="right" offset={[12, 0]} opacity={0.95} permanent={isSelected}>
                     <div className="text-xs">
-                      <span className="font-bold text-slate-900">{v.name}</span> ({v.vesselType})
-                      <div className="text-[10px] text-slate-500">
-                        {v.speedKnots} kts • Draft: {v.currentDraughtMeters}m • Bound: {v.destinationPort}
+                      <div className="flex items-center space-x-1.5 font-bold text-slate-900">
+                        <span>{v.name}</span>
+                        <span className="text-[10px] font-normal text-slate-500">({v.vesselType})</span>
                       </div>
-                      <div className="text-[9.5px] font-semibold text-emerald-800 pt-0.5">
+                      <div className="flex items-center space-x-1 text-[10px] text-slate-600 mt-0.5">
+                        <span className={`inline-block w-2 h-2 rounded-full ${
+                          (v.speedKnots || 0) <= 0.5 ? 'bg-rose-500' : (v.speedKnots || 0) <= 9.5 ? 'bg-emerald-500' : 'bg-cyan-500 animate-pulse'
+                        }`}></span>
+                        <span className="font-bold text-slate-800 font-mono">{v.speedKnots} kts</span>
+                        <span>•</span>
+                        <span className="font-semibold text-slate-700">
+                          {(v.speedKnots || 0) <= 0.5 ? '⚓ Anchored' : (v.speedKnots || 0) <= 9.5 ? '🌱 Eco-Speed' : '⚡ Steaming'}
+                        </span>
+                        <span>•</span>
+                        <span>Draft {v.currentDraughtMeters}m</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate max-w-[210px] mt-0.5">
+                        Bound: <span className="font-medium text-slate-700">{v.destinationPort}</span>
+                      </div>
+                      <div className="text-[9.5px] font-semibold text-emerald-800 pt-0.5 border-t border-slate-100 mt-1">
                         ETA: {calculateVesselEta(v)}
                       </div>
                     </div>
@@ -2490,6 +2585,112 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <p className="text-slate-600">{selectedVessel.draftClearanceAtDest}</p>
               </div>
 
+              {/* Interactive Propulsion Telegraph & Live Speed Control */}
+              <div className="bg-slate-900 text-white rounded-lg p-3 mb-3 shadow-sm border border-slate-700">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-1.5 font-bold text-xs">
+                    <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Propulsion Engine & Speed Control</span>
+                  </div>
+                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                    (selectedVessel.speedKnots || 0) <= 0.5 
+                      ? 'bg-rose-950 text-rose-300 border-rose-800' 
+                      : (selectedVessel.speedKnots || 0) <= 9.5 
+                      ? 'bg-emerald-950 text-emerald-300 border-emerald-800' 
+                      : 'bg-cyan-950 text-cyan-300 border-cyan-800'
+                  }`}>
+                    {selectedVessel.speedKnots} kts ({(selectedVessel.speedKnots || 0) <= 0.5 ? '⚓ Anchored' : (selectedVessel.speedKnots || 0) <= 9.5 ? '🌱 Eco-Speed' : '⚡ Underway'})
+                  </span>
+                </div>
+
+                {/* Live Cubic Propulsion Law: Fuel burn ~ V^3 */}
+                <div className="bg-slate-950/80 rounded p-2 text-[10px] border border-slate-800 mb-2.5">
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Propulsion Power (P ∝ V³):</span>
+                    <span className="font-mono text-amber-300 font-bold">
+                      {(selectedVessel.speedKnots || 0) <= 0.5 
+                        ? 'Aux Engine 600 kW' 
+                        : `${Math.round(Math.min(100, Math.pow((selectedVessel.speedKnots || 12.0) / 13.5, 3) * 85))}% MCR (~${Math.round(Math.pow((selectedVessel.speedKnots || 12.0) / 13.5, 3) * 16500)} kW)`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-400 mt-1">
+                    <span>Hourly Fuel Burn:</span>
+                    <span className="font-mono text-emerald-400 font-bold">
+                      {(selectedVessel.speedKnots || 0) <= 0.5 
+                        ? '0.08 MT/h VLSFO' 
+                        : `${(Math.pow((selectedVessel.speedKnots || 12.0) / 12.8, 3) * 1.10).toFixed(2)} MT/h VLSFO (~₹${Math.round(Math.pow((selectedVessel.speedKnots || 12.0) / 12.8, 3) * 1.10 * 62000).toLocaleString('en-IN')}/hr)`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Live Speed Range Slider */}
+                <div className="mb-2.5">
+                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                    <span>Adjust Speed (Throttle):</span>
+                    <span className="font-mono text-cyan-300 font-bold">{selectedVessel.speedKnots} Knots</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="18"
+                    step="0.1"
+                    value={selectedVessel.speedKnots || 0}
+                    onChange={(e) => handleUpdateVesselSpeed(selectedVessel.mmsi, parseFloat(e.target.value))}
+                    className="w-full accent-cyan-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[8px] text-slate-500 font-mono mt-0.5">
+                    <span>0 kts (Stop)</span>
+                    <span>8.9 kts (Eco)</span>
+                    <span>12.4 kts (Cruise)</span>
+                    <span>18 kts (Max)</span>
+                  </div>
+                </div>
+
+                {/* Quick Speed Preset Directives */}
+                <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                  <button
+                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 8.9, 'Underway - Eco-Speed Virtual Arrival')}
+                    className="p-1.5 rounded bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-200 border border-emerald-700/60 font-semibold text-left transition-colors cursor-pointer"
+                  >
+                    <div className="font-bold flex items-center space-x-1">
+                      <span>🌱</span>
+                      <span>Eco-Speed (8.9 kts)</span>
+                    </div>
+                    <div className="text-[8px] text-emerald-300/80 mt-0.5">Saves 56% fuel • Delay ETA</div>
+                  </button>
+                  <button
+                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 12.4, 'Underway - Standard Cruise')}
+                    className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-left transition-colors cursor-pointer"
+                  >
+                    <div className="font-bold flex items-center space-x-1">
+                      <span>⚡</span>
+                      <span>Standard (12.4 kts)</span>
+                    </div>
+                    <div className="text-[8px] text-slate-400 mt-0.5">Standard bulk charter speed</div>
+                  </button>
+                  <button
+                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 15.5, 'Underway - Full Ahead Dispatch')}
+                    className="p-1.5 rounded bg-cyan-900/60 hover:bg-cyan-800/80 text-cyan-200 border border-cyan-700/60 font-semibold text-left transition-colors cursor-pointer"
+                  >
+                    <div className="font-bold flex items-center space-x-1">
+                      <span>🚀</span>
+                      <span>Full Ahead (15.5 kts)</span>
+                    </div>
+                    <div className="text-[8px] text-cyan-300/80 mt-0.5">Fast transit to secure berth</div>
+                  </button>
+                  <button
+                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 0.1, 'At Anchor (Port Roads Queue)')}
+                    className="p-1.5 rounded bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 border border-rose-800/60 font-semibold text-left transition-colors cursor-pointer"
+                  >
+                    <div className="font-bold flex items-center space-x-1">
+                      <span>⚓</span>
+                      <span>Drop Anchor (0 kts)</span>
+                    </div>
+                    <div className="text-[8px] text-rose-300/80 mt-0.5">Halt vessel at position</div>
+                  </button>
+                </div>
+              </div>
+
               {/* 80 NM Multimodal Hinterland Evacuation (Rail Rakes vs Trucks) for Selected Vessel */}
               {(() => {
                 const vesselEvacAdv = evaluateVesselPortCongestionDiversion({
@@ -2555,6 +2756,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         selectedDestination={selectedDestination}
         onSelectPort={onSelectPort}
         vessels={vessels}
+        onUpdateVesselSpeed={handleUpdateVesselSpeed}
       />
 
       {/* AISStream WebSocket Key Modal */}
