@@ -12,6 +12,7 @@ import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/li
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { evaluatePortDiversion, evaluateVesselPortCongestionDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
+import VesselBunchingTerminal from './VesselBunchingTerminal';
 
 // Embedded AISStream.io API Key (Pre-configured for uninterrupted real-time streaming)
 export const DEFAULT_AISSTREAM_API_KEY = '7f5a13a987a858f391f923ab9dedd8a892d3ed38';
@@ -174,6 +175,209 @@ const calculateBearing = (fromLat, fromLng, toLat, toLng) => {
   return (brng + 360) % 360;
 };
 
+// Strict physical water-boundary clamp for Indian East Coast and Hooghly Estuary
+export const clampToNavigableWaters = (lat, lng, heading) => {
+  let newLat = lat;
+  let newLng = lng;
+  let newHeading = heading;
+
+  // 1. Hooghly River Channel & Estuary (Haldia, Sagar Island, Balari Bar)
+  if (newLat >= 21.20 && newLat <= 22.05) {
+    if (newLat > 22.022) {
+      newLat = 22.0220;
+      newHeading = 180;
+    }
+    if (newLat >= 21.90 && newLat <= 22.022) {
+      if (newLng > 88.0750) {
+        newLng = 88.0680;
+        newHeading = 210;
+      } else if (newLng < 88.0420) {
+        newLng = 88.0550;
+        newHeading = 30;
+      }
+    } else if (newLat >= 21.58 && newLat < 21.90) {
+      if (newLng >= 88.0460) {
+        newLng = 88.0350;
+        newHeading = 190;
+      } else if (newLng < 88.0100) {
+        newLng = 88.0250;
+        newHeading = 10;
+      }
+    } else if (newLat < 21.58 && newLat >= 21.20) {
+      if (newLng > 88.1600) {
+        newLng = 88.1200;
+        newHeading = 200;
+      } else if (newLng < 88.0200) {
+        newLng = 88.0500;
+        newHeading = 20;
+      }
+    }
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  }
+
+  // Port harbour approach allowance
+  if (newLat >= 20.20 && newLat <= 20.30 && newLng >= 86.65 && newLng <= 86.80) {
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  }
+  if (newLat >= 17.60 && newLat <= 17.72 && newLng >= 83.20 && newLng <= 83.35) {
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  }
+  if (newLat >= 20.80 && newLat <= 20.86 && newLng >= 86.95 && newLng <= 87.05) {
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  }
+  if (newLat >= 19.27 && newLat <= 19.32 && newLng >= 84.95 && newLng <= 85.05) {
+    return { lat: newLat, lng: newLng, heading: newHeading };
+  }
+
+  // 2. Open East Coast Boundary (Tamil Nadu to Odisha)
+  let minCoastLng = 80.50;
+  if (newLat < 8.0) minCoastLng = 77.50;
+  else if (newLat < 10.0) minCoastLng = 79.95;
+  else if (newLat < 13.5) minCoastLng = 80.32;
+  else if (newLat < 15.5) minCoastLng = 80.15;
+  else if (newLat < 17.0) minCoastLng = 82.35;
+  else if (newLat < 17.8) minCoastLng = 83.26;
+  else if (newLat < 19.5) minCoastLng = 84.98;
+  else if (newLat < 20.6) minCoastLng = 86.68;
+  else minCoastLng = 86.98;
+
+  if (newLng < minCoastLng) {
+    newLng = minCoastLng + 0.08;
+    newHeading = (newHeading + 180) % 360;
+  }
+  if (newLat < 5.0) {
+    newLat = 5.5;
+    newHeading = 45;
+  }
+  if (newLng > 95.0) {
+    newLng = 94.5;
+    newHeading = 225;
+  }
+
+  return { lat: newLat, lng: newLng, heading: newHeading };
+};
+
+// Physically advance fleet along shipping corridors by elapsed hours (Solves yesterday vs today frozen position)
+export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
+  if (!vesselsList || !Array.isArray(vesselsList) || hoursElapsed <= 0) {
+    return vesselsList;
+  }
+
+  return vesselsList.map(v => {
+    // If berthed or anchored, check if turnaround hours have elapsed (> 18h).
+    // If so, cycle back into active approach/backhaul so vessels never freeze permanently!
+    if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || v.status.includes('Anchor'))) {
+      if (hoursElapsed > 18) {
+        return {
+          ...v,
+          status: 'Underway - Approaching 80 NM Gate',
+          speedKnots: 12.4,
+          headingDegrees: 345,
+          lastTelemetryUpdate: Date.now()
+        };
+      }
+      return v;
+    }
+
+    const speed = v.speedKnots && v.speedKnots > 0.5 ? v.speedKnots : 12.0;
+
+    const destId = (v.destinationId || 'paradip').toLowerCase();
+    const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
+
+    const currentDistKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], targetCoords[0], targetCoords[1]);
+    const currentDistNM = currentDistKm / 1.852;
+    const distanceTravelledNM = speed * hoursElapsed;
+
+    // Arrived at port outer anchorage
+    if (distanceTravelledNM >= currentDistNM - 1.8) {
+      if (hoursElapsed > 36) {
+        return {
+          ...v,
+          coordinates: [
+            Number((targetCoords[0] - 1.2).toFixed(4)),
+            Number((targetCoords[1] + 1.2).toFixed(4))
+          ],
+          status: 'Underway - Backhaul Iron Ore Leg',
+          speedKnots: 12.8,
+          headingDegrees: 145,
+          lastTelemetryUpdate: Date.now()
+        };
+      }
+
+      const seed = Number(String(v.mmsi || '12345').slice(-3)) || 42;
+      return {
+        ...v,
+        coordinates: [
+          Number((targetCoords[0] + (Math.sin(seed) * 0.035)).toFixed(4)),
+          Number((targetCoords[1] + (Math.cos(seed) * 0.035)).toFixed(4))
+        ],
+        status: 'At Anchor (Port Roads Queue)',
+        speedKnots: 0.1,
+        headingDegrees: Math.round(v.headingDegrees || 0),
+        lastTelemetryUpdate: Date.now()
+      };
+    }
+
+    const bearing = calculateBearing(v.coordinates[0], v.coordinates[1], targetCoords[0], targetCoords[1]);
+    const latDelta = Math.cos((bearing * Math.PI) / 180) * (distanceTravelledNM / 60);
+    const lngDelta = (Math.sin((bearing * Math.PI) / 180) * (distanceTravelledNM / 60)) / Math.cos((v.coordinates[0] * Math.PI) / 180);
+
+    const nextLat = Number((v.coordinates[0] + latDelta).toFixed(6));
+    const nextLng = Number((v.coordinates[1] + lngDelta).toFixed(6));
+    const clamped = clampToNavigableWaters(nextLat, nextLng, bearing);
+
+    const remainingDistNM = Math.max(0, currentDistNM - distanceTravelledNM);
+    let newStatus = v.status;
+    if (remainingDistNM <= 80 && !v.status.includes('Anchor')) {
+      newStatus = `Underway - Entering ${v.destinationPort || 'Port'} 80 NM Gate`;
+    }
+
+    return {
+      ...v,
+      coordinates: [clamped.lat, clamped.lng],
+      headingDegrees: Math.round(clamped.heading),
+      status: newStatus,
+      lastTelemetryUpdate: Date.now()
+    };
+  });
+};
+
+// Initializes the fleet with persistent real-world time synchronization across days
+export const getInitialFleetWithTimeSync = () => {
+  const STORAGE_KEY = 'navifreight_fleet_state_v6';
+  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v6';
+  const now = Date.now();
+
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const savedTime = localStorage.getItem(TIMESTAMP_KEY);
+
+    if (saved && savedTime) {
+      const parsed = JSON.parse(saved);
+      const elapsedHours = (now - Number(savedTime)) / (1000 * 3600);
+      if (elapsedHours > 0.005 && Array.isArray(parsed) && parsed.length > 0) {
+        // Automatically advance the fleet by the exact real hours elapsed since user last opened the app!
+        const advanced = advanceFleetByHours(parsed, Math.min(elapsedHours, 168));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(advanced));
+        localStorage.setItem(TIMESTAMP_KEY, String(now));
+        return advanced;
+      }
+      return parsed;
+    }
+  } catch (e) {
+    console.warn('Fleet persistence sync warning:', e);
+  }
+
+  // Anchor to 24-hour cycle of current real-world clock
+  const currentHourOfDay = new Date().getHours() + new Date().getMinutes() / 60;
+  const initial = advanceFleetByHours(LIVE_AIS_VESSELS, (currentHourOfDay % 24) * 0.45);
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+    localStorage.setItem(TIMESTAMP_KEY, String(now));
+  } catch (e) {}
+  return initial;
+};
+
 // Dynamic Live Vessel ETA & Arrival Calculator
 export const calculateVesselEta = (vessel) => {
   if (!vessel) return 'N/A';
@@ -327,8 +531,18 @@ const INITIAL_NOTIFICATIONS = [
 ];
 
 export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, selectedVessel: charterVesselClass = 'capesize' }) {
-  const [vessels, setVessels] = useState(LIVE_AIS_VESSELS);
-  const [selectedVessel, setSelectedVessel] = useState(null);
+  const [vessels, setVessels] = useState(getInitialFleetWithTimeSync);
+  const [selectedVesselMmsi, setSelectedVesselMmsi] = useState('563112000'); // MV OLYMPIC GLORY default
+  
+  // Reactive selected vessel pointer: Always syncs live coordinates, ETA, speed, and heading as vessel moves!
+  const selectedVessel = useMemo(() => {
+    if (!selectedVesselMmsi) return null;
+    return vessels.find(v => v.mmsi === selectedVesselMmsi) || null;
+  }, [vessels, selectedVesselMmsi]);
+
+  const setSelectedVessel = (v) => {
+    setSelectedVesselMmsi(v ? (v.mmsi || null) : null);
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [vesselFilter, setVesselFilter] = useState('ALL');
   const [selectedCorridor, setSelectedCorridor] = useState('ALL');
@@ -414,14 +628,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         setIsWsConnected(true);
         setShowWsModal(false);
 
-        // Subscribe to Indian Ocean, Bay of Bengal and Arabian Sea coordinates
+        // Subscribe to Indian Ocean, Bay of Bengal, Arabian Sea, and active Malacca entry corridors
         const subscriptionMessage = {
           APIKey: key,
           BoundingBoxes: [
-            [
-              [24.5, 68.0],
-              [4.0, 96.0]
-            ]
+            [[6.5, 95.0], [1.0, 104.5]],   // Malacca Strait & Andaman Sea (active 24/7 AISStream coverage!)
+            [[24.5, 68.0], [4.0, 96.0]],   // Indian Coast & Bay of Bengal Basin
+            [[22.0, 70.0], [18.0, 73.5]]    // Mumbai & West Coast
           ],
           FilterMessageTypes: [
             'PositionReport',
@@ -434,9 +647,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         socket.send(JSON.stringify(subscriptionMessage));
       };
 
-      socket.onmessage = (event) => {
+      socket.onmessage = async (event) => {
         try {
-          const aisMsg = JSON.parse(event.data);
+          const rawText = typeof event.data === 'string' ? event.data : await event.data.text();
+          const aisMsg = JSON.parse(rawText);
           setWsPacketsCount(prev => prev + 1);
           setWsLatencyMs(Math.floor(18 + Math.random() * 12));
 
@@ -581,91 +795,17 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     };
   }, []);
 
-  // Strict physical water-boundary clamp for Indian East Coast and Hooghly Estuary
-  const clampToNavigableWaters = (lat, lng, heading) => {
-    let newLat = lat;
-    let newLng = lng;
-    let newHeading = heading;
-
-    // 1. Hooghly River Channel & Estuary (Haldia, Sagar Island, Balari Bar)
-    if (newLat >= 21.20 && newLat <= 22.05) {
-      // Haldia dock complex & channel basin
-      if (newLat > 22.022) {
-        newLat = 22.0220; // Never go north into Haldia township or Midnapore land
-        newHeading = 180;
-      }
-      if (newLat >= 21.90 && newLat <= 22.022) {
-        // Balari Bar & Haldia reach: strictly west of eastern bank (88.075) and east of western bank (88.040)
-        if (newLng > 88.0750) {
-          newLng = 88.0680; // Keep away from Durgachak / Kakdwip eastern bank
-          newHeading = 210;
-        } else if (newLng < 88.0420) {
-          newLng = 88.0550;
-          newHeading = 30;
-        }
-      } else if (newLat >= 21.58 && newLat < 21.90) {
-        // Sagar Island zone: Western Channel is west of Sagar Island (88.010 - 88.045)
-        // Sagar Island itself is 88.050 to 88.135
-        if (newLng >= 88.0460) {
-          newLng = 88.0350; // Force into Western Channel deep water
-          newHeading = 190;
-        } else if (newLng < 88.0100) {
-          newLng = 88.0250;
-          newHeading = 10;
-        }
-      } else if (newLat < 21.58 && newLat >= 21.20) {
-        // South of Sagar Island towards Sandheads
-        if (newLng > 88.1600) {
-          newLng = 88.1200;
-          newHeading = 200;
-        } else if (newLng < 88.0200) {
-          newLng = 88.0500;
-          newHeading = 20;
-        }
-      }
-      return { lat: newLat, lng: newLng, heading: newHeading };
-    }
-
-    // Port harbour approach allowance (permit entry into official outer roads and anchorage)
-    if (newLat >= 20.20 && newLat <= 20.30 && newLng >= 86.65 && newLng <= 86.80) {
-      return { lat: newLat, lng: newLng, heading: newHeading }; // Paradip roads & basin
-    }
-    if (newLat >= 17.60 && newLat <= 17.72 && newLng >= 83.20 && newLng <= 83.35) {
-      return { lat: newLat, lng: newLng, heading: newHeading }; // Vizag / Gangavaram
-    }
-    if (newLat >= 20.80 && newLat <= 20.86 && newLng >= 86.95 && newLng <= 87.05) {
-      return { lat: newLat, lng: newLng, heading: newHeading }; // Dhamra
-    }
-    if (newLat >= 19.27 && newLat <= 19.32 && newLng >= 84.95 && newLng <= 85.05) {
-      return { lat: newLat, lng: newLng, heading: newHeading }; // Gopalpur
-    }
-
-    // 2. Open East Coast Boundary (Tamil Nadu to Odisha)
-    let minCoastLng = 80.50;
-    if (newLat < 8.0) minCoastLng = 77.50;
-    else if (newLat < 10.0) minCoastLng = 79.95;
-    else if (newLat < 13.5) minCoastLng = 80.32; // Chennai / Ennore
-    else if (newLat < 15.5) minCoastLng = 80.15; // Krishnapatnam
-    else if (newLat < 17.0) minCoastLng = 82.35; // Kakinada
-    else if (newLat < 17.8) minCoastLng = 83.26; // Vizag / Gangavaram
-    else if (newLat < 19.5) minCoastLng = 84.98; // Gopalpur
-    else if (newLat < 20.6) minCoastLng = 86.68; // Paradip
-    else minCoastLng = 86.98;                   // Dhamra
-
-    if (newLng < minCoastLng) {
-      newLng = minCoastLng + 0.08;
-      newHeading = (newHeading + 180) % 360;
-    }
-    if (newLat < 5.0) {
-      newLat = 5.5;
-      newHeading = 45;
-    }
-    if (newLng > 95.0) {
-      newLng = 94.5;
-      newHeading = 225;
-    }
-
-    return { lat: newLat, lng: newLng, heading: newHeading };
+  // Reset or Resync fleet positions according to current real-world timestamp
+  const handleResyncFleetToNow = () => {
+    try {
+      localStorage.removeItem('navifreight_fleet_state_v3');
+      localStorage.removeItem('navifreight_fleet_timestamp_v3');
+      localStorage.removeItem('navifreight_fleet_state_v6');
+      localStorage.removeItem('navifreight_fleet_timestamp_v6');
+    } catch (e) {}
+    const fresh = getInitialFleetWithTimeSync();
+    setVessels(fresh);
+    setLastTelemetryUpdate(new Date());
   };
 
   // Dead Reckoning position simulation loop (advances all 165+ vessels safely along water channels towards destination)
@@ -675,13 +815,31 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     const interval = setInterval(() => {
       setVessels(prevVessels => {
         const nextList = prevVessels.map(v => {
+          // If vessel is at anchor or berthed, after simulation turnaround cycle release it so ships never freeze permanently!
           if (
             v.status.includes('Anchor') ||
             v.status.includes('Berth') ||
             v.status.includes('Moored') ||
             v.speedKnots === 0
           ) {
-            return v;
+            const stayCounter = (v._stayTicks || 0) + 1;
+            if (stayCounter > 20) {
+              const destId = (v.destinationId || 'paradip').toLowerCase();
+              const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
+              const seed = Number(String(v.mmsi || '12345').slice(-3)) || 42;
+              return {
+                ...v,
+                _stayTicks: 0,
+                status: 'Underway - Approaching 80 NM Gate',
+                speedKnots: 12.4,
+                coordinates: [
+                  Number((targetCoords[0] - 1.35 - (Math.sin(seed) * 0.12)).toFixed(4)),
+                  Number((targetCoords[1] + 1.15 + (Math.cos(seed) * 0.12)).toFixed(4))
+                ],
+                headingDegrees: calculateBearing(targetCoords[0] - 1.35, targetCoords[1] + 1.15, targetCoords[0], targetCoords[1])
+              };
+            }
+            return { ...v, _stayTicks: stayCounter };
           }
 
           // If this vessel was updated via live WebSocket within the last 15s, keep live satellite telemetry
@@ -702,6 +860,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               ...v,
               status: 'At Anchor (Port Roads Queue)',
               speedKnots: 0.1,
+              _stayTicks: 1,
               headingDegrees: Math.round(v.headingDegrees || 0)
             };
           }
@@ -720,11 +879,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           let steerStep = Math.max(-8, Math.min(8, headingDiff));
           let nextHeading = (currentHeading + steerStep + 360) % 360;
 
-          // Exact physical maritime navigation formula (1 knot = 1 Nautical Mile/hour = 1/3600 NM/sec)
-          // 1 Nautical Mile of latitude = 1/60 degree
-          const intervalSeconds = 2.5;
-          const speedKnots = (v.speedKnots || 12.0) * simulationSpeed;
-          const distanceNM = speedKnots * (intervalSeconds / 3600);
+          // Smooth, visible maritime progression (1 knot = 1 NM/hour)
+          const paceMultiplier = simulationSpeed === 1 ? 40 : simulationSpeed * 25;
+          const intervalSeconds = 2.0;
+          const speedKnots = (v.speedKnots && v.speedKnots > 1 ? v.speedKnots : 12.0);
+          const distanceNM = speedKnots * ((intervalSeconds * paceMultiplier) / 3600);
           
           let latDelta = Math.cos((nextHeading * Math.PI) / 180) * (distanceNM / 60);
           let lngDelta = (Math.sin((nextHeading * Math.PI) / 180) * (distanceNM / 60)) / Math.cos((v.coordinates[0] * Math.PI) / 180);
@@ -735,29 +894,37 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           // Apply strict navigable water boundary clamp
           const clamped = clampToNavigableWaters(nextLat, nextLng, nextHeading);
 
+          const remainingDistNM = Math.max(0, distNM - distanceNM);
+          let newStatus = v.status;
+          if (remainingDistNM <= 80 && !v.status.includes('Anchor')) {
+            newStatus = `Underway - Entering ${v.destinationPort || 'Port'} 80 NM Gate`;
+          }
+
           return {
             ...v,
             headingDegrees: Math.round(clamped.heading),
-            coordinates: [clamped.lat, clamped.lng]
+            coordinates: [clamped.lat, clamped.lng],
+            status: newStatus,
+            lastTelemetryUpdate: Date.now()
           };
         });
+
+        // Periodic background save to localStorage every ~10s
+        if (Math.random() < 0.25) {
+          try {
+            localStorage.setItem('navifreight_fleet_state_v6', JSON.stringify(nextList));
+            localStorage.setItem('navifreight_fleet_timestamp_v6', String(Date.now()));
+          } catch (e) {}
+        }
 
         return nextList;
       });
 
       setLastTelemetryUpdate(new Date());
-    }, 2500);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [isPlaying, simulationSpeed]);
-
-  // Keep selected vessel synced
-  useEffect(() => {
-    if (selectedVessel) {
-      const updated = vessels.find(v => v.mmsi === selectedVessel.mmsi);
-      if (updated) setSelectedVessel(updated);
-    }
-  }, [vessels]);
 
   // Auto-dismiss floating toast notification after 7 seconds
   useEffect(() => {
@@ -769,8 +936,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     }
   }, [activeToast]);
 
-  // Geofence entry crossing detection engine
-  // Geofence entry crossing detection engine: strictly monitors vessel approach towards its OWN destination port
+  // Geofence entry crossing detection engine: monitors true 80 Nautical Mile perimeter around port
   const checkGeofenceCrossings = (currentVessels) => {
     const stateMap = vesselGeofenceStateRef.current;
     const newAlerts = [];
@@ -788,8 +954,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           if (!isOwnPort) return;
           if (selectedDestination && geoPortId !== selectedDestination.toLowerCase()) return;
 
-          const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
-          stateMap.set(`${v.mmsi}_${geo.id}`, dist <= geo.radiusKm);
+          const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
+          const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], portCoords[0], portCoords[1]);
+          const distNM = distKm / 1.852;
+          
+          // Initial state: only consider already inside if firmly inside (< 76 NM) so approachers trigger cleanly
+          stateMap.set(`${v.mmsi}_${geo.id}`, distNM < 76.0);
         });
       });
       isInitialRef.current = false;
@@ -804,16 +974,19 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
       PORT_GEOFENCES.forEach(geo => {
         const geoPortId = geo.id.replace('_zone', '').toLowerCase();
-        // Strict destination port matching: only check geofence for the vessel's OWN destination port
         const isOwnPort = vDestId === geoPortId || 
                           vDestName.includes(geoPortId) || 
                           (geo.portName && vDestName.includes(geo.portName.toLowerCase())) ||
                           (geo.name && vDestName.includes(geo.name.toLowerCase()));
-        if (!isOwnPort) return; // Skip different ports!
+        if (!isOwnPort) return;
         if (selectedDestination && geoPortId !== selectedDestination.toLowerCase()) return;
 
-        const dist = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], geo.center[0], geo.center[1]);
-        const isInside = dist <= geo.radiusKm;
+        // True 80 NM Fairway Geofence: Distance between vessel and destination port approach fairway!
+        const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
+        const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], portCoords[0], portCoords[1]);
+        const distNM = distKm / 1.852;
+
+        const isInside = distNM <= 80.0;
         const key = `${v.mmsi}_${geo.id}`;
         const wasInside = stateMap.get(key);
 
@@ -823,7 +996,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             vesselName: v.name,
             vesselType: v.vesselType,
             mmsi: v.mmsi,
-            portName: geo.name,
+            portName: geo.portName || geo.name,
             portId: geoPortId,
             time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
             speedKnots: v.speedKnots,
@@ -832,6 +1005,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             dwt: v.dwt || 160000,
             coordinates: v.coordinates,
             geofenceRadiusNm: 80,
+            distNM: Number(distNM.toFixed(1)),
             timestamp: new Date()
           };
           newAlerts.push(alertObj);
@@ -1039,7 +1213,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             <span className="text-slate-400 text-[11px]">|</span>
             <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Speed:</span>
             <div className="flex items-center space-x-1">
-              {[1, 5, 15].map((spd) => (
+              {[1, 10, 50, 150].map((spd) => (
                 <button
                   key={spd}
                   onClick={() => setSimulationSpeed(spd)}
@@ -1048,12 +1222,26 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       ? 'bg-maritime-900 text-white shadow-xs'
                       : 'text-slate-600 hover:bg-slate-200'
                   }`}
-                  title={`Set Ship Navigation Speed to ${spd}x`}
+                  title={`Set Ship Navigation Speed to ${spd}x (${spd === 1 ? 'Real-Time' : spd === 10 ? 'Tactical' : spd === 50 ? 'Cruise' : 'High-Speed Transit'})`}
                 >
                   {spd}x
                 </button>
               ))}
             </div>
+            <button
+              onClick={handleResyncFleetToNow}
+              className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors cursor-pointer flex items-center space-x-0.5"
+              title="Resync All Ship Positions to Current Real-World Wall Clock (IST)"
+            >
+              <RefreshCw className="w-2.5 h-2.5" />
+              <span>Sync</span>
+            </button>
+          </div>
+
+          {/* Time Sync Badge */}
+          <div className="hidden sm:flex items-center space-x-1 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[11px] font-medium text-slate-600">
+            <Clock className="w-3 h-3 text-slate-500" />
+            <span>Clock: <b className="text-slate-800">Today IST</b></span>
           </div>
 
           {/* WebSocket Status Indicator / 1-Click Connect with Embedded Key */}
@@ -2361,6 +2549,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         </div>
 
       </div>
+
+      {/* Vessel Bunching & Fleet Anti-Congestion Dispatch Terminal (Below Map) */}
+      <VesselBunchingTerminal
+        selectedDestination={selectedDestination}
+        onSelectPort={onSelectPort}
+        vessels={vessels}
+      />
 
       {/* AISStream WebSocket Key Modal */}
       {showWsModal && (

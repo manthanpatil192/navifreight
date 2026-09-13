@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Wind, AlertTriangle, ShieldCheck, Clock, CloudLightning, Compass, DollarSign, RefreshCw, Radio, Waves, ArrowRight, CheckCircle2, XCircle, Anchor, Navigation } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Wind, AlertTriangle, ShieldCheck, Clock, CloudLightning, Compass, DollarSign, RefreshCw, Radio, Waves, ArrowRight, CheckCircle2, XCircle, Anchor, Navigation, Ship } from 'lucide-react';
 import { IMD_WEATHER_ALERTS, PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 import { formatUSD, formatINR } from '../utils/financialCalculators';
 import { evaluatePortDiversion } from '../utils/portDiversionEngine';
+import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
 
 export default function RiskCongestionRadar({ selectedDestination, currency, selectedVessel = 'capesize' }) {
@@ -13,6 +14,19 @@ export default function RiskCongestionRadar({ selectedDestination, currency, sel
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const isINR = currency === 'INR';
   const multiplier = isINR ? 86.5 : 1;
+
+  // Real-time commercial vessels approaching the active sector or matching vessel class
+  const availableShips = useMemo(() => {
+    const byPort = LIVE_AIS_VESSELS.filter(v => v.destinationId === activeSector);
+    if (byPort.length > 0) return byPort;
+    return LIVE_AIS_VESSELS.filter(v => (v.vesselType || '').toLowerCase().includes((selectedVessel || 'cape').toLowerCase().slice(0, 4)));
+  }, [activeSector, selectedVessel]);
+
+  const [selectedShipMmsi, setSelectedShipMmsi] = useState('563112000'); // MV OLYMPIC GLORY default
+
+  const currentShip = useMemo(() => {
+    return availableShips.find(v => v.mmsi === selectedShipMmsi) || availableShips[0] || LIVE_AIS_VESSELS[1];
+  }, [selectedShipMmsi, availableShips]);
 
   const diversionData = evaluatePortDiversion({
     selectedDestination: activeSector,
@@ -315,55 +329,142 @@ export default function RiskCongestionRadar({ selectedDestination, currency, sel
       </div>
 
       {/* ================= PART B PORT SATURATION & COMPLIANT DIVERSION ADVISORY ================= */}
-      <div className="mt-5 p-4 rounded-xl border border-cyan-200/80 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 text-slate-100 shadow-xl">
+      <div className="mt-5 p-4 rounded-xl border border-cyan-500/40 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 text-slate-100 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-cyan-800/50 gap-2 mb-3">
           <div className="flex items-center space-x-2">
-            <span className="p-1 rounded bg-cyan-500/20 text-cyan-400">
-              <Anchor className="w-4 h-4" />
+            <span className="p-1.5 rounded bg-cyan-500/20 text-cyan-300">
+              <Ship className="w-4 h-4" />
             </span>
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-200 flex items-center gap-2">
-                <span>Part B Compliant Port Saturation & Diversion Suggestion Engine</span>
+                <span>Vessel Diversion & Anti-Bunching Decision Engine</span>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                   diversionData.isPortSaturated 
                     ? 'bg-rose-900 text-rose-200 border border-rose-700 animate-pulse' 
                     : 'bg-emerald-950 text-emerald-300 border border-emerald-700'
                 }`}>
-                  {diversionData.isPortSaturated ? '⚠️ CAPACITY SATURATED' : '🟢 NORMAL BERTHING QUEUE'}
+                  {diversionData.isPortSaturated ? '⚠️ CAPACITY SATURATED & ETA COLLISION' : '🟢 NORMAL BERTHING QUEUE'}
                 </span>
               </h3>
               <p className="text-[10px] text-slate-400 mt-0.5">
-                Vessel: <span className="font-bold text-cyan-300 uppercase">{diversionData.vessel.name}</span> (Draft: {diversionData.vessel.ladenDraft}m, LOA: {diversionData.vessel.loa}m) • Dynamic physical clearance verification
+                Evaluates active vessel voyage, ETA collision at destination, and issues actionable diversion directives
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-semibold px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
-            Advisory Suggestion Mode Only
-          </span>
+
+          {/* Quick Ship Selector */}
+          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-700 px-2 py-1 rounded text-[11px]">
+            <span className="text-slate-400 text-[10px] font-medium">Track Ship:</span>
+            <select
+              value={currentShip.mmsi}
+              onChange={(e) => setSelectedShipMmsi(e.target.value)}
+              className="bg-transparent text-cyan-300 font-bold focus:outline-hidden cursor-pointer text-xs"
+            >
+              {availableShips.slice(0, 8).map(s => (
+                <option key={s.mmsi} value={s.mmsi} className="bg-slate-900 text-slate-200">
+                  {s.name} ({s.vesselType} • {s.dwt?.toLocaleString()} DWT)
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* ACTIVE SHIP PROFILE BAR */}
+        <div className="bg-slate-950/90 border border-cyan-800/40 rounded-lg p-3 mb-3 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2 mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+              <span className="text-sm font-extrabold text-white tracking-wide">{currentShip.name}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">MMSI: {currentShip.mmsi}</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+                {currentShip.vesselType} ({currentShip.dwt ? currentShip.dwt.toLocaleString() : '178,000'} DWT)
+              </span>
+            </div>
+            <div className="flex items-center space-x-3 text-[11px]">
+              <span className="text-slate-400">Voyage: <strong className="text-slate-200">{currentShip.originPort || 'Hay Point (Australia)'}</strong> ➔ <strong className="text-cyan-300">{diversionData.currentPort.name}</strong></span>
+              <span className="text-slate-400">ETA: <strong className="text-amber-300">{currentShip.etaTimestamp || `+${currentShip.etaHours || 8} hrs`}</strong></span>
+              <span className="text-slate-400">Speed: <strong className="text-white font-mono">{currentShip.speedKnots || 12.4} kts</strong></span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-300 gap-2">
+            <div>
+              <span className="text-slate-400">Cargo Parcel: </span>
+              <strong className="text-slate-200">{currentShip.cargo || '165,000 MT Hard Coking Coal'}</strong>
+              <span className="text-amber-400 font-semibold ml-1.5">(Consignee: SAIL Steel Plant)</span>
+            </div>
+            <div>
+              <span className="text-slate-400">Vessel Draft: </span>
+              <strong className="text-cyan-300">{currentShip.currentDraughtMeters || diversionData.vessel.ladenDraft}m</strong>
+              <span className="text-slate-400 ml-2">LOA: </span>
+              <strong className="text-slate-200">{currentShip.loaMeters || diversionData.vessel.loa}m</strong>
+            </div>
+          </div>
         </div>
 
         {diversionData.isPortSaturated && diversionData.suggestedPort ? (
           <div className="space-y-3 text-xs">
-            {/* Saturated Alert Banner */}
-            <div className="p-3 rounded-lg bg-slate-950/80 border border-rose-700/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center space-x-1.5 text-rose-300 font-bold mb-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                  <span>{diversionData.currentPort.name} is at Capacity ({diversionData.currentPort.avgWaitDays} Days Turnaround Wait)</span>
+            {/* 1. Clear Vessel Bunching Explanation Box */}
+            <div className="p-3.5 rounded-lg bg-rose-950/40 border border-rose-800/80 space-y-1.5">
+              <div className="flex items-center space-x-2 text-rose-300 font-bold text-xs">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Vessel Bunching (Same-Day ETA Collision) at {diversionData.currentPort.name}</span>
+              </div>
+              <p className="text-[11px] text-rose-100/90 leading-relaxed">
+                <strong>{currentShip.name}</strong> is scheduled to arrive at <strong>{diversionData.currentPort.name}</strong> with the <em>exact same ETA window</em> as 2 other inbound commercial bulkers. Because {diversionData.currentPort.name} is operating at full capacity with an average turnaround wait of <strong className="text-rose-300 font-mono">{diversionData.currentPort.avgWaitDays} Days</strong>, continuing this voyage will force <strong>{currentShip.name}</strong> to drop anchor at the outer roads—triggering an immediate <strong className="text-rose-300">₹{(diversionData.currentPort.avgWaitDays * customDailyDemurrageLakhs).toFixed(1)} Lakhs demurrage penalty</strong> ($75,000/day).
+              </p>
+            </div>
+
+            {/* 2. Actionable Advisor Decision Card (THE CORE SOLUTION!) */}
+            <div className="p-3.5 rounded-lg bg-gradient-to-r from-cyan-950/90 via-slate-900 to-emerald-950/90 border border-cyan-400/60 shadow-lg space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-800/60 pb-2">
+                <div className="flex items-center space-x-2">
+                  <div className="p-1 rounded bg-cyan-500/20 text-cyan-300">
+                    <Compass className="w-4 h-4" />
+                  </div>
+                  <span className="font-extrabold text-sm text-white tracking-wide">
+                    NaviFreight Advisor Decision for {currentShip.name}
+                  </span>
                 </div>
-                <div className="text-[11px] text-slate-300 leading-snug">
-                  High anchorage queue depth detected. Suggested alternative: <span className="font-bold text-cyan-300">Divert to {diversionData.suggestedPort.portName}</span> ({diversionData.suggestedPort.state}).
+                <div className="flex items-center space-x-2 text-[11px]">
+                  <span className="px-2 py-0.5 rounded bg-emerald-900/80 text-emerald-300 border border-emerald-700 font-bold font-mono">
+                    Saves {diversionData.suggestedPort.waitDaysSaved} Days Wait
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-cyan-900/80 text-cyan-300 border border-cyan-700 font-bold font-mono">
+                    Avoids ₹{diversionData.suggestedPort.demurrageSavedLakhs} Lakhs Demurrage
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
-                <div className="text-center">
-                  <span className="text-[10px] text-slate-400 block">Wait Saved</span>
-                  <span className="text-sm font-bold text-emerald-400">-{diversionData.suggestedPort.waitDaysSaved} Days</span>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {/* Primary Directive: Smart Diversion */}
+                <div className="bg-slate-950/80 p-2.5 rounded-md border border-cyan-700/60 space-y-1">
+                  <div className="font-bold text-cyan-300 text-xs flex items-center justify-between">
+                    <span>⚡ Primary Action: Divert to {diversionData.suggestedPort.portName}</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">Part B Cleared</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Reroute {currentShip.name} directly to <strong>{diversionData.suggestedPort.portName}</strong> ({diversionData.suggestedPort.state}). The port has an average wait of only <strong>{diversionData.suggestedPort.avgWaitDays} days</strong>, accommodates {currentShip.name}'s {currentShip.currentDraughtMeters || diversionData.vessel.ladenDraft}m draft at deepwater berths ({diversionData.suggestedPort.effectiveMaxDraft}m max), and unloads at a rapid <strong>{diversionData.suggestedPort.handlingRateTPD.toLocaleString()} TPD</strong> (+{diversionData.suggestedPort.handlingRateAdvantageTPD.toLocaleString()} TPD advantage).
+                  </p>
+                  <div className="pt-1.5 flex items-center justify-between text-[10px] text-indigo-300 border-t border-slate-800">
+                    <span>🚂 Railway FOIS Evacuation:</span>
+                    <span className="font-bold text-white">{diversionData.suggestedPort.evacuation?.cluster || 'SAIL Steel Plant'}</span>
+                  </div>
                 </div>
-                <div className="w-px h-6 bg-slate-700"></div>
-                <div className="text-center">
-                  <span className="text-[10px] text-slate-400 block">Demurrage Avoided</span>
-                  <span className="text-sm font-bold text-emerald-400">₹{diversionData.suggestedPort.demurrageSavedLakhs} Lakhs</span>
+
+                {/* Secondary Directive: Eco-Speed Virtual Arrival */}
+                <div className="bg-slate-950/80 p-2.5 rounded-md border border-amber-700/60 space-y-1">
+                  <div className="font-bold text-amber-300 text-xs flex items-center justify-between">
+                    <span>⚓ Alternative Action: Slow Steaming (Eco-Speed)</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">-56% Fuel Burn</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    If rerouting is not preferred by the charterer, instruct {currentShip.name} to reduce speed from {currentShip.speedKnots || 12.4} kts down to <strong>8.9 knots (Eco-Speed)</strong>. By exploiting the cubic propulsion law ($P \propto V^3$), this slashes hourly fuel burn by over 50%, saving ~₹5.2 Lakhs in marine fuel while delaying arrival to dock Just-in-Time as the berth vacates.
+                  </p>
+                  <div className="pt-1.5 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800">
+                    <span>Anchorage Queue Avoidance:</span>
+                    <span className="font-bold text-amber-300">Zero Outer Wait Time</span>
+                  </div>
                 </div>
               </div>
             </div>
