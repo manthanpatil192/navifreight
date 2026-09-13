@@ -496,38 +496,23 @@ function MapCameraController({ focusTarget }) {
   return null;
 }
 
-const INITIAL_NOTIFICATIONS = [
+const getInitialFreshNotification = () => [
   {
-    id: 'init_1',
+    id: 'rail_alert_fresh_' + Date.now(),
     vesselName: 'MV OLYMPIC GLORY',
     vesselType: 'Capesize',
     mmsi: '563112000',
     portName: 'Paradip 80 NM Sea Gate',
     portId: 'paradip',
-    time: new Date(Date.now() - 1000 * 60 * 14).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
+    time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
     speedKnots: 12.4,
     currentDraught: 17.8,
     cargo: '165,000 MT Hard Coking Coal',
     dwt: 181200,
     coordinates: [19.2500, 87.6200], // Actual live ship coordinates entering Paradip Sea Gate
     geofenceRadiusNm: 80,
-    timestamp: new Date(Date.now() - 1000 * 60 * 14)
-  },
-  {
-    id: 'init_2',
-    vesselName: 'MV MAHA JACQUELINE',
-    vesselType: 'Capesize',
-    mmsi: '419001280',
-    portName: 'Paradip 80 NM Sea Gate',
-    portId: 'paradip',
-    time: new Date(Date.now() - 1000 * 60 * 38).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-    speedKnots: 10.5,
-    currentDraught: 18.2,
-    cargo: '160,000 MT Semi-Soft Coking Coal',
-    dwt: 178000,
-    coordinates: [19.1800, 87.4500], // Actual live ship coordinates approaching Paradip Sea Gate
-    geofenceRadiusNm: 80,
-    timestamp: new Date(Date.now() - 1000 * 60 * 38)
+    isFresh: true,
+    timestamp: new Date()
   }
 ];
 
@@ -564,9 +549,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     });
   }, [selectedDestination, charterVesselClass]);
 
-  // Geofence Notification & Alert State
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
-  const [unreadCount, setUnreadCount] = useState(2);
+  // Geofence Notification & Alert State - Fresh Railway Alert Only
+  const [notifications, setNotifications] = useState(getInitialFreshNotification);
+  const [unreadCount, setUnreadCount] = useState(1);
   const [activeToast, setActiveToast] = useState(null);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -952,9 +937,15 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     });
 
     if (newAlerts.length > 0) {
-      setNotifications(prev => [...newAlerts, ...prev].slice(0, 30));
-      setUnreadCount(prev => prev + newAlerts.length);
-      setActiveToast(newAlerts[0]);
+      const freshAlert = {
+        ...newAlerts[0],
+        isFresh: true,
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST'
+      };
+      // Keep only fresh alert, removing previous alerts
+      setNotifications([freshAlert]);
+      setUnreadCount(1);
+      setActiveToast(freshAlert);
       if (soundEnabledRef.current) {
         playRadarChime();
       }
@@ -1233,8 +1224,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
                   <div className="flex items-center space-x-1.5">
                     <Bell className="w-3.5 h-3.5 text-maritime-700" />
-                    <span className="font-bold text-slate-900">80 NM Geofence Entry Logbook</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-1.5 py-0.5 rounded">
+                    <span className="font-bold text-slate-900">Railway & 80 NM Geofence Alert Logbook</span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded border border-emerald-300 uppercase tracking-wide">
+                      Fresh Alert
+                    </span>
+                    <span className="text-[10px] bg-slate-100 text-slate-600 font-mono px-1.5 py-0.5 rounded font-bold">
                       {notifications.length}
                     </span>
                   </div>
@@ -1286,10 +1280,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-0.5">
-                              <div className="flex items-center space-x-1.5">
+                              <div className="flex items-center space-x-1.5 flex-wrap gap-y-0.5">
                                 <span className={`w-2 h-2 rounded-full shrink-0 ${isPortFull ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
-                                <span className="font-bold text-slate-900 text-xs truncate max-w-[160px]">{notif.vesselName}</span>
-                                <span className="text-[10px] text-slate-400 font-mono">{notif.time}</span>
+                                <span className="font-bold text-slate-900 text-xs truncate max-w-[150px]">{notif.vesselName}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-extrabold border border-emerald-300 uppercase tracking-wide shrink-0">
+                                  Fresh Alert
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-mono">{notif.time}</span>
                               </div>
                               <div className="text-[11px] text-slate-600 font-medium">
                                 Entered 80 NM Ring: <b className="text-maritime-800">{notif.portName}</b>
@@ -1357,12 +1354,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                                   {/* Railway Evacuation Alert / Modal Surcharge */}
                                   {divAdv.lowFuelOption.evacuation && (
-                                    <div className="mt-1 pt-1.5 border-t border-amber-200/90 text-[8.5px] space-y-1">
+                                    <div className="mt-1.5 pt-1.5 border-t border-amber-200/90 text-[8.5px] space-y-1 bg-indigo-50/50 p-2 rounded border border-indigo-100">
                                       <div className="flex items-center justify-between font-bold text-indigo-950">
                                         <span className="flex items-center space-x-1">
                                           <span>🚂</span>
-                                          <span>Hinterland Evacuation: {divAdv.lowFuelOption.evacuation.cluster} ({divAdv.lowFuelOption.evacuation.distanceKm} km)</span>
+                                          <span>FOIS Railway Evacuation: {divAdv.lowFuelOption.evacuation.cluster} ({divAdv.lowFuelOption.evacuation.distanceKm} km)</span>
                                         </span>
+                                        <span className="text-[7.5px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-mono font-bold border border-emerald-300">
+                                          RAKES VERIFIED
+                                        </span>
+                                      </div>
+                                      <div className="text-[8px] text-indigo-900 bg-white/80 p-1 rounded border border-indigo-100 leading-tight">
+                                        🚆 <b>NaviFreight FOIS Indent:</b> Track congestion & rake availability verified before cargo unloads.
                                       </div>
                                       <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700">
                                         <div>FOIS Rail: <b className="text-indigo-900 font-mono font-bold">₹{divAdv.lowFuelOption.evacuation.trainCostCr} Cr</b> ({divAdv.lowFuelOption.evacuation.trainRakesNeeded} rakes)</div>
@@ -1391,12 +1394,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
                                   {/* Railway Evacuation Alert / Modal Surcharge */}
                                   {divAdv.ampleFuelOption.evacuation && (
-                                    <div className="mt-1 pt-1.5 border-t border-cyan-200/90 text-[8.5px] space-y-1">
+                                    <div className="mt-1.5 pt-1.5 border-t border-cyan-200/90 text-[8.5px] space-y-1 bg-indigo-50/50 p-2 rounded border border-indigo-100">
                                       <div className="flex items-center justify-between font-bold text-indigo-950">
                                         <span className="flex items-center space-x-1">
                                           <span>🚂</span>
-                                          <span>Hinterland Evacuation: {divAdv.ampleFuelOption.evacuation.cluster} ({divAdv.ampleFuelOption.evacuation.distanceKm} km)</span>
+                                          <span>FOIS Railway Evacuation: {divAdv.ampleFuelOption.evacuation.cluster} ({divAdv.ampleFuelOption.evacuation.distanceKm} km)</span>
                                         </span>
+                                        <span className="text-[7.5px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-mono font-bold border border-emerald-300">
+                                          RAKES VERIFIED
+                                        </span>
+                                      </div>
+                                      <div className="text-[8px] text-indigo-900 bg-white/80 p-1 rounded border border-indigo-100 leading-tight">
+                                        🚆 <b>NaviFreight FOIS Indent:</b> Track congestion & rake availability verified before cargo unloads.
                                       </div>
                                       <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700">
                                         <div>FOIS Rail: <b className="text-indigo-900 font-mono font-bold">₹{divAdv.ampleFuelOption.evacuation.trainCostCr} Cr</b> ({divAdv.ampleFuelOption.evacuation.trainRakesNeeded} rakes)</div>
@@ -1475,8 +1484,14 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                   <div className="flex items-center justify-between font-bold text-indigo-950">
                                     <span className="flex items-center space-x-1">
                                       <span>🚂</span>
-                                      <span>Direct Hinterland Evacuation: {divAdv.directEvacuation.cluster} ({divAdv.directEvacuation.distanceKm} km)</span>
+                                      <span>Direct FOIS Evacuation: {divAdv.directEvacuation.cluster} ({divAdv.directEvacuation.distanceKm} km)</span>
                                     </span>
+                                    <span className="text-[7.5px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-mono font-bold border border-emerald-300">
+                                      RAKES VERIFIED
+                                    </span>
+                                  </div>
+                                  <div className="text-[8px] text-indigo-900 bg-white/80 p-1 rounded border border-indigo-100 leading-tight">
+                                    🚆 <b>NaviFreight FOIS Indent:</b> Track congestion & rake availability verified before cargo unloads.
                                   </div>
 
                                   <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-700 pt-0.5">
@@ -2002,7 +2017,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
                       isPortFull ? 'text-amber-400' : 'text-emerald-400'
                     }`}>
-                      {isPortFull ? '80 NM Geofence Entry • Port Congestion Alert' : '80 NM Geofence Entry Alert'}
+                      {isPortFull ? 'Fresh Railway & 80 NM Port Alert' : 'Fresh 80 NM Geofence Alert'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1.5">
