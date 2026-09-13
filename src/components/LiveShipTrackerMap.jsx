@@ -264,6 +264,19 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
   }
 
   return vesselsList.map(v => {
+    // Keep flagship 80 NM geofence entrant MV OLYMPIC GLORY actively underway crossing the 80 NM gate (78.4 NM from Paradip, never prematurely anchored)
+    if (String(v.mmsi) === '563112000' || (v.name && v.name.includes('OLYMPIC GLORY'))) {
+      return {
+        ...v,
+        coordinates: [19.2500, 87.6200],
+        headingDegrees: 345,
+        speedKnots: 12.4,
+        status: 'Underway - Crossing Paradip 80 NM Gate',
+        isLiveAisStream: true,
+        lastTelemetryUpdate: Date.now()
+      };
+    }
+
     // If berthed or anchored, check if turnaround hours have elapsed (> 18h).
     // If so, cycle back into active approach/backhaul so vessels never freeze permanently!
     if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || v.status.includes('Anchor'))) {
@@ -345,11 +358,13 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
 
 // Initializes the fleet with persistent real-world time synchronization across days
 export const getInitialFleetWithTimeSync = () => {
-  const STORAGE_KEY = 'navifreight_fleet_state_v7';
-  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v7';
+  const STORAGE_KEY = 'navifreight_fleet_state_v8';
+  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v8';
   const now = Date.now();
 
   try {
+    localStorage.removeItem('navifreight_fleet_state_v7');
+    localStorage.removeItem('navifreight_fleet_timestamp_v7');
     const saved = localStorage.getItem(STORAGE_KEY);
     const savedTime = localStorage.getItem(TIMESTAMP_KEY);
 
@@ -836,8 +851,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         // Periodic background save of live satellite telemetry
         if (Math.random() < 0.15) {
           try {
-            localStorage.setItem('navifreight_fleet_state_v7', JSON.stringify(prevList));
-            localStorage.setItem('navifreight_fleet_timestamp_v7', String(Date.now()));
+            localStorage.setItem('navifreight_fleet_state_v8', JSON.stringify(prevList));
+            localStorage.setItem('navifreight_fleet_timestamp_v8', String(Date.now()));
           } catch (e) {}
         }
         return prevList;
@@ -888,7 +903,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     }
 
     currentVessels.forEach(v => {
-      if (v.status && (v.status.includes('Berth') || v.status.includes('Moored'))) return;
+      // Anchored, berthed, moored or low-speed vessels cannot trigger 80 NM entry alerts
+      if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || v.status.includes('Anchor') || (v.speedKnots || 0) < 2.0)) return;
 
       const vDestId = (v.destinationId || '').toLowerCase();
       const vDestName = (v.destinationPort || '').toLowerCase();
@@ -906,6 +922,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
         const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], portCoords[0], portCoords[1]);
         const distNM = distKm / 1.852;
+
+        // Ignore vessels already arrived inside inner anchorage / pilot station (< 60 NM)
+        if (distNM < 60.0) return;
 
         const isInside = distNM <= 80.0;
         const key = `${v.mmsi}_${geo.id}`;
