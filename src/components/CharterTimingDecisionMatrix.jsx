@@ -157,7 +157,7 @@ export default function CharterTimingDecisionMatrix({
     horizonMonths: contractHorizonMonths
   });
 
-  // Calendar dates relative to current simulation date (Today: Sep 09, 2026)
+  // Calendar dates relative to current active date (Today: Sep 09, 2026)
   // Under GFR 2017 21-day tender law, earliest legal laycan if tendered today is Oct 01 – Oct 08
   const promptLaycanWindowDate = activeTenderPlan.promptLaycanWindow || 'Oct 01 – Oct 08, 2026';
   const forwardDipWindowDate = activeTenderPlan.targetDipWindow; // Dynamic Dip Valley (tendered Sep 21)

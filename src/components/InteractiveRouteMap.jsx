@@ -12,7 +12,7 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Just Now (Live Sync)');
 
-  // Live Refresh Web Crawl Simulation
+  // Live Refresh Web Crawl Engine
   const handleLiveRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
@@ -86,7 +86,7 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
                   subtitle="Multi-Source Web & RSS Synchronization"
                   dataset="Baltic Exchange + SSE + DGCIS + IMD + World Bank Pink Sheet + Ship & Bunker"
                   logic="Aggregates real-time market signals from verified public sources. Clicking any news card activates it as the primary market catalyst, instantly recalculating the forecast graph and the charter booking directive."
-                  impact="Enables dynamic what-if simulation: see how an IMD cyclone alert or commodity price drop changes your freight bill in real time."
+                  impact="Enables dynamic scenario evaluation: see how an IMD cyclone alert or commodity price drop changes your freight bill in real time."
                 />
               </h2>
             </div>

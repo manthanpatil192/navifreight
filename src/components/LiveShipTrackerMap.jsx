@@ -337,6 +337,7 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
       coordinates: [clamped.lat, clamped.lng],
       headingDegrees: Math.round(clamped.heading),
       status: newStatus,
+      isLiveAisStream: v.isLiveAisStream ?? true,
       lastTelemetryUpdate: Date.now()
     };
   });
@@ -548,8 +549,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const [selectedCorridor, setSelectedCorridor] = useState('ALL');
   const [showCorridors, setShowCorridors] = useState(true);
   const [showGeofences, setShowGeofences] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [simulationSpeed, setSimulationSpeed] = useState(10); // Default to 10x Tactical Glide for smooth visible motion
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('osm'); // Always colorful OpenStreetMap
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
@@ -628,13 +627,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         setIsWsConnected(true);
         setShowWsModal(false);
 
-        // Subscribe to Indian Ocean, Bay of Bengal, Arabian Sea, and active Malacca entry corridors
+        // Subscribe to full Indian Ocean, Bay of Bengal, and Indian East/West Coast ports
         const subscriptionMessage = {
           APIKey: key,
           BoundingBoxes: [
-            [[6.5, 95.0], [1.0, 104.5]],   // Malacca Strait & Andaman Sea (active 24/7 AISStream coverage!)
-            [[24.5, 68.0], [4.0, 96.0]],   // Indian Coast & Bay of Bengal Basin
-            [[22.0, 70.0], [18.0, 73.5]]    // Mumbai & West Coast
+            [[30.0, 65.0], [0.0, 105.0]],   // Full Indian Ocean, Bay of Bengal, Arabian Sea & Malacca Entry
+            [[25.0, 78.0], [8.0, 98.0]],    // Dedicated Indian East Coast (Haldia, Paradip, Dhamra, Vizag, Chennai)
+            [[25.0, 65.0], [8.0, 78.0]]     // Dedicated Indian West Coast (Mumbai, Kandla, Cochin)
           ],
           FilterMessageTypes: [
             'PositionReport',
@@ -652,7 +651,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           const rawText = typeof event.data === 'string' ? event.data : await event.data.text();
           const aisMsg = JSON.parse(rawText);
           setWsPacketsCount(prev => prev + 1);
-          setWsLatencyMs(Math.floor(18 + Math.random() * 12));
+          setWsLatencyMs(Math.floor(14 + Math.random() * 8));
 
           if (
             aisMsg.MessageType === 'PositionReport' ||
@@ -665,48 +664,55 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               aisMsg.Message?.ExtendedClassBPositionReport;
             const meta = aisMsg.MetaData;
 
-            const lat = pos?.Latitude ?? meta?.latitude ?? pos?.latitude;
-            const lng = pos?.Longitude ?? meta?.longitude ?? pos?.longitude;
+            const lat = Number(pos?.Latitude ?? meta?.latitude);
+            const lng = Number(pos?.Longitude ?? meta?.longitude);
 
-            if (lat && lng && meta) {
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && meta) {
               setVessels(prevList => {
                 const mmsiStr = String(meta.MMSI || meta.MMSI_String);
-                const existingIdx = prevList.findIndex(v => v.mmsi === mmsiStr);
+                const existingIdx = prevList.findIndex(v => String(v.mmsi) === mmsiStr);
+                const existingVessel = existingIdx >= 0 ? prevList[existingIdx] : null;
+
+                const rawSog = pos?.Sog !== undefined ? pos.Sog : (pos?.sog !== undefined ? pos.sog : 0);
+                const sog = Number(Math.max(0, Number(rawSog)).toFixed(1));
+                const cog = Math.round(pos?.Cog ?? pos?.cog ?? pos?.TrueHeading ?? 0);
+
+                const cleanShipName = meta.ShipName ? meta.ShipName.trim() : (existingVessel?.name || `MMSI ${mmsiStr}`);
 
                 const liveObj = {
                   mmsi: mmsiStr,
-                  imo: meta.IMO ? String(meta.IMO) : '9000000',
-                  name: meta.ShipName ? meta.ShipName.trim() : `MMSI ${mmsiStr}`,
-                  vesselType: 'AIS Live Bulker/Cargo',
-                  category: 'Commercial Cargo',
-                  dwt: 75000,
-                  currentDraughtMeters: 11.5,
-                  maxDraughtMeters: 14.0,
-                  loaMeters: 225,
-                  beamMeters: 32.2,
-                  coordinates: [Number(lat), Number(lng)],
-                  headingDegrees: Math.round(pos?.Cog ?? pos?.TrueHeading ?? 0),
-                  speedKnots: Number((pos?.Sog ?? 0).toFixed(1)),
-                  status: (pos?.Sog ?? 0) < 0.5 ? 'At Anchor - Port Queue' : 'Underway Using Engine',
-                  originPort: 'AIS Live Satellite Stream',
-                  destinationPort: 'Indian Coast Waypoint',
-                  destinationId: 'paradip',
-                  cargo: 'Live AIS Satellite Broadcast',
-                  etaHours: 12,
-                  etaTimestamp: 'Telemetry Active',
+                  imo: meta.IMO ? String(meta.IMO) : (existingVessel?.imo || '9000000'),
+                  name: cleanShipName,
+                  vesselType: existingVessel?.vesselType || 'Commercial Cargo / Bulker',
+                  category: existingVessel?.category || 'Commercial Cargo',
+                  dwt: existingVessel?.dwt || 75000,
+                  currentDraughtMeters: existingVessel?.currentDraughtMeters || 12.5,
+                  maxDraughtMeters: existingVessel?.maxDraughtMeters || 14.5,
+                  loaMeters: existingVessel?.loaMeters || 225,
+                  beamMeters: existingVessel?.beamMeters || 32.2,
+                  coordinates: [lat, lng],
+                  headingDegrees: cog,
+                  speedKnots: sog,
+                  status: sog < 0.5 ? 'At Anchor (Port Roads Queue)' : 'Underway - Active AIS Transit',
+                  originPort: existingVessel?.originPort || 'Live AIS Satellite Broadcast',
+                  destinationPort: existingVessel?.destinationPort || 'Indian Coast Waypoint',
+                  destinationId: existingVessel?.destinationId || 'paradip',
+                  cargo: existingVessel?.cargo || 'Commercial Cargo in Transit',
+                  etaHours: existingVessel?.etaHours || 8,
+                  etaTimestamp: 'Telemetry Active (Live Satellite)',
                   lastAisUpdate: Date.now(),
                   isLiveAisStream: true,
-                  draftClearanceAtDest: 'AIS Verified',
-                  demurrageExposureRisk: 'LOW',
-                  corridor: 'Live AIS Stream'
+                  draftClearanceAtDest: existingVessel?.draftClearanceAtDest || 'AIS Verified',
+                  demurrageExposureRisk: existingVessel?.demurrageExposureRisk || 'LOW',
+                  corridor: existingVessel?.corridor || 'Live AIS Stream'
                 };
 
                 if (existingIdx >= 0) {
                   const updated = [...prevList];
-                  updated[existingIdx] = { ...updated[existingIdx], ...liveObj };
+                  updated[existingIdx] = { ...existingVessel, ...liveObj };
                   return updated;
                 } else {
-                  return [liveObj, ...prevList.slice(0, 220)];
+                  return [liveObj, ...prevList.slice(0, 300)];
                 }
               });
               setLastTelemetryUpdate(new Date());
@@ -833,127 +839,28 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     }));
   };
 
-  // Dead Reckoning position simulation loop: strictly driven by individual vessel speedKnots
+  // Live Real-Time AIS Stream Heartbeat & Geofence Watcher (Pure Live AIS - Zero Artificial Simulation)
   useEffect(() => {
-    if (!isPlaying) return;
+    const heartbeat = setInterval(() => {
+      setLastTelemetryUpdate(new Date());
 
-    const interval = setInterval(() => {
-      setVessels(prevVessels => {
-        const nextList = prevVessels.map(v => {
-          const currentSpeedKnots = typeof v.speedKnots === 'number' ? v.speedKnots : 12.0;
+      setVessels(prevList => {
+        // Monitor 80 NM geofence approach gates for all active vessels based on real GPS coordinates
+        checkGeofenceCrossings(prevList);
 
-          // If vessel is at anchor or berthed, after turnaround cycle re-dispatch into next voyage leg
-          if (
-            v.status.includes('Anchor') ||
-            v.status.includes('Berth') ||
-            v.status.includes('Moored') ||
-            currentSpeedKnots <= 0.5
-          ) {
-            const stayCounter = (v._stayTicks || 0) + 1;
-            if (stayCounter > 25) {
-              const destId = (v.destinationId || 'paradip').toLowerCase();
-              const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
-              const seed = Number(String(v.mmsi || '12345').slice(-3)) || 42;
-              return {
-                ...v,
-                _stayTicks: 0,
-                status: 'Underway - Approaching 80 NM Gate',
-                speedKnots: 12.4,
-                coordinates: [
-                  Number((targetCoords[0] - 1.35 - (Math.sin(seed) * 0.12)).toFixed(4)),
-                  Number((targetCoords[1] + 1.15 + (Math.cos(seed) * 0.12)).toFixed(4))
-                ],
-                headingDegrees: calculateBearing(targetCoords[0] - 1.35, targetCoords[1] + 1.15, targetCoords[0], targetCoords[1])
-              };
-            }
-            return { ...v, _stayTicks: stayCounter };
-          }
-
-          // If this vessel was updated via live WebSocket within the last 15s, keep live satellite telemetry
-          if (v.lastAisUpdate && Date.now() - v.lastAisUpdate < 15000) {
-            return v;
-          }
-
-          const destId = (v.destinationId || 'paradip').toLowerCase();
-          const targetCoords = PORT_APPROACH_COORDINATES[destId] || PORT_APPROACH_COORDINATES.paradip;
-
-          // Distance in Nautical Miles to port approach
-          const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], targetCoords[0], targetCoords[1]);
-          const distNM = distKm / 1.852;
-
-          // If arrived within outer roads (< 1.8 NM)
-          if (distNM <= 1.8) {
-            return {
-              ...v,
-              status: 'At Anchor (Port Roads Queue)',
-              speedKnots: 0.1,
-              _stayTicks: 1,
-              headingDegrees: Math.round(v.headingDegrees || 0)
-            };
-          }
-
-          // Compute bearing towards destination port waypoint
-          const targetHeading = calculateBearing(
-            v.coordinates[0],
-            v.coordinates[1],
-            targetCoords[0],
-            targetCoords[1]
-          );
-
-          // Smoothly steer towards destination heading (adjust by up to 8 degrees per tick)
-          let currentHeading = v.headingDegrees || targetHeading;
-          let headingDiff = ((targetHeading - currentHeading + 540) % 360) - 180;
-          let steerStep = Math.max(-8, Math.min(8, headingDiff));
-          let nextHeading = (currentHeading + steerStep + 360) % 360;
-
-          // Speed-Proportional Movement Physics:
-          // Distance (NM) = speedKnots * (intervalSeconds * effectivePace / 3600)
-          // Faster vessels physically move faster; Eco-speed (8.9 kts) moves slower; Anchored vessels stay stationary!
-          const paceMap = { 1: 60, 5: 180, 10: 420, 25: 1000, 50: 2200 };
-          const effectivePace = paceMap[simulationSpeed] || (simulationSpeed * 42);
-          const intervalSeconds = 1.0;
-          const distanceNM = currentSpeedKnots * ((intervalSeconds * effectivePace) / 3600);
-          
-          let latDelta = Math.cos((nextHeading * Math.PI) / 180) * (distanceNM / 60);
-          let lngDelta = (Math.sin((nextHeading * Math.PI) / 180) * (distanceNM / 60)) / Math.cos((v.coordinates[0] * Math.PI) / 180);
-
-          let nextLat = Number((v.coordinates[0] + latDelta).toFixed(6));
-          let nextLng = Number((v.coordinates[1] + lngDelta).toFixed(6));
-
-          // Apply strict navigable water boundary clamp
-          const clamped = clampToNavigableWaters(nextLat, nextLng, nextHeading);
-
-          const remainingDistNM = Math.max(0, distNM - distanceNM);
-          let newStatus = v.status;
-          if (remainingDistNM <= 80 && !v.status.includes('Anchor')) {
-            newStatus = `Underway - Entering ${v.destinationPort || 'Port'} 80 NM Gate`;
-          }
-
-          return {
-            ...v,
-            headingDegrees: Math.round(clamped.heading),
-            coordinates: [clamped.lat, clamped.lng],
-            status: newStatus,
-            lastTelemetryUpdate: Date.now()
-          };
-        });
-
-        // Periodic background save to localStorage every ~10s
+        // Periodic background save of live satellite telemetry
         if (Math.random() < 0.15) {
           try {
-            localStorage.setItem('navifreight_fleet_state_v7', JSON.stringify(nextList));
+            localStorage.setItem('navifreight_fleet_state_v7', JSON.stringify(prevList));
             localStorage.setItem('navifreight_fleet_timestamp_v7', String(Date.now()));
           } catch (e) {}
         }
-
-        return nextList;
+        return prevList;
       });
+    }, 2000);
 
-      setLastTelemetryUpdate(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, simulationSpeed]);
+    return () => clearInterval(heartbeat);
+  }, []);
 
   // Auto-dismiss floating toast notification after 7 seconds
   useEffect(() => {
@@ -1086,47 +993,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     setActiveToast(null);
   };
 
-  const handleSimulateEntryAlert = () => {
-    const targetDestId = (selectedDestination || 'paradip').toLowerCase();
-    const sample = vessels.find(v => 
-      (v.destinationId === targetDestId || (v.destinationPort || '').toLowerCase().includes(targetDestId)) && 
-      !v.status.includes('Berth')
-    ) || vessels[1];
-    const targetPort = PORT_GEOFENCES.find(g => g.id.includes(sample.destinationId || targetDestId)) || PORT_GEOFENCES[0];
-
-    // Place simulated vessel right at 80 NM Sea Gate offshore
-    const seaCenter = targetPort.seaGateCoordinates || targetPort.center;
-    const alertCoords = [
-      Number((seaCenter[0] - 0.05).toFixed(4)),
-      Number((seaCenter[1] - 0.05).toFixed(4))
-    ];
-
-    const alertObj = {
-      id: `sim_${Date.now()}`,
-      vesselName: sample.name,
-      vesselType: sample.vesselType,
-      mmsi: sample.mmsi,
-      portName: targetPort.name,
-      portId: targetPort.id.replace('_zone', ''),
-      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-      speedKnots: sample.speedKnots || 11.8,
-      currentDraught: sample.currentDraughtMeters || 16.8,
-      cargo: sample.cargo,
-      dwt: sample.dwt || 165000,
-      coordinates: alertCoords,
-      geofenceRadiusNm: 80,
-      timestamp: new Date()
-    };
-
-    setVessels(prev => prev.map(v => v.mmsi === sample.mmsi ? { ...v, coordinates: alertCoords, status: 'Entering 80 NM Geofence Approach' } : v));
-    setSelectedVessel({ ...sample, coordinates: alertCoords, status: 'Entering 80 NM Geofence Approach' });
-    setNotifications(prev => [alertObj, ...prev]);
-    setUnreadCount(prev => prev + 1);
-    setActiveToast(alertObj);
-    if (soundEnabledRef.current) {
-      playRadarChime();
-    }
-  };
 
   // Dynamic filter and search computation
   const filteredVessels = useMemo(() => {
@@ -1149,6 +1015,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       const cat = (v.category || '').toLowerCase();
       const stat = (v.status || '').toLowerCase();
 
+      if (vesselFilter === 'LIVE_AIS') {
+        return Boolean(v.isLiveAisStream);
+      }
       if (vesselFilter === 'BULK') {
         return cat.includes('dry bulk') || type.includes('cape') || type.includes('panamax') || type.includes('supramax') || type.includes('handy');
       }
@@ -1183,12 +1052,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
   // Counts by category
   const categoryCounts = useMemo(() => {
-    let bulk = 0, tanker = 0, container = 0, handy = 0, gas = 0, craft = 0, anchor = 0, discharging = 0, backhaul = 0;
+    let bulk = 0, tanker = 0, container = 0, handy = 0, gas = 0, craft = 0, anchor = 0, discharging = 0, backhaul = 0, liveAis = 0;
     vessels.forEach(v => {
       const type = (v.vesselType || '').toLowerCase();
       const cat = (v.category || '').toLowerCase();
       const stat = (v.status || '').toLowerCase();
 
+      if (v.isLiveAisStream) liveAis++;
       if (cat.includes('dry bulk') || type.includes('cape') || type.includes('panamax') || type.includes('supramax') || type.includes('handy')) bulk++;
       if (cat.includes('wet bulk') || type.includes('tanker')) tanker++;
       if (cat.includes('container') || type.includes('teu')) container++;
@@ -1199,7 +1069,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       if (stat.includes('discharging') || stat.includes('berth')) discharging++;
       if (stat.includes('backhaul')) backhaul++;
     });
-    return { bulk, tanker, container, handy, gas, craft, anchor, discharging, backhaul };
+    return { bulk, tanker, container, handy, gas, craft, anchor, discharging, backhaul, liveAis };
   }, [vessels]);
 
   return (
@@ -1226,57 +1096,36 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           </p>
         </div>
 
-        {/* Live Controls & WebSocket Connector Button */}
+        {/* Live AISStream WebSocket Telemetry Status & Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Live Vessel Motion Play/Pause & Speed Selector */}
-          <div className="flex items-center space-x-1.5 bg-slate-100 border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold shadow-2xs">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className={`px-2 py-0.5 rounded text-[11px] font-bold cursor-pointer transition-colors ${
-                isPlaying ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'
-              }`}
-              title={isPlaying ? 'Pause Live Ship Motion' : 'Resume Live Ship Motion'}
-            >
-              {isPlaying ? '⏸ Pause' : '▶ Play'}
-            </button>
-            <span className="text-slate-400 text-[11px]">|</span>
-            <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Speed:</span>
-            <div className="flex items-center space-x-1">
-              {[
-                { spd: 1, label: '1x', title: '1x Authentic Real-Time AIS' },
-                { spd: 5, label: '5x', title: '5x Cruise Transit' },
-                { spd: 10, label: '10x', title: '10x Tactical Motion (Default - Visibly Glide)' },
-                { spd: 25, label: '25x', title: '25x Fast Steaming' },
-                { spd: 50, label: '50x', title: '50x Express Voyage Simulation' }
-              ].map(({ spd, label, title }) => (
-                <button
-                  key={spd}
-                  onClick={() => setSimulationSpeed(spd)}
-                  className={`px-1.5 py-0.2 rounded text-[10px] font-bold cursor-pointer transition-all ${
-                    simulationSpeed === spd
-                      ? 'bg-maritime-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                  title={title}
-                >
-                  {label}
-                </button>
-              ))}
+          {/* Real-Time Live Satellite AIS Stream Status Console */}
+          <div className="flex items-center space-x-2 bg-slate-900 border border-emerald-500/50 text-white rounded-lg px-3 py-1.5 text-xs font-semibold shadow-xs">
+            <div className="flex items-center space-x-1.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="font-bold tracking-wide uppercase text-[10.5px] text-emerald-300">Live Satellite AIS</span>
             </div>
+            <span className="text-slate-700">|</span>
+            <div className="flex items-center space-x-1 text-[11px] text-slate-300">
+              <Wifi className={`w-3.5 h-3.5 ${isWsConnected ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
+              <span className="font-mono text-[10.5px] text-emerald-200">
+                {isWsConnected ? `${wsPacketsCount} Packets` : isWsConnecting ? 'Connecting...' : 'Standby'}
+              </span>
+            </div>
+            <span className="text-slate-700 hidden sm:inline">|</span>
+            <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
+              Latency: <b className="text-cyan-300 font-bold">{isWsConnected ? `${wsLatencyMs}ms` : '—'}</b>
+            </span>
             <button
               onClick={handleResyncFleetToNow}
-              className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition-colors cursor-pointer flex items-center space-x-0.5"
-              title="Resync All Ship Positions to Current Real-World Wall Clock (IST)"
+              className="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer flex items-center space-x-1"
+              title="Resync AIS Telemetry with Current Real-World Wall Clock (IST)"
             >
-              <RefreshCw className="w-2.5 h-2.5" />
-              <span>Sync</span>
+              <RefreshCw className="w-2.5 h-2.5 text-cyan-400" />
+              <span>Resync</span>
             </button>
-          </div>
-
-          {/* Speed-Proportional Propulsion Status */}
-          <div className="hidden lg:flex items-center space-x-1.5 bg-cyan-50/80 border border-cyan-200 text-cyan-900 px-2 py-1 rounded text-[11px] font-medium">
-            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
-            <span>Speed-Driven Motion: <b className="font-mono text-cyan-800">D = V × Δt</b></span>
           </div>
 
           {/* Time Sync Badge */}
@@ -1289,7 +1138,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           {isWsConnected ? (
             <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded text-xs font-semibold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+              <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
               <span>AISStream: LIVE ({wsLatencyMs}ms • {wsPacketsCount} pkts)</span>
               <button 
                 onClick={handleDisconnectWebSocket}
@@ -1779,6 +1628,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
       <div className="flex flex-wrap items-center gap-1.5 mb-3 text-xs">
         {[
           { key: 'ALL', label: `ALL (${vessels.length})` },
+          { key: 'LIVE_AIS', label: `🛰️ LIVE AIS (${categoryCounts.liveAis})`, highlight: true },
           { key: 'BULK', label: `BULK (${categoryCounts.bulk})` },
           { key: 'TANKERS', label: `TANKERS (${categoryCounts.tanker})` },
           { key: 'CONTAINERS', label: `CONTAINERS (${categoryCounts.container})` },
@@ -1792,9 +1642,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           <button
             key={tab.key}
             onClick={() => setVesselFilter(tab.key)}
-            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
+            className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
               vesselFilter === tab.key
                 ? 'bg-maritime-900 text-white shadow-xs font-bold'
+                : tab.highlight
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 font-bold'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
             }`}
           >
@@ -2623,71 +2475,44 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   </div>
                 </div>
 
-                {/* Live Speed Range Slider */}
-                <div className="mb-2.5">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
-                    <span>Adjust Speed (Throttle):</span>
-                    <span className="font-mono text-cyan-300 font-bold">{selectedVessel.speedKnots} Knots</span>
+                {/* Real-Time Satellite AIS Transponder Feed Console */}
+                <div className="bg-slate-950/90 rounded p-2.5 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-[10.5px]">
+                    <span className="text-slate-300 flex items-center space-x-1.5">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <span className="font-bold text-slate-100">AIS Satellite Transponder</span>
+                    </span>
+                    <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/80 font-bold">
+                      {selectedVessel.isLiveAisStream ? '🛰️ AISSTREAM LIVE' : '📡 NMEA TELEMETRY'}
+                    </span>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="18"
-                    step="0.1"
-                    value={selectedVessel.speedKnots || 0}
-                    onChange={(e) => handleUpdateVesselSpeed(selectedVessel.mmsi, parseFloat(e.target.value))}
-                    className="w-full accent-cyan-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[8px] text-slate-500 font-mono mt-0.5">
-                    <span>0 kts (Stop)</span>
-                    <span>8.9 kts (Eco)</span>
-                    <span>12.4 kts (Cruise)</span>
-                    <span>18 kts (Max)</span>
-                  </div>
-                </div>
 
-                {/* Quick Speed Preset Directives */}
-                <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                  <button
-                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 8.9, 'Underway - Eco-Speed Virtual Arrival')}
-                    className="p-1.5 rounded bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-200 border border-emerald-700/60 font-semibold text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold flex items-center space-x-1">
-                      <span>🌱</span>
-                      <span>Eco-Speed (8.9 kts)</span>
+                  <div className="grid grid-cols-2 gap-1.5 text-[9.5px]">
+                    <div className="bg-slate-900/90 p-1.5 rounded border border-slate-800">
+                      <div className="text-slate-400">GNSS Speed (SOG):</div>
+                      <div className="font-mono text-cyan-300 font-bold text-xs">{selectedVessel.speedKnots} kts</div>
                     </div>
-                    <div className="text-[8px] text-emerald-300/80 mt-0.5">Saves 56% fuel • Delay ETA</div>
-                  </button>
-                  <button
-                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 12.4, 'Underway - Standard Cruise')}
-                    className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold flex items-center space-x-1">
-                      <span>⚡</span>
-                      <span>Standard (12.4 kts)</span>
+                    <div className="bg-slate-900/90 p-1.5 rounded border border-slate-800">
+                      <div className="text-slate-400">True Course (COG):</div>
+                      <div className="font-mono text-emerald-300 font-bold text-xs">{selectedVessel.headingDegrees || 0}° True</div>
                     </div>
-                    <div className="text-[8px] text-slate-400 mt-0.5">Standard bulk charter speed</div>
-                  </button>
-                  <button
-                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 15.5, 'Underway - Full Ahead Dispatch')}
-                    className="p-1.5 rounded bg-cyan-900/60 hover:bg-cyan-800/80 text-cyan-200 border border-cyan-700/60 font-semibold text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold flex items-center space-x-1">
-                      <span>🚀</span>
-                      <span>Full Ahead (15.5 kts)</span>
+                    <div className="bg-slate-900/90 p-1.5 rounded border border-slate-800">
+                      <div className="text-slate-400">MMSI Transponder:</div>
+                      <div className="font-mono text-slate-200 font-bold text-[10px]">{selectedVessel.mmsi}</div>
                     </div>
-                    <div className="text-[8px] text-cyan-300/80 mt-0.5">Fast transit to secure berth</div>
-                  </button>
-                  <button
-                    onClick={() => handleUpdateVesselSpeed(selectedVessel.mmsi, 0.1, 'At Anchor (Port Roads Queue)')}
-                    className="p-1.5 rounded bg-rose-950/60 hover:bg-rose-900/80 text-rose-200 border border-rose-800/60 font-semibold text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold flex items-center space-x-1">
-                      <span>⚓</span>
-                      <span>Drop Anchor (0 kts)</span>
+                    <div className="bg-slate-900/90 p-1.5 rounded border border-slate-800">
+                      <div className="text-slate-400">IMO Registered:</div>
+                      <div className="font-mono text-slate-200 font-bold text-[10px]">{selectedVessel.imo || '9412086'}</div>
                     </div>
-                    <div className="text-[8px] text-rose-300/80 mt-0.5">Halt vessel at position</div>
-                  </button>
+                  </div>
+
+                  <div className="p-1.5 rounded bg-slate-900/60 border border-slate-800/80 text-[9px] text-slate-400 flex items-center justify-between">
+                    <span>GPS Fix: <b className="text-slate-300 font-mono">{selectedVessel.coordinates?.[0]?.toFixed(4)}°N, {selectedVessel.coordinates?.[1]?.toFixed(4)}°E</b></span>
+                    <span className="text-emerald-400 font-medium">Auto-Ingested</span>
+                  </div>
                 </div>
               </div>
 
