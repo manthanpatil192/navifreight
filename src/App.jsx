@@ -7,11 +7,10 @@ import DeadheadOptimizer from './components/DeadheadOptimizer';
 import RiskCongestionRadar from './components/RiskCongestionRadar';
 import MarketNewsFeed from './components/InteractiveRouteMap';
 import LiveShipTrackerMap from './components/LiveShipTrackerMap';
-import SystemLogicRiskMatrix from './components/SystemLogicRiskMatrix';
+import MarketIntelligenceRadar from './components/MarketIntelligenceRadar';
 import DatasetExplorerModal from './components/DatasetExplorerModal';
 import ExecutiveReportModal from './components/ExecutiveReportModal';
 import { calculateFreightForecast } from './utils/forecastingEngine';
-import { PORT_CONGESTION_STATUS } from './data/weatherCongestionData';
 import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
 import { 
   Ship, FileText, CheckCircle2, Compass, TrendingUp, 
@@ -27,7 +26,7 @@ const PS_TABS = [
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
   { id: 'part_b', label: 'Part B: Vessel & Port Fit', sublabel: 'Draft & TPD Optimization', badge: 'Section (b)', icon: Ship },
   { id: 'part_c', label: 'Part C: Idle & Deadhead', sublabel: 'Backhaul Tramp Routing', badge: 'Section (c)', icon: RefreshCw },
-  { id: 'part_d', label: 'Part D: Risk & Congestion', sublabel: '4-Factor Matrix & AIS Radar', badge: 'Section (d)', icon: ShieldCheck },
+  { id: 'part_d', label: 'Part D: Risk & Congestion', sublabel: 'NLP Radar & AIS Tracking', badge: 'Section (d)', icon: ShieldCheck },
   { id: 'all', label: 'Complete Pipeline', sublabel: 'Full Continuous Flow', badge: 'All Phases', icon: Layers },
 ];
 
@@ -78,8 +77,6 @@ export default function App() {
     activeNewsSignal: activeNewsSignal,
     coaSplitPercent: coaSplitPercent
   });
-
-  const currentPortCongestion = PORT_CONGESTION_STATUS[selectedDestination];
 
   const handleApplyScenario = (config) => {
     setSelectedOrigin(config.origin);
@@ -302,7 +299,7 @@ export default function App() {
               <div className="flex items-center space-x-2">
                 <ShieldCheck className="w-4 h-4 text-amber-700" />
                 <span className="text-xs font-bold text-amber-900">
-                  PS Part (d): Risk Mitigation, 4-Factor Decision Matrix & Real-Time AIS Port Radar
+                  PS Part (d): Risk Mitigation, AI Market Intelligence & Real-Time AIS Port Radar
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
@@ -310,16 +307,11 @@ export default function App() {
               </span>
             </div>
 
-            {/* 4-Factor Risk Score Engine & Decision Matrix */}
-            <SystemLogicRiskMatrix
-              selectedVessel={selectedVessel}
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              contractHorizonMonths={contractHorizonMonths}
-              forecast={forecast}
-              portCongestion={currentPortCongestion}
+            {/* 4-Stage AI Market Intelligence & Disruption Radar (GDELT + Zero-Shot + FinBERT + LexRank) */}
+            <MarketIntelligenceRadar
+              activeNewsSignal={activeNewsSignal}
+              onSelectNewsSignal={(signal) => setActiveNewsSignal(signal)}
               currency={currency}
-              terminalMetrics={terminalMetrics}
             />
 
             {/* Live AIS Ship Tracking Map & Geofencing Radar */}

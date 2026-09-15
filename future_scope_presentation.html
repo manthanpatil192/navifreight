@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviFreight AI — Future Scope, Impact & Benefits (SIH Slide)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* 16:9 Presentation Slide Container */
+    .slide-container {
+      width: 1360px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Top presentation banner bar */
+    .slide-top-bar {
+      background: #ffffff;
+      padding: 10px 28px 4px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .slide-logo-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .slide-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 9999px;
+    }
+
+    /* Main Slide Body: Two-Column Layout */
+    .slide-body {
+      display: grid;
+      grid-template-columns: 530px 1fr;
+      padding: 14px 24px 16px 24px;
+      gap: 16px;
+      align-items: stretch;
+      min-height: 640px;
+    }
+
+    /* ========================================================
+       LEFT HALF: IMPACT & BENEFITS (Exact SIH Template Style)
+       ======================================================== */
+    .left-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      border-right: 2px solid #f1f5f9;
+      padding-right: 18px;
+    }
+
+    .column-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .impact-header {
+      background: #fff1f2;
+      color: #e11d48;
+      border-bottom: 3px solid #f43f5e;
+    }
+
+    .benefits-header {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-bottom: 3px solid #3b82f6;
+    }
+
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .feature-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 11px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: transform 0.15s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      border-color: #cbd5e1;
+    }
+
+    .icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .impact-icon {
+      background: #ffe4e6;
+      color: #e11d48;
+      border: 1px solid #fecdd3;
+    }
+
+    .benefit-icon {
+      background: #dbeafe;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .card-content h4 {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 2px;
+      line-height: 1.2;
+    }
+
+    .card-content p {
+      font-size: 10.5px;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    /* ========================================================
+       RIGHT HALF: FUTURE SCOPE (4-Quadrant Wheel + Center Box)
+       ======================================================== */
+    .right-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .diagram-title {
+      font-size: 21px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .diagram-title span {
+      color: #0284c7;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 740px;
+      height: 570px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* SVG Wheel */
+    .wheel-svg {
+      width: 560px;
+      height: 560px;
+      position: absolute;
+      top: 5px;
+      left: 90px;
+    }
+
+    /* Callout Items around and inside the wheel */
+    .callout-item {
+      position: absolute;
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 10px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+      z-index: 6;
+      max-width: 215px;
+      backdrop-filter: blur(4px);
+    }
+
+    .callout-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .callout-text h5 {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-bottom: 1px;
+    }
+
+    .callout-text p {
+      font-size: 9.3px;
+      color: #475569;
+      line-height: 1.25;
+    }
+
+    /* Positions for items matching Rockfall slide */
+    /* TOP-LEFT (Short-Term: 0-1 Year) */
+    #item-push-alerts {
+      top: 18px;
+      left: 105px;
+      border-left: 3px solid #f59e0b;
+    }
+    #item-iot-sensors {
+      top: 90px;
+      left: 20px;
+      border-left: 3px solid #f59e0b;
+      max-width: 205px;
+    }
+    #item-satellite-data {
+      top: 195px;
+      left: 10px;
+      border-left: 3px solid #f59e0b;
+    }
+
+    /* TOP-RIGHT (Long-Term: 2-4 Years) */
+    #item-blockchain {
+      top: 25px;
+      right: 110px;
+      border-left: 3px solid #9333ea;
+    }
+    #item-erp {
+      top: 115px;
+      right: 25px;
+      border-left: 3px solid #9333ea;
+    }
+
+    /* BOTTOM-LEFT (Mid-Term: 1-2 Years) */
+    #item-multilang {
+      bottom: 140px;
+      left: 10px;
+      border-left: 3px solid #10b981;
+    }
+    #item-compliance {
+      bottom: 40px;
+      left: 100px;
+      border-left: 3px solid #10b981;
+    }
+
+    /* BOTTOM-RIGHT (Visionary: 4+ Years) */
+    #item-autonomous {
+      bottom: 120px;
+      right: 20px;
+      border-left: 3px solid #f43f5e;
+    }
+    #item-digital-twin {
+      bottom: 30px;
+      right: 105px;
+      border-left: 3px solid #f43f5e;
+    }
+
+    /* Center Box: NaviFreight Core System */
+    .center-system-box {
+      position: absolute;
+      width: 190px;
+      background: #ffffff;
+      border: 2px solid #0284c7;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 22px rgba(2, 132, 199, 0.22);
+      z-index: 10;
+      text-align: center;
+      top: 205px;
+      left: 275px;
+    }
+
+    .center-system-box h3 {
+      font-size: 11.5px;
+      font-weight: 900;
+      color: #0369a1;
+      line-height: 1.25;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+      border-bottom: 2px solid #e0f2fe;
+      text-transform: uppercase;
+    }
+
+    .center-system-box ul {
+      list-style: none;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .center-system-box li {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #334155;
+      line-height: 1.25;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .center-system-box li::before {
+      content: "▪";
+      color: #0284c7;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    /* SLIDE FOOTER */
+    .slide-footer {
+      background: #0284c7;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 28px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-container">
+    <!-- Top Bar -->
+    <div class="slide-top-bar">
+      <div class="slide-logo-badge">Smart India Hackathon 2024 &bull; Problem Statement SIH26006</div>
+      <div class="slide-tag">NaviFreight AI Maritime Logistics Suite</div>
+    </div>
+
+    <!-- Main Slide Body -->
+    <div class="slide-body">
+
+      <!-- ================= LEFT: IMPACT & BENEFITS ================= -->
+      <div class="left-section">
+
+        <!-- IMPACT COLUMN -->
+        <div class="column-box">
+          <div class="column-header impact-header">
+            <span>⚡</span> IMPACT
+          </div>
+          <div class="items-list">
+            <!-- 1 -->
+            <div class="feature-card">
+              <div class="icon-box impact-icon">🛡️</div>
+              <div class="card-content">
+                <h4>Demurrage Elimination</h4>
+                <p>Eradicates ₹65 Lakh/day anchorage penalties via 80 NM proactive congestion forecasting.</p>
+              </div>
+            </div>
+            <!-- 2 -->
+            <div class="feature-card">
+              <div class="icon-box impact-icon">⚙️</div>
+              <div class="card-content">
+                <h4>Operational Continuity</h4>
+                <p>Guarantees coal supply for steel plants by balancing vessel ETA with FOIS rail rakes.</p>
+              </div>
+            </div>
+            <!-- 3 -->
+            <div class="feature-card">
+              <div class="icon-box impact-icon">💰</div>
+              <div class="card-content">
+                <h4>Financial Protection</h4>
+                <p>Avoids ₹2.5 Cr+ emergency trucking surges through fuel-aware diversion cost arbitrage.</p>
+              </div>
+            </div>
+            <!-- 4 -->
+            <div class="feature-card">
+              <div class="icon-box impact-icon">🌐</div>
+              <div class="card-content">
+                <h4>Scalable Application</h4>
+                <p>Extendable to all 12 major Indian ports, inland waterways (NW-1), and container corridors.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BENEFITS COLUMN -->
+        <div class="column-box">
+          <div class="column-header benefits-header">
+            <span>👍</span> BENEFITS
+          </div>
+          <div class="items-list">
+            <!-- 1 -->
+            <div class="feature-card">
+              <div class="icon-box benefit-icon">🪙</div>
+              <div class="card-content">
+                <h4>Low-Cost & Open-Source</h4>
+                <p>Built 100% on free public datasets (BDRY, open AIS, IMD, World Bank) with zero lock-in.</p>
+              </div>
+            </div>
+            <!-- 2 -->
+            <div class="feature-card">
+              <div class="icon-box benefit-icon">⏳</div>
+              <div class="card-content">
+                <h4>Real-Time Predictions</h4>
+                <p>80 NM early-warning geofence gives 6–12 hour proactive decision window before lock-in.</p>
+              </div>
+            </div>
+            <!-- 3 -->
+            <div class="feature-card">
+              <div class="icon-box benefit-icon">💡</div>
+              <div class="card-content">
+                <h4>Actionable Insights</h4>
+                <p>Delivers exact ₹ Crore landed cost comparisons for every route & charter option.</p>
+              </div>
+            </div>
+            <!-- 4 -->
+            <div class="feature-card">
+              <div class="icon-box benefit-icon">🧠</div>
+              <div class="card-content">
+                <h4>Continuous Improvement</h4>
+                <p>Adaptive ML models continuously learn from monsoon shifts and port wait trends.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= RIGHT: FUTURE SCOPE WHEEL ================= -->
+      <div class="right-section">
+        <div class="diagram-title">NaviFreight AI: <span>FUTURE SCOPE</span></div>
+
+        <div class="wheel-container">
+          <!-- SVG Wheel Diagram Matching Rockfall Slide Exactly -->
+          <svg class="wheel-svg" viewBox="0 0 560 560">
+            <!-- Quadrant 1: Top-Left (Short-Term: 0-1 Year) - Warm Yellow/Peach -->
+            <path d="M 280 280 L 20 280 A 260 260 0 0 1 280 20 Z" 
+                  fill="#fffbeb" stroke="#0f172a" stroke-width="2.5" />
+
+            <!-- Quadrant 2: Top-Right (Long-Term: 2-4 Years) - Soft Lavender -->
+            <path d="M 280 280 L 280 20 A 260 260 0 0 1 540 280 Z" 
+                  fill="#faf5ff" stroke="#0f172a" stroke-width="2.5" />
+
+            <!-- Quadrant 3: Bottom-Left (Mid-Term: 1-2 Years) - Soft Emerald -->
+            <path d="M 280 280 L 20 280 A 260 260 0 0 0 280 540 Z" 
+                  fill="#f0fdf4" stroke="#0f172a" stroke-width="2.5" />
+
+            <!-- Quadrant 4: Bottom-Right (Visionary: 4+ Years) - Soft Rose -->
+            <path d="M 280 280 L 280 540 A 260 260 0 0 0 540 280 Z" 
+                  fill="#fff1f2" stroke="#0f172a" stroke-width="2.5" />
+
+            <!-- Inner Circle Arc for Phase Headers (Just like Rockfall slide) -->
+            <circle cx="280" cy="280" r="160" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4" />
+
+            <!-- Outer Circle Border -->
+            <circle cx="280" cy="280" r="260" fill="none" stroke="#0f172a" stroke-width="3" />
+            
+            <!-- Cross Dividers -->
+            <line x1="20" y1="280" x2="540" y2="280" stroke="#0f172a" stroke-width="2.5" />
+            <line x1="280" y1="20" x2="280" y2="540" stroke="#0f172a" stroke-width="2.5" />
+
+            <!-- Arc Labels (Rotated inside inner ring) -->
+            <!-- Top-Left Inner Arc -->
+            <text x="180" y="160" font-size="12" font-weight="900" fill="#b45309" text-anchor="middle" transform="rotate(-40 180 160)">
+              Short-Term (0–1 Year)
+            </text>
+            <!-- Top-Right Inner Arc -->
+            <text x="380" y="160" font-size="12" font-weight="900" fill="#7e22ce" text-anchor="middle" transform="rotate(40 380 160)">
+              Long-Term (2–4 Years)
+            </text>
+            <!-- Bottom-Left Inner Arc -->
+            <text x="180" y="400" font-size="12" font-weight="900" fill="#047857" text-anchor="middle" transform="rotate(40 180 400)">
+              Mid-Term (1–2 Years)
+            </text>
+            <!-- Bottom-Right Inner Arc -->
+            <text x="380" y="400" font-size="12" font-weight="900" fill="#be123c" text-anchor="middle" transform="rotate(-40 380 400)">
+              Visionary (4+ Years)
+            </text>
+          </svg>
+
+          <!-- TOP-LEFT CALLOUTS (Short-Term: 0-1 Year) - REALISTIC PROTOTYPE IMPROVEMENTS -->
+          <div class="callout-item" id="item-push-alerts">
+            <span class="callout-icon">⚡</span>
+            <div class="callout-text">
+              <h5>Live Data Feed Automation</h5>
+              <p>Connects live AIS ship streams, IMD weather, and daily rate updates</p>
+            </div>
+          </div>
+
+          <div class="callout-item" id="item-iot-sensors">
+            <span class="callout-icon">📩</span>
+            <div class="callout-text">
+              <h5>Automated Alerts & PDF Reports</h5>
+              <p>Instant SMS/email alerts on price dips and 1-click executive PDF exports</p>
+            </div>
+          </div>
+
+          <div class="callout-item" id="item-satellite-data">
+            <span class="callout-icon">⚓</span>
+            <div class="callout-text">
+              <h5>Port Pilot & Ground Calibration</h5>
+              <p>Pilot testing at Paradip & Haldia to tune formulas against real dock logs</p>
+            </div>
+          </div>
+
+          <!-- TOP-RIGHT CALLOUTS (Long-Term: 2-4 Years) -->
+          <div class="callout-item" id="item-blockchain">
+            <span class="callout-icon">⛓️</span>
+            <div class="callout-text">
+              <h5>Dispute-Proof Audit Log</h5>
+              <p>Secure digital ledger of ship arrival times for government audits</p>
+            </div>
+          </div>
+
+          <div class="callout-item" id="item-erp">
+            <span class="callout-icon">⚙️</span>
+            <div class="callout-text">
+              <h5>Direct Connection to ERP</h5>
+              <p>Connects with SAP at SAIL & NTPC to re-order coal when stocks run low</p>
+            </div>
+          </div>
+
+          <!-- BOTTOM-LEFT CALLOUTS (Mid-Term: 1-2 Years) -->
+          <div class="callout-item" id="item-multilang">
+            <span class="callout-icon">📖</span>
+            <div class="callout-text">
+              <h5>Multi-Language Support</h5>
+              <p>Hindi, Odia, Bengali, Telugu & Tamil for dock workers and drivers</p>
+            </div>
+          </div>
+
+          <div class="callout-item" id="item-compliance">
+            <span class="callout-icon">📋</span>
+            <div class="callout-text">
+              <h5>Automated Paperwork</h5>
+              <p>Auto-fills customs clearance and government tender documents</p>
+            </div>
+          </div>
+
+          <!-- BOTTOM-RIGHT CALLOUTS (Visionary: 4+ Years) -->
+          <div class="callout-item" id="item-autonomous">
+            <span class="callout-icon">🤖</span>
+            <div class="callout-text">
+              <h5>Smart Speed & Arrival</h5>
+              <p>Tells ships when to slow down to arrive just when berth is free</p>
+            </div>
+          </div>
+
+          <div class="callout-item" id="item-digital-twin">
+            <span class="callout-icon">🌐</span>
+            <div class="callout-text">
+              <h5>Pan-India Logistics Map</h5>
+              <p>Expands to cover all major Indian ports, containers, and railways</p>
+            </div>
+          </div>
+
+          <!-- Center Box: Core System Built Today -->
+          <div class="center-system-box">
+            <h3>NaviFreight AI System</h3>
+            <ul>
+              <li>AI Freight Rate Predictor</li>
+              <li>80 NM Port Diversion Engine</li>
+              <li>165 Vessel Live Ship Tracker</li>
+              <li>PSU 21-Day Tender Planner</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Slide Footer -->
+    <div class="slide-footer">
+      <span>@SIH Idea submission - Template</span>
+      <span>Slide 5</span>
+    </div>
+  </div>
+
+</body>
+</html>
