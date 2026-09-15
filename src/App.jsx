@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import ForecastChart from './components/ForecastChart';
 import VesselOptimization from './components/VesselOptimization';
@@ -66,8 +66,8 @@ export default function App() {
     setShowLoginPage(true);
   };
 
-  // Dynamic Freight Forecast Calculation with Live News Signal Coupling
-  const forecast = calculateFreightForecast({
+  // Dynamic Freight Forecast Calculation with Live News Signal Coupling (Memoized)
+  const forecast = useMemo(() => calculateFreightForecast({
     originId: selectedOrigin,
     destinationId: selectedDestination,
     vesselId: selectedVessel,
@@ -76,7 +76,16 @@ export default function App() {
     marketVolatilityMultiplier: volatilityIndex,
     activeNewsSignal: activeNewsSignal,
     coaSplitPercent: coaSplitPercent
-  });
+  }), [
+    selectedOrigin,
+    selectedDestination,
+    selectedVessel,
+    cargoVolumeMT,
+    contractHorizonMonths,
+    volatilityIndex,
+    activeNewsSignal,
+    coaSplitPercent
+  ]);
 
   const handleApplyScenario = (config) => {
     setSelectedOrigin(config.origin);
