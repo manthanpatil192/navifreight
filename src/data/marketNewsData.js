@@ -1,5 +1,21 @@
 import { TrendingUp, TrendingDown, AlertTriangle, Ship, Anchor, Globe, BarChart3 } from 'lucide-react';
 
+const getDynamicWindow = (startDays, endDays) => {
+  const d1 = new Date();
+  d1.setDate(d1.getDate() + startDays);
+  const d2 = new Date();
+  d2.setDate(d2.getDate() + endDays);
+  const m1 = d1.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const m2 = d2.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return `${m1} – ${m2}`;
+};
+
+const getDynamicDate = (days) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+};
+
 export const MARKET_NEWS_SIGNALS = [
   {
     id: 'weather_cyclone',
@@ -10,7 +26,7 @@ export const MARKET_NEWS_SIGNALS = [
     bgColor: 'bg-red-50',
     borderColor: 'border-red-200',
     headline: 'IMD Issues Yellow Alert: Low Pressure Area Forming Over Bay of Bengal',
-    detail: 'India Meteorological Department has identified a low-pressure system (LP) at 16.2°N, 88.5°E expected to intensify into a depression by Sep 2-3, 2026. Coastal squall warnings issued for Odisha-Andhra coast with wind speeds of 28-35 knots. Paradip and Dhamra pilotage may suspend for 24-48 hours if system strengthens.',
+    detail: 'India Meteorological Department has identified a low-pressure system (LP) at 16.2°N, 88.5°E expected to intensify into a depression in next 48-72 hours. Coastal squall warnings issued for Odisha-Andhra coast with wind speeds of 28-35 knots. Paradip and Dhamra pilotage may suspend for 24-48 hours if system strengthens.',
     source: 'India Meteorological Department (IMD)',
     sourceUrl: 'https://mausam.imd.gov.in',
     timestamp: 'Just Now (Live Alert)',
@@ -20,12 +36,12 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 1.18, // +18% spot surge
     coaDiscountModifier: 0.86,
     volatilityBoost: 1.45,
-    recommendedWindow: 'Sep 1 – Sep 8, 2026 (EXECUTE IMMEDIATELY)',
+    recommendedWindow: `${getDynamicWindow(0, 5)} (EXECUTE IMMEDIATELY)`,
     urgencyLevel: 'CRITICAL',
     strategyHeadline: 'Lock 80% COA + 20% Fast-Berth Hedge',
     strategyDetails: 'Fix maximum volume on multi-voyage COA at pre-cyclone rates. Avoid entering open spot market during port queue suspension.',
     delayConsequenceHeadline: 'Severe Anchorage Demurrage & +18% Spot Rate Jump',
-    delayConsequenceDetails: 'Delaying past Sep 8 exposes cargo to post-cyclone berth congestion queue (estimated 4.8 days wait) and $26,000/day demurrage penalty.'
+    delayConsequenceDetails: `Delaying past ${getDynamicDate(5)} exposes cargo to post-cyclone berth congestion queue (estimated 4.8 days wait) and $26,000/day demurrage penalty.`
   },
   {
     id: 'bdi_surge',
@@ -46,7 +62,7 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 1.14,
     coaDiscountModifier: 0.88,
     volatilityBoost: 1.25,
-    recommendedWindow: 'Sep 1 – Sep 12, 2026 (Pre-Q4 Restocking Window)',
+    recommendedWindow: `${getDynamicWindow(0, 7)} (Pre-Q4 Restocking Window)`,
     urgencyLevel: 'HIGH',
     strategyHeadline: 'Lock 70% COA + 30% Spot Floating',
     strategyDetails: 'Lock forward multiple voyage contracts before Chinese Q4 iron ore restocking absorbs remaining Pacific Capesize capacity.',
@@ -72,7 +88,7 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 1.09,
     coaDiscountModifier: 0.89,
     volatilityBoost: 1.20,
-    recommendedWindow: 'Sep 3 – Sep 15, 2026 (Diversion Advisory)',
+    recommendedWindow: `${getDynamicWindow(2, 10)} (Diversion Advisory)`,
     urgencyLevel: 'MEDIUM-HIGH',
     strategyHeadline: 'Split Parcels: 60% Paradip COA + 40% Vizag/Dhamra Diversion',
     strategyDetails: 'Utilize deepwater berths at Gangavaram or Dhamra for prompt discharge while Paradip resolves conveyor maintenance queue.',
@@ -98,7 +114,7 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 0.94, // -6% freight softening
     coaDiscountModifier: 0.93,
     volatilityBoost: 0.90,
-    recommendedWindow: 'Sep 15 – Oct 5, 2026 (HOLD / WAIT FOR DIPS)',
+    recommendedWindow: `${getDynamicWindow(7, 21)} (HOLD / WAIT FOR DIPS)`,
     urgencyLevel: 'LOW',
     strategyHeadline: 'Hold Spot Charters / Stagger Procurement',
     strategyDetails: 'Commodity softening stabilizes charter market. Maintain 60% spot flexibility to capture freight rate discounts as owners compete for cargoes.',
@@ -124,7 +140,7 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 1.11,
     coaDiscountModifier: 0.87,
     volatilityBoost: 1.15,
-    recommendedWindow: 'Sep 2 – Sep 14, 2026 (Lock Tonnage Promptly)',
+    recommendedWindow: `${getDynamicWindow(1, 8)} (Lock Tonnage Promptly)`,
     urgencyLevel: 'HIGH',
     strategyHeadline: 'Lock 75% 3-Month COA + 25% Spot Option',
     strategyDetails: 'Secure dedicated tonnage contracts to guarantee vessel availability and protect against shipowner rate escalation.',
@@ -150,7 +166,7 @@ export const MARKET_NEWS_SIGNALS = [
     spotDriftMultiplier: 1.06,
     coaDiscountModifier: 0.90,
     volatilityBoost: 1.10,
-    recommendedWindow: 'Sep 1 – Sep 15, 2026 (Implement Eco-Speed Clauses)',
+    recommendedWindow: `${getDynamicWindow(0, 10)} (Implement Eco-Speed Clauses)`,
     urgencyLevel: 'MEDIUM',
     strategyHeadline: 'Lock COA with 11.5 Knots Eco-Steaming Clause',
     strategyDetails: 'Negotiate fuel-indexed charter contracts with 11.5 knot eco-speed clauses to offset $0.35/MT bunker inflation.',
