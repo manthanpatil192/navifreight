@@ -7,6 +7,7 @@ import {
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import { buildPsuTenderPlan } from '../utils/psuTenderEngine';
+import { getFutureDateString } from '../services/originWeatherService';
 
 export default function CharterTimingDecisionMatrix({
   selectedOrigin = 'hay_point',
@@ -157,11 +158,17 @@ export default function CharterTimingDecisionMatrix({
     horizonMonths: contractHorizonMonths
   });
 
-  // Calendar dates relative to current active date (Today: Sep 09, 2026)
-  // Under GFR 2017 21-day tender law, earliest legal laycan if tendered today is Oct 01 – Oct 08
-  const promptLaycanWindowDate = activeTenderPlan.promptLaycanWindow || 'Oct 01 – Oct 08, 2026';
-  const forwardDipWindowDate = activeTenderPlan.targetDipWindow; // Dynamic Dip Valley (tendered Sep 21)
-  const blackoutWindowDate = 'Nov 01 – Nov 18, 2026'; // Seasonal Pre-Winter Volatility Spike
+  // Calendar dates relative to current active client date (Today: dynamic from activeTenderPlan.todayDate)
+  // Under GFR 2017 21-day tender law, earliest legal laycan if tendered today
+  const promptLaycanWindowDate = activeTenderPlan.promptLaycanWindow;
+  const forwardDipWindowDate = activeTenderPlan.targetDipWindow;
+  
+  // Calculate dynamic pre-winter volatility blackout window (T+45d to T+62d)
+  const blackoutStart = new Date();
+  blackoutStart.setDate(blackoutStart.getDate() + 45);
+  const blackoutEnd = new Date(blackoutStart);
+  blackoutEnd.setDate(blackoutEnd.getDate() + 17);
+  const blackoutWindowDate = `${blackoutStart.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })} – ${blackoutEnd.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}`;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-subtle p-5 mb-6 text-slate-800">
@@ -217,7 +224,7 @@ export default function CharterTimingDecisionMatrix({
                 Earliest Laycan (Tendered Today): {promptLaycanWindowDate}
               </span>
               <span className="text-[10px] text-emerald-700 font-mono block mt-0.5">
-                Forward Dip Laycan (Tendered Sep 21): {forwardDipWindowDate}
+                Forward Dip Laycan (Tendered {activeTenderPlan.tenderPublishDeadline}): {forwardDipWindowDate}
               </span>
             </div>
           </div>
@@ -255,7 +262,7 @@ export default function CharterTimingDecisionMatrix({
                 <strong>Procurement Directive:</strong>{' '}
                 {isExtremeDemand 
                   ? 'Extreme demand surge detected. Do NOT hold out exclusively for P10 bottom as vessel capacity may sell out. Issue tender notice within the P10–P50 price corridor to lock in required volume and protect blast furnace basestock feed.'
-                  : 'Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by Sep 21 targeting the Oct 12 – Oct 19 laycan window with 70% COA / 30% Spot allocation.'}
+                  : `Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by ${activeTenderPlan.tenderPublishDeadline} targeting the ${forwardDipWindowDate} laycan window with 70% COA / 30% Spot allocation.`}
               </p>
             </div>
             <div className="flex items-center space-x-2 text-[11px] text-emerald-800 bg-emerald-100/60 rounded px-2 py-1 font-medium">
@@ -286,7 +293,7 @@ export default function CharterTimingDecisionMatrix({
                 </span>
               </div>
               <span className="text-xs font-mono font-bold text-rose-900 bg-white border border-rose-200 px-2 py-0.5 rounded shadow-2xs">
-                Active Weather Halt: WAIT TILL {activeWeatherWaitDate || 'Sep 15, 2026'}
+                Active Weather Halt: WAIT TILL {activeWeatherWaitDate || getFutureDateString(3)}
               </span>
             </div>
 
@@ -321,7 +328,7 @@ export default function CharterTimingDecisionMatrix({
                       <strong>Protective Directive:</strong> Adverse sea weather at {originObj.name} ({terminalMetrics?.originWeather?.weatherHazardDescription || 'Severe Swell'}).
                       <div className="text-rose-900 font-bold mt-0.5">⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!</div>
                       <div className="mt-0.5">
-                        DO NOT charter spot ships today. <strong>WAIT TILL {terminalMetrics?.originWeather?.recommendedWaitDate || 'Sep 18, 2026'}</strong> when sea swell subsides.
+                        DO NOT charter spot ships today. <strong>WAIT TILL {terminalMetrics?.originWeather?.recommendedWaitDate || getFutureDateString(3)}</strong> when sea swell subsides.
                       </div>
                     </div>
                   </div>
@@ -340,7 +347,7 @@ export default function CharterTimingDecisionMatrix({
                     <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                     <p>
                       <strong>Protective Directive:</strong> Squally weather & high swell at {destObj.name} ({terminalMetrics?.destWeather?.stage || 'Depression'}). Pilotage restricted.
-                      <strong> DO NOT enter spot chartering today.</strong> <strong>WAIT TILL {terminalMetrics?.destWeather?.recommendedWaitDate || 'Sep 15, 2026'}</strong> to avoid paying unbudgeted demurrage.
+                      <strong> DO NOT enter spot chartering today.</strong> <strong>WAIT TILL {terminalMetrics?.destWeather?.recommendedWaitDate || getFutureDateString(3)}</strong> to avoid paying unbudgeted demurrage.
                     </p>
                   </div>
                   <div className="flex items-center space-x-2 text-[11px] text-rose-800 bg-rose-100/60 rounded px-2 py-1 font-medium">
@@ -400,7 +407,7 @@ export default function CharterTimingDecisionMatrix({
               <div className="flex items-start space-x-1.5">
                 <TrendingDown className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                 <p>
-                  <strong>Secondary Tactical Advice (30% Spot Volume):</strong> For optional forward parcels beyond the 70% core COA basestock, do NOT chase spot during weekly mini-surges. Float this 30% parcel into the mid-October P10 dip window ({forwardDipWindowDate}) to capture bottom-quartile rates and maximize arbitrage savings.
+                  <strong>Secondary Tactical Advice (30% Spot Volume):</strong> For optional forward parcels beyond the 70% core COA basestock, do NOT chase spot during weekly mini-surges. Float this 30% parcel into the forecasted P10 dip window ({forwardDipWindowDate}) to capture bottom-quartile rates and maximize arbitrage savings.
                 </p>
               </div>
               <div className="flex items-center space-x-2 text-[11px] text-indigo-800 bg-indigo-100/60 rounded px-2 py-1 font-medium">

@@ -37,12 +37,12 @@ export function buildPsuTenderPlan({
   // Standard bulk carrier steaming speed: 12 knots
   const sailingDays = Number((distanceNM / (12 * 24)).toFixed(1));
 
-  // Dynamic reference date: uses provided baseDate, or defaults to 2026-09-09 baseline
+  // Dynamic reference date: uses provided baseDate, or defaults to real current client calendar date
   const refDate = baseDate instanceof Date 
     ? baseDate 
     : (typeof baseDate === 'string' && !isNaN(new Date(baseDate).getTime()) 
         ? new Date(baseDate) 
-        : new Date(2026, 8, 9)); // Month 8 = September in JS (0-indexed)
+        : new Date());
 
   const todayDate = formatDate(refDate);
 
@@ -110,7 +110,7 @@ export function buildPsuTenderPlan({
     }
   ];
 
-  const tenderId = `TDR-2026-${(originObj.name || 'ORG').substring(0, 3).toUpperCase()}-${(destObj.name || 'DST').substring(0, 3).toUpperCase()}-${vesselKey.substring(0, 4).toUpperCase()}`;
+  const tenderId = `TDR-${refDate.getFullYear()}-${(originObj.name || 'ORG').substring(0, 3).toUpperCase()}-${(destObj.name || 'DST').substring(0, 3).toUpperCase()}-${vesselKey.substring(0, 4).toUpperCase()}`;
 
   return {
     tenderId,

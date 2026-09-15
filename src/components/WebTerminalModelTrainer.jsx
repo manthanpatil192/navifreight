@@ -11,7 +11,7 @@ import { VESSEL_CLASSES } from '../data/vesselTypes';
 import { PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
 import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
-import { fetchLiveOriginWeather, evaluateAlternateOriginPort } from '../services/originWeatherService';
+import { fetchLiveOriginWeather, evaluateAlternateOriginPort, getFutureDateString } from '../services/originWeatherService';
 import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 import { buildPsuTenderPlan } from '../utils/psuTenderEngine';
 
@@ -85,14 +85,26 @@ export default function WebTerminalModelTrainer({
   }, [manualOrigin, manualCargo, manualVessel]);
 
   const [activeTab, setActiveTab] = useState('terminal');
-  const [terminalHistory, setTerminalHistory] = useState([
-    { type: 'system', text: 'NaviFreight ML Inference & Training Console [Version 4.5.0]' },
-    { type: 'system', text: 'Trained on 2,124 daily trading observations of BDRY Freight Futures (2018–2026).' },
-    { type: 'system', text: 'Use the Logistics Manager Control Panel above or type custom commands in terminal.' },
-    { type: 'prompt', text: 'PS C:\\navifreight\\ml> python scripts/query_interactive_model.py test1' },
-    { 
-      type: 'output', 
-      text: `======================================================================
+  
+  // Dynamic Initial Terminal Output synchronizing with live calendar and statutory rules
+  const getInitialTerminalHistory = () => {
+    const initTenderPlan = buildPsuTenderPlan({
+      originId: 'hay_point',
+      destinationId: 'paradip',
+      vesselKey: 'capesize',
+      volumeMT: 150000,
+      horizonMonths: 3,
+      cargoType: 'Coking Coal'
+    });
+
+    return [
+      { type: 'system', text: 'NaviFreight ML Inference & Training Console [Version 4.5.0]' },
+      { type: 'system', text: 'Trained on 2,124 daily trading observations of BDRY Freight Futures (2018–2026).' },
+      { type: 'system', text: 'Use the Logistics Manager Control Panel above or type custom commands in terminal.' },
+      { type: 'prompt', text: 'PS C:\\navifreight\\ml> python scripts/query_interactive_model.py test1' },
+      { 
+        type: 'output', 
+        text: `======================================================================
       NAVIFREIGHT QUANTITATIVE PROCUREMENT DIRECTIVE & MARKET ANALYSIS     
 ======================================================================
   Route:             Hay Point / DBCT (Australia) -> Paradip Port (PPT)
@@ -121,8 +133,8 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
-  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: Sep 09): Issue 21-day tender today for Oct 01 – Oct 08 Laycan at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
-  * Forward Dip Schedule:     🟢 FORWARD DIP SCHEDULE: For secondary volume, float tender on Sep 21 to capture the seasonal P10 low freight dip (Oct 12 – Oct 19, 2026).
+  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
+  * Forward Dip Schedule:     🟢 FORWARD DIP SCHEDULE: For secondary volume, float tender on ${initTenderPlan.tenderPublishDeadline} to capture the seasonal P10 low freight dip (${initTenderPlan.targetDipWindow}).
   * Market Risk Regime:       PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
@@ -156,24 +168,27 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
-    ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
-  * Forward Dip Laycan (Tendered Sep 21):   Oct 12 – Oct 19, 2026
-    ↳ [Target Dip Optimization: Float tender on Sep 21 to lock in the lowest P10 market freight rate]
+  * Earliest Legal Laycan (Tendered Today): ${initTenderPlan.promptLaycanWindow}
+    ↳ [21-Day Statutory Tender: Issued Today (${initTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${initTenderPlan.promptLaycanWindow}]
+  * Forward Dip Laycan (Tendered ${initTenderPlan.tenderPublishDeadline}):   ${initTenderPlan.targetDipWindow}
+    ↳ [Target Dip Optimization: Float tender on ${initTenderPlan.tenderPublishDeadline} to lock in the lowest P10 market freight rate]
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
 [6] PSU STATUTORY TENDER & BOOKING TIMELINE:
-  * Tender Notice ID:    TDR-2026-HAY-PAR-CAPE
+  * Tender Notice ID:    ${initTenderPlan.tenderId}
   * Tender Scope:        150,000 MT Coking Coal (+/- 10% MOLOO)
-  * Target Laycan Dip:   Oct 12 – Oct 19, 2026 (~14.3d sea transit from Hay Point)
-  * Publish Tender By:   Sep 21, 2026 (Mandatory 21-day statutory notice period)
-  * Ship Booking Date:   Oct 10 – Oct 11, 2026 (L1 reverse auction & Charter Party fixed)
-  * Action Advisory:     Issue 21-day tender by Sep 21 to book vessel in time for low freight dip
+  * Target Laycan Dip:   ${initTenderPlan.targetDipWindow} (~${initTenderPlan.sailingDays}d sea transit from Hay Point)
+  * Publish Tender By:   ${initTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
+  * Ship Booking Date:   ${initTenderPlan.bookingDate} (L1 reverse auction & Charter Party fixed)
+  * Action Advisory:     ${initTenderPlan.tenderStrategyAdvice}
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
-    }
-  ]);
+      }
+    ];
+  };
+
+  const [terminalHistory, setTerminalHistory] = useState(getInitialTerminalHistory);
   
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
@@ -510,9 +525,21 @@ export default function WebTerminalModelTrainer({
       const demurrageSavedUSD = Math.round(idleDaysSaved * canonicalDemurrageDailyUSD);
       const demurrageSavedINR_Lakhs = Number((idleDaysSaved * canonicalDemurrageDailyINR_Lakhs).toFixed(2));
 
+      // Dynamic PSU Tender Plan coupled with route and vessel specs
+      const psuTenderPlan = buildPsuTenderPlan({
+        originId: activeOrigin,
+        destinationId: activeDest,
+        vesselKey: recommendedVesselKey,
+        volumeMT: activeVolume,
+        horizonMonths: activeHorizon,
+        cargoType: activeCargo,
+        originWeather,
+        destWeather
+      });
+
       const primaryWaitDate = !originProper 
-        ? (originWeather?.recommendedWaitDate || 'Sep 15, 2026')
-        : (!destProper ? (destWeather?.recommendedWaitDate || 'Sep 15, 2026') : 'Oct 12 – Oct 19, 2026');
+        ? (originWeather?.recommendedWaitDate || getFutureDateString(3))
+        : (!destProper ? (destWeather?.recommendedWaitDate || getFutureDateString(3)) : psuTenderPlan.targetDipWindow);
 
       // Non-Contradictory Section [2] Directives Structure
       let primaryProcurementDirective = "";
@@ -525,11 +552,11 @@ export default function WebTerminalModelTrainer({
         primaryProcurementDirective = `🔴 SUSPEND TENDER FLOAT / WEATHER HALT: ${hazardStr}. WAIT TILL ${primaryWaitDate} for sea state clearance, or DIVERT to alternate loading port.`;
         secondarySpotHedgingDirective = `⚠️ CONTRACT DEFAULT RISK: Tender issuance suspended until weather subsides. Avoid committing to unviable laycans.`;
       } else if (compositeRiskScore >= 50 || portCongestionData.trafficRiskScore >= 55 || portCongestionData.avgAnchorageWaitDays >= 3.0) {
-        primaryProcurementDirective = `🟡 PROMPT TENDER NOTICE (Elevated Anchorage Queue): Float tender today (Sep 09) for Oct 01 – Oct 08 Laycan with 48h Weather Working Day (WWD) clause to shield from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage.`;
-        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Issue secondary tender notice by Sep 21 targeting the low freight dip (${primaryWaitDate}).`;
+        primaryProcurementDirective = `🟡 PROMPT TENDER NOTICE (Elevated Anchorage Queue): Float tender today (${psuTenderPlan.todayDate}) for ${psuTenderPlan.promptLaycanWindow} Laycan with 48h Weather Working Day (WWD) clause to shield from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage.`;
+        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Issue secondary tender notice by ${psuTenderPlan.tenderPublishDeadline} targeting the low freight dip (${primaryWaitDate}).`;
       } else {
-        primaryProcurementDirective = `🟢 PROMPT TENDER NOTICE (Immediate Baseline Demand): Issue tender notice today (Sep 09) for Oct 01 – Oct 08 Laycan at target rate ₹${estP10INR.toLocaleString()}/MT ($${estP10.toFixed(2)}/MT) for baseline blast furnace feed.`;
-        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Float secondary tender notice on Sep 21 targeting the forecasted dip (${primaryWaitDate}) to capture low freight rates.`;
+        primaryProcurementDirective = `🟢 PROMPT TENDER NOTICE (Immediate Baseline Demand): Issue tender notice today (${psuTenderPlan.todayDate}) for ${psuTenderPlan.promptLaycanWindow} Laycan at target rate ₹${estP10INR.toLocaleString()}/MT ($${estP10.toFixed(2)}/MT) for baseline blast furnace feed.`;
+        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Float secondary tender notice on ${psuTenderPlan.tenderPublishDeadline} targeting the forecasted dip (${primaryWaitDate}) to capture low freight rates.`;
       }
 
       let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
@@ -545,18 +572,6 @@ export default function WebTerminalModelTrainer({
 
       const buyStrikeDirectiveText = primaryProcurementDirective;
       const holdWaitDirectiveText = secondarySpotHedgingDirective;
-
-      // Dynamic PSU Tender Plan coupled with route and vessel specs
-      const psuTenderPlan = buildPsuTenderPlan({
-        originId: activeOrigin,
-        destinationId: activeDest,
-        vesselKey: recommendedVesselKey,
-        volumeMT: activeVolume,
-        horizonMonths: activeHorizon,
-        cargoType: activeCargo,
-        originWeather,
-        destWeather
-      });
 
       const terminalMetricsPayload = {
         spotUSD: baseRate,
@@ -585,7 +600,7 @@ export default function WebTerminalModelTrainer({
           waveHeightMeters: originWeather?.waveHeightMeters || 1.6,
           windSpeedKnots: originWeather?.windSpeedKnots || 18.0,
           weatherHazardDescription: originWeather?.weatherHazardDescription || 'Calm waters',
-          recommendedWaitDate: originWeather?.recommendedWaitDate || 'Sep 12, 2026',
+          recommendedWaitDate: originWeather?.recommendedWaitDate || getFutureDateString(3),
           contractCancellationRisk: !originProper,
           cancellationWarning: originWeather?.cancellationWarning,
           alternatePort: originWeather?.alternatePort
@@ -597,7 +612,7 @@ export default function WebTerminalModelTrainer({
           stage: destWeather?.stage || 'Normal Synoptic',
           waveHeightMeters: destWeather?.waveHeightMeters || 2.2,
           windSpeedKnots: destWeather?.windSpeedKnots || 24.5,
-          recommendedWaitDate: destWeather?.recommendedWaitDate || 'Sep 15, 2026',
+          recommendedWaitDate: destWeather?.recommendedWaitDate || getFutureDateString(3),
           waitDays: destWeather?.waitDays || 0,
           demurrageINR_Lakhs: (destDelayDays * canonicalDemurrageDailyINR_Lakhs).toFixed(1),
           demurrageUSD: Math.round(destDelayDays * canonicalDemurrageDailyUSD)
@@ -660,14 +675,14 @@ export default function WebTerminalModelTrainer({
     - Sea Condition: Wave ${originWeather?.waveHeightMeters || 1.6}m | Wind ${originWeather?.windSpeedKnots || 18.0} kts | Pressure 1012.0 hPa
     - Loading Status:${originProper ? '🟢 [PROPER SEA WEATHER] Operational berths & conveyor loading normal.' : '🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.'}
     - CANCELLATION:  ${originProper ? 'No contract cancellation risk detected.' : `⚠️ ${originWeather?.cancellationWarning || 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!'}`}
-    - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || 'Oct 20, 2026'} when swell subsides.`}
+    - WAIT DIRECTIVE:${originProper ? 'Immediate loading clearance granted (Zero sea swell delay).' : `WAIT TILL ${originWeather?.recommendedWaitDate || getFutureDateString(3)} when swell subsides.`}
     ${(!originProper && originWeather?.alternatePort) ? `- ALTERNATE PORT:RECOMMENDED DIVERSION -> ${originWeather.alternatePort.portName}` : ''}
 
   * DESTINATION PORT [${destObj.name || activeDest}]:
     - Meteorology:   ${destWeather?.cwcAuthority || 'IMD CWC Telemetry'}
     - Sea Condition: Wave ${destWeather?.waveHeightMeters || 2.2}m | Wind ${destWeather?.windSpeedKnots || 24.5} kts | Stage: ${destWeather?.stage || 'Normal Synoptic'}
     - Pilotage/Berth:${destProper ? '🟢 [PROPER SEA WEATHER] Outer harbour & deepwater berths operating seamlessly.' : '🔴 [IMPROPER SEA WEATHER] Anchorage delay +' + destDelayDays + 'd adds demurrage exposure.'}
-    - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || 'Oct 20, 2026'} for pilotage clearance.`}
+    - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || getFutureDateString(3)} for pilotage clearance.`}
 
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
@@ -706,10 +721,10 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): Oct 01 – Oct 08, 2026
-    ↳ [21-Day Statutory Tender: Issued Sep 09 -> Awarded Sep 30 -> Earliest Legal Loading Oct 01]
-  * Forward Dip Laycan (Tendered Sep 21):   ${primaryWaitDate}
-    ↳ [Target Dip Optimization: Float tender on Sep 21 to lock in the lowest P10 market freight rate]
+  * Earliest Legal Laycan (Tendered Today): ${psuTenderPlan.promptLaycanWindow}
+    ↳ [21-Day Statutory Tender: Issued Today (${psuTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${psuTenderPlan.promptLaycanWindow}]
+  * Forward Dip Laycan (Tendered ${psuTenderPlan.tenderPublishDeadline}):   ${primaryWaitDate}
+    ↳ [Target Dip Optimization: Float tender by ${psuTenderPlan.tenderPublishDeadline} to lock in the lowest P10 market freight rate]
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------
@@ -849,8 +864,8 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
-  * Forward Dip Laycan (Tendered Sep 21):   Oct 12 - Oct 19, 2026
+  * Earliest Legal Laycan (Tendered Today): ${test1TenderPlan.promptLaycanWindow}
+  * Forward Dip Laycan (Tendered ${test1TenderPlan.tenderPublishDeadline}):   ${test1TenderPlan.targetDipWindow}
   * Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Lighterage Required!)
 ----------------------------------------------------------------------
 [4] PSU STATUTORY TENDER & BOOKING TIMELINE:
@@ -900,7 +915,7 @@ export default function WebTerminalModelTrainer({
         waveHeightMeters: 4.8,
         windSpeedKnots: 52.0,
         weatherHazardDescription: 'Severe Tropical Cyclone Jasper tracking toward Queensland coal terminals. Conveyors halted.',
-        recommendedWaitDate: 'Sep 18, 2026',
+        recommendedWaitDate: getFutureDateString(3),
         contractCancellationRisk: true,
         cancellationWarning: 'CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!',
         alternatePort: {
@@ -916,15 +931,15 @@ export default function WebTerminalModelTrainer({
         stage: 'Normal Deepwater Berthing',
         waveHeightMeters: 1.6,
         windSpeedKnots: 17.5,
-        recommendedWaitDate: 'Sep 08, 2026',
+        recommendedWaitDate: 'Immediate Clearance (No Delay)',
         waitDays: 0,
         demurrageINR_Lakhs: '0.0',
         demurrageUSD: 0
       },
       isExtremeDemand: true,
       buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.',
-      holdWaitDirectiveText: '🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL Sep 18, 2026 or DIVERT to Newcastle Port (PWCS).',
-      recommendedWaitDate: 'Sep 18, 2026',
+      holdWaitDirectiveText: `🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL ${getFutureDateString(3)} or DIVERT to Newcastle Port (PWCS).`,
+      recommendedWaitDate: getFutureDateString(3),
       bothWeatherProper: false,
       source: 'test2'
     };
@@ -972,7 +987,7 @@ export default function WebTerminalModelTrainer({
     - Loading Status:🔴 [IMPROPER SEA WEATHER - CRITICAL] Loading berths & rail dumpers HALTED.
     - CANCELLATION:  ⚠️ CONTRACT MAY BE CANCELLED DUE TO WEATHER (Laycan Default Risk / Force Majeure)!
                      Shipowners may issue Notice of Cancellation as vessel cannot berth within laycan.
-    - WAIT DIRECTIVE:WAIT TILL Sep 18, 2026 when cyclone track passes inland and swells drop <2.2m.
+    - WAIT DIRECTIVE:WAIT TILL ${getFutureDateString(3)} when cyclone track passes inland and swells drop <2.2m.
     - ALTERNATE PORT:RECOMMENDED DIVERSION -> Newcastle Port (PWCS / NCIG, NSW)
                      (All factors verified: 15.2m draft >= 14.5m Panamax, calm 1.6m seas, active coking coal feed).
 
@@ -983,7 +998,7 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
   * BUY / STRIKE:    🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.
-  * HOLD / WAIT:     🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL Sep 18, 2026 or DIVERT to Newcastle Port (PWCS).
+  * HOLD / WAIT:     🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL ${getFutureDateString(3)} or DIVERT to Newcastle Port (PWCS).
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
@@ -1007,7 +1022,7 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
+  * Earliest Legal Laycan (Tendered Today): ${test2TenderPlan.promptLaycanWindow}
   * Draft Clearance:                 [PASSED] Vessel draft 14.5m <= Port max 16.5m (Outer Harbour VGCB)
 ----------------------------------------------------------------------
 [6] PSU STATUTORY TENDER & BOOKING TIMELINE:
@@ -1030,6 +1045,15 @@ export default function WebTerminalModelTrainer({
 
     const redSeaNews = MARKET_NEWS_SIGNALS.find(s => s.id === 'fuel_tax') || MARKET_NEWS_SIGNALS[2];
     
+    const test3TenderPlan = buildPsuTenderPlan({
+      originId: 'richards_bay',
+      destinationId: 'paradip',
+      vesselKey: 'capesize',
+      volumeMT: 180000,
+      horizonMonths: 6,
+      cargoType: 'Coking Coal'
+    });
+
     const terminalMetricsPayload = {
       spotUSD: 14.20,
       spotINR: 1228,
@@ -1076,20 +1100,11 @@ export default function WebTerminalModelTrainer({
       isExtremeDemand: true,
       buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,453 – ₹1,825 /MT. Red Sea squeeze driving global bulk tonne-miles. Lock 80% under 6-Month COA immediately to avoid ₹2,340/MT P90 surge!',
       holdWaitDirectiveText: '🔴 HOLD / DO NOT CHARTER SPOT: Global fleet squeeze underway. Spot market carries severe upside inflation. Rely strictly on multi-voyage COA coverage.',
-      recommendedWaitDate: 'Oct 05 – Oct 12, 2026',
+      recommendedWaitDate: test3TenderPlan.targetDipWindow,
       bothWeatherProper: true,
-      source: 'test3'
+      source: 'test3',
+      psuTenderPlan: test3TenderPlan
     };
-
-    const test3TenderPlan = buildPsuTenderPlan({
-      originId: 'richards_bay',
-      destinationId: 'paradip',
-      vesselKey: 'capesize',
-      volumeMT: 180000,
-      horizonMonths: 6,
-      cargoType: 'Coking Coal'
-    });
-    terminalMetricsPayload.psuTenderPlan = test3TenderPlan;
 
     onRunScenario({
       origin: 'richards_bay',
@@ -1137,7 +1152,7 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Combined average price paid per ton across both contract types]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): Oct 01 - Oct 08, 2026
+  * Earliest Legal Laycan (Tendered Today): ${test3TenderPlan.promptLaycanWindow}
   * Draft Clearance:           [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (KICT Tidal Window Required!)
 ----------------------------------------------------------------------
 [4] PSU STATUTORY TENDER & BOOKING TIMELINE:
@@ -1484,7 +1499,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 [4] OPERATIONAL TIMING & VESSEL FIT:
   * Cape of Good Hope Transit Time:  34.4 Days (vs 19.6 Days via Suez)
   * Extra Distance Traveled:         +4,800 Nautical Miles (+75.6% Ton-Mile Load)
-  * Primary COA Laycan Window:       Sep 08 - Sep 16, 2026
+  * Primary COA Laycan Window:       ${getFutureDateString(3)} – ${getFutureDateString(11)}
   * Draft Clearance:                 [PASSED WITH TIDAL WINDOW] Vessel 15.8m <= Port 16.0m (KICT Berth at High Tide)
 ======================================================================
 [GRAPH SYNCED] Forecast Chart dynamically shifted to Red Sea Geopolitical Cape Rerouting Trajectory!`

@@ -3,9 +3,9 @@ import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import baltic7YearModelWeights from '../data/baltic7YearModelWeights.json';
 
-// Helper for dynamic calendar date computations (Anchor: Sep 1, 2026)
-function formatDynamicDateRange(startOffsetDays, endOffsetDays) {
-  const baseAnchor = new Date(2026, 8, 1); // Month 8 is September in JS (0-indexed)
+// Helper for dynamic calendar date computations (Anchor: Today's live calendar date)
+export function formatDynamicDateRange(startOffsetDays, endOffsetDays, anchorDate = new Date()) {
+  const baseAnchor = anchorDate instanceof Date ? anchorDate : new Date();
   const startDate = new Date(baseAnchor.getTime() + startOffsetDays * 24 * 60 * 60 * 1000);
   const endDate = new Date(baseAnchor.getTime() + endOffsetDays * 24 * 60 * 60 * 1000);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -16,8 +16,8 @@ function formatDynamicDateRange(startOffsetDays, endOffsetDays) {
   return `${months[startDate.getMonth()]} ${startDate.getDate()} – ${months[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
 }
 
-function formatSingleDate(offsetDays) {
-  const baseAnchor = new Date(2026, 8, 1);
+export function formatSingleDate(offsetDays, anchorDate = new Date()) {
+  const baseAnchor = anchorDate instanceof Date ? anchorDate : new Date();
   const d = new Date(baseAnchor.getTime() + offsetDays * 24 * 60 * 60 * 1000);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
@@ -241,20 +241,31 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
   const terminalP90USD = terminalMetrics?.p90USD || forecast.p90 || Number((baseSpot * 1.28).toFixed(2));
   const terminalCoaUSD = terminalMetrics?.coaUSD || coaFixed;
 
-  // Relative historical factors from 2023 to 2026
+  // Dynamically compute calendar month labels anchored to the real client date
+  const curDate = new Date();
+  const monthsArr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const getHistoricalDateLabel = (monthsAgo) => {
+    const d = new Date(curDate.getFullYear(), curDate.getMonth() - monthsAgo, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const currentMonthLabel = `${curDate.getFullYear()}-${String(curDate.getMonth() + 1).padStart(2, '0')} (Current)`;
+
+  // Relative historical factors from the past 3 years to current month
   const historicalFactors = [
-    { date: '2023-01', factor: 0.94, coaFactor: 0.88, sse: 1120 },
-    { date: '2023-05', factor: 0.97, coaFactor: 0.89, sse: 1180 },
-    { date: '2023-09', factor: 1.11, coaFactor: 0.91, sse: 1320 },
-    { date: '2024-01', factor: 1.07, coaFactor: 0.92, sse: 1290 },
-    { date: '2024-05', factor: 1.00, coaFactor: 0.92, sse: 1210 },
-    { date: '2024-09', factor: 1.08, coaFactor: 0.93, sse: 1300 },
-    { date: '2025-01', factor: 1.01, coaFactor: 0.91, sse: 1220 },
-    { date: '2025-05', factor: 1.06, coaFactor: 0.92, sse: 1280 },
-    { date: '2025-09', factor: 1.13, coaFactor: 0.94, sse: 1350 },
-    { date: '2026-01', factor: 1.04, coaFactor: 0.93, sse: 1250 },
-    { date: '2026-05', factor: 1.09, coaFactor: 0.94, sse: 1310 },
-    { date: '2026-08 (Current)', factor: 1.00, coaFactor: coaFixed / baseSpot, sse: 1205 }
+    { date: getHistoricalDateLabel(40), factor: 0.94, coaFactor: 0.88, sse: 1120 },
+    { date: getHistoricalDateLabel(36), factor: 0.97, coaFactor: 0.89, sse: 1180 },
+    { date: getHistoricalDateLabel(32), factor: 1.11, coaFactor: 0.91, sse: 1320 },
+    { date: getHistoricalDateLabel(28), factor: 1.07, coaFactor: 0.92, sse: 1290 },
+    { date: getHistoricalDateLabel(24), factor: 1.00, coaFactor: 0.92, sse: 1210 },
+    { date: getHistoricalDateLabel(20), factor: 1.08, coaFactor: 0.93, sse: 1300 },
+    { date: getHistoricalDateLabel(16), factor: 1.01, coaFactor: 0.91, sse: 1220 },
+    { date: getHistoricalDateLabel(12), factor: 1.06, coaFactor: 0.92, sse: 1280 },
+    { date: getHistoricalDateLabel(8), factor: 1.13, coaFactor: 0.94, sse: 1350 },
+    { date: getHistoricalDateLabel(4), factor: 1.04, coaFactor: 0.93, sse: 1250 },
+    { date: getHistoricalDateLabel(2), factor: 1.09, coaFactor: 0.94, sse: 1310 },
+    { date: currentMonthLabel, factor: 1.00, coaFactor: coaFixed / baseSpot, sse: 1205 }
   ];
 
   const formattedHistorical = historicalFactors.map(item => {
@@ -276,10 +287,15 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
     };
   });
 
-  // Forward 6 months dynamically coupled with Terminal P10, P50, and P90 predictions
+  // Forward 6 months dynamically calculated from current month and coupled with Terminal predictions
+  const getFutureMonthLabel = (monthOffset) => {
+    const d = new Date(curDate.getFullYear(), curDate.getMonth() + monthOffset, 1);
+    return `${monthsArr[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
   const forwardDrifts = [
     {
-      month: 'Sep 2026',
+      month: getFutureMonthLabel(0),
       spotMult: 1.041 * newsMult,
       p10Factor: 0.93,
       p90Factor: 1.16,
@@ -287,15 +303,15 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
       rationale: `Lead restocking window for ${forecast.destination.name}; sailing time ${forecast.sailingDays}d.`
     },
     {
-      month: 'Oct 2026',
+      month: getFutureMonthLabel(1),
       spotMult: (terminalP50USD * 0.96) / baseSpot,
       p10Factor: terminalP10USD / (terminalP50USD * 0.96),
       p90Factor: 1.20,
       recommendation: '🟢 STRIKE WINDOW (P10 DIP)',
-      rationale: `Expected seasonal local minimum (${forecast.bookingSchedule?.spotDipWindow || 'Oct 12-19'}). Optimal entry to execute 3M/6M COA.`
+      rationale: `Expected seasonal local minimum (${forecast.bookingSchedule?.spotDipWindow || 'P10 dip'}). Optimal entry to execute 3M/6M COA.`
     },
     {
-      month: 'Nov 2026',
+      month: getFutureMonthLabel(2),
       spotMult: (terminalP50USD * 1.08) / baseSpot,
       p10Factor: 0.90,
       p90Factor: terminalP90USD / (terminalP50USD * 1.08),
@@ -303,7 +319,7 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
       rationale: 'Post-monsoon restocking surge & Bay of Bengal cyclone squalls. DO NOT enter spot; rely on pre-locked COA.'
     },
     {
-      month: 'Dec 2026',
+      month: getFutureMonthLabel(3),
       spotMult: 1.15 * newsMult,
       p10Factor: 0.88,
       p90Factor: 1.24,
@@ -311,7 +327,7 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
       rationale: `Peak winter production. Multi-voyage COA delivers ${forecast.percentageSavings}% savings.`
     },
     {
-      month: 'Jan 2027',
+      month: getFutureMonthLabel(4),
       spotMult: 1.08 * newsMult,
       p10Factor: 0.89,
       p90Factor: 1.20,
@@ -319,7 +335,7 @@ export function generateDynamicTimeSeries(forecast, multiplier = 1, terminalMetr
       rationale: `Q1 seasonal weather alerts introduce vessel queuing at ${forecast.origin.name}.`
     },
     {
-      month: 'Feb 2027',
+      month: getFutureMonthLabel(5),
       spotMult: 1.03 * newsMult,
       p10Factor: 0.91,
       p90Factor: 1.16,

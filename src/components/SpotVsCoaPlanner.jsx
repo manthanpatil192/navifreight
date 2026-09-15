@@ -318,7 +318,7 @@ export default function SpotVsCoaPlanner({
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-2">
-              <strong>{coaVolumeMT.toLocaleString()} MT</strong> books in <strong className="text-white">{forecast?.bookingSchedule?.coaBookingWindow || 'Sep 3–11'}</strong> and ships on fixed laycan cycles at guaranteed <strong className="text-white">${coaRateUSD.toFixed(2)}/MT</strong>.
+              <strong>{coaVolumeMT.toLocaleString()} MT</strong> books in <strong className="text-white">{forecast?.bookingSchedule?.coaBookingWindow || 'Prompt Window'}</strong> and ships on fixed laycan cycles at guaranteed <strong className="text-white">${coaRateUSD.toFixed(2)}/MT</strong>.
             </p>
             <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
               <span>Transit Time:</span>
@@ -338,7 +338,7 @@ export default function SpotVsCoaPlanner({
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed mb-2">
-              <strong>{spotVolumeMT.toLocaleString()} MT</strong> is held in reserve. Forecast predicts spot valley on <strong className="text-amber-300">{forecast?.bookingSchedule?.spotDipWindow || 'Oct 12–19'}</strong> ($${forecast?.bookingSchedule?.spotDipRateUSD || '12.50'}/MT) $\rightarrow$ AI triggers spot fixture!
+              <strong>{spotVolumeMT.toLocaleString()} MT</strong> is held in reserve. Forecast predicts spot valley on <strong className="text-amber-300">{forecast?.bookingSchedule?.spotDipWindow || 'Forward Valley'}</strong> ($${forecast?.bookingSchedule?.spotDipRateUSD || '12.50'}/MT) $\rightarrow$ AI triggers spot fixture!
             </p>
             <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
               <span>Opportunistic Gain:</span>

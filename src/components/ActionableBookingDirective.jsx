@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, ShieldAlert, CheckCircle2, ArrowRight, TrendingUp, AlertTriangle, FileText, Zap, DollarSign, Calendar, Sparkles, Radio, Target, Lock, Ship, Navigation } from 'lucide-react';
 import InsightBulb from './InsightBulb';
+import { formatDynamicDateRange, formatSingleDate } from '../utils/forecastingEngine';
 
 /**
  * Actionable AI Booking Directive component
@@ -39,11 +40,11 @@ export default function ActionableBookingDirective({
 
   // Dynamic Route-Parameterized Booking Schedule from Forecast Engine
   const sched = forecast?.bookingSchedule || {
-    coaBookingWindow: 'Sep 3 – Sep 11, 2026',
-    coaFirstLaycanWindow: 'Sep 16 – Sep 21, 2026',
-    coaArrivalEta: 'Sep 23 – Sep 27, 2026',
-    spotDipWindow: 'Oct 12 – Oct 19, 2026',
-    spotArrivalEta: 'Nov 02 – Nov 09, 2026',
+    coaBookingWindow: formatDynamicDateRange(0, 7),
+    coaFirstLaycanWindow: formatDynamicDateRange(7, 12),
+    coaArrivalEta: formatDynamicDateRange(14, 18),
+    spotDipWindow: formatDynamicDateRange(28, 35),
+    spotArrivalEta: formatDynamicDateRange(45, 52),
     spotDipRateUSD: 12.50,
     spotDipSavingsINR: 1.42,
     sailingDays: 13.4,
@@ -236,7 +237,7 @@ export default function ActionableBookingDirective({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Delaying the base COA fixture past {sched.coaBookingWindow.split('–')[1] || 'Sep 15'} exposes the entire {cargoVolumeMT.toLocaleString()} MT volume on {originName} to spot surges (${projectedSpot.toFixed(2)}/MT) and unloader delays.
+              Delaying the base COA fixture past {sched.coaBookingWindow.split('–')[1] || formatSingleDate(7)} exposes the entire {cargoVolumeMT.toLocaleString()} MT volume on {originName} to spot surges (${projectedSpot.toFixed(2)}/MT) and unloader delays.
             </p>
           </div>
 
