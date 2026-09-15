@@ -3,7 +3,8 @@ import {
   Globe, Rss, Filter, Sparkles, ExternalLink, 
   Zap, ArrowRight, Flame, Wind, Anchor, RefreshCw, Cpu, Play,
   MapPin, ShieldCheck, Layers, ChevronDown, ChevronUp, AlertCircle, Ship,
-  TrendingUp, TrendingDown, Calculator, Database, CheckCircle2, ArrowUpRight, ArrowDownRight
+  TrendingUp, TrendingDown, Calculator, Database, CheckCircle2, ArrowUpRight, ArrowDownRight,
+  Calendar, Clock, Timer
 } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
@@ -108,6 +109,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'India Meteorological Department (IMD) RSMC / Open-Meteo Marine',
     sourceUrl: 'https://rsmcnewdelhi.imd.gov.in',
     timestamp: '22 mins ago (Live Ingestion)',
+    predictionDaysAhead: 'In 2 – 3 Days',
+    predictedDate: '18 Sep – 20 Sep 2026',
+    predictionHorizonLabel: 'T+48h to T+72h (Pre-Cyclone Laycan Window)',
+    impactTimeline: 'Peak Rate Squeeze: 19 Sep 2026 • Pilotage Resumption: 23 Sep 2026',
     entities: ['Paradip Port', 'Dhamra Port', 'Bay of Bengal', 'Squall Alert', 'Capesize Berth'],
     finbertSentiment: 'NEGATIVE (Disruption Shock)',
     finbertConfidence: 0.94,
@@ -151,6 +156,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'Indonesia Ministry of Energy (ESDM) / HBA Benchmark',
     sourceUrl: 'https://www.esdm.go.id',
     timestamp: '35 mins ago (Regulatory Wire)',
+    predictionDaysAhead: 'In 5 – 7 Days',
+    predictedDate: '20 Sep – 22 Sep 2026',
+    predictionHorizonLabel: 'T+5 to T+7 Days (DMO Quota Cutoff)',
+    impactTimeline: 'Peak Tonnage Scramble: 21 Sep 2026 • Policy Review: 05 Oct 2026',
     entities: ['Samarinda Port', 'Taboneo Anchorage', 'ESDM Ministry', 'DMO Quota', 'PCI Coal'],
     finbertSentiment: 'NEGATIVE (Export Constraint)',
     finbertConfidence: 0.95,
@@ -194,6 +203,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'UNCTADstat Maritime Transport API / IMF PortWatch',
     sourceUrl: 'https://unctadstat.unctad.org',
     timestamp: '1 hour ago (Fleet Analytics)',
+    predictionDaysAhead: 'In 14 – 21 Days',
+    predictedDate: '29 Sep – 06 Oct 2026',
+    predictionHorizonLabel: 'T+14 to T+21 Days (Shipyard Delivery Wave)',
+    impactTimeline: 'Max Spot Discount: 02 Oct 2026 • Tonnage Surplus Window: 3 Weeks',
     entities: ['UNCTADstat', 'IMF PortWatch', 'Capesize Orderbook', 'Alang Scrapping', 'Fleet Capacity'],
     finbertSentiment: 'POSITIVE (Supply Surplus)',
     finbertConfidence: 0.93,
@@ -237,6 +250,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'Indian Ports Association (IPA) Daily Traffic / VPT Notice',
     sourceUrl: 'http://ipa.nic.in',
     timestamp: '2 hours ago (IPA Port Wire)',
+    predictionDaysAhead: 'In 4 – 6 Days',
+    predictedDate: '19 Sep – 21 Sep 2026',
+    predictionHorizonLabel: 'T+96h Notice (Berth Go-Slow Deadline)',
+    impactTimeline: 'Demurrage Surcharge Peak: 20 Sep 2026 • Gangavaram Diversion Window: Immediate',
     entities: ['Visakhapatnam Port', 'Gangavaram Port', 'IPA Report', 'Dockworker Strike', 'SAIL Bhilai'],
     finbertSentiment: 'NEGATIVE (Demurrage Risk)',
     finbertConfidence: 0.92,
@@ -280,6 +297,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'Indian Ports Association (IPA) / DPCL Operational Gazette',
     sourceUrl: 'http://ipa.nic.in',
     timestamp: '2.5 hours ago (Port Gazette)',
+    predictionDaysAhead: 'In 7 – 10 Days',
+    predictedDate: '22 Sep – 25 Sep 2026',
+    predictionHorizonLabel: 'T+7 to T+10 Days (Berth Automation Dividend)',
+    impactTimeline: 'Zero Queue Normalization: 24 Sep 2026 • Fast Turnaround Bonus Active',
     entities: ['Dhamra Port', 'Gangavaram Port', 'Turnaround 1.1d', 'SAIL Bokaro', 'Dispatch Bonus'],
     finbertSentiment: 'POSITIVE (Turnaround Dividend)',
     finbertConfidence: 0.91,
@@ -323,6 +344,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'Queensland Department of Transport (QldTraffic) / Aurizon Wire',
     sourceUrl: 'https://www.data.qld.gov.au',
     timestamp: '3 hours ago (QldTraffic Alert)',
+    predictionDaysAhead: 'In 3 – 5 Days',
+    predictedDate: '18 Sep – 20 Sep 2026',
+    predictionHorizonLabel: 'T+72h to T+120h (Aurizon Network Outage)',
+    impactTimeline: 'DBCT Vessel Queue Peak: 20 Sep 2026 • Track Restoration: 27 Sep 2026',
     entities: ['Hay Point Terminal', 'DBCT Queensland', 'Goonyella Rail', 'Coking Coal', 'FOB Delay'],
     finbertSentiment: 'NEGATIVE (Loading Stoppage)',
     finbertConfidence: 0.89,
@@ -366,6 +391,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'FRED Federal Reserve St. Louis / DGCIS Global Steel Trade',
     sourceUrl: 'https://fred.stlouisfed.org',
     timestamp: '4 hours ago (Macro Demand Data)',
+    predictionDaysAhead: 'In 10 – 14 Days',
+    predictedDate: '25 Sep – 29 Sep 2026',
+    predictionHorizonLabel: 'T+10 to T+14 Days (Ballast Repositioning)',
+    impactTimeline: 'Pacific Fleet Influx into Bay of Bengal: 26 Sep 2026 • Tender Discount: -₹1.89 Cr',
     entities: ['FRED API', 'Tangshan Steel', 'Pacific Capesize Surplus', 'SAIL Rourkela', 'Freight Softening'],
     finbertSentiment: 'POSITIVE (Buyer Market)',
     finbertConfidence: 0.92,
@@ -409,6 +438,10 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     rawSource: 'Ship & Bunker Singapore Averages / RBI Reference Rate',
     sourceUrl: 'https://shipandbunker.com',
     timestamp: '5 hours ago (Bunker Wire)',
+    predictionDaysAhead: 'In 1 – 2 Days',
+    predictedDate: '16 Sep – 17 Sep 2026',
+    predictionHorizonLabel: 'T+24h to T+48h (Prompt Bunkering Stem)',
+    impactTimeline: 'Immediate Contract BAF Adjustment: 17 Sep 2026 • Daily Steaming Surcharge Active',
     entities: ['Singapore Bunker', 'VLSFO 0.5%', 'Ship & Bunker', 'RBI USD/INR', 'Capesize Opex'],
     finbertSentiment: 'NEGATIVE (Fuel Opex Shock)',
     finbertConfidence: 0.90,
@@ -553,6 +586,10 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
         rawSource: 'Live NLP Pipeline Simulator / GDELT Ingestion Feed',
         sourceUrl: 'https://news.google.com',
         timestamp: 'Just Analyzed (0.04s)',
+        predictionDaysAhead: isPriceUp ? 'In 3 – 5 Days' : 'In 10 – 14 Days',
+        predictedDate: isPriceUp ? '18 Sep – 20 Sep 2026' : '25 Sep – 29 Sep 2026',
+        predictionHorizonLabel: isPriceUp ? 'T+72h to T+120h (Spot Friction Horizon)' : 'T+10 to T+14 Days (Tonnage Elasticity Window)',
+        impactTimeline: isPriceUp ? 'Projected Disruption Peak: 19 Sep 2026 • Laycan Window: 5 Days' : 'Projected Rate Softening: 27 Sep 2026 • Savings Window: 14 Days',
         entities: ['Dynamic Input', 'Corridor Whitelist Hit', 'NLP Tokenizer'],
         finbertSentiment: isPriceUp ? 'NEGATIVE (Freight Squeeze)' : 'POSITIVE (Freight Softening)',
         finbertConfidence: 0.93,
@@ -948,6 +985,18 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                     {event.title}
                   </h3>
 
+                  {/* Prediction Lead Time & Target Impact Date */}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[9px] font-mono">
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-bold flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-500" />
+                      <span>{event.predictionDaysAhead || 'In 3–5 Days'}</span>
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-indigo-600" />
+                      <span>Target: {event.predictedDate || '18 Sep 2026'}</span>
+                    </span>
+                  </div>
+
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[10px]">
                     <div className="flex items-center space-x-1.5 font-mono font-bold">
                       {event.priceDirection === 'UP' ? (
@@ -1048,6 +1097,23 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                       </span>
                     </div>
                   </div>
+
+                  {/* PREDICTION LEAD TIME & TARGET IMPACT DATE RIBBON */}
+                  <div className="mt-3 pt-2.5 border-t border-rose-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-rose-500/50 text-rose-300 font-bold flex items-center gap-1.5 shadow-xs">
+                        <Clock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>Predicted Lead Time: <strong className="text-white">{activeEvent.predictionDaysAhead || 'In 2–3 Days'}</strong></span>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-amber-500/50 text-amber-300 font-bold flex items-center gap-1.5 shadow-xs">
+                        <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>Expected Rate Peak Date: <strong className="text-white">{activeEvent.predictedDate || '18–20 Sep 2026'}</strong></span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-rose-200/90 font-mono bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/60">
+                      {activeEvent.predictionHorizonLabel || 'T+48h to T+72h Pre-Berthing Window'}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 border-2 border-emerald-500/80 shadow-lg">
@@ -1077,6 +1143,23 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                       </span>
                     </div>
                   </div>
+
+                  {/* PREDICTION LEAD TIME & TARGET SOFTENING DATE RIBBON */}
+                  <div className="mt-3 pt-2.5 border-t border-emerald-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-emerald-500/50 text-emerald-300 font-bold flex items-center gap-1.5 shadow-xs">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Predicted Lead Time: <strong className="text-white">{activeEvent.predictionDaysAhead || 'In 14–21 Days'}</strong></span>
+                      </div>
+                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-cyan-500/50 text-cyan-300 font-bold flex items-center gap-1.5 shadow-xs">
+                        <Calendar className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <span>Expected Softening Date: <strong className="text-white">{activeEvent.predictedDate || '29 Sep – 06 Oct 2026'}</strong></span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-emerald-200/90 font-mono bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                      {activeEvent.predictionHorizonLabel || 'Tonnage Delivery Window'}
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -1090,6 +1173,19 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400">150,000 MT Capesize Parcel</span>
+                </div>
+
+                {/* Timeline & Benchmark Date Reference */}
+                <div className="mb-2.5 p-2 rounded-lg bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[10px] font-mono">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <span className="text-slate-400">Baseline Assessment: <strong>15 Sep 2026 (Today)</strong></span>
+                    <span className="text-slate-600">──►</span>
+                    <span className="text-cyan-300 font-bold">Predicted Date: <strong>{activeEvent.predictedDate}</strong> ({activeEvent.predictionDaysAhead})</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-amber-300 font-semibold">
+                    <Timer className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span>{activeEvent.impactTimeline}</span>
+                  </div>
                 </div>
 
                 {/* Formula Bar */}
