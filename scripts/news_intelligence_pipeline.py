@@ -71,11 +71,14 @@ def fetch_mock_and_live_feed():
     ]
 
 SAIL_CORRIDOR_ENTITIES = {
-    "ports": ["paradip", "vizag", "visakhapatnam", "haldia", "dhamra", "gangavaram", "hay point", "gladstone", "samarinda", "taboneo", "maputo", "richards bay"],
+    "ports": [
+        "paradip", "vizag", "visakhapatnam", "gangavaram", "dhamra", "haldia", "gopalpur", "sandheads", "sagar",
+        "hay point", "gladstone", "samarinda", "taboneo", "maputo", "richards bay", "vostochny", "taman"
+    ],
     "chokepoints": ["red sea", "suez", "bab el-mandeb", "malacca", "panama", "cape of good hope", "lombok", "strait of hormuz"],
-    "vessels": ["capesize", "panamax", "supramax", "kamsarmax", "bulker", "bulk carrier", "dry bulk"],
-    "commodities": ["coking coal", "metallurgical coal", "thermal coal", "iron ore", "pellet", "bunker", "vlsfo", "fuel oil"],
-    "operations": ["demurrage", "anchorage", "queue", "berth", "cyclone", "depression", "pilotage", "strike", "laycan", "charter party"]
+    "vessels": ["capesize", "panamax", "supramax", "kamsarmax", "newcastlemax", "bulker", "bulk carrier", "dry bulk"],
+    "commodities": ["coking coal", "metallurgical coal", "thermal coal", "pci coal", "iron ore", "pellet", "bunker", "vlsfo", "fuel oil"],
+    "operations": ["demurrage", "anchorage", "queue", "berth", "cyclone", "depression", "pilotage", "strike", "laycan", "charter party", "lock draft"]
 }
 
 def filter_corridor_relevance(article):
