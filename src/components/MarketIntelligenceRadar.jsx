@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Globe, Rss, Filter, Sparkles, ExternalLink, 
   Zap, ArrowRight, Flame, Wind, Anchor, RefreshCw, Cpu, Play,
-  MapPin, ShieldCheck, Layers, ChevronDown, ChevronUp, AlertCircle
+  MapPin, ShieldCheck, Layers, ChevronDown, ChevronUp, AlertCircle, Ship
 } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
