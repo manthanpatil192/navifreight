@@ -8,10 +8,9 @@ import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
 import MasterDecisionPipeline from './MasterDecisionPipeline';
-import SubSurfaceHullHealthCard from './SubSurfaceHullHealthCard';
 
 export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null }) {
-  const [activeSubTab, setActiveSubTab] = useState('pipeline'); // 'pipeline', 'tramp', 'hull', 'all'
+  const [activeSubTab, setActiveSubTab] = useState('pipeline'); // 'pipeline', 'tramp', 'all'
   const [selectedLivePort, setSelectedLivePort] = useState(selectedDestination || 'paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('');
   const [matchedId, setMatchedId] = useState(null);
@@ -108,19 +107,6 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('hull')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'hull'
-                ? 'bg-purple-900 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <Gauge className="w-3.5 h-3.5 text-rose-400" />
-            <span>3. Crisis Below the Waterline (Hull Drag)</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveSubTab('all')}
             className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeSubTab === 'all'
@@ -142,15 +128,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
         />
       )}
 
-      {/* MODULE 2: Sub-Surface Hull Health & Biofouling Drag Estimator */}
-      {(activeSubTab === 'hull' || activeSubTab === 'all') && (
-        <SubSurfaceHullHealthCard 
-          currency={currency} 
-          defaultDays={8} 
-        />
-      )}
-
-      {/* MODULE 3: Live Tramp Backhaul & Hop-and-Load Matching */}
+      {/* MODULE 2: Live Tramp Backhaul & Hop-and-Load Matching */}
       {(activeSubTab === 'tramp' || activeSubTab === 'all') && (
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-subtle mb-6">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
