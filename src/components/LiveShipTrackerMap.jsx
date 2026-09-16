@@ -361,37 +361,49 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
   });
 };
 
-// Initializes the fleet with persistent real-world time synchronization across days
+// Initializes the fleet with persistent real-world time synchronization across days (PS East Coast Only)
 export const getInitialFleetWithTimeSync = () => {
-  const STORAGE_KEY = 'navifreight_fleet_state_v9';
-  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v9';
+  const STORAGE_KEY = 'navifreight_fleet_state_v12_ps_only';
+  const TIMESTAMP_KEY = 'navifreight_fleet_timestamp_v12_ps_only';
   const now = Date.now();
 
   try {
-    localStorage.removeItem('navifreight_fleet_state_v7');
-    localStorage.removeItem('navifreight_fleet_timestamp_v7');
-    localStorage.removeItem('navifreight_fleet_state_v8');
-    localStorage.removeItem('navifreight_fleet_timestamp_v8');
+    ['v7', 'v8', 'v9', 'v10', 'v11'].forEach(v => {
+      localStorage.removeItem(`navifreight_fleet_state_${v}`);
+      localStorage.removeItem(`navifreight_fleet_timestamp_${v}`);
+    });
+
     const saved = localStorage.getItem(STORAGE_KEY);
     const savedTime = localStorage.getItem(TIMESTAMP_KEY);
 
     if (saved && savedTime) {
       const parsed = JSON.parse(saved);
       const elapsedHours = (now - Number(savedTime)) / (1000 * 3600);
-      if (elapsedHours > 0.005 && Array.isArray(parsed) && parsed.length > 0) {
-        // Automatically advance the fleet by the exact real hours elapsed since user last opened the app!
-        const advanced = advanceFleetByHours(parsed, Math.min(elapsedHours, 168));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(advanced));
-        localStorage.setItem(TIMESTAMP_KEY, String(now));
-        return advanced;
+      const validPsPorts = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'haldia', 'sandheads', 'gopalpur'];
+      
+      // Strict filter: Ensure only Indian East Coast vessels destined for PS ports are kept
+      const psOnlyFleet = Array.isArray(parsed) ? parsed.filter(v => 
+        v && v.coordinates && 
+        v.coordinates[0] >= 7.0 && v.coordinates[0] <= 23.5 &&
+        v.coordinates[1] >= 79.5 && v.coordinates[1] <= 90.5 &&
+        validPsPorts.includes((v.destinationId || '').toLowerCase())
+      ) : [];
+
+      if (psOnlyFleet.length >= 25) {
+        if (elapsedHours > 0.005) {
+          const advanced = advanceFleetByHours(psOnlyFleet, Math.min(elapsedHours, 168));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(advanced));
+          localStorage.setItem(TIMESTAMP_KEY, String(now));
+          return advanced;
+        }
+        return psOnlyFleet;
       }
-      return parsed;
     }
   } catch (e) {
     console.warn('Fleet persistence sync warning:', e);
   }
 
-  // Anchor to 24-hour cycle of current real-world clock
+  // Anchor to 24-hour cycle of current real-world clock using pure PS East Coast fleet
   const currentHourOfDay = new Date().getHours() + new Date().getMinutes() / 60;
   const initial = advanceFleetByHours(LIVE_AIS_VESSELS, (currentHourOfDay % 24) * 0.45);
   try {
@@ -644,19 +656,18 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         setIsWsConnected(true);
         setShowWsModal(false);
 
-        // Subscribe to full Indian Ocean, Bay of Bengal, and Indian East/West Coast ports
+        // Strictly subscribe ONLY to Indian East Coast & Bay of Bengal waters
+        // (Excludes Malaysia, Singapore, Malacca Strait, and foreign waters)
         const subscriptionMessage = {
           APIKey: key,
           BoundingBoxes: [
-            [[30.0, 65.0], [0.0, 105.0]],   // Full Indian Ocean, Bay of Bengal, Arabian Sea & Malacca Entry
-            [[25.0, 78.0], [8.0, 98.0]],    // Dedicated Indian East Coast (Haldia, Paradip, Dhamra, Vizag, Chennai)
-            [[25.0, 65.0], [8.0, 78.0]]     // Dedicated Indian West Coast (Mumbai, Kandla, Cochin)
+            [[23.5, 79.5], [10.0, 90.0]],   // Primary Bay of Bengal & Indian East Coast (Haldia, Sandheads, Dhamra, Paradip, Gopalpur, Vizag, Gangavaram)
+            [[10.0, 79.5], [7.0, 88.0]]     // Southern Bay of Bengal approach corridor
           ],
           FilterMessageTypes: [
             'PositionReport',
             'StandardClassBPositionReport',
-            'ExtendedClassBPositionReport',
-            'ShipStaticData'
+            'ExtendedClassBPositionReport'
           ]
         };
 
@@ -685,10 +696,42 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             const lng = Number(pos?.Longitude ?? meta?.longitude);
 
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && meta) {
+              // STRICT WATER CHECK: Must be within Indian East Coast / Bay of Bengal bounds
+              // Strictly reject any Malaysian, Singaporean, or foreign coordinates
+              if (lng > 90.0 || lng < 79.5 || lat < 7.0 || lat > 23.5) {
+                return;
+              }
+
               setVessels(prevList => {
                 const mmsiStr = String(meta.MMSI || meta.MMSI_String);
                 const existingIdx = prevList.findIndex(v => String(v.mmsi) === mmsiStr);
                 const existingVessel = existingIdx >= 0 ? prevList[existingIdx] : null;
+
+                // If not already in our tracked PS fleet, ONLY accept if it is confirmed bound for one of our 7 PS ports
+                let assignedDestPort = existingVessel?.destinationPort;
+                let assignedDestId = existingVessel?.destinationId;
+
+                if (!existingVessel) {
+                  const destStr = ((meta?.Destination || '') + ' ' + (pos?.Destination || '')).toUpperCase();
+                  if (destStr.includes('PARADIP') || destStr.includes('PPT') || destStr.includes('INPPT')) {
+                    assignedDestPort = 'Paradip Port (PPT)'; assignedDestId = 'paradip';
+                  } else if (destStr.includes('VIZAG') || destStr.includes('VISAKHAPATNAM') || destStr.includes('VPT') || destStr.includes('INVTZ')) {
+                    assignedDestPort = 'Visakhapatnam Port (VPT)'; assignedDestId = 'vizag';
+                  } else if (destStr.includes('GANGAVARAM') || destStr.includes('GPL') || destStr.includes('INGPR')) {
+                    assignedDestPort = 'Gangavaram Port (GPL)'; assignedDestId = 'gangavaram';
+                  } else if (destStr.includes('DHAMRA') || destStr.includes('DPCL') || destStr.includes('INDHM')) {
+                    assignedDestPort = 'Dhamra Port (DPCL)'; assignedDestId = 'dhamra';
+                  } else if (destStr.includes('HALDIA') || destStr.includes('HDC') || destStr.includes('INHAL')) {
+                    assignedDestPort = 'Haldia Dock Complex (HDC)'; assignedDestId = 'haldia';
+                  } else if (destStr.includes('SANDHEADS') || destStr.includes('SAGAR') || destStr.includes('INSHD')) {
+                    assignedDestPort = 'Sagar-Sandheads Anchorage'; assignedDestId = 'sandheads';
+                  } else if (destStr.includes('GOPALPUR') || destStr.includes('INGPL')) {
+                    assignedDestPort = 'Gopalpur Port (GPL)'; assignedDestId = 'gopalpur';
+                  } else {
+                    // Strictly reject vessels not bound for our 7 PS ports
+                    return prevList;
+                  }
+                }
 
                 const rawSog = pos?.Sog !== undefined ? pos.Sog : (pos?.sog !== undefined ? pos.sog : 0);
                 const sog = Number(Math.max(0, Number(rawSog)).toFixed(1));
@@ -700,28 +743,28 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   mmsi: mmsiStr,
                   imo: meta.IMO ? String(meta.IMO) : (existingVessel?.imo || '9000000'),
                   name: cleanShipName,
-                  vesselType: existingVessel?.vesselType || 'Commercial Cargo / Bulker',
-                  category: existingVessel?.category || 'Commercial Cargo',
-                  dwt: existingVessel?.dwt || 75000,
-                  currentDraughtMeters: existingVessel?.currentDraughtMeters || 12.5,
-                  maxDraughtMeters: existingVessel?.maxDraughtMeters || 14.5,
-                  loaMeters: existingVessel?.loaMeters || 225,
-                  beamMeters: existingVessel?.beamMeters || 32.2,
+                  vesselType: existingVessel?.vesselType || 'Capesize',
+                  category: 'Dry Bulk',
+                  dwt: existingVessel?.dwt || 150000,
+                  currentDraughtMeters: existingVessel?.currentDraughtMeters || 15.5,
+                  maxDraughtMeters: existingVessel?.maxDraughtMeters || 18.0,
+                  loaMeters: existingVessel?.loaMeters || 280,
+                  beamMeters: existingVessel?.beamMeters || 45.0,
                   coordinates: [lat, lng],
                   headingDegrees: cog,
                   speedKnots: sog,
                   status: sog < 0.5 ? 'At Anchor (Port Roads Queue)' : 'Underway - Active AIS Transit',
-                  originPort: existingVessel?.originPort || 'Live AIS Satellite Broadcast',
-                  destinationPort: existingVessel?.destinationPort || 'Indian Coast Waypoint',
-                  destinationId: existingVessel?.destinationId || 'paradip',
-                  cargo: existingVessel?.cargo || 'Commercial Cargo in Transit',
+                  originPort: existingVessel?.originPort || 'Hay Point DBCT (Australia)',
+                  destinationPort: assignedDestPort || 'Paradip Port (PPT)',
+                  destinationId: assignedDestId || 'paradip',
+                  cargo: existingVessel?.cargo || 'Imported Coking Coal for Steel Plants',
                   etaHours: existingVessel?.etaHours || 8,
                   etaTimestamp: 'Telemetry Active (Live Satellite)',
                   lastAisUpdate: Date.now(),
                   isLiveAisStream: true,
                   draftClearanceAtDest: existingVessel?.draftClearanceAtDest || 'AIS Verified',
                   demurrageExposureRisk: existingVessel?.demurrageExposureRisk || 'LOW',
-                  corridor: existingVessel?.corridor || 'Live AIS Stream'
+                  corridor: existingVessel?.corridor || 'Australia -> India East Coast'
                 };
 
                 if (existingIdx >= 0) {
@@ -729,7 +772,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   updated[existingIdx] = { ...existingVessel, ...liveObj };
                   return updated;
                 } else {
-                  return [liveObj, ...prevList.slice(0, 300)];
+                  return [...prevList, liveObj];
                 }
               });
 

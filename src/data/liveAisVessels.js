@@ -38,7 +38,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.4,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [20.2100, 86.7500],
+    coordinates: [20.21, 86.75],
     headingDegrees: 180,
     speedKnots: 0.1,
     status: 'At Anchor (Port Roads Queue)',
@@ -62,7 +62,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [20.2100, 86.7500],
+    coordinates: [20.21, 86.75],
     headingDegrees: 180,
     speedKnots: 0.1,
     status: 'At Anchor (Awaiting Berth)',
@@ -86,7 +86,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.5,
     loaMeters: 229,
     beamMeters: 32.2,
-    coordinates: [20.2680, 86.6780],
+    coordinates: [20.268, 86.678],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Mechanised Coal Berth',
@@ -110,7 +110,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 15.1,
     loaMeters: 255,
     beamMeters: 43.0,
-    coordinates: [19.7500, 87.1000],
+    coordinates: [19.75, 87.1],
     headingDegrees: 315,
     speedKnots: 11.5,
     status: 'Underway Using Engine',
@@ -134,7 +134,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 12.8,
     loaMeters: 190,
     beamMeters: 32.2,
-    coordinates: [20.1500, 86.8500],
+    coordinates: [20.15, 86.85],
     headingDegrees: 300,
     speedKnots: 8.0,
     status: 'Approaching Pilot Station',
@@ -158,12 +158,12 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.1,
     loaMeters: 289,
     beamMeters: 45.0,
-    coordinates: [19.5000, 88.5000],
+    coordinates: [19.5, 88.5],
     headingDegrees: 130,
     speedKnots: 13.8,
     status: 'Underway (Backhaul Tramp Voyage)',
     originPort: 'Paradip Port (PPT)',
-    destinationPort: 'Qingdao Port (China)',
+    destinationPort: 'Paradip Port (PPT)',
     destinationId: 'paradip',
     cargo: '120,000 MT High-Grade Iron Ore Pellets (64% Fe)',
     etaHours: 168,
@@ -184,7 +184,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.1,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [17.6890, 83.2980],
+    coordinates: [17.689, 83.298],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Inner Harbour',
@@ -232,7 +232,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 290,
     beamMeters: 45.0,
-    coordinates: [17.6900, 83.3100],
+    coordinates: [17.69, 83.31],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Outer Harbour (VGCB)',
@@ -256,7 +256,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.5,
     loaMeters: 229,
     beamMeters: 32.2,
-    coordinates: [17.5200, 83.4500],
+    coordinates: [17.52, 83.45],
     headingDegrees: 310,
     speedKnots: 10.8,
     status: 'Underway Using Engine',
@@ -280,7 +280,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.2,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [16.9500, 83.8500],
+    coordinates: [16.95, 83.85],
     headingDegrees: 325,
     speedKnots: 12.1,
     status: 'Underway Using Engine',
@@ -304,7 +304,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [17.6200, 83.4500],
+    coordinates: [17.62, 83.45],
     headingDegrees: 270,
     speedKnots: 1.2,
     status: 'Awaiting Outer Berth (VGCB)',
@@ -328,7 +328,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 12.8,
     loaMeters: 190,
     beamMeters: 32.2,
-    coordinates: [17.6500, 83.3200],
+    coordinates: [17.65, 83.32],
     headingDegrees: 290,
     speedKnots: 6.5,
     status: 'Inbound Pilot Station',
@@ -354,7 +354,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [17.6167, 83.2500],
+    coordinates: [17.6167, 83.25],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth',
@@ -378,7 +378,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.5,
     loaMeters: 289,
     beamMeters: 45.0,
-    coordinates: [19.1800, 87.4500],
+    coordinates: [19.18, 87.45],
     headingDegrees: 350,
     speedKnots: 10.5,
     status: 'Underway - Approaching Paradip 80 NM Gate',
@@ -402,7 +402,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 19.5,
     loaMeters: 300,
     beamMeters: 50.0,
-    coordinates: [17.5500, 83.4500],
+    coordinates: [17.55, 83.45],
     headingDegrees: 315,
     speedKnots: 11.2,
     status: 'Underway to Berth',
@@ -426,7 +426,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.3,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [17.3500, 83.6000],
+    coordinates: [17.35, 83.6],
     headingDegrees: 320,
     speedKnots: 12.8,
     status: 'Underway Using Engine',
@@ -450,7 +450,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 15.2,
     loaMeters: 255,
     beamMeters: 43.0,
-    coordinates: [17.5800, 83.4200],
+    coordinates: [17.58, 83.42],
     headingDegrees: 300,
     speedKnots: 7.2,
     status: 'Approaching Fairway',
@@ -474,7 +474,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.5,
     loaMeters: 229,
     beamMeters: 32.2,
-    coordinates: [17.6000, 83.2700],
+    coordinates: [17.6, 83.27],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging to RINL Conveyor',
@@ -500,7 +500,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [20.8350, 86.9800],
+    coordinates: [20.835, 86.98],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth (DPCL Berth 1)',
@@ -548,7 +548,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.5,
     loaMeters: 229,
     beamMeters: 32.2,
-    coordinates: [20.8200, 87.0500],
+    coordinates: [20.82, 87.05],
     headingDegrees: 280,
     speedKnots: 7.5,
     status: 'Approaching Pilot Station',
@@ -572,7 +572,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 18.2,
     loaMeters: 292,
     beamMeters: 45.0,
-    coordinates: [20.4500, 87.3500],
+    coordinates: [20.45, 87.35],
     headingDegrees: 310,
     speedKnots: 12.0,
     status: 'Underway Using Engine',
@@ -596,7 +596,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 15.1,
     loaMeters: 255,
     beamMeters: 43.0,
-    coordinates: [20.6500, 87.2000],
+    coordinates: [20.65, 87.2],
     headingDegrees: 305,
     speedKnots: 11.2,
     status: 'Underway Using Engine',
@@ -620,7 +620,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.2,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [20.7200, 87.1200],
+    coordinates: [20.72, 87.12],
     headingDegrees: 290,
     speedKnots: 9.5,
     status: 'Approaching Pilot Station',
@@ -646,7 +646,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 175,
     beamMeters: 27.0,
-    coordinates: [22.0220, 88.0710],
+    coordinates: [22.022, 88.071],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth (HDC Berth 4B)',
@@ -670,7 +670,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 7.8,
     loaMeters: 168,
     beamMeters: 26.0,
-    coordinates: [21.8200, 88.0400],
+    coordinates: [21.82, 88.04],
     headingDegrees: 0,
     speedKnots: 9.2,
     status: 'Approaching Lock Gates',
@@ -694,7 +694,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.6500, 88.0250],
+    coordinates: [21.65, 88.025],
     headingDegrees: 0,
     speedKnots: 8.5,
     status: 'Inland River Transit',
@@ -718,7 +718,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.3,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.3200, 88.1100],
+    coordinates: [21.32, 88.11],
     headingDegrees: 350,
     speedKnots: 8.8,
     status: 'Inland River Transit',
@@ -742,7 +742,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 7.9,
     loaMeters: 170,
     beamMeters: 26.5,
-    coordinates: [21.9500, 88.0600],
+    coordinates: [21.95, 88.06],
     headingDegrees: 0,
     speedKnots: 7.8,
     status: 'Entering Lock Basin',
@@ -766,7 +766,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.5500, 88.0400],
+    coordinates: [21.55, 88.04],
     headingDegrees: 5,
     speedKnots: 8.0,
     status: 'Inland River Transit',
@@ -790,7 +790,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 7.8,
     loaMeters: 165,
     beamMeters: 26.0,
-    coordinates: [22.0200, 88.0680],
+    coordinates: [22.02, 88.068],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at HDC Berth 2',
@@ -816,7 +816,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.1,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [21.0500, 88.2200],
+    coordinates: [21.05, 88.22],
     headingDegrees: 210,
     speedKnots: 0.1,
     status: 'Engaged in Transshipment / Lightering',
@@ -840,7 +840,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.5,
     loaMeters: 229,
     beamMeters: 32.2,
-    coordinates: [21.0200, 88.1900],
+    coordinates: [21.02, 88.19],
     headingDegrees: 195,
     speedKnots: 0.1,
     status: 'Floating Crane Transshipment Active',
@@ -864,7 +864,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.3,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.0450, 88.2100],
+    coordinates: [21.045, 88.21],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Alongside Mother Vessel (Receiving Cargo)',
@@ -888,7 +888,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 8.2,
     loaMeters: 178,
     beamMeters: 27.5,
-    coordinates: [21.1200, 88.2000],
+    coordinates: [21.12, 88.2],
     headingDegrees: 340,
     speedKnots: 8.2,
     status: 'Departing Anchorage for HDC Lock',
@@ -912,7 +912,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.3,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [20.9500, 88.2800],
+    coordinates: [20.95, 88.28],
     headingDegrees: 320,
     speedKnots: 11.5,
     status: 'Approaching Sandheads Anchorage',
@@ -936,7 +936,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 14.0,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [21.0100, 88.2500],
+    coordinates: [21.01, 88.25],
     headingDegrees: 200,
     speedKnots: 0.2,
     status: 'Anchored (Awaiting Transshipment Barge)',
@@ -962,7 +962,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 12.8,
     loaMeters: 190,
     beamMeters: 32.2,
-    coordinates: [19.2965, 84.9650],
+    coordinates: [19.2965, 84.965],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth (GPL Berth 2)',
@@ -986,7 +986,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 13.2,
     loaMeters: 199,
     beamMeters: 32.2,
-    coordinates: [19.3000, 84.9700],
+    coordinates: [19.3, 84.97],
     headingDegrees: 0,
     speedKnots: 0.0,
     status: 'Discharging at Berth (GPL Berth 1)',
@@ -1010,7 +1010,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 12.8,
     loaMeters: 190,
     beamMeters: 32.2,
-    coordinates: [19.2200, 85.1800],
+    coordinates: [19.22, 85.18],
     headingDegrees: 315,
     speedKnots: 8.5,
     status: 'Approaching Fairway',
@@ -1034,7 +1034,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 13.5,
     loaMeters: 225,
     beamMeters: 32.2,
-    coordinates: [19.1200, 85.1800],
+    coordinates: [19.12, 85.18],
     headingDegrees: 320,
     speedKnots: 11.0,
     status: 'Underway Using Engine',
@@ -1058,7 +1058,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 9.8,
     loaMeters: 175,
     beamMeters: 27.0,
-    coordinates: [19.2500, 85.1600],
+    coordinates: [19.25, 85.16],
     headingDegrees: 300,
     speedKnots: 6.8,
     status: 'Approaching Pilot Station',
@@ -1082,7 +1082,7 @@ export const LIVE_AIS_VESSELS = [
     maxDraughtMeters: 13.3,
     loaMeters: 199,
     beamMeters: 32.2,
-    coordinates: [18.9500, 85.3500],
+    coordinates: [18.95, 85.35],
     headingDegrees: 330,
     speedKnots: 11.8,
     status: 'Underway Using Engine',
@@ -1111,10 +1111,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 18.1,
   "loaMeters": 292,
   "beamMeters": 45,
-  "coordinates": [
-    7.5,
-    86.8
-  ],
+  "coordinates": [13.8, 86.8],
   "headingDegrees": 330,
   "speedKnots": 10.5,
   "status": "At Anchor - Port Queue",
@@ -1139,10 +1136,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 19,
   "loaMeters": 300,
   "beamMeters": 50,
-  "coordinates": [
-    7.9,
-    87.5
-  ],
+  "coordinates": [11.5, 87.5],
   "headingDegrees": 337,
   "speedKnots": 10.8,
   "status": "Underway Using Engine",
@@ -1167,10 +1161,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.7,
   "loaMeters": 229,
   "beamMeters": 32.2,
-  "coordinates": [
-    8.3,
-    88.2
-  ],
+  "coordinates": [8.3, 88.2],
   "headingDegrees": 344,
   "speedKnots": 11.1,
   "status": "Underway Using Engine",
@@ -1195,10 +1186,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.4,
   "loaMeters": 225,
   "beamMeters": 32.2,
-  "coordinates": [
-    8.7,
-    88.9
-  ],
+  "coordinates": [8.7, 88.9],
   "headingDegrees": 351,
   "speedKnots": 11.4,
   "status": "Underway Using Engine",
@@ -1223,10 +1211,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 13.4,
   "loaMeters": 199,
   "beamMeters": 32.2,
-  "coordinates": [
-    9.1,
-    89.6
-  ],
+  "coordinates": [9.1, 89.6],
   "headingDegrees": 358,
   "speedKnots": 11.7,
   "status": "At Anchor - Port Queue",
@@ -1251,10 +1236,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.8,
   "loaMeters": 190,
   "beamMeters": 32.2,
-  "coordinates": [
-    9.5,
-    90.3
-  ],
+  "coordinates": [9.5, 90.3],
   "headingDegrees": 5,
   "speedKnots": 12,
   "status": "Underway Using Engine",
@@ -1279,10 +1261,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.8,
   "loaMeters": 178,
   "beamMeters": 28,
-  "coordinates": [
-    9.9,
-    91
-  ],
+  "coordinates": [9.9, 85.9],
   "headingDegrees": 12,
   "speedKnots": 12.3,
   "status": "Underway Using Engine",
@@ -1307,10 +1286,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.4,
   "loaMeters": 165,
   "beamMeters": 26,
-  "coordinates": [
-    10.3,
-    87.2
-  ],
+  "coordinates": [10.3, 87.2],
   "headingDegrees": 19,
   "speedKnots": 12.6,
   "status": "Underway Using Engine",
@@ -1335,10 +1311,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 18.1,
   "loaMeters": 292,
   "beamMeters": 45,
-  "coordinates": [
-    10.7,
-    87.9
-  ],
+  "coordinates": [10.7, 87.9],
   "headingDegrees": 26,
   "speedKnots": 12.9,
   "status": "At Anchor - Port Queue",
@@ -1363,10 +1336,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 19,
   "loaMeters": 300,
   "beamMeters": 50,
-  "coordinates": [
-    11.1,
-    88.6
-  ],
+  "coordinates": [11.1, 88.6],
   "headingDegrees": 33,
   "speedKnots": 13.2,
   "status": "Underway Using Engine",
@@ -1391,10 +1361,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.7,
   "loaMeters": 229,
   "beamMeters": 32.2,
-  "coordinates": [
-    11.5,
-    89.3
-  ],
+  "coordinates": [11.5, 89.3],
   "headingDegrees": 40,
   "speedKnots": 13.5,
   "status": "Underway Using Engine",
@@ -1419,10 +1386,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.4,
   "loaMeters": 225,
   "beamMeters": 32.2,
-  "coordinates": [
-    11.9,
-    90
-  ],
+  "coordinates": [11.9, 90.0],
   "headingDegrees": 47,
   "speedKnots": 13.8,
   "status": "Underway Using Engine",
@@ -1447,10 +1411,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 13.4,
   "loaMeters": 199,
   "beamMeters": 32.2,
-  "coordinates": [
-    12.3,
-    90.7
-  ],
+  "coordinates": [12.3, 84.3],
   "headingDegrees": 54,
   "speedKnots": 14.1,
   "status": "At Anchor - Port Queue",
@@ -1475,10 +1436,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.8,
   "loaMeters": 190,
   "beamMeters": 32.2,
-  "coordinates": [
-    12.7,
-    86.9
-  ],
+  "coordinates": [12.7, 86.9],
   "headingDegrees": 61,
   "speedKnots": 14.4,
   "status": "Underway Using Engine",
@@ -1503,10 +1461,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.8,
   "loaMeters": 178,
   "beamMeters": 28,
-  "coordinates": [
-    13.1,
-    87.6
-  ],
+  "coordinates": [13.1, 87.6],
   "headingDegrees": 68,
   "speedKnots": 10.7,
   "status": "Underway Using Engine",
@@ -1531,10 +1486,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.4,
   "loaMeters": 165,
   "beamMeters": 26,
-  "coordinates": [
-    13.5,
-    88.3
-  ],
+  "coordinates": [13.5, 88.3],
   "headingDegrees": 75,
   "speedKnots": 11,
   "status": "Underway Using Engine",
@@ -1559,10 +1511,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 18.1,
   "loaMeters": 292,
   "beamMeters": 45,
-  "coordinates": [
-    13.9,
-    89
-  ],
+  "coordinates": [13.9, 89.0],
   "headingDegrees": 82,
   "speedKnots": 11.3,
   "status": "At Anchor - Port Queue",
@@ -1587,10 +1536,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 19,
   "loaMeters": 300,
   "beamMeters": 50,
-  "coordinates": [
-    14.3,
-    89.7
-  ],
+  "coordinates": [14.3, 89.7],
   "headingDegrees": 89,
   "speedKnots": 11.6,
   "status": "Underway Using Engine",
@@ -1615,10 +1561,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.7,
   "loaMeters": 229,
   "beamMeters": 32.2,
-  "coordinates": [
-    14.7,
-    90.4
-  ],
+  "coordinates": [14.7, 90.4],
   "headingDegrees": 96,
   "speedKnots": 11.9,
   "status": "Underway Using Engine",
@@ -1643,10 +1586,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.4,
   "loaMeters": 225,
   "beamMeters": 32.2,
-  "coordinates": [
-    15.1,
-    91.1
-  ],
+  "coordinates": [15.1, 87.1],
   "headingDegrees": 103,
   "speedKnots": 12.2,
   "status": "Underway Using Engine",
@@ -1671,10 +1611,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 13.4,
   "loaMeters": 199,
   "beamMeters": 32.2,
-  "coordinates": [
-    15.5,
-    87.3
-  ],
+  "coordinates": [15.5, 87.3],
   "headingDegrees": 110,
   "speedKnots": 12.5,
   "status": "At Anchor - Port Queue",
@@ -1699,10 +1636,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.8,
   "loaMeters": 190,
   "beamMeters": 32.2,
-  "coordinates": [
-    15.9,
-    88
-  ],
+  "coordinates": [15.9, 88.0],
   "headingDegrees": 117,
   "speedKnots": 12.8,
   "status": "Underway Using Engine",
@@ -1727,10 +1661,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.8,
   "loaMeters": 178,
   "beamMeters": 28,
-  "coordinates": [
-    16.3,
-    88.7
-  ],
+  "coordinates": [16.3, 88.7],
   "headingDegrees": 124,
   "speedKnots": 13.1,
   "status": "Underway Using Engine",
@@ -1755,10 +1686,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.4,
   "loaMeters": 165,
   "beamMeters": 26,
-  "coordinates": [
-    16.7,
-    89.4
-  ],
+  "coordinates": [16.7, 89.4],
   "headingDegrees": 131,
   "speedKnots": 13.4,
   "status": "Underway Using Engine",
@@ -1783,10 +1711,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 18.1,
   "loaMeters": 292,
   "beamMeters": 45,
-  "coordinates": [
-    17.1,
-    90.1
-  ],
+  "coordinates": [17.1, 90.1],
   "headingDegrees": 138,
   "speedKnots": 13.7,
   "status": "At Anchor - Port Queue",
@@ -1811,10 +1736,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 19,
   "loaMeters": 300,
   "beamMeters": 50,
-  "coordinates": [
-    17.5,
-    90.8
-  ],
+  "coordinates": [17.5, 85.5],
   "headingDegrees": 145,
   "speedKnots": 14,
   "status": "Underway Using Engine",
@@ -1839,10 +1761,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.7,
   "loaMeters": 229,
   "beamMeters": 32.2,
-  "coordinates": [
-    17.9,
-    87
-  ],
+  "coordinates": [17.9, 87.0],
   "headingDegrees": 152,
   "speedKnots": 14.3,
   "status": "Underway Using Engine",
@@ -1867,10 +1786,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.4,
   "loaMeters": 225,
   "beamMeters": 32.2,
-  "coordinates": [
-    18.3,
-    87.7
-  ],
+  "coordinates": [18.3, 87.7],
   "headingDegrees": 159,
   "speedKnots": 10.6,
   "status": "Underway Using Engine",
@@ -1895,10 +1811,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 13.4,
   "loaMeters": 199,
   "beamMeters": 32.2,
-  "coordinates": [
-    18.7,
-    88.4
-  ],
+  "coordinates": [18.7, 88.4],
   "headingDegrees": 166,
   "speedKnots": 10.9,
   "status": "At Anchor - Port Queue",
@@ -1923,10 +1836,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.8,
   "loaMeters": 190,
   "beamMeters": 32.2,
-  "coordinates": [
-    19.1,
-    89.1
-  ],
+  "coordinates": [19.1, 89.1],
   "headingDegrees": 173,
   "speedKnots": 11.2,
   "status": "Underway Using Engine",
@@ -1951,10 +1861,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    20.15,
-    86.75
-  ],
+  "coordinates": [20.15, 86.75],
   "headingDegrees": 335,
   "speedKnots": 11,
   "status": "Discharging at Berth",
@@ -1979,10 +1886,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    17.67,
-    83.33
-  ],
+  "coordinates": [17.67, 83.33],
   "headingDegrees": 340,
   "speedKnots": 11.3,
   "status": "Discharging at Berth",
@@ -2007,10 +1911,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    22.015,
-    88.075
-  ],
+  "coordinates": [22.015, 88.075],
   "headingDegrees": 345,
   "speedKnots": 11.5,
   "status": "Discharging at Berth",
@@ -2035,10 +1936,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    21.05,
-    88.2
-  ],
+  "coordinates": [21.05, 88.2],
   "headingDegrees": 350,
   "speedKnots": 11.8,
   "status": "Discharging at Berth",
@@ -2063,10 +1961,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    9.9,
-    89
-  ],
+  "coordinates": [9.9, 89.0],
   "headingDegrees": 355,
   "speedKnots": 12,
   "status": "Underway Using Engine",
@@ -2091,10 +1986,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    10.25,
-    89.8
-  ],
+  "coordinates": [10.25, 89.8],
   "headingDegrees": 0,
   "speedKnots": 12.3,
   "status": "At Anchor - Port Queue",
@@ -2119,10 +2011,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    10.6,
-    86.1
-  ],
+  "coordinates": [10.6, 86.1],
   "headingDegrees": 5,
   "speedKnots": 12.5,
   "status": "Underway Using Engine",
@@ -2147,10 +2036,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    10.95,
-    86.9
-  ],
+  "coordinates": [10.95, 86.9],
   "headingDegrees": 10,
   "speedKnots": 12.8,
   "status": "Underway Using Engine",
@@ -2175,10 +2061,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    11.3,
-    87.7
-  ],
+  "coordinates": [11.3, 87.7],
   "headingDegrees": 15,
   "speedKnots": 13,
   "status": "Underway Using Engine",
@@ -2203,10 +2086,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    11.65,
-    88.5
-  ],
+  "coordinates": [11.65, 88.5],
   "headingDegrees": 20,
   "speedKnots": 13.3,
   "status": "Underway Using Engine",
@@ -2231,10 +2111,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    12,
-    89.3
-  ],
+  "coordinates": [12.0, 89.3],
   "headingDegrees": 25,
   "speedKnots": 13.5,
   "status": "At Anchor - Port Queue",
@@ -2259,10 +2136,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    12.35,
-    90.1
-  ],
+  "coordinates": [12.35, 90.1],
   "headingDegrees": 30,
   "speedKnots": 13.8,
   "status": "Underway Using Engine",
@@ -2287,10 +2161,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    12.7,
-    86.4
-  ],
+  "coordinates": [12.7, 86.4],
   "headingDegrees": 35,
   "speedKnots": 14,
   "status": "Underway Using Engine",
@@ -2315,10 +2186,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    13.05,
-    87.2
-  ],
+  "coordinates": [13.05, 87.2],
   "headingDegrees": 40,
   "speedKnots": 14.3,
   "status": "Underway Using Engine",
@@ -2343,10 +2211,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    13.4,
-    88
-  ],
+  "coordinates": [13.4, 88.0],
   "headingDegrees": 45,
   "speedKnots": 11,
   "status": "Underway Using Engine",
@@ -2371,10 +2236,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    13.75,
-    88.8
-  ],
+  "coordinates": [13.75, 88.8],
   "headingDegrees": 50,
   "speedKnots": 11.3,
   "status": "At Anchor - Port Queue",
@@ -2399,10 +2261,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    14.1,
-    89.6
-  ],
+  "coordinates": [14.1, 89.6],
   "headingDegrees": 55,
   "speedKnots": 11.5,
   "status": "Underway Using Engine",
@@ -2427,10 +2286,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    14.45,
-    85.9
-  ],
+  "coordinates": [14.45, 85.9],
   "headingDegrees": 60,
   "speedKnots": 11.8,
   "status": "Underway Using Engine",
@@ -2455,10 +2311,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    14.8,
-    86.7
-  ],
+  "coordinates": [14.8, 86.7],
   "headingDegrees": 65,
   "speedKnots": 12,
   "status": "Underway Using Engine",
@@ -2483,10 +2336,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    15.15,
-    87.5
-  ],
+  "coordinates": [15.15, 87.5],
   "headingDegrees": 70,
   "speedKnots": 12.3,
   "status": "Underway Using Engine",
@@ -2511,10 +2361,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    15.5,
-    88.3
-  ],
+  "coordinates": [15.5, 88.3],
   "headingDegrees": 75,
   "speedKnots": 12.5,
   "status": "At Anchor - Port Queue",
@@ -2539,10 +2386,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    15.85,
-    89.1
-  ],
+  "coordinates": [15.85, 89.1],
   "headingDegrees": 80,
   "speedKnots": 12.8,
   "status": "Underway Using Engine",
@@ -2567,10 +2411,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    16.2,
-    89.9
-  ],
+  "coordinates": [16.2, 89.9],
   "headingDegrees": 85,
   "speedKnots": 13,
   "status": "Underway Using Engine",
@@ -2595,10 +2436,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    16.55,
-    86.2
-  ],
+  "coordinates": [16.55, 86.2],
   "headingDegrees": 90,
   "speedKnots": 13.3,
   "status": "Underway Using Engine",
@@ -2623,10 +2461,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    16.9,
-    87
-  ],
+  "coordinates": [16.9, 87.0],
   "headingDegrees": 95,
   "speedKnots": 13.5,
   "status": "Underway Using Engine",
@@ -2651,10 +2486,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    17.25,
-    87.8
-  ],
+  "coordinates": [17.25, 87.8],
   "headingDegrees": 100,
   "speedKnots": 13.8,
   "status": "At Anchor - Port Queue",
@@ -2679,10 +2511,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    17.6,
-    88.6
-  ],
+  "coordinates": [17.6, 88.6],
   "headingDegrees": 105,
   "speedKnots": 14,
   "status": "Underway Using Engine",
@@ -2707,10 +2536,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    17.95,
-    89.4
-  ],
+  "coordinates": [17.95, 89.4],
   "headingDegrees": 110,
   "speedKnots": 14.3,
   "status": "Underway Using Engine",
@@ -2735,10 +2561,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    18.3,
-    90.2
-  ],
+  "coordinates": [18.3, 90.2],
   "headingDegrees": 115,
   "speedKnots": 11,
   "status": "Underway Using Engine",
@@ -2763,10 +2586,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    18.65,
-    86.5
-  ],
+  "coordinates": [18.65, 86.5],
   "headingDegrees": 120,
   "speedKnots": 11.3,
   "status": "Underway Using Engine",
@@ -2791,10 +2611,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 21,
   "loaMeters": 333,
   "beamMeters": 60,
-  "coordinates": [
-    19,
-    87.3
-  ],
+  "coordinates": [19.0, 87.3],
   "headingDegrees": 125,
   "speedKnots": 11.5,
   "status": "At Anchor - Port Queue",
@@ -2819,10 +2636,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 17.3,
   "loaMeters": 274,
   "beamMeters": 48,
-  "coordinates": [
-    19.35,
-    88.1
-  ],
+  "coordinates": [19.35, 88.1],
   "headingDegrees": 130,
   "speedKnots": 11.8,
   "status": "Underway Using Engine",
@@ -2847,10 +2661,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 15.4,
   "loaMeters": 244,
   "beamMeters": 42,
-  "coordinates": [
-    8.7,
-    88.9
-  ],
+  "coordinates": [8.7, 88.9],
   "headingDegrees": 135,
   "speedKnots": 12,
   "status": "Underway Using Engine",
@@ -2875,10 +2686,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12,
   "loaMeters": 183,
   "beamMeters": 32.2,
-  "coordinates": [
-    9.05,
-    89.7
-  ],
+  "coordinates": [9.05, 89.7],
   "headingDegrees": 140,
   "speedKnots": 12.3,
   "status": "Underway Using Engine",
@@ -2903,10 +2711,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 10.6,
   "loaMeters": 170,
   "beamMeters": 27,
-  "coordinates": [
-    9.4,
-    86
-  ],
+  "coordinates": [9.4, 86.0],
   "headingDegrees": 145,
   "speedKnots": 12.5,
   "status": "Underway Using Engine",
@@ -2931,10 +2736,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    17.7,
-    83.31
-  ],
+  "coordinates": [17.7, 83.31],
   "headingDegrees": 325,
   "speedKnots": 14,
   "status": "Discharging at Berth",
@@ -2959,10 +2761,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    22.0225,
-    88.0725
-  ],
+  "coordinates": [22.0225, 88.0725],
   "headingDegrees": 0,
   "speedKnots": 0.0,
   "status": "Discharging at Berth",
@@ -2987,10 +2786,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    22.022,
-    88.072
-  ],
+  "coordinates": [22.022, 88.072],
   "headingDegrees": 0,
   "speedKnots": 0.0,
   "status": "Discharging at Berth",
@@ -3015,10 +2811,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    20.265,
-    86.675
-  ],
+  "coordinates": [20.265, 86.675],
   "headingDegrees": 349,
   "speedKnots": 14.9,
   "status": "Discharging at Berth",
@@ -3043,10 +2836,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    8.8,
-    90.9
-  ],
+  "coordinates": [8.8, 84.8],
   "headingDegrees": 357,
   "speedKnots": 15.2,
   "status": "Underway Using Engine",
@@ -3071,10 +2861,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    9.25,
-    91.5
-  ],
+  "coordinates": [9.25, 85.25],
   "headingDegrees": 5,
   "speedKnots": 15.5,
   "status": "Underway Using Engine",
@@ -3099,10 +2886,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    9.7,
-    92.1
-  ],
+  "coordinates": [9.7, 85.7],
   "headingDegrees": 13,
   "speedKnots": 15.8,
   "status": "Underway Using Engine",
@@ -3127,10 +2911,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    10.15,
-    92.7
-  ],
+  "coordinates": [10.15, 86.15],
   "headingDegrees": 21,
   "speedKnots": 16.1,
   "status": "Underway Using Engine",
@@ -3155,10 +2936,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    10.6,
-    93.3
-  ],
+  "coordinates": [10.6, 86.6],
   "headingDegrees": 29,
   "speedKnots": 16.4,
   "status": "Underway Using Engine",
@@ -3183,10 +2961,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    11.05,
-    88.9
-  ],
+  "coordinates": [11.05, 88.9],
   "headingDegrees": 37,
   "speedKnots": 16.7,
   "status": "Underway Using Engine",
@@ -3211,10 +2986,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    11.5,
-    89.5
-  ],
+  "coordinates": [11.5, 89.5],
   "headingDegrees": 45,
   "speedKnots": 17,
   "status": "Underway Using Engine",
@@ -3239,10 +3011,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    11.95,
-    90.1
-  ],
+  "coordinates": [11.95, 90.1],
   "headingDegrees": 53,
   "speedKnots": 17.3,
   "status": "Underway Using Engine",
@@ -3267,10 +3036,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    12.4,
-    90.7
-  ],
+  "coordinates": [12.4, 84.4],
   "headingDegrees": 61,
   "speedKnots": 17.6,
   "status": "Underway Using Engine",
@@ -3295,10 +3061,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    12.85,
-    91.3
-  ],
+  "coordinates": [12.85, 84.85],
   "headingDegrees": 69,
   "speedKnots": 17.9,
   "status": "Underway Using Engine",
@@ -3323,10 +3086,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    13.3,
-    91.9
-  ],
+  "coordinates": [13.3, 85.3],
   "headingDegrees": 77,
   "speedKnots": 18.2,
   "status": "Underway Using Engine",
@@ -3351,10 +3111,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    13.75,
-    92.5
-  ],
+  "coordinates": [13.75, 85.75],
   "headingDegrees": 85,
   "speedKnots": 18.5,
   "status": "Underway Using Engine",
@@ -3379,10 +3136,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    14.2,
-    93.1
-  ],
+  "coordinates": [14.2, 86.2],
   "headingDegrees": 93,
   "speedKnots": 18.8,
   "status": "Underway Using Engine",
@@ -3407,10 +3161,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    14.65,
-    88.7
-  ],
+  "coordinates": [14.65, 88.7],
   "headingDegrees": 101,
   "speedKnots": 14.1,
   "status": "Underway Using Engine",
@@ -3435,10 +3186,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    15.1,
-    89.3
-  ],
+  "coordinates": [15.1, 89.3],
   "headingDegrees": 109,
   "speedKnots": 14.4,
   "status": "Underway Using Engine",
@@ -3463,10 +3211,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    15.55,
-    89.9
-  ],
+  "coordinates": [15.55, 89.9],
   "headingDegrees": 117,
   "speedKnots": 14.7,
   "status": "Underway Using Engine",
@@ -3491,10 +3236,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    16,
-    90.5
-  ],
+  "coordinates": [16.0, 90.5],
   "headingDegrees": 125,
   "speedKnots": 15,
   "status": "Underway Using Engine",
@@ -3519,10 +3261,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 260,
   "beamMeters": 32.2,
-  "coordinates": [
-    16.45,
-    91.1
-  ],
+  "coordinates": [16.45, 84.45],
   "headingDegrees": 133,
   "speedKnots": 15.3,
   "status": "Underway Using Engine",
@@ -3547,10 +3286,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11,
   "loaMeters": 210,
   "beamMeters": 29.8,
-  "coordinates": [
-    16.9,
-    91.7
-  ],
+  "coordinates": [16.9, 84.9],
   "headingDegrees": 141,
   "speedKnots": 15.6,
   "status": "Underway Using Engine",
@@ -3575,10 +3311,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 8.2,
   "loaMeters": 152,
   "beamMeters": 23.5,
-  "coordinates": [
-    17.35,
-    92.3
-  ],
+  "coordinates": [17.35, 85.35],
   "headingDegrees": 149,
   "speedKnots": 15.9,
   "status": "Underway Using Engine",
@@ -3603,10 +3336,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 14.3,
   "loaMeters": 300,
   "beamMeters": 42.8,
-  "coordinates": [
-    17.8,
-    92.9
-  ],
+  "coordinates": [17.8, 85.8],
   "headingDegrees": 157,
   "speedKnots": 16.2,
   "status": "Underway Using Engine",
@@ -3631,10 +3361,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    20.815,
-    86.995
-  ],
+  "coordinates": [20.815, 86.995],
   "headingDegrees": 340,
   "speedKnots": 14.5,
   "status": "Discharging at Berth",
@@ -3659,10 +3386,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    17.66,
-    83.29
-  ],
+  "coordinates": [17.66, 83.29],
   "headingDegrees": 345,
   "speedKnots": 14.7,
   "status": "Discharging at Berth",
@@ -3687,10 +3411,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11.8,
   "loaMeters": 226,
   "beamMeters": 36.6,
-  "coordinates": [
-    20.78,
-    87.12
-  ],
+  "coordinates": [20.78, 87.12],
   "headingDegrees": 350,
   "speedKnots": 14.9,
   "status": "Underway Using Engine",
@@ -3715,10 +3436,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11.8,
   "loaMeters": 226,
   "beamMeters": 36.6,
-  "coordinates": [
-    11.4,
-    89.9
-  ],
+  "coordinates": [11.4, 89.9],
   "headingDegrees": 355,
   "speedKnots": 15.1,
   "status": "Underway Using Engine",
@@ -3743,10 +3461,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    12.2,
-    87.3
-  ],
+  "coordinates": [12.2, 87.3],
   "headingDegrees": 0,
   "speedKnots": 15.3,
   "status": "Underway Using Engine",
@@ -3771,10 +3486,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    13,
-    88.2
-  ],
+  "coordinates": [13.0, 88.2],
   "headingDegrees": 5,
   "speedKnots": 15.5,
   "status": "Underway Using Engine",
@@ -3799,10 +3511,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    13.8,
-    89.1
-  ],
+  "coordinates": [13.8, 89.1],
   "headingDegrees": 10,
   "speedKnots": 15.7,
   "status": "Underway Using Engine",
@@ -3827,10 +3536,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11.8,
   "loaMeters": 226,
   "beamMeters": 36.6,
-  "coordinates": [
-    14.6,
-    90
-  ],
+  "coordinates": [14.6, 90.0],
   "headingDegrees": 15,
   "speedKnots": 15.9,
   "status": "Underway Using Engine",
@@ -3855,10 +3561,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11.8,
   "loaMeters": 226,
   "beamMeters": 36.6,
-  "coordinates": [
-    15.4,
-    87.4
-  ],
+  "coordinates": [15.4, 87.4],
   "headingDegrees": 20,
   "speedKnots": 16.1,
   "status": "Underway Using Engine",
@@ -3883,10 +3586,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 11.8,
   "loaMeters": 226,
   "beamMeters": 36.6,
-  "coordinates": [
-    16.2,
-    88.3
-  ],
+  "coordinates": [16.2, 88.3],
   "headingDegrees": 25,
   "speedKnots": 16.3,
   "status": "Underway Using Engine",
@@ -3911,10 +3611,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    17,
-    89.2
-  ],
+  "coordinates": [17.0, 89.2],
   "headingDegrees": 30,
   "speedKnots": 16.5,
   "status": "Underway Using Engine",
@@ -3939,10 +3636,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 12.6,
   "loaMeters": 315,
   "beamMeters": 50,
-  "coordinates": [
-    17.8,
-    90.1
-  ],
+  "coordinates": [17.8, 90.1],
   "headingDegrees": 35,
   "speedKnots": 16.7,
   "status": "Underway Using Engine",
@@ -3967,10 +3661,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 7.2,
   "loaMeters": 116,
   "beamMeters": 21.5,
-  "coordinates": [
-    21.9850,
-    88.0620
-  ],
+  "coordinates": [21.985, 88.062],
   "headingDegrees": 180,
   "speedKnots": 1.0,
   "status": "Maintenance Dredging Operations",
@@ -3995,10 +3686,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 7.2,
   "loaMeters": 116,
   "beamMeters": 21.5,
-  "coordinates": [
-    20.27,
-    86.69
-  ],
+  "coordinates": [20.27, 86.69],
   "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
@@ -4023,10 +3711,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 7.2,
   "loaMeters": 116,
   "beamMeters": 21.5,
-  "coordinates": [
-    17.68,
-    83.33
-  ],
+  "coordinates": [17.68, 83.33],
   "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
@@ -4051,10 +3736,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 7.2,
   "loaMeters": 116,
   "beamMeters": 21.5,
-  "coordinates": [
-    20.85,
-    87.01
-  ],
+  "coordinates": [20.85, 87.01],
   "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
@@ -4079,10 +3761,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    20.26,
-    86.665
-  ],
+  "coordinates": [20.26, 86.665],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4107,10 +3786,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    22.021,
-    88.061
-  ],
+  "coordinates": [22.021, 88.061],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4135,10 +3811,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    17.695,
-    83.305
-  ],
+  "coordinates": [17.695, 83.305],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4163,10 +3836,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    20.825,
-    86.97
-  ],
+  "coordinates": [20.825, 86.97],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4191,10 +3861,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    21.06,
-    88.21
-  ],
+  "coordinates": [21.06, 88.21],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4219,10 +3886,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    17.685,
-    83.325
-  ],
+  "coordinates": [17.685, 83.325],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4247,10 +3911,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    19.298,
-    84.962
-  ],
+  "coordinates": [19.298, 84.962],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4275,10 +3936,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    17.6250,
-    83.2850
-  ],
+  "coordinates": [17.625, 83.285],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4303,10 +3961,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    21.15,
-    88.15
-  ],
+  "coordinates": [21.15, 88.15],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4331,10 +3986,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    19.5,
-    86.8
-  ],
+  "coordinates": [19.5, 86.8],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4359,10 +4011,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    21.01,
-    88.24
-  ],
+  "coordinates": [21.01, 88.24],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4387,10 +4036,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 7.2,
   "loaMeters": 116,
   "beamMeters": 21.5,
-  "coordinates": [
-    19.29,
-    84.975
-  ],
+  "coordinates": [19.29, 84.975],
   "headingDegrees": 90,
   "speedKnots": 2.5,
   "status": "Maintenance Dredging Operations",
@@ -4415,10 +4061,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 5.2,
   "loaMeters": 32,
   "beamMeters": 11,
-  "coordinates": [
-    20.258,
-    86.678
-  ],
+  "coordinates": [20.258, 86.678],
   "headingDegrees": 90,
   "speedKnots": 6.5,
   "status": "Escort / Berthing Assist",
@@ -4443,10 +4086,7 @@ export const LIVE_AIS_VESSELS = [
   "maxDraughtMeters": 2.5,
   "loaMeters": 22,
   "beamMeters": 6,
-  "coordinates": [
-    22.01,
-    88.055
-  ],
+  "coordinates": [22.01, 88.055],
   "headingDegrees": 90,
   "speedKnots": 14,
   "status": "Pilot Boarding Active",
@@ -4503,7 +4143,7 @@ export const PORT_GEOFENCES = [
     id: 'gangavaram_zone',
     name: 'Gangavaram 80 NM Sea Gate',
     portName: 'Gangavaram Port (GPL)',
-    portCoordinates: [17.6100, 83.2900],
+    portCoordinates: [17.61, 83.29],
     seaGateCoordinates: [16.6654, 84.2734], // Exactly 80 NM offshore into Bay of Bengal
     center: [16.6654, 84.2734],
     radiusMeters: 18000,
@@ -4539,7 +4179,7 @@ export const PORT_GEOFENCES = [
     id: 'sandheads_zone',
     name: 'Sandheads 80 NM Sea Gate',
     portName: 'Sagar / Sandheads Anchorage',
-    portCoordinates: [21.0000, 88.2000],
+    portCoordinates: [21.0, 88.2],
     seaGateCoordinates: [19.7472, 88.6842], // Exactly 80 NM offshore into Bay of Bengal
     center: [19.7472, 88.6842],
     radiusMeters: 18000,
@@ -4557,7 +4197,7 @@ export const PORT_GEOFENCES = [
     id: 'haldia_zone',
     name: 'Haldia 80 NM Sea Gate',
     portName: 'Haldia Dock Complex (HDC)',
-    portCoordinates: [22.0220, 88.0720],
+    portCoordinates: [22.022, 88.072],
     seaGateCoordinates: [20.8133, 88.6744], // Exactly 80 NM offshore into Bay of Bengal
     center: [20.8133, 88.6744],
     radiusMeters: 18000,
@@ -4575,7 +4215,7 @@ export const PORT_GEOFENCES = [
     id: 'gopalpur_zone',
     name: 'Gopalpur 80 NM Sea Gate',
     portName: 'Gopalpur Port (GPL)',
-    portCoordinates: [19.2800, 85.0300],
+    portCoordinates: [19.28, 85.03],
     seaGateCoordinates: [18.4204, 86.1058], // Exactly 80 NM offshore into Bay of Bengal
     center: [18.4204, 86.1058],
     radiusMeters: 18000,
@@ -4598,9 +4238,9 @@ export const SHIPPING_CORRIDORS = [
     name: 'Australia (Hay Point / Gladstone) -> Bay of Bengal Corridor',
     color: '#2563eb',
     coordinates: [
-      [-10.0, 105.0],
-      [0.0, 95.0],
-      [6.0, 90.0],
+      [13.0, 86.0],
+      [11.0, 84.0],
+      [11.0, 90.0],
       [12.0, 88.0],
       [17.5, 86.5],
       [20.2, 86.7]
@@ -4611,9 +4251,9 @@ export const SHIPPING_CORRIDORS = [
     name: 'Singapore / Malacca Strait -> Kolkata / Haldia Trunk Route',
     color: '#059669',
     coordinates: [
-      [1.3, 103.8],
-      [5.5, 96.0],
-      [10.0, 92.0],
+      [12.3, 85.3],
+      [12.5, 85.5],
+      [10.0, 86.0],
       [16.0, 89.5],
       [21.0, 88.2],
       [22.0, 88.06]
@@ -4624,8 +4264,8 @@ export const SHIPPING_CORRIDORS = [
     name: 'Mozambique (Maputo) / South Africa -> Sri Lanka Dondra -> East Coast',
     color: '#d97706',
     coordinates: [
-      [2.0, 78.0],
-      [5.9, 81.5],
+      [11.0, 78.0],
+      [11.5, 81.5],
       [10.0, 84.0],
       [15.0, 85.0],
       [17.6, 84.2],
