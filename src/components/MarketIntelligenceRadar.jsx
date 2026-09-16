@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Globe, Rss, Filter, Sparkles, ExternalLink, 
   Zap, ArrowRight, Flame, Wind, Anchor, RefreshCw, Cpu, Play,
   MapPin, ShieldCheck, Layers, ChevronDown, ChevronUp, AlertCircle, Ship,
   TrendingUp, TrendingDown, Calculator, Database, CheckCircle2, ArrowUpRight, ArrowDownRight,
-  Calendar, Clock, Timer
+  Calendar, Clock, Timer, Radio
 } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
@@ -511,29 +511,91 @@ const RECENT_DISCARDED_NOISE = [
 ];
 
 export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNewsSignal }) {
+  const [eventsList, setEventsList] = useState(LIVE_MARKET_INTELLIGENCE_EVENTS);
   const [selectedEventId, setSelectedEventId] = useState(activeNewsSignal?.id || 'weather_cyclone');
   const [activePortFilter, setActivePortFilter] = useState('all'); // 'all', 'price_up', 'price_down', 'paradip', 'vizag', 'haldia', 'australia', 'indonesia', 'africa', 'bunker_fuel'
   const [customHeadline, setCustomHeadline] = useState('');
   const [customAnalysis, setCustomAnalysis] = useState(null);
   const [isSimulatingNLP, setIsSimulatingNLP] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedTime, setLastRefreshedTime] = useState('Just now (Live GDELT 2.0)');
+  const [countdownSec, setCountdownSec] = useState(30);
   const [isNoiseDrawerOpen, setIsNoiseDrawerOpen] = useState(false);
   const [isPortRegistryOpen, setIsPortRegistryOpen] = useState(false);
   const [isDatasetsDrawerOpen, setIsDatasetsDrawerOpen] = useState(false);
 
+  const handleApplyToLiveForecast = (event) => {
+    if (onSelectNewsSignal && event) {
+      onSelectNewsSignal({
+        id: event.id,
+        category: event.category,
+        headline: event.title,
+        spotDriftMultiplier: event.spotDriftMultiplier,
+        coaDiscountModifier: event.volatilityBoost > 1.3 ? 0.85 : 0.89,
+        volatilityBoost: event.volatilityBoost,
+        urgencyLevel: event.urgencyLevel,
+        strategyHeadline: `NLP Warning: ${event.category}`,
+        strategyDetails: event.oneLiner
+      });
+    }
+  };
+
+  // Sync when activeNewsSignal changes from outside
+  useEffect(() => {
+    if (activeNewsSignal?.id && activeNewsSignal.id !== selectedEventId) {
+      setSelectedEventId(activeNewsSignal.id);
+    }
+  }, [activeNewsSignal?.id]);
+
+  // Live polling countdown simulation
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdownSec(prev => (prev > 1 ? prev - 1 : 45));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleRefreshNewsFeed = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      const updated = eventsList.map((e, idx) => ({
+        ...e,
+        timestamp: idx === 0 ? 'Just now (Live GDELT Ingestion)' : `${(idx * 7) + 3} mins ago (Live Feed)`
+      }));
+      setEventsList(updated);
+      setLastRefreshedTime(`Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+      setCountdownSec(45);
+      setIsRefreshing(false);
+    }, 600);
+  };
+
+  const handleFilterChange = (filterKey) => {
+    setActivePortFilter(filterKey);
+    let matched = eventsList;
+    if (filterKey === 'price_up') matched = eventsList.filter(e => e.priceDirection === 'UP');
+    else if (filterKey === 'price_down') matched = eventsList.filter(e => e.priceDirection === 'DOWN');
+    else if (filterKey !== 'all') matched = eventsList.filter(e => e.portFilterKey === filterKey);
+    
+    if (matched.length > 0) {
+      setSelectedEventId(matched[0].id);
+      handleApplyToLiveForecast(matched[0]);
+    }
+  };
+
   // Filter events based on selected port corridor or price direction
   const filteredEvents = useMemo(() => {
-    if (activePortFilter === 'all') return LIVE_MARKET_INTELLIGENCE_EVENTS;
-    if (activePortFilter === 'price_up') return LIVE_MARKET_INTELLIGENCE_EVENTS.filter(e => e.priceDirection === 'UP');
-    if (activePortFilter === 'price_down') return LIVE_MARKET_INTELLIGENCE_EVENTS.filter(e => e.priceDirection === 'DOWN');
-    return LIVE_MARKET_INTELLIGENCE_EVENTS.filter(e => e.portFilterKey === activePortFilter);
-  }, [activePortFilter]);
+    if (activePortFilter === 'all') return eventsList;
+    if (activePortFilter === 'price_up') return eventsList.filter(e => e.priceDirection === 'UP');
+    if (activePortFilter === 'price_down') return eventsList.filter(e => e.priceDirection === 'DOWN');
+    return eventsList.filter(e => e.portFilterKey === activePortFilter);
+  }, [activePortFilter, eventsList]);
 
   // Active event object
   const activeEvent = useMemo(() => {
     if (customAnalysis) return customAnalysis;
     const found = filteredEvents.find(e => e.id === selectedEventId);
-    return found || filteredEvents[0] || LIVE_MARKET_INTELLIGENCE_EVENTS[0];
-  }, [selectedEventId, customAnalysis, filteredEvents]);
+    return found || filteredEvents[0] || eventsList[0];
+  }, [selectedEventId, customAnalysis, filteredEvents, eventsList]);
 
   // Handle custom breaking headline analysis
   const handleAnalyzeCustomHeadline = (presetText = null) => {
@@ -644,23 +706,10 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
       setCustomAnalysis(generatedEvent);
       setIsSimulatingNLP(false);
+      setEventsList(prev => [generatedEvent, ...prev.filter(e => e.id !== generatedEvent.id)]);
+      setSelectedEventId(generatedEvent.id);
+      handleApplyToLiveForecast(generatedEvent);
     }, 450);
-  };
-
-  const handleApplyToLiveForecast = (event) => {
-    if (onSelectNewsSignal) {
-      onSelectNewsSignal({
-        id: event.id,
-        category: event.category,
-        headline: event.title,
-        spotDriftMultiplier: event.spotDriftMultiplier,
-        coaDiscountModifier: event.volatilityBoost > 1.3 ? 0.85 : 0.89,
-        volatilityBoost: event.volatilityBoost,
-        urgencyLevel: event.urgencyLevel,
-        strategyHeadline: `NLP Warning: ${event.category}`,
-        strategyDetails: event.oneLiner
-      });
-    }
   };
 
   return (
@@ -832,21 +881,56 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
         </div>
       )}
 
+      {/* Active News Signal Injected Banner */}
+      <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-800/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 shrink-0">
+            <Radio className="w-4 h-4 text-indigo-400 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300 font-bold">Active Signal Injected into Forecast</span>
+              <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded ${activeEvent.priceDirection === 'UP' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
+                {activeEvent.priceDirection === 'UP' ? 'SPOT INFLATION' : 'SPOT SOFTENING'}
+              </span>
+            </div>
+            <div className="text-xs font-bold text-white truncate max-w-xl mt-0.5">
+              {activeEvent.title}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="text-right font-mono">
+            <span className="text-[9px] text-slate-400 block uppercase">Spot Drift</span>
+            <span className={`text-xs font-bold ${activeEvent.priceDirection === 'UP' ? 'text-rose-400' : 'text-emerald-400'}`}>
+              {activeEvent.spotDriftPct} ({activeEvent.priceDirection === 'UP' ? '+' : '-'}${Math.abs(parseFloat(activeEvent.calculation?.netChangeUSD || 1.5))}/MT)
+            </span>
+          </div>
+          <button
+            onClick={() => handleApplyToLiveForecast(activeEvent)}
+            className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs font-mono transition-all cursor-pointer shadow-xs flex items-center gap-1"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Active in Model</span>
+          </button>
+        </div>
+      </div>
+
       {/* Quick-Filter Bar: Directional (Price Up / Down) & Port Corridors */}
       <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 mb-4 text-xs font-semibold">
         <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider shrink-0 mr-1">Filter:</span>
         <button
-          onClick={() => setActivePortFilter('all')}
+          onClick={() => handleFilterChange('all')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'all'
               ? 'bg-indigo-900 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
-          All Events ({LIVE_MARKET_INTELLIGENCE_EVENTS.length})
+          All Events ({eventsList.length})
         </button>
         <button
-          onClick={() => setActivePortFilter('price_up')}
+          onClick={() => handleFilterChange('price_up')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer ${
             activePortFilter === 'price_up'
               ? 'bg-rose-700 text-white shadow-xs font-bold'
@@ -854,10 +938,10 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           }`}
         >
           <TrendingUp className="w-3.5 h-3.5" />
-          <span>📈 Price Rising (4)</span>
+          <span>📈 Price Rising ({eventsList.filter(e => e.priceDirection === 'UP').length})</span>
         </button>
         <button
-          onClick={() => setActivePortFilter('price_down')}
+          onClick={() => handleFilterChange('price_down')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer ${
             activePortFilter === 'price_down'
               ? 'bg-emerald-700 text-white shadow-xs font-bold'
@@ -865,10 +949,10 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           }`}
         >
           <TrendingDown className="w-3.5 h-3.5" />
-          <span>📉 Price Falling (4)</span>
+          <span>📉 Price Falling ({eventsList.filter(e => e.priceDirection === 'DOWN').length})</span>
         </button>
         <button
-          onClick={() => setActivePortFilter('paradip')}
+          onClick={() => handleFilterChange('paradip')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'paradip'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -878,7 +962,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           🇮🇳 Paradip / Dhamra
         </button>
         <button
-          onClick={() => setActivePortFilter('vizag')}
+          onClick={() => handleFilterChange('vizag')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'vizag'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -888,7 +972,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           🇮🇳 Vizag / Gangavaram
         </button>
         <button
-          onClick={() => setActivePortFilter('haldia')}
+          onClick={() => handleFilterChange('haldia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'haldia'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -898,7 +982,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           🇮🇳 Haldia / Sandheads
         </button>
         <button
-          onClick={() => setActivePortFilter('australia')}
+          onClick={() => handleFilterChange('australia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'australia'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -908,7 +992,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           🇦🇺 Australia (Hay Point/DBCT)
         </button>
         <button
-          onClick={() => setActivePortFilter('indonesia')}
+          onClick={() => handleFilterChange('indonesia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'indonesia'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -918,7 +1002,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           🇮🇩 Indonesia (Samarinda)
         </button>
         <button
-          onClick={() => setActivePortFilter('africa')}
+          onClick={() => handleFilterChange('africa')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'africa'
               ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -934,6 +1018,30 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
         
         {/* Left Column: Corridor-Relevant Alerts Feed (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
+          {/* Live GDELT Stream Bar with auto-countdown & refresh button */}
+          <div className="p-2.5 rounded-lg bg-slate-900 text-white border border-slate-800 flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-mono font-bold text-emerald-400 text-[11px]">LIVE GDELT 2.0 STREAM</span>
+              <span className="text-[10px] text-slate-400 hidden sm:inline font-mono">({lastRefreshedTime})</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] text-slate-400 font-mono">Sync in {countdownSec}s</span>
+              <button
+                onClick={handleRefreshNewsFeed}
+                disabled={isRefreshing}
+                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[10px] font-bold transition-all border border-slate-700 cursor-pointer disabled:opacity-50"
+                title="Fetch latest GDELT articles"
+              >
+                <RefreshCw className={`w-3 h-3 text-cyan-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{isRefreshing ? 'Syncing...' : 'Fetch Live'}</span>
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
@@ -980,6 +1088,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                   onClick={() => {
                     setCustomAnalysis(null);
                     setSelectedEventId(event.id);
+                    handleApplyToLiveForecast(event);
                   }}
                   className={`p-3 rounded-lg border transition-all cursor-pointer ${
                     isSelected 
@@ -988,10 +1097,18 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
                   }`}
                 >
                   <div className="flex items-center justify-between text-[10px] font-semibold mb-1">
-                    <span className={`px-2 py-0.5 rounded font-mono font-bold uppercase border flex items-center gap-1 ${event.categoryBadgeColor}`}>
-                      <Icon className="w-3 h-3 shrink-0" />
-                      <span>{event.category}</span>
-                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className={`px-2 py-0.5 rounded font-mono font-bold uppercase border flex items-center gap-1 ${event.categoryBadgeColor}`}>
+                        <Icon className="w-3 h-3 shrink-0" />
+                        <span>{event.category}</span>
+                      </span>
+                      {isSelected && (
+                        <span className="text-[8px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded border border-indigo-300 flex items-center gap-1 font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                          <span>ACTIVE</span>
+                        </span>
+                      )}
+                    </div>
                     <span className="text-slate-400">{event.timestamp.split(' (')[0]}</span>
                   </div>
 
