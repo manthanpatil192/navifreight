@@ -86,5 +86,39 @@ export const BACKHAUL_OPPORTUNITIES = [
     co2SavingsTons: 890,
     loadingBerth: 'GPL Berth 5 (Heavy Cargo)',
     readinessDays: '1 Day Post Discharge'
+  },
+  {
+    id: 'haldia_hop_dhamra_ore',
+    dischargePort: 'haldia',
+    dischargePortName: 'Haldia Dock Complex (HDC)',
+    exportCargo: 'Coastal Triangulation Hop: 118 NM to Dhamra ➔ Iron Ore Pellets',
+    destinationRegion: 'East Asia (Qingdao / Rizhao, China via Dhamra)',
+    distanceNM: 118,
+    cargoParcelSizeMT: 120000,
+    suitableVessels: ['Panamax', 'Kamsarmax', 'Capesize (at Dhamra)'],
+    revenueUSDPerMT: 11.40,
+    tceBoostUSDPerDay: 7800,
+    emptyBallastReductionPercent: 88,
+    marketDemand: 'VERY HIGH (Overcomes Haldia 8.5m draft lock)',
+    co2SavingsTons: 1650,
+    loadingBerth: 'Dhamra Deepwater Bulk Berth (DPCL)',
+    readinessDays: 'Hop Time: 9.8 Hours Underway'
+  },
+  {
+    id: 'paradip_hop_dhamra_ore',
+    dischargePort: 'paradip',
+    dischargePortName: 'Paradip Port (PPT)',
+    exportCargo: 'Hop-and-Load Bypass: 92 NM to Dhamra ➔ High-Grade Pellets',
+    destinationRegion: 'China / East Asia (Bypasses PPT Berth Queue)',
+    distanceNM: 92,
+    cargoParcelSizeMT: 120000,
+    suitableVessels: ['Capesize', 'Kamsarmax', 'Panamax'],
+    revenueUSDPerMT: 11.20,
+    tceBoostUSDPerDay: 7400,
+    emptyBallastReductionPercent: 82,
+    marketDemand: 'HIGH (Bypasses 4-day Paradip Outer Anchorage Queue)',
+    co2SavingsTons: 1480,
+    loadingBerth: 'Dhamra Capesize Berth BB-01',
+    readinessDays: 'Hop Time: 7.6 Hours Underway'
   }
 ];
