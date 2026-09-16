@@ -2,11 +2,39 @@ import React, { useState, useMemo } from 'react';
 import { 
   Ship, Anchor, Compass, ArrowDown, ArrowRight, RefreshCw, 
   CheckCircle2, AlertTriangle, Wind, Waves, Sparkles, DollarSign,
-  Layers, ShieldAlert, Cpu, Gauge, Zap, Check
+  Layers, ShieldAlert, Cpu, Gauge, Zap, Check, MapPin, Navigation, Radio
 } from 'lucide-react';
 import { calculateHopAndLoadArbitrage, evaluateHoldCleaningWeather } from '../utils/subSurfaceHullEngine';
+import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 
 export default function MasterDecisionPipeline({ currency = 'INR', selectedPort = 'paradip' }) {
+  // Candidate Inbound Bulk Carriers
+  const candidateVessels = useMemo(() => {
+    const coalVessels = LIVE_AIS_VESSELS.filter(v => 
+      v.cargo?.toLowerCase().includes('coal') || 
+      v.destinationId === selectedPort ||
+      v.originPort?.toLowerCase().includes('australia') ||
+      v.originPort?.toLowerCase().includes('indonesia')
+    );
+    // Unique by MMSI
+    const unique = [];
+    const seen = new Set();
+    for (const v of coalVessels) {
+      if (!seen.has(v.mmsi)) {
+        seen.add(v.mmsi);
+        unique.push(v);
+      }
+      if (unique.length >= 8) break;
+    }
+    return unique.length > 0 ? unique : LIVE_AIS_VESSELS.slice(0, 8);
+  }, [selectedPort]);
+
+  const [selectedMmsi, setSelectedMmsi] = useState(
+    candidateVessels[1]?.mmsi || candidateVessels[0]?.mmsi || '563112000'
+  );
+
+  const activeVessel = candidateVessels.find(v => v.mmsi === selectedMmsi) || candidateVessels[0] || LIVE_AIS_VESSELS[1];
+
   // Interactive Simulation State
   const [berthAvailable, setBerthAvailable] = useState(false);
   const [congestionResponse, setCongestionResponse] = useState('slow_steam'); // 'wait', 'divert', 'slow_steam'
@@ -28,15 +56,22 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
     });
   }, [seaState]);
 
+  // Parcel size tailored to selected vessel
+  const parcelMT = Math.min(120000, Math.round((activeVessel?.dwt || 120000) * 0.85));
+
   // Arbitrage calculation
   const hopArbitrage = useMemo(() => {
     return calculateHopAndLoadArbitrage({
       currentPortId: selectedPort,
       targetPortId: selectedPort === 'dhamra' ? 'paradip' : 'dhamra',
-      cargoParcelMT: 120000,
-      outboundFreightRateUSDPerMT: 11.20
+      cargoParcelMT: parcelMT,
+      outboundFreightRateUSDPerMT: 11.20,
+      vesselDailyCharterUSD: activeVessel?.vesselType?.toLowerCase().includes('cape') ? 24500 : 14500
     });
-  }, [selectedPort]);
+  }, [selectedPort, parcelMT, activeVessel]);
+
+  // Dynamic vessel speed based on congestion strategy
+  const currentVesselSpeedKnots = congestionResponse === 'slow_steam' && !berthAvailable ? 7.5 : (activeVessel.speedKnots > 0 ? activeVessel.speedKnots : 12.0);
 
   // Handle replan click
   const triggerReplan = () => {
@@ -96,7 +131,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setBerthAvailable(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   berthAvailable ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -105,7 +140,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setBerthAvailable(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   !berthAvailable ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -135,7 +170,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setCargoFound(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   cargoFound ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -144,7 +179,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setCargoFound(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   !cargoFound ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -160,7 +195,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setDraftFeasible(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   draftFeasible ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -169,7 +204,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setDraftFeasible(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   !draftFeasible ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -185,7 +220,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setSeaState('calm')}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   seaState === 'calm' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -194,7 +229,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setSeaState('rough')}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   seaState === 'rough' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -210,7 +245,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <button
                 type="button"
                 onClick={() => setConditionsChanged(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   !conditionsChanged ? 'bg-slate-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -222,7 +257,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                   setConditionsChanged(true);
                   triggerReplan();
                 }}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all ${
+                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
                   conditionsChanged ? 'bg-purple-600 text-white shadow-xs animate-pulse' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -237,17 +272,116 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
       {/* Visual Operational Flowchart Render */}
       <div className="space-y-4 mb-6">
 
-        {/* STEP 1: Inbound Coal Vessel */}
-        <div className="bg-blue-50 border-2 border-blue-400 rounded-xl p-3 text-center shadow-xs">
-          <div className="flex items-center justify-center space-x-2">
-            <Ship className="w-5 h-5 text-blue-700" />
-            <span className="text-xs font-bold text-blue-950 uppercase tracking-wide">
-              INBOUND COAL VESSEL (7–30 DAYS BEFORE EXPECTED ARRIVAL)
-            </span>
+        {/* STEP 1: Inbound Coal Vessel with LIVE SHIP TELEMETRY */}
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50/50 to-blue-50 border-2 border-blue-400 rounded-xl p-4 shadow-sm">
+          
+          {/* Top Bar: Selector & Status */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-blue-200/80 gap-2 mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+                <Ship className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-blue-950 uppercase tracking-wide flex items-center gap-1.5">
+                  <span>INBOUND COAL VESSEL (7–30 DAYS BEFORE ETA)</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                </span>
+                <p className="text-[10.5px] text-blue-800">
+                  AIS + Port Data Ingestion: Position, Speed, Draft, Port Queue & Weather Broadcasts
+                </p>
+              </div>
+            </div>
+
+            {/* Vessel Selector Dropdown */}
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-bold text-blue-900 uppercase">Select Tracked Ship:</span>
+              <select
+                value={selectedMmsi}
+                onChange={(e) => setSelectedMmsi(e.target.value)}
+                className="text-xs font-bold py-1.5 px-2.5 bg-white border border-blue-300 rounded-lg text-blue-950 shadow-xs outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {candidateVessels.map(v => (
+                  <option key={v.mmsi} value={v.mmsi}>
+                    {v.name} ({v.vesselType}) — {v.originPort.split('(')[0]}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <p className="text-[11px] text-blue-800 mt-0.5">
-            AIS + Port Data Ingestion: Position, Speed, Draft, Port Queue & Weather Broadcasts
-          </p>
+
+          {/* Active Live Ship Telemetry Card */}
+          <div className="bg-white/95 rounded-lg border border-blue-200 p-3.5 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between pb-2.5 border-b border-slate-100 gap-2 mb-3">
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <span>{activeVessel.name}</span>
+                    <span className="text-[10px] font-mono bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-semibold">
+                      MMSI: {activeVessel.mmsi}
+                    </span>
+                    <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                      IMO: {activeVessel.imo || '9648214'}
+                    </span>
+                  </h4>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                  <Compass className="w-3 h-3 text-slate-400" />
+                  <span>Voyage: <strong className="text-slate-800">{activeVessel.originPort}</strong> ──► <strong className="text-blue-700">{activeVessel.destinationPort}</strong></span>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex items-center space-x-2">
+                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                  <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                  <span>Live AIS Telemetry Active</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Telemetry Metrics Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5 text-xs tabular-nums">
+              
+              <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                <span className="text-[10px] text-slate-500 block uppercase font-semibold">Vessel Class:</span>
+                <span className="font-bold text-slate-800">{activeVessel.vesselType}</span>
+                <span className="text-[10px] text-slate-400 block">{activeVessel.dwt?.toLocaleString()} DWT</span>
+              </div>
+
+              <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                <span className="text-[10px] text-slate-500 block uppercase font-semibold">Current Cargo:</span>
+                <span className="font-bold text-slate-800 truncate block">{activeVessel.cargo || '150,000 MT Coal'}</span>
+                <span className="text-[10px] text-emerald-600 font-semibold block">Discharge Ready</span>
+              </div>
+
+              <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                <span className="text-[10px] text-slate-500 block uppercase font-semibold">Laden Draught:</span>
+                <span className="font-bold text-indigo-700">{activeVessel.currentDraughtMeters || 16.5} m</span>
+                <span className="text-[10px] text-slate-400 block">Max: {activeVessel.maxDraughtMeters || 17.8} m</span>
+              </div>
+
+              <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                <span className="text-[10px] text-slate-500 block uppercase font-semibold">Current Speed:</span>
+                <span className={`font-bold ${congestionResponse === 'slow_steam' && !berthAvailable ? 'text-emerald-700' : 'text-slate-800'}`}>
+                  {currentVesselSpeedKnots} kts
+                </span>
+                <span className="text-[10px] text-slate-500 block">
+                  {congestionResponse === 'slow_steam' && !berthAvailable ? 'Eco Slow-Steam' : 'Full Sea Speed'}
+                </span>
+              </div>
+
+              <div className="bg-slate-50 p-2 rounded border border-slate-200 col-span-2 sm:col-span-1">
+                <span className="text-[10px] text-slate-500 block uppercase font-semibold">Approach Fairway:</span>
+                <span className="font-mono text-[11px] font-bold text-slate-700">
+                  {activeVessel.coordinates ? `${activeVessel.coordinates[0]}°N, ${activeVessel.coordinates[1]}°E` : '20.21°N, 86.75°E'}
+                </span>
+                <span className="text-[10px] text-indigo-600 font-semibold block">ETA: ~14 Days Out</span>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
         <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-slate-400" /></div>
@@ -259,7 +393,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <Layers className="w-4 h-4 text-purple-700" />
               <div>
                 <span className="text-xs font-bold text-purple-950">PORT CONGESTION / VESSEL BUNCHING</span>
-                <p className="text-[10.5px] text-purple-700">Predicts vessels arriving in the same window; estimates berth wait time</p>
+                <p className="text-[10.5px] text-purple-700">
+                  Predicts vessels arriving in the same window; estimates berth wait time for {activeVessel.name}
+                </p>
               </div>
             </div>
 
@@ -267,7 +403,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
             <div className={`px-3 py-1 rounded-full text-xs font-bold ${
               berthAvailable ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'
             }`}>
-              {berthAvailable ? '✓ Berth Available (Proceed)' : '⚠ Berth Congested (Bottleneck Detected)'}
+              {berthAvailable ? '✓ Berth Available (Proceed Direct)' : '⚠ Berth Congested (Bottleneck Detected)'}
             </div>
           </div>
 
@@ -294,7 +430,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                   <Compass className="w-3.5 h-3.5 text-indigo-600" />
                   <span>DIVERT (Alternative Port)</span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-normal">Routes to nearby secondary port to bypass queue completely</p>
+                <p className="text-[10px] text-slate-500 font-normal">Routes {activeVessel.name} to nearby secondary port to bypass queue</p>
               </div>
 
               {/* Option C: Virtual Arrival / Slow Steam */}
@@ -305,7 +441,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                   <Gauge className="w-3.5 h-3.5 text-emerald-600" />
                   <span>VIRTUAL ARRIVAL (Slow Steam)</span>
                 </div>
-                <p className="text-[10px] text-emerald-800 font-normal">Reduces speed to 7.5 kts; cuts fuel by 45% to meet berth opening</p>
+                <p className="text-[10px] text-emerald-800 font-normal">
+                  Reduces speed from {activeVessel.speedKnots || 12.0} kts to 7.5 kts; cuts fuel by 45% to meet berth slot
+                </p>
               </div>
 
             </div>
@@ -328,7 +466,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
             <div className={`px-3 py-1 rounded-full text-xs font-bold ${
               cargoFound ? 'bg-emerald-200 text-emerald-900' : 'bg-indigo-100 text-indigo-900 border border-indigo-300'
             }`}>
-              {cargoFound ? '✓ Backhaul Found at Berth' : '⚡ No Local Parcel ➔ "Hop-and-Load" Triggered'}
+              {cargoFound ? `✓ Backhaul Found at ${selectedPort.toUpperCase()}` : '⚡ No Local Parcel ➔ "Hop-and-Load" Triggered'}
             </div>
           </div>
 
@@ -343,7 +481,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                 <span className="text-emerald-700 font-mono">Steaming Time: {hopArbitrage.steamingHours} hrs</span>
               </div>
               <p className="text-[11px] text-slate-600">
-                Instead of ballasting 4,120 NM empty back to Australia (losing ${hopArbitrage.totalDeadheadBallastLossUSD.toLocaleString()}), the vessel performs a short {hopArbitrage.hopDistanceNM} NM hop burning only {hopArbitrage.hopFuelBurnMT} MT fuel (${hopArbitrage.hopFuelCostUSD.toLocaleString()}) to pick up 120k MT Iron Ore Pellets.
+                Instead of {activeVessel.name} ballasting 4,120 NM empty back to Australia (losing ${hopArbitrage.totalDeadheadBallastLossUSD.toLocaleString()}), the vessel performs a short {hopArbitrage.hopDistanceNM} NM hop burning only {hopArbitrage.hopFuelBurnMT} MT fuel (${hopArbitrage.hopFuelCostUSD.toLocaleString()}) to pick up {parcelMT.toLocaleString()} MT Iron Ore Pellets.
               </p>
             </div>
           )}
@@ -358,7 +496,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <Gauge className="w-4 h-4 text-sky-700" />
               <div>
                 <span className="text-xs font-bold text-sky-950">MULTI-PORT / DRAFT FEASIBILITY</span>
-                <p className="text-[10.5px] text-sky-800">Verifies under-keel clearance (UKC), spring tide windows, and channel limits</p>
+                <p className="text-[10.5px] text-sky-800">
+                  Verifies under-keel clearance for {activeVessel.name} ({activeVessel.currentDraughtMeters || 16.5}m draft), spring tide windows, and channel limits
+                </p>
               </div>
             </div>
 
@@ -371,7 +511,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
 
           {!draftFeasible && (
             <div className="mt-2.5 p-2.5 bg-amber-50 rounded border border-amber-200 text-[11px] text-amber-900">
-              <strong>Lightening Protocol Activated:</strong> Capesize laden draft exceeds channel limit. Routes to offshore anchorage (Sandheads / Vizag Outer) for partial 20,000 MT discharge into river daughter barges before proceeding to lock gates.
+              <strong>Lightening Protocol Activated:</strong> {activeVessel.name} laden draft ({activeVessel.currentDraughtMeters}m) exceeds channel limit. Routes to offshore anchorage (Sandheads / Vizag Outer) for partial 20,000 MT discharge into river daughter barges before proceeding to lock gates.
             </div>
           )}
         </div>
@@ -412,7 +552,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
               <DollarSign className="w-5 h-5 text-amber-700" />
               <div>
                 <span className="text-xs font-bold text-amber-950 uppercase tracking-wide">
-                  FEASIBILITY + COMMERCIAL OPTIMIZER
+                  FEASIBILITY + COMMERCIAL OPTIMIZER ({activeVessel.name})
                 </span>
                 <p className="text-[10.5px] text-amber-800">
                   Compares Fuel + Port Costs vs Backhaul Gross Revenue + Avoided Empty Ballast Loss
@@ -462,7 +602,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-200" />
               <span className="text-xs font-bold uppercase tracking-wider">
-                OPTIMAL FEASIBLE VOYAGE PLAN GENERATED
+                OPTIMAL FEASIBLE VOYAGE PLAN GENERATED FOR {activeVessel.name.toUpperCase()}
               </span>
             </div>
             <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono">
@@ -470,7 +610,7 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
             </span>
           </div>
           <p className="text-[11px] text-emerald-100 mt-1">
-            Vessel sails under {congestionResponse.toUpperCase().replace('_', ' ')} directive, completes parallel hold cleaning during calm sea window, hops to Dhamra, and loads 120k MT iron ore with near-zero deadhead ballast.
+            {activeVessel.name} sails under {congestionResponse.toUpperCase().replace('_', ' ')} directive at {currentVesselSpeedKnots} kts, completes parallel hold cleaning during calm sea window, hops to Dhamra, and loads {parcelMT.toLocaleString()} MT iron ore with near-zero deadhead ballast.
           </p>
         </div>
 
