@@ -43,11 +43,11 @@ def fetch_mock_and_live_feed():
         },
         {
             "id": "rss_bunker_03",
-            "source": "Singapore Bunker Wire / Google News RSS",
+            "source": "Global Bunker Wire (Ship & Bunker) / Google News RSS",
             "source_url": "https://news.google.com/rss",
             "published": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
-            "title": "Singapore VLSFO marine bunker fuel spikes $48/MT following Middle East oil supply concerns",
-            "raw_text": "Very Low Sulphur Fuel Oil (VLSFO 0.5%) delivered at Singapore bunkering anchorage jumped 7.8% to $665/MT today. The sharp fuel cost spike immediately adds an estimated $85,000 in voyage operating expenses for Capesize bulkers on the Australia-to-East-Coast-India trade route.",
+            "title": "Global 20-Ports Average VLSFO marine bunker fuel rises following global crude rally",
+            "raw_text": "Very Low Sulphur Fuel Oil (VLSFO 0.5% IMO 2020 Worldwide Benchmark) across the Global 20-Ports Average jumped to $852/MT today. The fuel cost escalation adds an estimated $85,000 in voyage operating expenses for Capesize bulkers on the Australia-to-East-Coast-India trade route.",
             "feed_type": "Google News RSS"
         },
         {
@@ -154,7 +154,7 @@ def generate_one_line_summary(article, matched_entities, severity_data):
     elif "Geopolitical" in cat:
         summary = f"Red Sea attacks enforce +3,450 NM Cape of Good Hope detours, soaking up spot tonnage and triggering a +{drift:.1f}% freight drift."
     elif "Bunker" in cat:
-        summary = f"Singapore VLSFO spiked to $665/MT (+$48/MT), adding ~$85k in Cape voyage opex; lock fixed COAs to buffer bunker surcharges."
+        summary = f"Global 20-Ports Average VLSFO climbed to $852/MT, adding ~$85k in Cape voyage opex; lock fixed COAs to buffer global bunker surcharges."
     elif "Rail" in title or "Queensland" in title:
         summary = f"Queensland rail flooding throttles coal railing to Hay Point/DBCT with queues up to 22 bulkers; expect loading delay of 4-6 days."
     else:

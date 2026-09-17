@@ -2,6 +2,7 @@
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import baltic7YearModelWeights from '../data/baltic7YearModelWeights.json';
+import { getSyncMarketData } from '../services/liveMarketDataService';
 
 // Helper for dynamic calendar date computations (Anchor: Today's live calendar date)
 export function formatDynamicDateRange(startOffsetDays, endOffsetDays, anchorDate = new Date()) {
@@ -47,8 +48,9 @@ export function calculateFreightForecast({
   const speedKnots = vessel.speedKnots || 12.8;
   const sailingDaysOneWay = distanceNM / (speedKnots * 24);
   
-  // Fuel and voyage costs
-  const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 645 : 620; // $/MT
+  // Fuel and voyage costs (Calibrated to Global 20-Ports Average IMO 2020 Benchmark)
+  const syncMarket = getSyncMarketData();
+  const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 895 : (syncMarket.vlsfoPriceUSD || 852); // $/MT
   const bunkerDailyCostUSD = vessel.dailyFuelConsumptionMT * vlsfoPriceUSD;
   const portDischargeDays = cargoMT / (dest.handlingRateTPD || 45000);
   const portWaitDays = dest.avgWaitDays || 2.0;
@@ -115,7 +117,7 @@ export function calculateFreightForecast({
   const blendedPortfolioCostUSD = blendedEffectiveRateUSD * cargoMT;
   const coaTotalCostUSD = coaRateUSD * cargoMT;
   const netSavingsUSD = spotTotalCostUSD - blendedPortfolioCostUSD;
-  const inrConversionRate = 86.5;
+  const inrConversionRate = syncMarket.usdInrSpot || 95.15; // Live Official Daily RBI Reference Rate
   const netSavingsINR = (netSavingsUSD * inrConversionRate) / 10000000; // in ₹ Crores
   const percentageSavings = Number((((spotTotalCostUSD - blendedPortfolioCostUSD) / spotTotalCostUSD) * 100).toFixed(1));
 
@@ -391,13 +393,13 @@ export function calculateEconometricDecomposition({
   cargoMT = 150000,
   demandState = 'normal', // 'high' | 'normal' | 'low'
   supplyState = 'balanced', // 'tight' | 'balanced' | 'surplus'
-  fxRate = 86.50
+  fxRate = 95.00
 }) {
   const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
   const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
   const vessel = VESSEL_CLASSES[vesselId] || VESSEL_CLASSES.capesize;
 
-  const distanceNM = origin.distanceToEastCoastNM || 4120;
+  const distanceNM = origin.distanceToEastCoastNM || 5350;
   const speedKnots = vessel.speedKnots || 12.8;
   const sailingDays = distanceNM / (speedKnots * 24);
   const baselineTCE = vessel.baselineDailyTimeCharterRateUSD || 22000;
@@ -406,9 +408,10 @@ export function calculateEconometricDecomposition({
   // Longer voyages (e.g. US 12,400 NM vs Indonesia 2,100 NM) dominate the fixed transport floor
   const distanceCostUSD = Number(((sailingDays * baselineTCE * 0.58) / cargoMT).toFixed(2));
 
-  // 2. Fuel Factor (VLSFO Bunker consumption at sea)
-  // ~42 MT/day for Capesize @ ~$625/MT VLSFO
-  const dailyFuelBurnUSD = (vessel.dailyFuelConsumptionMT || 42) * 625;
+  // 2. Fuel Factor (Global 20-Ports Average VLSFO Bunker consumption at sea)
+  // Dynamic MT/day based on vessel hull class @ Global 20-Ports Average benchmark
+  const benchmarkFuelUSD = syncMarket.vlsfoPriceUSD || 852;
+  const dailyFuelBurnUSD = (vessel.dailyFuelConsumptionMT || 42.0) * benchmarkFuelUSD;
   const fuelCostUSD = Number(((sailingDays * dailyFuelBurnUSD) / cargoMT).toFixed(2));
 
   // 3. Port Congestion Factor (Anchorage queuing & terminal discharge turnaround)

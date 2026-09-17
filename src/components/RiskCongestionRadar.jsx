@@ -13,7 +13,7 @@ export default function RiskCongestionRadar({ selectedDestination, currency, sel
   const [liveWeather, setLiveWeather] = useState(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const isINR = currency === 'INR';
-  const multiplier = isINR ? 86.5 : 1;
+  const multiplier = isINR ? 95.0 : 1;
 
   // Real-time commercial vessels approaching the active sector or matching vessel class
   const availableShips = useMemo(() => {
@@ -54,7 +54,7 @@ export default function RiskCongestionRadar({ selectedDestination, currency, sel
 
   const currentPortCongestion = PORT_CONGESTION_STATUS[activeSector] || PORT_CONGESTION_STATUS.paradip;
   const estimatedDemurrageINR = (currentPortCongestion.avgAnchorageWaitDays * (customDailyDemurrageLakhs * 100000)) / 10000000; // in ₹ Cr
-  const estimatedDemurrageUSD = (estimatedDemurrageINR * 10000000) / 86.5;
+  const estimatedDemurrageUSD = (estimatedDemurrageINR * 10000000) / 95.0;
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-subtle mb-6">
@@ -288,7 +288,7 @@ export default function RiskCongestionRadar({ selectedDestination, currency, sel
               <div className="flex justify-between items-center mb-1 text-slate-600 font-semibold">
                 <span>Vessel Daily Demurrage Penalty Rate:</span>
                 <span className="font-bold text-slate-900 tabular-nums">
-                  ₹{customDailyDemurrageLakhs} Lakhs / Day (~${Math.round((customDailyDemurrageLakhs * 100000) / 86.5).toLocaleString()})
+                  ₹{customDailyDemurrageLakhs} Lakhs / Day (~${Math.round((customDailyDemurrageLakhs * 100000) / 95.0).toLocaleString()})
                 </span>
               </div>
               <input

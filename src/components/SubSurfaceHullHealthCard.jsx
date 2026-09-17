@@ -13,14 +13,14 @@ export default function SubSurfaceHullHealthCard({
   const [idleDays, setIdleDays] = useState(defaultDays);
   const [portStrictness, setPortStrictness] = useState('HIGH'); // 'HIGH', 'MODERATE', 'LENIENT'
   const isINR = currency === 'INR';
-  const multiplier = isINR ? 86.5 : 1;
+  const multiplier = isINR ? 95.0 : 1;
   const currSym = isINR ? '₹' : '$';
 
   const metrics = useMemo(() => {
     return calculateHullHealth({
       idleDays,
       vesselDailyFuelMT: 32.0,
-      vlsfoPriceUSDPerMT: 620,
+      vlsfoPriceUSDPerMT: 852, // Global 20-Ports Average IMO 2020 baseline
       destinationPortStrictness: portStrictness
     });
   }, [idleDays, portStrictness]);

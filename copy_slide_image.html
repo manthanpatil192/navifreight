@@ -55,16 +55,42 @@
     <div class="header">
       <div>
         <h1>NaviFreight (SIH26006) — Presentation Assets</h1>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Operational Challenges & Strategic Mitigations Card (Pic 2 Size & Format)</p>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Operational Decision Defense & Challenge Cards (Pic 2 Size & Format: 1220×888)</p>
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('card')">Pic 2 Size Card</button>
+        <button class="tab-btn active" onclick="switchTab('sandbox')">What-If Sandbox Card</button>
+        <button class="tab-btn" onclick="switchTab('card')">Challenges & Mitigations Card</button>
         <button class="tab-btn" onclick="switchTab('slide')">Full Presentation Slide</button>
       </div>
     </div>
 
-    <!-- TAB 1: PIC 2 SIZE CARD -->
-    <div id="tabCard" class="slide-card">
+    <!-- TAB 1: WHAT-IF SANDBOX DEFENSE CARD -->
+    <div id="tabSandbox" class="slide-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.15rem; color: #38bdf8;">Interactive "What-If" Sandbox & Operator Override Card (Pic 2 Format)</h2>
+          <p style="color: #94a3b8; font-size: 0.85rem;">Formatted with the exact 3-reason evaluation defense: Live sandbox simulation, IMO human override, and Step 6 commercial math.</p>
+        </div>
+        <div class="actions">
+          <button onclick="copyImage('imgSandbox')">📋 Copy Card to Clipboard</button>
+          <a href="NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size.png" download="NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size.png" class="btn secondary">⬇️ Download High-Res</a>
+          <a href="NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size_305x222.png" download="NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size_305x222.png" class="btn secondary">⬇️ Download 305x222</a>
+          <a href="sandbox_defense_card_pic2_format.html" target="_blank" class="btn secondary">🌐 Open HTML</a>
+        </div>
+      </div>
+
+      <div class="file-path">
+        <span><strong>File:</strong> c:\Users\Manthan\OneDrive\Desktop\sih26006\NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size.png</span>
+        <button class="secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText('c:\\Users\\Manthan\\OneDrive\\Desktop\\sih26006\\NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size.png'); showToast('Path copied to clipboard!')">Copy Path</button>
+      </div>
+
+      <div class="image-wrapper" style="max-height: 650px;">
+        <img id="imgSandbox" src="NaviFreight_WhatIf_Sandbox_Defense_Pic2_Size.png" alt="What-If Sandbox Defense Card in Pic 2 format">
+      </div>
+    </div>
+
+    <!-- TAB 2: PIC 2 SIZE CHALLENGES CARD -->
+    <div id="tabCard" class="slide-card" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="font-size: 1.15rem; color: #38bdf8;">Operational Challenges & Strategic Mitigations (Pic 2 Format)</h2>
@@ -74,6 +100,7 @@
           <button onclick="copyImage('imgCard')">📋 Copy Card to Clipboard</button>
           <a href="NaviFreight_Challenges_Card_Pic2_Size.png" download="NaviFreight_Challenges_Card_Pic2_Size.png" class="btn secondary">⬇️ Download High-Res</a>
           <a href="NaviFreight_Challenges_Card_Pic2_Size_305x222.png" download="NaviFreight_Challenges_Card_Pic2_Size_305x222.png" class="btn secondary">⬇️ Download 305x222</a>
+          <a href="challenges_card_pic2_format.html" target="_blank" class="btn secondary">🌐 Open HTML</a>
         </div>
       </div>
 
@@ -87,7 +114,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: FULL SLIDE -->
+    <!-- TAB 3: FULL SLIDE -->
     <div id="tabSlide" class="slide-card" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
@@ -122,20 +149,28 @@
     }
 
     function switchTab(tab) {
+      const tabSandbox = document.getElementById('tabSandbox');
       const tabCard = document.getElementById('tabCard');
       const tabSlide = document.getElementById('tabSlide');
       const btns = document.querySelectorAll('.tab-btn');
 
-      if (tab === 'card') {
-        tabCard.style.display = 'flex';
+      btns.forEach(b => b.classList.remove('active'));
+
+      if (tab === 'sandbox') {
+        tabSandbox.style.display = 'flex';
+        tabCard.style.display = 'none';
         tabSlide.style.display = 'none';
         btns[0].classList.add('active');
-        btns[1].classList.remove('active');
+      } else if (tab === 'card') {
+        tabSandbox.style.display = 'none';
+        tabCard.style.display = 'flex';
+        tabSlide.style.display = 'none';
+        btns[1].classList.add('active');
       } else {
+        tabSandbox.style.display = 'none';
         tabCard.style.display = 'none';
         tabSlide.style.display = 'flex';
-        btns[0].classList.remove('active');
-        btns[1].classList.add('active');
+        btns[2].classList.add('active');
       }
     }
 

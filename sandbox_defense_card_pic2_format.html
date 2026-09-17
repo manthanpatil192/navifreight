@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>What-If Sandbox & Operator Override Architecture Card</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 1220px;
+      height: 888px;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .main-card {
+      width: 100%;
+      height: 100%;
+      background: #0f224a;
+      border: 3px solid #091733;
+      border-radius: 18px;
+      padding: 14px 16px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    /* TOP TITLE BANNER */
+    .title-banner {
+      text-align: center;
+      padding: 2px 0 4px 0;
+    }
+    .main-title {
+      font-size: 27px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .sub-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #93c5fd;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* TWO COLUMNS CONTAINER */
+    .columns-container {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* LEFT COLUMN: REASON 1 */
+    .column-left {
+      background: #fef7e6; /* Warm cream */
+      border: 2.5px solid #1e3a8a;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    /* RIGHT COLUMN: REASONS 2 & 3 */
+    .column-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-reason-2 {
+      background: #eef8f1; /* Soft mint green */
+      border: 2.5px solid #14532d;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .card-reason-3 {
+      background: #f0f7ff; /* Soft ice blue */
+      border: 2.5px solid #1e40af;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    /* PILL HEADERS */
+    .pill-header {
+      border-radius: 10px;
+      padding: 7px 14px;
+      text-align: center;
+      color: #ffffff;
+      font-size: 16.5px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .pill-header-navy {
+      background: #0f224a;
+      border: 1.5px solid #091733;
+      box-shadow: 0 2px 6px rgba(15,34,74,0.25);
+    }
+
+    .pill-header-green {
+      background: #14532d;
+      border: 1.5px solid #052e16;
+      box-shadow: 0 2px 6px rgba(20,83,45,0.25);
+    }
+
+    .pill-header-blue {
+      background: #1e40af;
+      border: 1.5px solid #1e3a8a;
+      box-shadow: 0 2px 6px rgba(30,64,175,0.25);
+    }
+
+    /* INTRO PARAGRAPH */
+    .intro-box {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #334155;
+    }
+    .intro-box strong {
+      color: #0f172a;
+    }
+
+    /* FEATURE CARDS LIST */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-left: 5px solid #1e3a8a;
+      border-radius: 8px;
+      padding: 7px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .feature-card:nth-child(1) { border-left-color: #0284c7; }
+    .feature-card:nth-child(2) { border-left-color: #10b981; }
+    .feature-card:nth-child(3) { border-left-color: #f59e0b; }
+    .feature-card:nth-child(4) { border-left-color: #ef4444; }
+
+    .feature-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge-step {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-amber { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    .feature-desc {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #475569;
+    }
+    .feature-desc strong {
+      color: #0f172a;
+    }
+    .highlight-gain {
+      color: #15803d;
+      font-weight: 800;
+    }
+    .highlight-save {
+      color: #0369a1;
+      font-weight: 800;
+    }
+
+    /* RIGHT COLUMN BODY STYLING */
+    .body-card-content {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 9px;
+      padding: 10px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .body-desc {
+      font-size: 12.5px;
+      line-height: 1.42;
+      color: #334155;
+    }
+    .body-desc strong {
+      color: #0f172a;
+    }
+
+    .bullet-points {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 2px;
+    }
+
+    .bullet-points li {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #334155;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .bullet-points li span.icon {
+      font-weight: bold;
+      color: #0284c7;
+      flex-shrink: 0;
+    }
+
+    .metric-ribbon {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      font-size: 11px;
+    }
+    .metric-ribbon strong {
+      display: block;
+      font-size: 12.5px;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-card">
+    
+    <!-- TOP TITLE BANNER -->
+    <div class="title-banner">
+      <div class="main-title">Interactive "What-If" Sandbox & Operator Override Architecture</div>
+      <div class="sub-title">NaviFreight (SIH26006) — Master Decision Pipeline Defense & Dynamic Simulation Rationale</div>
+    </div>
+
+    <!-- TWO COLUMNS -->
+    <div class="columns-container">
+
+      <!-- LEFT COLUMN: REASON 1 -->
+      <div class="column-left">
+        <div class="pill-header pill-header-navy">
+          Reason 1: Live Demonstration & Evaluation ("What-If" Sandbox)
+        </div>
+
+        <div class="intro-box">
+          In a presentation or hackathon evaluation, if the pipeline were 100% automated with fixed data, the evaluator would only ever see <strong>one single path</strong> (e.g., ship sails straight to berth). With the interactive toggles, you can actively test and demonstrate how your software algorithm <strong>dynamically reacts and adapts to any crisis</strong>:
+        </div>
+
+        <div class="feature-list">
+          
+          <!-- Scenario 1: Congestion & Virtual Arrival -->
+          <div class="feature-card">
+            <div class="feature-title">
+              <span>• Toggle Berth to "Congested"</span>
+              <span class="badge-step badge-blue">Step 2: Virtual Arrival</span>
+            </div>
+            <div class="feature-desc">
+              Watch <strong>Step 2</strong> activate, shifting the vessel from standard cruising (12 kts) to <strong>Virtual Arrival (Slow Steaming at 7.5 kts)</strong>, saving <span class="highlight-save">₹23.4 Lakhs in fuel</span> and avoiding anchor demurrage.
+            </div>
+          </div>
+
+          <!-- Scenario 2: Backhaul Hop & Load -->
+          <div class="feature-card">
+            <div class="feature-title">
+              <span>• Toggle Backhaul to "Hop & Load"</span>
+              <span class="badge-step badge-green">Step 3: Triangulation</span>
+            </div>
+            <div class="feature-desc">
+              Watch <strong>Step 3</strong> dynamically recalculate a 92 NM coastal hop to Dhamra, turning deadhead ballast loss into <span class="highlight-gain">+₹1.42 Cr in export freight profit</span>.
+            </div>
+          </div>
+
+          <!-- Scenario 3: Port Draft Fit -->
+          <div class="feature-card">
+            <div class="feature-title">
+              <span>• Toggle Port Draft Fit to "Lighten"</span>
+              <span class="badge-step badge-amber">Step 4: Draft Safety</span>
+            </div>
+            <div class="feature-desc">
+              Watch <strong>Step 4</strong> route the Capesize vessel to Sandheads for offshore barge lightening before proceeding past river lock gates.
+            </div>
+          </div>
+
+          <!-- Scenario 4: Weather Safety Gate -->
+          <div class="feature-card">
+            <div class="feature-title">
+              <span>• Toggle Weather to "Rough (>1.8m)"</span>
+              <span class="badge-step badge-red">Step 5: Crew Safety</span>
+            </div>
+            <div class="feature-desc">
+              Watch <strong>Step 5</strong> trigger safety protocols, deferring hold cleaning until the ship is berthed to protect deck crew.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: REASONS 2 & 3 -->
+      <div class="column-right">
+
+        <!-- REASON 2: Human-in-the-Loop -->
+        <div class="card-reason-2">
+          <div class="pill-header pill-header-green">
+            Reason 2: Human-in-the-Loop Operational Override
+          </div>
+          <div class="body-card-content">
+            <p class="body-desc">
+              Under international maritime law (IMO) and port regulations, an AI system <strong>cannot unilaterally reroute or slow down a multi-million-dollar ship</strong> without a human port captain or chartering manager signing off.
+            </p>
+            <p class="body-desc">
+              The toggles simulate the port officer's dashboard where they can review automated recommendations and execute their decisions.
+            </p>
+            <ul class="bullet-points">
+              <li><span class="icon">✓</span> <span><strong>IMO Resolution MSC.428(98):</strong> Requires verifiable human-in-the-loop operational veto.</span></li>
+              <li><span class="icon">✓</span> <span><strong>Legal Liability Indemnity:</strong> Final diversion and laycan adjustment remains with Master / Port Trustee.</span></li>
+              <li><span class="icon">✓</span> <span><strong>Auditable Trail:</strong> Captures operator rationale alongside AI recommendations.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- REASON 3: Dynamic Re-calculation -->
+        <div class="card-reason-3">
+          <div class="pill-header pill-header-blue">
+            Reason 3: Dynamic Mathematical Re-calculation
+          </div>
+          <div class="body-card-content">
+            <p class="body-desc">
+              Every toggle in PIC 2 immediately updates the <strong>Commercial & Voyage Optimizer (Step 6)</strong>, showing real-time changes in fuel costs, demurrage, gross revenue, and net commercial arbitrage.
+            </p>
+            <div class="metric-ribbon">
+              <div>
+                <span style="color: #64748b;">Fuel Law:</span>
+                <strong>P ∝ V³ (Cubic)</strong>
+              </div>
+              <div>
+                <span style="color: #64748b;">Demurrage Risk:</span>
+                <strong style="color: #b91c1c;">₹65L / Day</strong>
+              </div>
+              <div>
+                <span style="color: #64748b;">Triangulation Net:</span>
+                <strong style="color: #15803d;">+₹1.42 Cr</strong>
+              </div>
+            </div>
+            <ul class="bullet-points">
+              <li><span class="icon">⚡</span> <span><strong>Closed-Loop Re-plan:</strong> Dynamic shock reroutes directly into Commercial Optimizer.</span></li>
+              <li><span class="icon">⚡</span> <span><strong>Mathematical Rigor:</strong> Zero hard-coded values; recalculates Admiralty power curves live.</span></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

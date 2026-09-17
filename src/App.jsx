@@ -297,6 +297,7 @@ export default function App() {
               currency={currency}
               forecast={forecast}
               terminalMetrics={terminalMetrics}
+              activeNewsSignal={activeNewsSignal}
             />
           </div>
         )}

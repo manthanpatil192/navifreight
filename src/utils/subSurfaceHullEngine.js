@@ -73,7 +73,7 @@ export const BIOFOULING_STAGES = [
 export function calculateHullHealth({
   idleDays = 8,
   vesselDailyFuelMT = 32.0,
-  vlsfoPriceUSDPerMT = 620,
+  vlsfoPriceUSDPerMT = 852, // Global 20-Ports Average IMO 2020 baseline
   destinationPortStrictness = 'HIGH' // 'HIGH' (Australia/NZ/Singapore), 'MODERATE', 'LENIENT'
 }) {
   const days = Math.max(0, Number(idleDays));
@@ -97,11 +97,11 @@ export function calculateHullHealth({
   // Extra fuel burned per day due to hydrodynamic friction
   const extraFuelMTPerDay = Number(((vesselDailyFuelMT * dragPenaltyPct) / 100).toFixed(1));
   const extraFuelUSDPerDay = Math.round(extraFuelMTPerDay * vlsfoPriceUSDPerMT);
-  const extraFuelINRLakhsPerDay = Number(((extraFuelUSDPerDay * 86.5) / 100000).toFixed(2));
+  const extraFuelINRLakhsPerDay = Number(((extraFuelUSDPerDay * 95.0) / 100000).toFixed(2));
 
   // 14-day return voyage extra fuel penalty
   const voyageFuelPenaltyUSD = extraFuelUSDPerDay * 14;
-  const voyageFuelPenaltyINRLakhs = Number(((voyageFuelPenaltyUSD * 86.5) / 100000).toFixed(1));
+  const voyageFuelPenaltyINRLakhs = Number(((voyageFuelPenaltyUSD * 95.0) / 100000).toFixed(1));
 
   // IMO 30-Day Risk Cap evaluation
   const isImoCapTriggered = days >= 25; // Pre-emptive warning at 25 days, mandatory at 30 days
@@ -155,7 +155,7 @@ export function calculateHopAndLoadArbitrage({
   vesselDailyCharterUSD = 24500,
   vesselSpeedKnots = 11.0,
   vesselFuelBurnMTPerDay = 32.0,
-  vlsfoPriceUSD = 620
+  vlsfoPriceUSD = 852
 }) {
   // Coastal distance matrix between major Indian East Coast bulk hubs (Nautical Miles)
   const COASTAL_DISTANCES = {
@@ -201,7 +201,7 @@ export function calculateHopAndLoadArbitrage({
 
   // Net Commercial Arbitrage (Profit Improvement over deadheading)
   const netTriangulationGainUSD = (grossExportRevenueUSD - totalHopCostUSD) + ballastFuelCostUSD;
-  const netGainINRCrores = Number(((netTriangulationGainUSD * 86.5) / 10000000).toFixed(2));
+  const netGainINRCrores = Number(((netTriangulationGainUSD * 95.0) / 10000000).toFixed(2));
 
   return {
     hopDistanceNM,

@@ -20,7 +20,7 @@ export default function CharterTimingDecisionMatrix({
   terminalMetrics = null
 }) {
   const isINR = currency === 'INR';
-  const baseFxRate = 86.50;
+  const baseFxRate = 95.00; // Live September 2026 Spot Rate
 
   // Local simulated volume state if user tests different parcel sizes
   const [activeVolume, setActiveVolume] = useState(cargoVolumeMT);
@@ -115,7 +115,7 @@ export default function CharterTimingDecisionMatrix({
       accentColor: 'cyan',
       coaShare: 70,
       spotShare: 30,
-      forwardFx: Number((baseFxRate * (1 + (3/12) * 0.025)).toFixed(2)), // 87.04
+      forwardFx: Number((baseFxRate * (1 + (3/12) * 0.025)).toFixed(2)), // 95.60
       driftFactor: 1.075,
       coaDiscountFactor: 0.94,
       congestionDays: destObj.avgWaitDays + 1.2,
@@ -134,7 +134,7 @@ export default function CharterTimingDecisionMatrix({
       accentColor: 'emerald',
       coaShare: 85,
       spotShare: 15,
-      forwardFx: Number((baseFxRate * (1 + (6/12) * 0.025)).toFixed(2)), // 87.58
+      forwardFx: Number((baseFxRate * (1 + (6/12) * 0.025)).toFixed(2)), // 96.19
       driftFactor: 1.055,
       coaDiscountFactor: 0.92, // larger volume discount
       congestionDays: destObj.avgWaitDays + 0.5, // Priority laycan reduces demurrage
@@ -147,7 +147,7 @@ export default function CharterTimingDecisionMatrix({
   // Baseline 100% unhedged spot reference for savings calculation
   const refSpotUSD = baseSpotRate * 1.16;
   const refSpotTotalUSD = refSpotUSD * activeVolume;
-  const refSpotTotalINR_Cr = (refSpotTotalUSD * 87.58) / 10000000;
+  const refSpotTotalINR_Cr = (refSpotTotalUSD * 96.19) / 10000000;
 
   // Dynamic PSU Tender Plan coupled with Web Terminal and selected route/vessel
   const activeTenderPlan = terminalMetrics?.psuTenderPlan || buildPsuTenderPlan({

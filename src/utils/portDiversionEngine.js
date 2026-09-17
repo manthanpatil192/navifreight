@@ -2,6 +2,9 @@ import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
 import { PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
 
+// VLSFO Bunker Fuel baseline: Global 20-Ports Average IMO 2020 Benchmark ($852 / MT) converted at ~₹95.15 / USD
+const VLSFO_PRICE_INR_PER_MT = 81068;
+
 /**
  * Haversine formula to compute great-circle distance between two GPS coordinates (km)
  */
@@ -94,7 +97,7 @@ export function evaluatePortDiversion({
   const demurrageLossLakhs = Number((currPort.avgWaitDays * customDailyDemurrageLakhs).toFixed(1));
   const demurrageLossCr = Number((demurrageLossLakhs / 100).toFixed(2));
   const auxFuelBurnMT = Number((currPort.avgWaitDays * 24 * 0.12).toFixed(1)); // 0.12 MT/hr aux generator fuel at anchor
-  const auxFuelLossLakhs = Number(((auxFuelBurnMT * 62000) / 100000).toFixed(2)); // ₹62,000 / MT VLSFO
+  const auxFuelLossLakhs = Number(((auxFuelBurnMT * VLSFO_PRICE_INR_PER_MT) / 100000).toFixed(2)); // Global 20-Ports Average VLSFO ($852/MT @ ₹95.15)
   const auxFuelLossCr = Number((auxFuelLossLakhs / 100).toFixed(3));
   const totalAnchorageLossLakhs = Number((demurrageLossLakhs + auxFuelLossLakhs).toFixed(1));
   const totalAnchorageLossCr = Number((totalAnchorageLossLakhs / 100).toFixed(2));
@@ -151,7 +154,7 @@ export function evaluatePortDiversion({
   const waitEcoSpeedKnots = 7.5;
   const waitHourlyBurnMT = Number((hourlyFuelBurnMT * 0.45).toFixed(2)); // 45% MCR at eco-speed
   const waitTotalFuelBurnMT = Number((currPort.avgWaitDays * 24 * waitHourlyBurnMT).toFixed(1));
-  const waitFuelCostCr = Number(((waitTotalFuelBurnMT * 62000) / 10000000).toFixed(2));
+  const waitFuelCostCr = Number(((waitTotalFuelBurnMT * VLSFO_PRICE_INR_PER_MT) / 10000000).toFixed(2));
   const waitFuelCostLakhs = Number((waitFuelCostCr * 100).toFixed(1));
   const waitOption = {
     id: 'WAIT',
@@ -204,7 +207,7 @@ export function evaluatePortDiversion({
     const distNM = getDistanceNM(baseCoordinates, port.coordinates);
     const steamingHours = Number((distNM / Math.max(vesselSpeedKnots, 8.0)).toFixed(1));
     const fuelBurnMT = Number((steamingHours * hourlyFuelBurnMT).toFixed(1));
-    const fuelCostLakhs = Number(((fuelBurnMT * 62000) / 100000).toFixed(2)); // ₹62,000 / MT of VLSFO
+    const fuelCostLakhs = Number(((fuelBurnMT * VLSFO_PRICE_INR_PER_MT) / 100000).toFixed(2)); // Global 20-Ports Average VLSFO ($852/MT @ ₹95.15)
     const fuelCostCr = Number((fuelCostLakhs / 100).toFixed(2));
 
     // Bunker Fuel Feasibility Gate (Must have required deviation fuel + 15% SOLAS safety reserve)

@@ -157,7 +157,7 @@ const GLOBAL_BENCHMARKS = {
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
     executiveTakeaway: {
       headline: '🔴 Global Capesize Rates Jump to $22,450/day (+12.1%): Shipowners Driving Hard Bargains',
-      detail: 'The Baltic Dry Capesize 5TC index broke $22,450/day while Singapore marine fuel rose to $628/MT (+2.1%). Shipowners are demanding rate premiums and ballast bonuses for uncommitted spot voyages.',
+      detail: 'The Baltic Dry Capesize 5TC index broke $22,450/day while Global 20-Ports VLSFO marine fuel rose to $852/MT (+2.1%). Shipowners are demanding rate premiums and ballast bonuses for uncommitted spot voyages.',
       actionDirective: 'Lock 3-Month COA with 11.5 knots eco-steaming clauses to insulate your company against fuel & spot rate surges.',
       urgency: 'HIGH CHARTER COSTS'
     },
@@ -187,16 +187,16 @@ const GLOBAL_BENCHMARKS = {
         impactMetric: 'Shipowner Power: MAXIMUM'
       },
       {
-        name: 'Singapore VLSFO Bunker Fuel (0.5% S)',
-        price: '$628.00 / MT',
-        usdEquivalent: '₹54,322 / MT',
+        name: 'Global 20-Ports Average VLSFO (0.5% S)',
+        price: '$852.00 / MT',
+        usdEquivalent: '₹81,068 / MT',
         change: '+2.1%',
         isUp: true,
-        source: 'Ship & Bunker / Platts',
+        source: 'Ship & Bunker / Bunkerworld (IMO 2020 Worldwide Benchmark)',
         verdictBadge: '🔴 FUEL SURCHARGE RISK',
         verdictCls: 'bg-rose-100 text-rose-800 border-rose-200',
-        feedback: 'Higher marine fuel prices add ~$0.35/MT to Australia-India ocean freight. Request eco-speed (11.5 knots) charter clauses.',
-        impactMetric: 'Fuel Surcharge: +$0.35/MT'
+        feedback: 'Higher global marine fuel prices add ~$0.45/MT to Australia-India ocean freight. Request eco-speed (11.5 knots) charter clauses.',
+        impactMetric: 'Fuel Surcharge: +$0.45/MT'
       }
     ]
   }

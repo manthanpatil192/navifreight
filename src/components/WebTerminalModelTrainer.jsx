@@ -14,6 +14,14 @@ import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 import { fetchLiveOriginWeather, evaluateAlternateOriginPort, getFutureDateString } from '../services/originWeatherService';
 import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 import { buildPsuTenderPlan } from '../utils/psuTenderEngine';
+import { 
+  getSyncMarketData, 
+  getLiveMarketData, 
+  forceRefreshMarketData, 
+  calculateForwardFxRate, 
+  subscribeMarketData, 
+  calculateVesselFuelCost 
+} from '../services/liveMarketDataService';
 
 export default function WebTerminalModelTrainer({ 
   onRunScenario, 
@@ -25,9 +33,19 @@ export default function WebTerminalModelTrainer({
   cargoVolumeMT,
   contractHorizonMonths
 }) {
+  const [marketData, setMarketData] = useState(getSyncMarketData());
+
+  useEffect(() => {
+    const unsub = subscribeMarketData((fresh) => {
+      setMarketData(fresh);
+    });
+    getLiveMarketData().then(fresh => setMarketData(fresh)).catch(() => {});
+    return () => unsub();
+  }, []);
+
   const isINR = currency === 'INR';
   const currSym = isINR ? '₹' : '$';
-  const rateMultiplier = isINR ? 86.5 : 1;
+  const rateMultiplier = isINR ? (marketData.usdInrSpot || 95.15) : 1;
 
   // Logistics Manager Manual Input State (Controls above Terminal)
   const [manualOrigin, setManualOrigin] = useState(selectedOrigin || 'gladstone');
@@ -109,13 +127,13 @@ export default function WebTerminalModelTrainer({
 ======================================================================
   Route:             Hay Point / DBCT (Australia) -> Paradip Port (PPT)
   Vessel & Cargo:    Capesize | 150,000 MT Coking Coal (3-Month Horizon)
-  Freight Rates:     Spot: $15.80/MT (₹1,367/MT) | P50: $17.32/MT (₹1,498/MT) | P10: $14.85/MT (₹1,285/MT)
+  Freight Rates:     Spot: $15.80/MT (₹1,501/MT) | P50: $17.32/MT (₹1,656/MT) | P10: $14.85/MT (₹1,420/MT)
   Sea Feasibility:   🟢 PROPER SEA WEATHER AT BOTH PORTS
   Market State:      ⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)
-  Fuel Prices VLSFO: $620/MT VLSFO Baseline
-                     ↳ [Fuel Impact: Determines daily fuel burn (~45 MT/day Capesize = $27.9k/day) & Bunker Adjustment Factor (BAF) floor.]
+  Fuel Prices VLSFO: $${(marketData.vlsfoPriceUSD || 852).toFixed(0)}/MT (Global 20-Ports Average IMO 2020 Benchmark)
+                     ↳ [Fuel Impact: Determines daily fuel burn (~42 MT/day Capesize = $${Math.round(42 * (marketData.vlsfoPriceUSD || 852)).toLocaleString()}/day / ₹${((Math.round(42 * (marketData.vlsfoPriceUSD || 852)) * (marketData.usdInrSpot || 95.15)) / 100000).toFixed(1)} Lakhs/day) & Bunker Adjustment Factor (BAF) floor.]
   Tariff & Trade:    Active: Yes (5% Coking Coal Duty & Import Quotas Audited)
-  Forex Trend:       1 USD = ₹86.50 Spot -> ₹87.04 Forward (3-Month RBI Trend)
+  Forex Trend:       1 USD = ₹${(marketData.usdInrSpot || 95.15).toFixed(2)} Spot -> ₹${calculateForwardFxRate(3, marketData.usdInrSpot || 95.15).toFixed(2)} Forward (3-Month RBI Reference Trend)
 ----------------------------------------------------------------------
 [1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
   * SOURCE PORT [Hay Point / DBCT, Australia]:
@@ -133,22 +151,22 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
-  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,285 /MT ($14.85 /MT) for immediate plant coal basestock.
+  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,411 /MT ($14.85 /MT) for immediate plant coal basestock.
   * Forward Dip Schedule:     🟢 FORWARD DIP SCHEDULE: For secondary volume, float tender on ${initTenderPlan.tenderPublishDeadline} to capture the seasonal P10 low freight dip (${initTenderPlan.targetDipWindow}).
   * Market Risk Regime:       PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
-  * Current Spot:     $15.80 /MT  (₹1,367 /MT)
+  * Current Spot:     $15.80 /MT  (₹1,501 /MT)
     ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
-  * Expected P50:     $17.32 /MT  (₹1,498 /MT)  [Headline MAPE: 15.49%]
+  * Expected P50:     $17.32 /MT  (₹1,656 /MT)  [Headline MAPE: 15.49%]
     ↳ [Meaning: Most likely future price in 3 months (50% chance higher, 50% lower)]
-  * Optimistic P10:   $14.85 /MT  (₹1,285 /MT)
+  * Optimistic P10:   $14.85 /MT  (₹1,420 /MT)
     ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
-  * Stress P90:       $21.18 /MT  (₹1,832 /MT)  [89.9% 90%CI Coverage]
+  * Stress P90:       $21.18 /MT  (₹2,025 /MT)  [89.9% 90%CI Coverage]
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
-  * COA Fixed Lock:   $14.85 /MT  (₹1,285 /MT)
+  * COA Fixed Lock:   $14.85 /MT  (₹1,411 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 
 ----------------------------------------------------------------------
@@ -163,8 +181,10 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $14.85 /MT  (₹1,285 /MT)  (Saves $2.47/MT vs Spot P50)
-    ↳ [Meaning: Combined average price paid per ton across both contract types]
+  * Blended Rate:     $15.14 /MT  (₹1,438 /MT)  (Saves $2.18/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.70 × $14.85 COA) + (0.30 × $15.80 Current Spot) = $15.14/MT]
+    ↳ [Forward Expectation: $15.59 /MT (₹1,490 /MT) with 30% floating on Forward P50 ($17.32)]
+    ↳ [Opportunistic Target: $14.85 /MT (₹1,420 /MT) when capturing P10 Dip Window ($14.85)]
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
@@ -178,7 +198,7 @@ export default function WebTerminalModelTrainer({
 [6] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${initTenderPlan.tenderId}
   * Tender Scope:        150,000 MT Coking Coal (+/- 10% MOLOO)
-  * Target Laycan Dip:   ${initTenderPlan.targetDipWindow} (~${initTenderPlan.sailingDays}d sea transit from Hay Point)
+  * Target Laycan Dip:   ${initTenderPlan.targetDipWindow} (~${initTenderPlan.sailingDays}d eco-transit / ~${initTenderPlan.expressSailingDays || 14.4}d express via Torres Strait)
   * Publish Tender By:   ${initTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
   * Ship Booking Date:   ${initTenderPlan.bookingDate} (L1 reverse auction & Charter Party fixed)
   * Action Advisory:     ${initTenderPlan.tenderStrategyAdvice}
@@ -470,19 +490,24 @@ export default function WebTerminalModelTrainer({
       const coaFixed = Number((baseRate * 0.94).toFixed(2));
 
       // Blended rate computations:
-      // When Recommended Spot is designated "Captures P10 Dip Windows", it models opportunistic execution at the P10 dip rate
+      const blendedSpot = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * baseRate)).toFixed(2));
       const blendedP10 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estP10)).toFixed(2));
       const blendedP50 = Number(((coaSplit/100 * coaFixed) + ((100-coaSplit)/100 * estSpot)).toFixed(2));
-      const blended = blendedP10; // Accurately pulls P10 dip pricing for the spot leg!
+      const blended = blendedSpot; // Accurately reflects Active Allocation Spot Blended Rate
+
+      // Dynamic Vessel Fuel Burn (calibrated per vessel class)
+      const vesselFuelBurnMT = vesselObj.dailyFuelConsumptionMT || (vesselObj.dwt > 140000 ? 42.0 : 33.5);
+      const vlsfoPriceUSD = marketData.vlsfoPriceUSD || 852; // Global 20-Ports Average IMO 2020 Benchmark
+      const vesselDailyFuelCostUSD = Math.round(vesselFuelBurnMT * vlsfoPriceUSD);
 
       // Financial totals
       const unhedgedUSD = Math.round(estSpot * manualVolume);
       const currentSpotUSD = Math.round(baseRate * manualVolume);
       const optUSD = Math.round(blended * manualVolume);
-      const optP10USD = optUSD;
+      const optP10USD = Math.round(blendedP10 * manualVolume);
       const savingsUSD = unhedgedUSD - optUSD;
 
-      const baseFxRate = 86.50;
+      const baseFxRate = marketData.usdInrSpot || 95.15; // Dynamic Official Daily RBI Reference Rate
       const fxDriftPct = (manualHorizon / 12) * 0.025;
       const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
       const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));
@@ -496,13 +521,14 @@ export default function WebTerminalModelTrainer({
       const estP10INR = Math.round(estP10 * forwardFxRate);
       const estP90INR = Math.round(estP90 * forwardFxRate);
       const coaFixedINR = Math.round(coaFixed * baseFxRate);
-      const blendedINR = Math.round(blended * blendedFxRate);
-      const blendedP10INR = Math.round(blendedP10 * blendedFxRate);
+      const blendedINR = Math.round(blended * baseFxRate);
+      const blendedP50INR = Math.round(blendedP50 * forwardFxRate);
+      const blendedP10INR = Math.round(blendedP10 * forwardFxRate);
       const rateSavingsINR = estSpotINR - blendedINR;
       const rateSavingsP10INR = estSpotINR - blendedP10INR;
 
       const unhedgedINR_Cr = ((unhedgedUSD * forwardFxRate) / 10000000).toFixed(2);
-      const optINR_Cr = ((optUSD * blendedFxRate) / 10000000).toFixed(2);
+      const optINR_Cr = ((optUSD * baseFxRate) / 10000000).toFixed(2);
       const optP10INR_Cr = ((optP10USD * blendedFxRate) / 10000000).toFixed(2);
       const savingsINR_Cr = (Number(unhedgedINR_Cr) - Number(optINR_Cr)).toFixed(2);
 
@@ -664,10 +690,10 @@ export default function WebTerminalModelTrainer({
   Freight Rates:     Spot: $${baseRate.toFixed(2)}/MT (₹${spotRateINR.toLocaleString()}/MT) | P50: $${estSpot.toFixed(2)}/MT (₹${estSpotINR.toLocaleString()}/MT) | P10: $${estP10.toFixed(2)}/MT (₹${estP10INR.toLocaleString()}/MT)
   Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
   Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)'}
-  Fuel Prices VLSFO: $620/MT VLSFO Baseline
-                     ↳ [Fuel Impact: Determines daily fuel burn (~45 MT/day Capesize = $27.9k/day) & Bunker Adjustment Factor (BAF) floor.]
+  Fuel Prices VLSFO: $${vlsfoPriceUSD.toFixed(0)}/MT (Global 20-Ports Average IMO 2020 Benchmark)
+                     ↳ [Fuel Impact: Daily fuel burn (${vesselFuelBurnMT} MT/day ${vesselObj.name || recommendedVesselKey} = $${vesselDailyFuelCostUSD.toLocaleString()}/day / ₹${((vesselDailyFuelCostUSD * baseFxRate) / 100000).toFixed(1)} Lakhs/day) & Bunker Adjustment Factor (BAF) floor.]
   Tariff & Trade:    Active: Yes (${activeCargo} Import Duty 5.0% & Safeguard Quotas Audited)
-  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${activeHorizon}-Month RBI Trend)
+  Forex Trend:       1 USD = ₹${baseFxRate.toFixed(2)} Spot -> ₹${forwardFxRate.toFixed(2)} Forward (${activeHorizon}-Month RBI Reference Trend)
 ----------------------------------------------------------------------
 [1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
   * SOURCE PORT [${originObj.name || activeOrigin}]:
@@ -711,13 +737,15 @@ export default function WebTerminalModelTrainer({
                       - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
                       - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
                       - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
-  * Active Allocation: 70% COA / 30% Spot (Balanced Regime)
-  * Recommended COA:  70% (Guarantees Plant Basestock & Hedges Spike)
+  * Active Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot (Balanced Regime)
+  * Recommended COA:  ${coaSplit}% (Guarantees Plant Basestock & Hedges Spike)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: 30% (Captures P10 Dip Windows)
+  * Recommended Spot: ${100-coaSplit}% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $${(estSpot * 0.3 + coaFixed * 0.7).toFixed(2)} /MT  (₹${Math.round((estSpot * 0.3 + coaFixed * 0.7) * 86.5).toLocaleString()} /MT)
-    ↳ [Meaning: Combined average price paid per ton across both contract types]
+  * Blended Rate:     $${blendedSpot.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)
+    ↳ [Spot Reconciliation: (${(coaSplit/100).toFixed(2)} × $${coaFixed.toFixed(2)} COA) + (${((100-coaSplit)/100).toFixed(2)} × $${baseRate.toFixed(2)} Current Spot) = $${blendedSpot.toFixed(2)}/MT]
+    ↳ [Forward Expectation: $${blendedP50.toFixed(2)} /MT (₹${blendedP50INR.toLocaleString()} /MT) with ${100-coaSplit}% floating on Forward P50 ($${estSpot.toFixed(2)})]
+    ↳ [Opportunistic Target: $${blendedP10.toFixed(2)} /MT (₹${blendedP10INR.toLocaleString()} /MT) when capturing P10 Dip Window ($${estP10.toFixed(2)})]
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
@@ -731,7 +759,7 @@ export default function WebTerminalModelTrainer({
 [6] PSU STATUTORY TENDER & BOOKING TIMELINE:
   * Tender Notice ID:    ${psuTenderPlan.tenderId}
   * Tender Scope:        ${activeVolume.toLocaleString()} MT ${activeCargo} (+/- 10% MOLOO)
-  * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d sea transit)
+  * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d eco-transit / ~${psuTenderPlan.expressSailingDays || 14.4}d express)
   * Publish Tender By:   ${psuTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
   * Ship Booking Date:   ${psuTenderPlan.bookingDate} (L1 reverse auction & Charter Party fixed)
   * Action Advisory:     ${psuTenderPlan.tenderStrategyAdvice}
@@ -759,22 +787,22 @@ export default function WebTerminalModelTrainer({
 
     const terminalMetricsPayload = {
       spotUSD: 15.80,
-      spotINR: 1367,
+      spotINR: 1501,
       p50USD: 17.32,
-      p50INR: 1498,
+      p50INR: 1656,
       p10USD: 14.85,
-      p10INR: 1285,
+      p10INR: 1420,
       p90USD: 21.18,
-      p90INR: 1832,
+      p90INR: 2025,
       coaUSD: 14.85,
-      coaINR: 1285,
-      blendedUSD: 14.85,
-      blendedINR: 1285,
-      savingsUSD: 370500,
-      savingsINR_Cr: '3.20',
-      unhedgedINR_Cr: '22.47',
-      optINR_Cr: '19.27',
-      forwardFxRate: 86.50,
+      coaINR: 1411,
+      blendedUSD: 15.14,
+      blendedINR: 1438,
+      savingsUSD: 344250,
+      savingsINR_Cr: '3.27',
+      unhedgedINR_Cr: '24.84',
+      optINR_Cr: '21.57',
+      forwardFxRate: 95.60,
       totalCongestionDays: 2.5,
       weatherDelayDays: 0.0,
       originWeather: {
@@ -801,7 +829,7 @@ export default function WebTerminalModelTrainer({
         demurrageUSD: 0
       },
       isExtremeDemand: false,
-      buyStrikeDirectiveText: '🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,285 /MT ($14.85 /MT). Saves ₹149 /MT vs spot!',
+      buyStrikeDirectiveText: '🟢 OPTIMAL ENTRY BUY WINDOW (P10 DIP): Confirmed calm sea conditions. Strike 3-Month COA tender during forward dip window at P10 target ₹1,420 /MT ($14.85 /MT). Saves ₹236 /MT vs forward spot!',
       holdWaitDirectiveText: '🟢 SECONDARY SPOT ADVICE: For optional forward volume, WAIT FOR SECONDARY SPOT SNIPING WINDOW (Oct 12 – Oct 19, 2026) to capture seasonal P10 price dips. Avoid daily spot spike surges.',
       recommendedWaitDate: 'Oct 12 – Oct 19, 2026',
       bothWeatherProper: true,
@@ -844,15 +872,15 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
-  * Current Spot:     $15.80 /MT  (₹1,367 /MT)
+  * Current Spot:     $15.80 /MT  (₹1,501 /MT)
     ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
-  * Expected P50:     $17.32 /MT  (₹1,498 /MT)  [Headline MAPE: 15.49%]
+  * Expected P50:     $17.32 /MT  (₹1,656 /MT)  [Headline MAPE: 15.49%]
     ↳ [Meaning: Most likely future price in 3 months (50% chance higher, 50% lower)]
-  * Optimistic P10:   $14.85 /MT  (₹1,285 /MT)
+  * Optimistic P10:   $14.85 /MT  (₹1,420 /MT)
     ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
-  * Stress P90:       $21.18 /MT  (₹1,832 /MT)  [89.9% 90%CI Coverage]
+  * Stress P90:       $21.18 /MT  (₹2,025 /MT)  [89.9% 90%CI Coverage]
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
-  * COA Fixed Lock:   $14.85 /MT  (₹1,285 /MT)
+  * COA Fixed Lock:   $14.85 /MT  (₹1,411 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
@@ -860,8 +888,8 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 30% (Captures P10 Dip Windows)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $14.85 /MT  (₹1,285 /MT)  (Saves $2.47/MT vs Spot)
-    ↳ [Meaning: Combined average price paid per ton across both contract types]
+  * Blended Rate:     $15.14 /MT  (₹1,438 /MT)  (Saves $2.18/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.70 × $14.85 COA) + (0.30 × $15.80 Spot) = $15.14/MT | Forward P50: $15.59/MT]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test1TenderPlan.promptLaycanWindow}
@@ -890,22 +918,22 @@ export default function WebTerminalModelTrainer({
     
     const terminalMetricsPayload = {
       spotUSD: 16.40,
-      spotINR: 1419,
+      spotINR: 1558,
       p50USD: 19.65,
-      p50INR: 1700,
+      p50INR: 1879,
       p10USD: 14.52,
-      p10INR: 1256,
+      p10INR: 1388,
       p90USD: 25.88,
-      p90INR: 2239,
+      p90INR: 2474,
       coaUSD: 15.42,
-      coaINR: 1334,
-      blendedUSD: 15.29,
-      blendedINR: 1325,
-      savingsUSD: 327000,
-      savingsINR_Cr: '2.83',
-      unhedgedINR_Cr: '12.77',
-      optINR_Cr: '9.94',
-      forwardFxRate: 86.68,
+      coaINR: 1465,
+      blendedUSD: 15.57,
+      blendedINR: 1479,
+      savingsUSD: 306000,
+      savingsINR_Cr: '2.92',
+      unhedgedINR_Cr: '14.09',
+      optINR_Cr: '11.17',
+      forwardFxRate: 95.60,
       totalCongestionDays: 7.5,
       weatherDelayDays: 5.5,
       originWeather: {
@@ -937,7 +965,7 @@ export default function WebTerminalModelTrainer({
         demurrageUSD: 0
       },
       isExtremeDemand: true,
-      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.',
+      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,388 – ₹1,879 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,474/MT P90 spike.',
       holdWaitDirectiveText: `🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL ${getFutureDateString(3)} or DIVERT to Newcastle Port (PWCS).`,
       recommendedWaitDate: getFutureDateString(3),
       bothWeatherProper: false,
@@ -997,20 +1025,20 @@ export default function WebTerminalModelTrainer({
     - Pilotage/Berth:🟢 [PROPER SEA WEATHER] Outer Harbour VGCB & Inner Berths operating seamlessly.
 ----------------------------------------------------------------------
 [2] TACTICAL BUY / HOLD & PRICE DIRECTIVES:
-  * BUY / STRIKE:    🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,256 – ₹1,700 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,239/MT P90 spike.
+  * BUY / STRIKE:    🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,388 – ₹1,879 /MT. Widen strike corridor to guarantee blast furnace feed. Lock 85% under Fixed COA contract immediately to avoid ₹2,474/MT P90 spike.
   * HOLD / WAIT:     🔴 HOLD / DO NOT CHARTER SPOT: Severe Queensland Cyclone Alert at Gladstone. CONTRACT MAY BE CANCELLED DUE TO WEATHER! WAIT TILL ${getFutureDateString(3)} or DIVERT to Newcastle Port (PWCS).
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
-  * Current Spot:     $16.40 /MT  (₹1,419 /MT)
+  * Current Spot:     $16.40 /MT  (₹1,558 /MT)
     ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
-  * Expected P50:     $19.65 /MT  (₹1,700 /MT)  [Headline MAPE: 15.49%]
+  * Expected P50:     $19.65 /MT  (₹1,879 /MT)  [Headline MAPE: 15.49%]
     ↳ [Meaning: Most likely future price in 1 month (50% chance higher, 50% lower)]
-  * Optimistic P10:   $14.52 /MT  (₹1,256 /MT)
+  * Optimistic P10:   $14.52 /MT  (₹1,388 /MT)
     ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
-  * Stress P90:       $25.88 /MT  (₹2,239 /MT)  [89.9% 90%CI Coverage - High Asymmetry]
+  * Stress P90:       $25.88 /MT  (₹2,474 /MT)  [89.9% 90%CI Coverage - High Asymmetry]
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
-  * COA Fixed Lock:   $15.42 /MT  (₹1,334 /MT)
+  * COA Fixed Lock:   $15.42 /MT  (₹1,465 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [4] ALGORITHMIC CVaR CARGO ALLOCATION:
@@ -1018,8 +1046,8 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 15% (Strictly Limited Spot Exposure)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.29 /MT  (₹1,325 /MT)  (Saves $4.36/MT vs Spot P50)
-    ↳ [Meaning: Combined average price paid per ton across both contract types]
+  * Blended Rate:     $15.57 /MT  (₹1,479 /MT)  (Saves $4.08/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.85 × $15.42 COA) + (0.15 × $16.40 Spot) = $15.57/MT | Forward P50: $16.05/MT]
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test2TenderPlan.promptLaycanWindow}
@@ -1056,22 +1084,22 @@ export default function WebTerminalModelTrainer({
 
     const terminalMetricsPayload = {
       spotUSD: 14.20,
-      spotINR: 1228,
+      spotINR: 1349,
       p50USD: 21.10,
-      p50INR: 1825,
+      p50INR: 2030,
       p10USD: 16.80,
-      p10INR: 1453,
+      p10INR: 1616,
       p90USD: 27.05,
-      p90INR: 2340,
+      p90INR: 2602,
       coaUSD: 13.35,
-      coaINR: 1155,
-      blendedUSD: 14.04,
-      blendedINR: 1214,
-      savingsUSD: 1270800,
-      savingsINR_Cr: '10.99',
-      unhedgedINR_Cr: '32.85',
-      optINR_Cr: '21.86',
-      forwardFxRate: 86.50,
+      coaINR: 1268,
+      blendedUSD: 13.52,
+      blendedINR: 1284,
+      savingsUSD: 1364400,
+      savingsINR_Cr: '13.12',
+      unhedgedINR_Cr: '36.53',
+      optINR_Cr: '23.41',
+      forwardFxRate: 96.19,
       totalCongestionDays: 4.0,
       weatherDelayDays: 1.5,
       originWeather: {
@@ -1098,7 +1126,7 @@ export default function WebTerminalModelTrainer({
         demurrageUSD: 0
       },
       isExtremeDemand: true,
-      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,453 – ₹1,825 /MT. Red Sea squeeze driving global bulk tonne-miles. Lock 80% under 6-Month COA immediately to avoid ₹2,340/MT P90 surge!',
+      buyStrikeDirectiveText: '🟢 EXTREME DEMAND BUY CORRIDOR (P10–P50): Target ₹1,616 – ₹2,030 /MT. Red Sea squeeze driving global bulk tonne-miles. Lock 80% under 6-Month COA immediately to avoid ₹2,602/MT P90 surge!',
       holdWaitDirectiveText: '🔴 HOLD / DO NOT CHARTER SPOT: Global fleet squeeze underway. Spot market carries severe upside inflation. Rely strictly on multi-voyage COA coverage.',
       recommendedWaitDate: test3TenderPlan.targetDipWindow,
       bothWeatherProper: true,
@@ -1132,15 +1160,15 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
   * Live ML Engine:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
-  * Current Spot:     $14.20 /MT  (₹1,228 /MT)
+  * Current Spot:     $14.20 /MT  (₹1,349 /MT)
     ↳ [Meaning: Today's open-market price to hire an immediate vessel right now]
-  * Expected P50:     $21.10 /MT  (₹1,825 /MT)  [Headline MAPE: 15.49%]
+  * Expected P50:     $21.10 /MT  (₹2,030 /MT)  [Headline MAPE: 15.49%]
     ↳ [Meaning: Most likely future price in 6 months (50% chance higher, 50% lower)]
-  * Optimistic P10:   $16.80 /MT  (₹1,453 /MT)
+  * Optimistic P10:   $16.80 /MT  (₹1,616 /MT)
     ↳ [Meaning: Best-case bargain price if market slows down (10th percentile floor)]
-  * Stress P90:       $27.05 /MT  (₹2,340 /MT)  [89.9% 90%CI Coverage]
+  * Stress P90:       $27.05 /MT  (₹2,602 /MT)  [89.9% 90%CI Coverage]
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
-  * COA Fixed Lock:   $13.35 /MT  (₹1,155 /MT)
+  * COA Fixed Lock:   $13.35 /MT  (₹1,268 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
@@ -1148,8 +1176,8 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 20%
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $14.04 /MT  (₹1,214 /MT)  (Saves $7.06/MT vs Spot P50)
-    ↳ [Meaning: Combined average price paid per ton across both contract types]
+  * Blended Rate:     $13.52 /MT  (₹1,284 /MT)  (Saves $7.58/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.80 × $13.35 COA) + (0.20 × $14.20 Spot) = $13.52/MT | Forward P50: $14.90/MT]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test3TenderPlan.promptLaycanWindow}
@@ -1199,10 +1227,57 @@ export default function WebTerminalModelTrainer({
   - test1 / normal            : Runs Baseline Normal Route (Hay Point -> Paradip, 150k MT).
   - test2 / cyclone           : Runs Cyclone Stress Shock (Gladstone -> Vizag, 75k MT).
   - test3 / red sea           : Runs Red Sea Geopolitical Rerouting Squeeze (Richards Bay -> Paradip).
+  - market / forex / bunker   : Syncs live daily RBI USD/INR reference rate & Global 20-Ports VLSFO index.
   - Natural Language Queries  : You can enter ANY natural text (e.g. "paradip 160000 tons", "Panama Canal drought").
   - clear / cls               : Clears the terminal screen.`
         }
       ]);
+      return;
+    }
+
+    // 2.45 Live Market Data Sync Trigger (Official Daily RBI Forex & Global 20-Ports Bunker Benchmark)
+    if (cmd === 'market' || cmd.startsWith('market ') || cmd === 'forex' || cmd.startsWith('forex ') || cmd === 'bunker' || cmd.startsWith('bunker ') || cmd === 'fx' || cmd === 'vlsfo' || cmd === 'rates') {
+      setIsExecuting(true);
+      forceRefreshMarketData().then(fresh => {
+        setMarketData(fresh);
+        const fwd1 = calculateForwardFxRate(1, fresh.usdInrSpot);
+        const fwd3 = calculateForwardFxRate(3, fresh.usdInrSpot);
+        const fwd6 = calculateForwardFxRate(6, fresh.usdInrSpot);
+        const capeBurn = calculateVesselFuelCost({ vesselClass: 'Capesize', vlsfoPriceUSD: fresh.vlsfoPriceUSD, spotFxRate: fresh.usdInrSpot });
+        const babyCapeBurn = calculateVesselFuelCost({ vesselClass: 'Baby Cape', vlsfoPriceUSD: fresh.vlsfoPriceUSD, spotFxRate: fresh.usdInrSpot });
+        
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'prompt', text: `PS C:\\navifreight\\ml> python scripts/sync_live_market_benchmarks.py` },
+          {
+            type: 'info',
+            text: `======================================================================
+     OFFICIAL DAILY MARKET TELEMETRY (RBI FOREX & GLOBAL BUNKER)     
+======================================================================
+BENCHMARK I: OFFICIAL USD/INR DAILY REFERENCE RATE
+  * Benchmark:       Reserve Bank of India (RBI) / FBIL Reference Rate
+  * Spot Exchange:   1 USD = ₹${fresh.usdInrSpot.toFixed(2)}
+  * Feed Status:     ${fresh.forexStatus === 'LIVE_OFFICIAL_FEED' ? '🟢 [LIVE OFFICIAL INTERBANK FEED]' : '🟢 [DAILY CALIBRATED OFFICIAL BENCHMARK]'}
+  * Last Refreshed:  ${fresh.lastUpdatedDisplay}
+  * Forward Curve:   1-Mo: ₹${fwd1.toFixed(2)}  |  3-Mo: ₹${fwd3.toFixed(2)}  |  6-Mo: ₹${fwd6.toFixed(2)}
+  * Macro Carry:     +2.50% annual interest rate differential carry
+----------------------------------------------------------------------
+BENCHMARK II: GLOBAL 20-PORTS AVERAGE VLSFO 0.5% S BUNKER BENCHMARK
+  * Benchmark:       IMO 2020 Worldwide Marine Fuel Index
+  * Universal Scope: Volume-Weighted Average Across 20 Major Global Bunkering Hubs
+                     (Rotterdam, Singapore, Fujairah, Houston, Busan, Gibraltar, Antwerp, etc.)
+  * Published Price: $${fresh.vlsfoPriceUSD.toFixed(2)} / MT  (₹${fresh.vlsfoPriceINR.toLocaleString()} / MT @ Today's Spot FX)
+  * Index Status:    🟢 [GLOBAL 20-PORTS COMPOSITE ACTIVE]
+  * Capesize Burn:   42.0 MT/day = $${capeBurn.dailyFuelCostUSD.toLocaleString()}/day  (₹${capeBurn.dailyFuelCostINRLakhs} Lakhs/day)
+  * Baby Cape Burn:  33.5 MT/day = $${babyCapeBurn.dailyFuelCostUSD.toLocaleString()}/day  (₹${babyCapeBurn.dailyFuelCostINRLakhs} Lakhs/day)
+======================================================================
+[MARKET SYNCED] Live Dollar exchange rate and Global Bunker index calibrated!`
+          }
+        ]);
+        setIsExecuting(false);
+      }).catch(() => {
+        setIsExecuting(false);
+      });
       return;
     }
 
@@ -1296,13 +1371,16 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       const coaLock = Number((baseSpot * 0.94).toFixed(2));
       const coaPct = nlp.recommendedCoaPct;
       const spotPct = nlp.recommendedSpotPct;
-      const blendedRate = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * p10)).toFixed(2));
+      const blendedSpot = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * baseSpot)).toFixed(2));
+      const blendedP10 = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * p10)).toFixed(2));
+      const blendedP50 = Number(((coaPct / 100.0 * coaLock) + (spotPct / 100.0 * p50)).toFixed(2));
+      const blendedRate = blendedSpot;
       const unhedgedCost = Math.round(vol * p50);
       const optimizedCost = Math.round(vol * blendedRate);
       const savingsUSD = unhedgedCost - optimizedCost;
-      const savingsINRCr = ((savingsUSD * 86.5) / 10000000).toFixed(2);
+      const savingsINRCr = ((savingsUSD * 95.0) / 10000000).toFixed(2);
       const demurrageUSD = Math.round(nlp.congestionDays * 25000);
-      const demurrageINRCr = ((demurrageUSD * 86.5) / 10000000).toFixed(2);
+      const demurrageINRCr = ((demurrageUSD * 95.0) / 10000000).toFixed(2);
 
       // Trigger dashboard visual update
       onRunScenario({
@@ -1341,22 +1419,23 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
   ML MODEL STATUS:   Trained Scikit-Learn GBDT Bundle (60 Decision Trees)
 ----------------------------------------------------------------------
 [1] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
-  * Baseline Spot Rate:        $${baseSpot.toFixed(2)} /MT  (₹${Math.round(baseSpot * 86.5)} /MT)
-  * Expected Median (P50):     $${p50.toFixed(2)} /MT  (₹${Math.round(p50 * 86.5)} /MT)  [Headline MAPE: 15.49%]
-  * Optimistic Dip Floor (P10):$${p10.toFixed(2)} /MT  (₹${Math.round(p10 * 86.5)} /MT)
-  * Stress Tail Risk (P90):    $${p90.toFixed(2)} /MT  (₹${Math.round(p90 * 86.5)} /MT)  [89.9% 90%CI Coverage]
-  * Forward COA Fixed Lock:    $${coaLock.toFixed(2)} /MT  (₹${Math.round(coaLock * 86.5)} /MT)
+  * Baseline Spot Rate:        $${baseSpot.toFixed(2)} /MT  (₹${Math.round(baseSpot * 95.0)} /MT)
+  * Expected Median (P50):     $${p50.toFixed(2)} /MT  (₹${Math.round(p50 * 95.6)} /MT)  [Headline MAPE: 15.49%]
+  * Optimistic Dip Floor (P10):$${p10.toFixed(2)} /MT  (₹${Math.round(p10 * 95.6)} /MT)
+  * Stress Tail Risk (P90):    $${p90.toFixed(2)} /MT  (₹${Math.round(p90 * 95.6)} /MT)  [89.9% 90%CI Coverage]
+  * Forward COA Fixed Lock:    $${coaLock.toFixed(2)} /MT  (₹${Math.round(coaLock * 95.0)} /MT)
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR ALLOCATION:
   * Recommended COA Weight:    ${coaPct.toFixed(0)}% (Guarantees Plant Basestock & Hedges Spike)
   * Recommended Spot Weight:   ${spotPct.toFixed(0)}% (Captures P10 Dip Windows)
-  * Blended Landed Rate:       $${blendedRate.toFixed(2)} /MT  (₹${Math.round(blendedRate * 86.5)} /MT)
-  * Direct Margin Savings:     $${(p50 - blendedRate).toFixed(2)} /MT  (₹${Math.round((p50 - blendedRate) * 86.5)} /MT)
+  * Blended Landed Rate:       $${blendedRate.toFixed(2)} /MT  (₹${Math.round(blendedRate * 95.0)} /MT)
+    ↳ [Reconciliation: (${(coaPct/100).toFixed(2)} × $${coaLock.toFixed(2)} COA) + (${(spotPct/100).toFixed(2)} × $${baseSpot.toFixed(2)} Spot)]
+  * Direct Margin Savings:     $${(p50 - blendedRate).toFixed(2)} /MT  (₹${Math.round((p50 - blendedRate) * 95.0)} /MT)
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK ARBITRAGE:
   * Consignment Volume:        ${vol.toLocaleString()} Metric Tons (${horiz}-Month Horizon)
-  * Unhedged 100% Spot Cost:   $${unhedgedCost.toLocaleString()}  |  ₹${((unhedgedCost * 86.5) / 10000000).toFixed(2)} Crore
-  * NaviFreight Optimized:     $${optimizedCost.toLocaleString()}  |  ₹${((optimizedCost * 86.5) / 10000000).toFixed(2)} Crore
+  * Unhedged 100% Spot Cost:   $${unhedgedCost.toLocaleString()}  |  ₹${((unhedgedCost * 95.6) / 10000000).toFixed(2)} Crore
+  * NaviFreight Optimized:     $${optimizedCost.toLocaleString()}  |  ₹${((optimizedCost * 95.0) / 10000000).toFixed(2)} Crore
   * Net Direct Savings:        $${savingsUSD.toLocaleString()}  |  ₹${savingsINRCr} Crore
   * Demurrage Exposure:        $${demurrageUSD.toLocaleString()}  |  ₹${demurrageINRCr} Crore
 ----------------------------------------------------------------------
@@ -1758,7 +1837,10 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         const estP10 = Number((estSpot * 0.88).toFixed(2));
         const estP90 = Number((estSpot * 1.28).toFixed(2));
         const coaFixed = Number((baseRate * 0.94).toFixed(2));
-        const blended = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estP10)).toFixed(2));
+        const blendedSpot = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * baseRate)).toFixed(2));
+        const blendedP10 = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estP10)).toFixed(2));
+        const blendedP50 = Number(((parsedCoaSplit/100 * coaFixed) + ((100-parsedCoaSplit)/100 * estSpot)).toFixed(2));
+        const blended = blendedSpot;
 
         const unhedgedCost = Math.round(estSpot * parsedVolume);
         const optCost = Math.round(blended * parsedVolume);
@@ -1766,7 +1848,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         const savingsEUR = Math.round(savingsUSD * 0.92);
 
         // Forward Forex Trend Model (RBI/Fed interest differential: ~2.5% annual drift)
-        const baseFxRate = 86.50;
+        const baseFxRate = 95.00;
         const fxDriftPct = (parsedHorizon / 12) * 0.025;
         const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
         const blendedFxRate = Number(((parsedCoaSplit/100 * baseFxRate) + ((100-parsedCoaSplit)/100 * forwardFxRate)).toFixed(2));
@@ -1776,7 +1858,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         const estP10INR = Math.round(Number(estP10) * forwardFxRate);
         const estP90INR = Math.round(Number(estP90) * forwardFxRate);
         const coaFixedINR = Math.round(Number(coaFixed) * baseFxRate);
-        const blendedINR = Math.round(Number(blended) * blendedFxRate);
+        const blendedINR = Math.round(Number(blended) * baseFxRate);
         const rateSavingsINR = estSpotINR - blendedINR;
 
         const unhedgedINR_Cr = ((Number(unhedgedCost) * forwardFxRate) / 10000000).toFixed(2);
@@ -1813,6 +1895,8 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
   * Recommended COA Weight:          ${parsedCoaSplit}% (${coaNote})
   * Recommended Spot Weight:         ${100 - parsedCoaSplit}%
   * Blended Landed Freight Rate:     ₹${blendedINR.toLocaleString()} /MT   ($${blended} /MT)
+    ↳ [Spot Reconciliation: (${(parsedCoaSplit/100).toFixed(2)} × $${coaFixed} COA) + (${((100-parsedCoaSplit)/100).toFixed(2)} × $${baseRate.toFixed(2)} Spot) = $${blended}/MT]
+    ↳ [Forward Expectation: $${blendedP50.toFixed(2)} /MT | Opportunistic Target: $${blendedP10.toFixed(2)} /MT]
   * Net Landed Savings vs Spot:      ₹${rateSavingsINR.toLocaleString()} /MT saved on every metric ton delivered!
 ----------------------------------------------------------------------
 [3] FINANCIAL IMPACT & RISK AVOIDANCE (INR CRORE):

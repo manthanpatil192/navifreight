@@ -169,7 +169,7 @@ export function optimizeVesselType({
       isLightLoaded = true;
       maxPermissibleCargoMT = Math.round((destDraftStandard / vessel.ladenDraft) * vessel.capacityMT * 0.95);
       const deadfreightMT = Math.max(0, vessel.capacityMT - maxPermissibleCargoMT);
-      deadfreightPenaltyINR_Cr = Number(((deadfreightMT * 16.5 * 86.5) / 10000000).toFixed(2));
+      deadfreightPenaltyINR_Cr = Number(((deadfreightMT * 16.5 * 95.0) / 10000000).toFixed(2));
     }
 
     // 3. Handling capability & turnaround time (Strictly sum of named components)
@@ -208,7 +208,7 @@ export function optimizeVesselType({
 
     // Canonical charter party demurrage rate for this vessel
     const demurrageDailyUSD = vessel.demurragePerDayUSD || 25000;
-    const demurrageDailyINR_Lakhs = Number(((demurrageDailyUSD * 86.5) / 100000).toFixed(2));
+    const demurrageDailyINR_Lakhs = Number(((demurrageDailyUSD * 95.0) / 100000).toFixed(2));
     const demurrageTotalUSD = Math.round(idleDays * demurrageDailyUSD);
     const demurrageTotalINR_Lakhs = Number(((idleDays * demurrageDailyINR_Lakhs)).toFixed(2));
     const demurrageTotalINR_Cr = Number((demurrageTotalINR_Lakhs / 100).toFixed(2));
@@ -217,9 +217,9 @@ export function optimizeVesselType({
     const baseRouteRateUSD = 15.80; // Baseline
     let effectiveRateUSD = Number((baseRouteRateUSD * vessel.scaleFactor).toFixed(2));
     if (lighterageRequired) effectiveRateUSD += 4.20; // $4.20/MT offshore grab-and-barge lighterage
-    if (isLightLoaded) effectiveRateUSD += Number(((deadfreightPenaltyINR_Cr * 10000000) / (cargoVolumeMT * 86.5)).toFixed(2));
-    const effectiveRateINR = Math.round(effectiveRateUSD * 86.5);
-    const totalFreightINR_Cr = Number(((effectiveRateUSD * cargoVolumeMT * 86.5) / 10000000).toFixed(2));
+    if (isLightLoaded) effectiveRateUSD += Number(((deadfreightPenaltyINR_Cr * 10000000) / (cargoVolumeMT * 95.0)).toFixed(2));
+    const effectiveRateINR = Math.round(effectiveRateUSD * 95.0);
+    const totalFreightINR_Cr = Number(((effectiveRateUSD * cargoVolumeMT * 95.0) / 10000000).toFixed(2));
 
     // 6. Multi-criteria optimization score (0–100)
     let score = 100;

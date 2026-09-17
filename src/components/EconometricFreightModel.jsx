@@ -14,7 +14,7 @@ export default function EconometricFreightModel({
   currency = 'INR'
 }) {
   const isINR = currency === 'INR';
-  const fxRate = 86.50;
+  const fxRate = 95.00;
 
   // Interactive Demand & Supply States
   const [demandState, setDemandState] = useState('high'); // 'high' | 'normal' | 'low'

@@ -1,11 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Ship, Anchor, Compass, ArrowDown, ArrowRight, RefreshCw, 
   CheckCircle2, AlertTriangle, Wind, Waves, Sparkles, DollarSign,
-  Layers, ShieldAlert, Cpu, Gauge, Zap, Check, MapPin, Navigation, Radio
+  Layers, ShieldAlert, Cpu, Gauge, Zap, Check, MapPin, Navigation, Radio,
+  UserCheck, Sliders, Info, RotateCcw
 } from 'lucide-react';
 import { calculateHopAndLoadArbitrage, evaluateHoldCleaningWeather } from '../utils/subSurfaceHullEngine';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
+import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
+import { PORT_CONGESTION_STATUS } from '../data/weatherCongestionData';
+import { fetchLiveBayOfBengalWeather } from '../services/imdWeatherService';
 
 export default function MasterDecisionPipeline({ currency = 'INR', selectedPort = 'paradip' }) {
   // Candidate Inbound Bulk Carriers
@@ -24,9 +28,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
         seen.add(v.mmsi);
         unique.push(v);
       }
-      if (unique.length >= 8) break;
+      if (unique.length >= 10) break;
     }
-    return unique.length > 0 ? unique : LIVE_AIS_VESSELS.slice(0, 8);
+    return unique.length > 0 ? unique : LIVE_AIS_VESSELS.slice(0, 10);
   }, [selectedPort]);
 
   const [selectedMmsi, setSelectedMmsi] = useState(
@@ -35,26 +39,175 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
 
   const activeVessel = candidateVessels.find(v => v.mmsi === selectedMmsi) || candidateVessels[0] || LIVE_AIS_VESSELS[1];
 
+  // Destination port references & ground-truth metrics
+  const destPortId = activeVessel?.destinationId || selectedPort || 'paradip';
+  const portData = PORT_CONGESTION_STATUS[destPortId] || PORT_CONGESTION_STATUS.paradip;
+  const portInfo = INDIAN_EAST_COAST_PORTS[destPortId] || INDIAN_EAST_COAST_PORTS.paradip;
+
+  // Live Marine Weather Telemetry State
+  const [liveWeather, setLiveWeather] = useState(null);
+  const [isFetchingWeather, setIsFetchingWeather] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadMarineTelemetry() {
+      setIsFetchingWeather(true);
+      try {
+        const weather = await fetchLiveBayOfBengalWeather(destPortId);
+        if (!isCancelled) setLiveWeather(weather);
+      } catch (err) {
+        console.warn('Marine weather telemetry fallback:', err);
+      } finally {
+        if (!isCancelled) setIsFetchingWeather(false);
+      }
+    }
+    loadMarineTelemetry();
+    return () => { isCancelled = true; };
+  }, [destPortId]);
+
+  // Track Manager Manual Overrides per toggle (IMO Human-in-the-Loop)
+  const [userOverrides, setUserOverrides] = useState({});
+
+  // Dynamic Telemetry Evaluations for Active Vessel & Destination
+  const autoEvaluations = useMemo(() => {
+    // 1. Berth Congestion Evaluation
+    const isAtBerth = Boolean(activeVessel?.status?.toLowerCase().includes('berth'));
+    const isAtAnchor = Boolean(activeVessel?.status?.toLowerCase().includes('anchor'));
+    const queueWaitDays = portData?.avgAnchorageWaitDays || 2.5;
+    const shipsInQueue = portData?.vesselsAtAnchor || 5;
+    const autoBerth = isAtBerth ? true : (queueWaitDays < 2.0 && shipsInQueue < 5 && !isAtAnchor);
+    const berthReason = isAtBerth
+      ? 'Vessel already secured at berth'
+      : (!autoBerth
+          ? `Bottleneck: ${shipsInQueue} ships waiting (${queueWaitDays}d wait)`
+          : `Direct entry: Berth available (${shipsInQueue} waiting, ${queueWaitDays}d wait)`);
+
+    // 2. Congestion Strategy (Demurrage & Fuel Driven)
+    const dailyDemurrageINR = portData?.demurrageDailyExposureINR || 6500000;
+    const totalDemurrageLakhs = Math.round((queueWaitDays * dailyDemurrageINR) / 100000);
+    const vesselSpeed = Number(activeVessel?.speedKnots || 0);
+    let autoAction = 'slow_steam';
+    let actionReason = '';
+
+    if (vesselSpeed > 2.0 || (activeVessel?.etaHours && activeVessel.etaHours > 12)) {
+      autoAction = 'slow_steam';
+      actionReason = `Virtual Arrival (7.5 kts): Saves ₹23.4L fuel & avoids ₹${totalDemurrageLakhs}L demurrage`;
+    } else if (queueWaitDays >= 4.0 || portData?.congestionStatus === 'HIGH') {
+      autoAction = 'divert';
+      actionReason = `Severe queue (${queueWaitDays}d wait = ₹${(totalDemurrageLakhs/100).toFixed(2)} Cr loss): Divert to deepwater Dhamra/Gangavaram`;
+    } else {
+      autoAction = 'wait';
+      actionReason = `Hold at Outer Anchorage (~${queueWaitDays}d wait; ₹${totalDemurrageLakhs}L demurrage risk)`;
+    }
+
+    // 3. Backhaul At Berth (Local Cargo vs Coastal Hop & Load)
+    const isCapesize = Boolean(activeVessel?.vesselType?.toLowerCase().includes('cape'));
+    const hasLocalBackhaul = (destPortId === 'dhamra' || destPortId === 'vizag') && !isCapesize;
+    const backhaulReason = hasLocalBackhaul
+      ? `Local export fixture ready at ${portInfo?.name || destPortId.toUpperCase()}`
+      : `No local fixture; Coastal Hop to ${destPortId === 'dhamra' ? 'PARADIP' : 'DHAMRA'} unlocks +₹1.42 Cr arbitrage`;
+
+    // 4. Port Draft Fit (Channel Under-Keel Clearance vs Lightening)
+    const currentDraft = Number(activeVessel?.currentDraughtMeters || activeVessel?.maxDraughtMeters || 16.5);
+    const maxSafeDraft = Number(portInfo?.maxDraftHighTide || portInfo?.maxDraftLaden || 16.0);
+    const autoDraft = currentDraft <= maxSafeDraft;
+    const draftReason = autoDraft
+      ? `Compliant Draft: ${currentDraft.toFixed(1)}m <= ${maxSafeDraft.toFixed(1)}m max high-tide depth`
+      : `Draft Exceeded: ${currentDraft.toFixed(1)}m > ${maxSafeDraft.toFixed(1)}m. Lighten at Sandheads required`;
+
+    // 5. Marine Weather (Open-Meteo & IMD Significant Wave Height)
+    const waveM = liveWeather?.waveHeightMeters !== undefined ? liveWeather.waveHeightMeters : (destPortId === 'haldia' ? 2.3 : 1.2);
+    const windK = liveWeather?.windSpeedKnots !== undefined ? liveWeather.windSpeedKnots : (destPortId === 'haldia' ? 24 : 14);
+    const isRoughSea = waveM > 1.8 || windK > 22;
+    const autoSea = isRoughSea ? 'rough' : 'calm';
+    const weatherReason = isRoughSea
+      ? `Rough Swell: Wave ${waveM.toFixed(1)}m (>1.8m) & ${windK} kts wind. Hold cleaning deferred to berth`
+      : `Calm Swell: Wave ${waveM.toFixed(1)}m (<1.8m) & ${windK} kts wind. Parallel hold cleaning approved underway`;
+
+    // 6. Dynamic Shock
+    const hasShock = Boolean((liveWeather?.severity && liveWeather.severity !== 'NORMAL') || (portData?.trafficRiskScore >= 75));
+    const shockReason = hasShock
+      ? `Shock Alert: Active ${liveWeather?.stage || 'Squall Alert'} / Port Congestion Index ${portData?.trafficRiskScore || 75}`
+      : `Normal synoptic conditions; standard planned voyage passage`;
+
+    return {
+      autoBerth,
+      berthReason,
+      autoAction,
+      actionReason,
+      totalDemurrageLakhs,
+      dailyDemurrageINR,
+      hasLocalBackhaul,
+      backhaulReason,
+      autoDraft,
+      draftReason,
+      currentDraft,
+      maxSafeDraft,
+      autoSea,
+      weatherReason,
+      waveM,
+      windK,
+      hasShock,
+      shockReason
+    };
+  }, [activeVessel, destPortId, portData, portInfo, liveWeather]);
+
   // Interactive Simulation State
-  const [berthAvailable, setBerthAvailable] = useState(false);
-  const [congestionResponse, setCongestionResponse] = useState('slow_steam'); // 'wait', 'divert', 'slow_steam'
-  const [cargoFound, setCargoFound] = useState(false); // true: local cargo, false: hop-and-load
-  const [draftFeasible, setDraftFeasible] = useState(true);
-  const [seaState, setSeaState] = useState('calm'); // 'calm' (wave < 1.3m), 'rough' (wave > 1.8m)
-  const [conditionsChanged, setConditionsChanged] = useState(false);
+  const [berthAvailable, setBerthAvailable] = useState(autoEvaluations.autoBerth);
+  const [congestionResponse, setCongestionResponse] = useState(autoEvaluations.autoAction); // 'wait', 'divert', 'slow_steam'
+  const [cargoFound, setCargoFound] = useState(autoEvaluations.hasLocalBackhaul); // true: local cargo, false: hop-and-load
+  const [draftFeasible, setDraftFeasible] = useState(autoEvaluations.autoDraft);
+  const [seaState, setSeaState] = useState(autoEvaluations.autoSea); // 'calm' (wave < 1.3m), 'rough' (wave > 1.8m)
+  const [conditionsChanged, setConditionsChanged] = useState(autoEvaluations.hasShock);
   const [replanActive, setReplanActive] = useState(false);
 
+  // When active vessel switches, automatically synchronize all toggles to that vessel's dynamic telemetry!
+  useEffect(() => {
+    setUserOverrides({});
+    setBerthAvailable(autoEvaluations.autoBerth);
+    setCongestionResponse(autoEvaluations.autoAction);
+    setCargoFound(autoEvaluations.hasLocalBackhaul);
+    setDraftFeasible(autoEvaluations.autoDraft);
+    setSeaState(autoEvaluations.autoSea);
+    setConditionsChanged(autoEvaluations.hasShock);
+  }, [selectedMmsi, autoEvaluations]);
+
+  // Manager Manual Override Helpers
+  const handleToggle = (key, setter, value) => {
+    setter(value);
+    setUserOverrides(prev => ({ ...prev, [key]: true }));
+  };
+
+  const handleResetToAuto = () => {
+    setUserOverrides({});
+    setBerthAvailable(autoEvaluations.autoBerth);
+    setCongestionResponse(autoEvaluations.autoAction);
+    setCargoFound(autoEvaluations.hasLocalBackhaul);
+    setDraftFeasible(autoEvaluations.autoDraft);
+    setSeaState(autoEvaluations.autoSea);
+    setConditionsChanged(autoEvaluations.hasShock);
+  };
+
+  const overrideCount = Object.keys(userOverrides).length;
+
   const isINR = currency === 'INR';
-  const multiplier = isINR ? 86.5 : 1;
+  const multiplier = isINR ? 95.0 : 1;
   const currSym = isINR ? '₹' : '$';
 
   // Weather evaluation based on selected sea state
   const weatherResult = useMemo(() => {
+    const waveHeightM = seaState === 'calm'
+      ? (autoEvaluations.waveM <= 1.8 ? autoEvaluations.waveM : 1.1)
+      : (autoEvaluations.waveM > 1.8 ? autoEvaluations.waveM : 2.2);
+    const windSpeedKts = seaState === 'calm'
+      ? Math.min(18, autoEvaluations.windK)
+      : Math.max(22, autoEvaluations.windK);
+
     return evaluateHoldCleaningWeather({
-      waveHeightM: seaState === 'calm' ? 1.1 : 2.2,
-      windSpeedKts: seaState === 'calm' ? 12 : 24
+      waveHeightM,
+      windSpeedKts
     });
-  }, [seaState]);
+  }, [seaState, autoEvaluations.waveM, autoEvaluations.windK]);
 
   // Parcel size tailored to selected vessel
   const parcelMT = Math.min(120000, Math.round((activeVessel?.dwt || 120000) * 0.85));
@@ -112,158 +265,276 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
         </div>
       </div>
 
-      {/* Interactive Scenario Control Bar */}
+      {/* Interactive Scenario Control Bar with Live Telemetry Auto-Detection & Manager Override */}
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 mb-6">
-        <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-2.5 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            Interactive Flow Simulator: Toggle Real-World Operational Events
-          </span>
-          <span className="text-[10px] font-mono text-slate-400">Click options to watch pipeline re-route</span>
+        
+        {/* Top Control Bar Header with Telemetry Summary & Re-sync */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/80 gap-2">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+            <div>
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                <span>Interactive "What-If" Sandbox & Logistics Manager Dashboard</span>
+                {overrideCount > 0 ? (
+                  <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <UserCheck className="w-3 h-3 text-amber-700" /> {overrideCount} Manual Override{overrideCount > 1 ? 's' : ''} Active
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-700" /> 100% Synced to Ship Telemetry
+                  </span>
+                )}
+              </span>
+              <p className="text-[10.5px] text-slate-500">
+                Toggles auto-evaluate dynamically on ship selection. Port manager retains full IMO operational override authority.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 self-start md:self-auto">
+            {overrideCount > 0 && (
+              <button
+                type="button"
+                onClick={handleResetToAuto}
+                className="py-1 px-2.5 rounded text-[10.5px] font-bold bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 shadow-2xs flex items-center gap-1 cursor-pointer transition-all"
+                title="Restore all toggles to live AIS and marine telemetry recommendations"
+              >
+                <RotateCcw className="w-3 h-3 text-indigo-600" />
+                <span>Re-sync to Live Telemetry</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+        {/* Live Operational Telemetry Snapshot Banner */}
+        <div className="bg-white/80 border border-slate-200 rounded p-2 mb-3 text-[11px] grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-600">
+          <div>
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Vessel Profile</span>
+            <strong className="text-slate-800 truncate block">{activeVessel.name}</strong>
+            <span className="text-[10px] text-slate-500">{activeVessel.vesselType} • {activeVessel.currentDraughtMeters || 16.5}m Draft</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Dest Queue & Wait</span>
+            <strong className="text-purple-700 block">{portInfo.name}</strong>
+            <span className="text-[10px] text-slate-500">{portData.vesselsAtAnchor} ships waiting • ~{portData.avgAnchorageWaitDays}d wait</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Live Marine Weather</span>
+            <strong className={`${autoEvaluations.autoSea === 'rough' ? 'text-rose-600' : 'text-emerald-700'} block flex items-center gap-1`}>
+              <Waves className="w-3 h-3" /> Wave: {autoEvaluations.waveM.toFixed(1)}m • {autoEvaluations.windK} kts
+            </strong>
+            <span className="text-[10px] text-slate-500">{liveWeather?.stage || 'Synoptic State'} {isFetchingWeather ? '(fetching...)' : ''}</span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase text-slate-400 block">Demurrage Exposure</span>
+            <strong className="text-rose-700 block">₹{autoEvaluations.totalDemurrageLakhs} Lakhs</strong>
+            <span className="text-[10px] text-slate-500">Rate: ₹{(autoEvaluations.dailyDemurrageINR / 100000).toFixed(0)}L/day wait</span>
+          </div>
+        </div>
+
+        {/* The 6 Dynamic Toggles Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 text-xs">
           
           {/* Toggle 1: Berth Congestion */}
-          <div className="bg-white p-2 rounded border border-slate-200">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">1. Berth Status</label>
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                type="button"
-                onClick={() => setBerthAvailable(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  berthAvailable ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Available
-              </button>
-              <button
-                type="button"
-                onClick={() => setBerthAvailable(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  !berthAvailable ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Congested
-              </button>
+          <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">1. Berth Status</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.berth ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.berth ? 'Override' : 'AI Auto'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggle('berth', setBerthAvailable, true)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    berthAvailable ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Available
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggle('berth', setBerthAvailable, false)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    !berthAvailable ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Congested
+                </button>
+              </div>
             </div>
+            <p className="text-[9.5px] text-slate-500 leading-tight border-t border-slate-100 pt-1">
+              {autoEvaluations.berthReason}
+            </p>
           </div>
 
           {/* Toggle 2: Congestion Strategy (if congested) */}
-          <div className={`bg-white p-2 rounded border transition-all ${berthAvailable ? 'opacity-40 pointer-events-none' : 'border-slate-200'}`}>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">2. Congestion Action</label>
-            <select
-              value={congestionResponse}
-              onChange={(e) => setCongestionResponse(e.target.value)}
-              className="w-full text-[10.5px] font-bold p-1 bg-slate-50 border border-slate-200 rounded text-slate-800 outline-none"
-            >
-              <option value="slow_steam">Virtual Arrival (Slow Steam)</option>
-              <option value="wait">Wait (At Anchor)</option>
-              <option value="divert">Divert (Alternative Port)</option>
-            </select>
+          <div className={`bg-white p-2 rounded border flex flex-col justify-between transition-all ${berthAvailable ? 'opacity-40 pointer-events-none' : 'border-slate-200'}`}>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">2. Congestion Action</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.congestion ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.congestion ? 'Override' : 'AI Suggest'}
+                </span>
+              </div>
+              <select
+                value={congestionResponse}
+                onChange={(e) => handleToggle('congestion', setCongestionResponse, e.target.value)}
+                className="w-full text-[10px] font-bold p-1 bg-slate-50 border border-slate-200 rounded text-slate-800 outline-none mb-1.5"
+              >
+                <option value="slow_steam">Virtual Arrival (Slow Steam)</option>
+                <option value="wait">Wait (At Outer Anchor)</option>
+                <option value="divert">Divert (Alternative Port)</option>
+              </select>
+            </div>
+            <p className="text-[9.5px] text-emerald-700 font-medium leading-tight border-t border-slate-100 pt-1 truncate" title={autoEvaluations.actionReason}>
+              {autoEvaluations.actionReason}
+            </p>
           </div>
 
           {/* Toggle 3: Export Cargo Search */}
-          <div className="bg-white p-2 rounded border border-slate-200">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">3. Backhaul At Berth?</label>
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                type="button"
-                onClick={() => setCargoFound(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  cargoFound ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Local Cargo
-              </button>
-              <button
-                type="button"
-                onClick={() => setCargoFound(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  !cargoFound ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Hop & Load
-              </button>
+          <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">3. Backhaul At Berth?</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.backhaul ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.backhaul ? 'Override' : 'AI Auto'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggle('backhaul', setCargoFound, true)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    cargoFound ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Local Cargo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggle('backhaul', setCargoFound, false)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    !cargoFound ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Hop & Load
+                </button>
+              </div>
             </div>
+            <p className="text-[9.5px] text-slate-500 leading-tight border-t border-slate-100 pt-1 truncate" title={autoEvaluations.backhaulReason}>
+              {autoEvaluations.backhaulReason}
+            </p>
           </div>
 
           {/* Toggle 4: Draft Feasibility */}
-          <div className="bg-white p-2 rounded border border-slate-200">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">4. Port Draft Fit</label>
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                type="button"
-                onClick={() => setDraftFeasible(true)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  draftFeasible ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={() => setDraftFeasible(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  !draftFeasible ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Lighten
-              </button>
+          <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">4. Port Draft Fit</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.draft ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.draft ? 'Override' : 'AI Auto'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggle('draft', setDraftFeasible, true)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    draftFeasible ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggle('draft', setDraftFeasible, false)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    !draftFeasible ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Lighten
+                </button>
+              </div>
             </div>
+            <p className="text-[9.5px] text-slate-500 leading-tight border-t border-slate-100 pt-1 truncate" title={autoEvaluations.draftReason}>
+              {autoEvaluations.draftReason}
+            </p>
           </div>
 
           {/* Toggle 5: Marine Swell State */}
-          <div className="bg-white p-2 rounded border border-slate-200">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">5. Marine Weather</label>
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                type="button"
-                onClick={() => setSeaState('calm')}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  seaState === 'calm' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Calm (&lt;1.3m)
-              </button>
-              <button
-                type="button"
-                onClick={() => setSeaState('rough')}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  seaState === 'rough' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Rough (&gt;1.8m)
-              </button>
+          <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">5. Marine Weather</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.weather ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.weather ? 'Override' : 'AI Live'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggle('weather', setSeaState, 'calm')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    seaState === 'calm' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Calm (&lt;1.8m)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleToggle('weather', setSeaState, 'rough')}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    seaState === 'rough' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Rough (&gt;1.8m)
+                </button>
+              </div>
             </div>
+            <p className="text-[9.5px] text-slate-500 leading-tight border-t border-slate-100 pt-1 truncate" title={autoEvaluations.weatherReason}>
+              {autoEvaluations.weatherReason}
+            </p>
           </div>
 
           {/* Toggle 6: Condition Changed / Closed Loop */}
-          <div className="bg-white p-2 rounded border border-slate-200">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">6. Dynamic Shock?</label>
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                type="button"
-                onClick={() => setConditionsChanged(false)}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  !conditionsChanged ? 'bg-slate-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Normal
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setConditionsChanged(true);
-                  triggerReplan();
-                }}
-                className={`py-1 px-1.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                  conditionsChanged ? 'bg-purple-600 text-white shadow-xs animate-pulse' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Shock Replan
-              </button>
+          <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase">6. Dynamic Shock?</label>
+                <span className={`text-[9px] font-semibold px-1 rounded ${userOverrides.shock ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700'}`}>
+                  {userOverrides.shock ? 'Override' : 'AI Alert'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleToggle('shock', setConditionsChanged, false)}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    !conditionsChanged ? 'bg-slate-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Normal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleToggle('shock', setConditionsChanged, true);
+                    triggerReplan();
+                  }}
+                  className={`py-1 px-1.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    conditionsChanged ? 'bg-purple-600 text-white shadow-xs animate-pulse' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Shock Replan
+                </button>
+              </div>
             </div>
+            <p className="text-[9.5px] text-purple-700 font-medium leading-tight border-t border-slate-100 pt-1 truncate" title={autoEvaluations.shockReason}>
+              {autoEvaluations.shockReason}
+            </p>
           </div>
 
         </div>

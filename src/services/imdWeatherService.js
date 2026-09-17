@@ -235,7 +235,7 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     // Commercial financial demurrage exposure
     const demurrageDays = classification.laycanBufferHours / 24.0;
     const demurrageUSD = Math.round(demurrageDays * 25000);
-    const demurrageINR = Math.round(demurrageUSD * 86.5);
+    const demurrageINR = Math.round(demurrageUSD * 95.0);
     const demurrageINRCrore = (demurrageINR / 10000000).toFixed(2);
 
     const isWeatherProper = classification.severity === 'NORMAL' && waveHeightMeters <= 2.0 && windSpeedKnots <= 22.0;
@@ -278,7 +278,7 @@ export async function fetchLiveBayOfBengalWeather(portOrSectorKey = 'paradip') {
     const classification = classifyImdCyclone(sector.baseWindKnots, sector.basePressure);
     const demurrageDays = classification.laycanBufferHours / 24.0;
     const demurrageUSD = Math.round(demurrageDays * 25000);
-    const demurrageINR = Math.round(demurrageUSD * 86.5);
+    const demurrageINR = Math.round(demurrageUSD * 95.0);
     const demurrageINRCrore = (demurrageINR / 10000000).toFixed(2);
 
     const isWeatherProper = classification.severity === 'NORMAL' && sector.baseWaveMeters <= 2.0;

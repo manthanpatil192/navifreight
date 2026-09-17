@@ -29,13 +29,14 @@ export function buildPsuTenderPlan({
   cargoType = 'Coking Coal',
   baseDate = null
 }) {
-  const originObj = ORIGIN_LOADING_PORTS[originId] || { name: 'Hay Point (Australia)', distanceToEastCoastNM: 4120 };
+  const originObj = ORIGIN_LOADING_PORTS[originId] || { name: 'Hay Point (Australia)', distanceToEastCoastNM: 5350 };
   const destObj = INDIAN_EAST_COAST_PORTS[destinationId] || { name: 'Paradip Port (PPT)', maxDraftLaden: 16.0, avgWaitDays: 2.5 };
   const vesselObj = VESSEL_CLASSES[vesselKey] || { name: 'Capesize', dwt: 180000, ladenDraftMeters: 16.0 };
 
-  const distanceNM = originObj.distanceToEastCoastNM || 4120;
-  // Standard bulk carrier steaming speed: 12 knots
+  const distanceNM = originObj.distanceToEastCoastNM || 5350;
+  // Standard laden bulk carrier eco-speed: 12.0 knots (~18.6 days) | Express speed: 15.5 knots (~14.4 days)
   const sailingDays = Number((distanceNM / (12 * 24)).toFixed(1));
+  const expressSailingDays = Number((distanceNM / (15.5 * 24)).toFixed(1));
 
   // Dynamic reference date: uses provided baseDate, or defaults to real current client calendar date
   const refDate = baseDate instanceof Date 
@@ -119,6 +120,8 @@ export function buildPsuTenderPlan({
     destName: destObj.name,
     distanceNM,
     sailingDays,
+    expressSailingDays,
+    transitDescription: `~${sailingDays}d eco-transit at 12.0 kts (or ~${expressSailingDays}d express at 15.5 kts)`,
     cargoVolumeMT: volumeMT,
     cargoType,
     vesselName: vesselObj.name,

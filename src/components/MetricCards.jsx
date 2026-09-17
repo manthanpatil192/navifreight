@@ -5,11 +5,11 @@ import { formatUSD, formatINR } from '../utils/financialCalculators';
 export default function MetricCards({ forecast, currency, portCongestion }) {
   const isINR = currency === 'INR';
   const spotRateDisplay = isINR 
-    ? `₹${(forecast.projectedSpotRateUSD * 86.5).toFixed(0)} /MT`
+    ? `₹${(forecast.projectedSpotRateUSD * 95.0).toFixed(0)} /MT`
     : `$${forecast.projectedSpotRateUSD.toFixed(2)} /MT`;
 
   const coaRateDisplay = isINR
-    ? `₹${(forecast.coaRateUSD * 86.5).toFixed(0)} /MT`
+    ? `₹${(forecast.coaRateUSD * 95.0).toFixed(0)} /MT`
     : `$${forecast.coaRateUSD.toFixed(2)} /MT`;
 
   const savingsDisplay = isINR

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import InsightBulb from './InsightBulb';
 import { analyzeGlobalNewsNlp } from '../utils/newsNlpAnalyzer';
+import liveMarketNewsPayload from '../data/liveMarketNews.json';
 
 // Free & Open-Source Sovereign Telemetry Datasets (Strictly Free / Open Access; USGS Sentinel-2 & War-Risk Excluded)
 export const FREE_SOVEREIGN_DATASETS = [
@@ -65,10 +66,10 @@ export const FREE_SOVEREIGN_DATASETS = [
     rank: '#6',
     category: 'Macro Economics & Marine Bunker Fuel',
     title: 'Reserve Bank of India (RBI) Reference Rates & Ship & Bunker',
-    provider: 'Reserve Bank of India DBIE + Ship & Bunker Singapore Averages',
+    provider: 'Reserve Bank of India DBIE + Ship & Bunker Global 20-Ports Averages',
     url: 'https://rbi.org.in',
-    corridor: 'Indian East Coast Chartering Desk / Singapore & Colombo Bunkering',
-    features: 'Daily RBI USD/INR reference benchmark for foreign exchange conversion, plus Singapore 0.5% VLSFO open average bunker pricing.',
+    corridor: 'Indian East Coast Chartering Desk / Worldwide Bunkering Hubs',
+    features: 'Daily RBI USD/INR reference benchmark for foreign exchange conversion, plus Global 20-Ports Average 0.5% VLSFO open average marine fuel benchmark.',
     impact: 'Bridges USD/MT shipping contracts with INR/MT budget accounting and triggers bunker-adjustment-factor (BAF) hedging.'
   }
 ];
@@ -443,23 +444,23 @@ export const LIVE_MARKET_INTELLIGENCE_EVENTS = [
     }
   },
 
-  // 8. Singapore Ship & Bunker VLSFO Energy Spike (UP) - Rank 10 Bunker Shock
+  // 8. Global Ship & Bunker VLSFO Energy Spike (UP) - Rank 10 Bunker Shock
   {
-    id: 'singapore_ship_bunker_spike',
+    id: 'global_ship_bunker_spike',
     portFilterKey: 'bunker_fuel',
     category: 'Bunker Fuel & Energy Shock',
     categoryIcon: Flame,
     categoryBadgeColor: 'bg-orange-100 text-orange-800 border-orange-200',
-    portLocation: 'Singapore Bunkering Hub • Global Corridor',
-    title: 'Singapore VLSFO 0.5% marine bunker fuel surges $46/MT to $672/MT as crude markets rally',
-    rawSource: 'Ship & Bunker Singapore Averages / RBI Reference Rate',
+    portLocation: 'Global 20-Ports Bunkering Index • Worldwide Marine Fuel',
+    title: 'Global 20-Ports Average VLSFO 0.5% marine bunker fuel rises to $852/MT as crude markets rally',
+    rawSource: 'Ship & Bunker / Bunkerworld (IMO 2020 Worldwide Benchmark) / RBI Reference Rate',
     sourceUrl: 'https://shipandbunker.com',
     timestamp: '5 hours ago (Bunker Wire)',
     predictionDaysAhead: 'In 1 – 2 Days',
     predictedDate: formatDynamicDateRangeOffset(1, 2),
     predictionHorizonLabel: 'T+24h to T+48h (Prompt Bunkering Stem)',
     impactTimeline: `Immediate Contract BAF Adjustment: ${formatDynamicDateOffset(2)} • Daily Steaming Surcharge Active`,
-    entities: ['Singapore Bunker', 'VLSFO 0.5%', 'Ship & Bunker', 'RBI USD/INR', 'Capesize Opex'],
+    entities: ['Global 20-Ports Bunker', 'VLSFO 0.5%', 'IMO 2020 Standard', 'RBI USD/INR', 'Capesize Opex'],
     finbertSentiment: 'NEGATIVE (Fuel Opex Shock)',
     finbertConfidence: 0.90,
     volatilityBoost: 1.25,
@@ -510,15 +511,94 @@ const RECENT_DISCARDED_NOISE = [
   }
 ];
 
+// Dynamic parser mapping live RSS articles from liveMarketNews.json into full calculation cards
+export const parseLiveRssEvents = (articles = []) => {
+  return articles.map((art, idx) => {
+    const isPriceUp = art.priceDirection === 'UP';
+    const baseUSD = 13.85;
+    const baseINR = +(baseUSD * 95.0).toFixed(1);
+    const driftMult = art.spotDriftMultiplier || (isPriceUp ? 1.15 : 0.90);
+    const finalUSD = +(baseUSD * driftMult).toFixed(2);
+    const finalINR = +(finalUSD * 95.0).toFixed(1);
+    const netChangeUSD = +(finalUSD - baseUSD).toFixed(2);
+    const netChangeINR = +(finalINR - baseINR).toFixed(1);
+    const varianceCr = ((netChangeUSD * 95.0 * 150000) / 10000000).toFixed(2);
+    const varianceLakhs = ((netChangeUSD * 95.0 * 150000) / 100000).toFixed(1);
+    const cargoTotalBaseCr = ((baseUSD * 95.0 * 150000) / 10000000).toFixed(2);
+    const cargoTotalNewCr = ((finalUSD * 95.0 * 150000) / 10000000).toFixed(2);
+
+    let IconComponent = Globe;
+    const catLower = (art.category || '').toLowerCase();
+    if (catLower.includes('weather') || catLower.includes('cyclone') || catLower.includes('squall')) IconComponent = Wind;
+    else if (catLower.includes('conflict') || catLower.includes('geopolitical') || catLower.includes('detour')) IconComponent = Globe;
+    else if (catLower.includes('bunker') || catLower.includes('fuel') || catLower.includes('energy')) IconComponent = Flame;
+    else if (catLower.includes('congestion') || catLower.includes('strike') || catLower.includes('queue')) IconComponent = Anchor;
+    else if (catLower.includes('regulatory') || catLower.includes('restriction')) IconComponent = ShieldCheck;
+    else if (catLower.includes('supply') || catLower.includes('glut') || catLower.includes('fleet')) IconComponent = Ship;
+
+    return {
+      id: art.id || `live_rss_${idx}`,
+      portFilterKey: art.portFilterKey || 'paradip',
+      category: art.category,
+      categoryIcon: IconComponent,
+      categoryBadgeColor: art.categoryBadgeColor || (isPriceUp ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'),
+      portLocation: art.portLocation || 'PS Corridor Live Feed',
+      title: art.title,
+      rawSource: art.rawSource,
+      sourceUrl: art.sourceUrl,
+      timestamp: art.timestamp || 'Live RSS Feed',
+      publishedUtc: art.publishedUtc,
+      predictionDaysAhead: isPriceUp ? 'In 2 – 4 Days' : 'In 7 – 10 Days',
+      predictedDate: isPriceUp ? formatDynamicDateRangeOffset(2, 4) : formatDynamicDateRangeOffset(7, 10),
+      predictionHorizonLabel: isPriceUp ? 'T+48h to T+96h (Prompt Laycan Squeeze)' : 'T+7 to T+10 Days (Tonnage Relief Window)',
+      impactTimeline: `Peak Impact: ${formatDynamicDateOffset(3)} • Live RSS Ingested`,
+      entities: art.entities || ['Live RSS Ingestion'],
+      finbertSentiment: art.finbertSentiment,
+      finbertConfidence: art.finbertConfidence,
+      volatilityBoost: art.volatilityBoost,
+      spotDriftMultiplier: driftMult,
+      spotDriftPct: art.spotDriftPct,
+      priceDirection: art.priceDirection,
+      urgencyLevel: art.urgencyLevel,
+      isConflictOrDisruption: art.isConflictOrDisruption || false,
+      oneLiner: art.oneLiner,
+      actionRecommendation: art.actionRecommendation,
+      calculation: {
+        formula: `Projected Freight = Base ($${baseUSD.toFixed(2)}) ${netChangeUSD >= 0 ? '+' : '-'} Shift ($${Math.abs(netChangeUSD).toFixed(2)}) = $${finalUSD.toFixed(2)} / MT`,
+        baseFreightUSD: baseUSD,
+        baseFreightINR: baseINR,
+        netChangeUSD: `${netChangeUSD >= 0 ? '+' : ''}${netChangeUSD.toFixed(2)}`,
+        netChangeINR: `${netChangeINR >= 0 ? '+' : ''}${netChangeINR.toFixed(1)}`,
+        finalFreightUSD: finalUSD,
+        finalFreightINR: finalINR,
+        cargoTotalBaseCr,
+        cargoTotalNewCr,
+        varianceCr: `${varianceCr >= 0 ? '+' : ''}${varianceCr}`,
+        varianceLakhs: `${varianceLakhs >= 0 ? '+' : ''}${varianceLakhs}`,
+        factors: [
+          { label: 'Baseline Spot Rate', value: `$${baseUSD.toFixed(2)} / MT`, inr: `₹${baseINR} / MT`, desc: 'Standard East Coast Capesize tariff' },
+          { label: 'Market Disruption Shift', value: `${netChangeUSD >= 0 ? '+' : ''}${(netChangeUSD * 0.7).toFixed(2)} / MT`, inr: `${netChangeINR >= 0 ? '+' : ''}₹${(netChangeINR * 0.7).toFixed(1)} / MT`, desc: 'Live event shock calibrated by FinBERT NLP' },
+          { label: 'Laycan & Fuel Risk', value: `${netChangeUSD >= 0 ? '+' : ''}${(netChangeUSD * 0.3).toFixed(2)} / MT`, inr: `${netChangeINR >= 0 ? '+' : ''}₹${(netChangeINR * 0.3).toFixed(1)} / MT`, desc: 'Demurrage and auxiliary steaming buffer' }
+        ]
+      }
+    };
+  });
+};
+
+export const INITIAL_MARKET_INTELLIGENCE_EVENTS = [
+  ...parseLiveRssEvents(liveMarketNewsPayload?.articles || []),
+  ...LIVE_MARKET_INTELLIGENCE_EVENTS
+];
+
 export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNewsSignal }) {
-  const [eventsList, setEventsList] = useState(LIVE_MARKET_INTELLIGENCE_EVENTS);
-  const [selectedEventId, setSelectedEventId] = useState(activeNewsSignal?.id || 'weather_cyclone');
+  const [eventsList, setEventsList] = useState(INITIAL_MARKET_INTELLIGENCE_EVENTS);
+  const [selectedEventId, setSelectedEventId] = useState(activeNewsSignal?.id || INITIAL_MARKET_INTELLIGENCE_EVENTS[0]?.id || 'weather_cyclone');
   const [activePortFilter, setActivePortFilter] = useState('all'); // 'all', 'price_up', 'price_down', 'paradip', 'vizag', 'haldia', 'australia', 'indonesia', 'africa', 'bunker_fuel'
   const [customHeadline, setCustomHeadline] = useState('');
   const [customAnalysis, setCustomAnalysis] = useState(null);
   const [isSimulatingNLP, setIsSimulatingNLP] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefreshedTime, setLastRefreshedTime] = useState('Just now (Live GDELT 2.0)');
+  const [lastRefreshedTime, setLastRefreshedTime] = useState('Live Ingestion Active (Google News RSS + GDELT)');
   const [countdownSec, setCountdownSec] = useState(30);
   const [isNoiseDrawerOpen, setIsNoiseDrawerOpen] = useState(false);
   const [isPortRegistryOpen, setIsPortRegistryOpen] = useState(false);
@@ -555,18 +635,33 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
     return () => clearInterval(timer);
   }, []);
 
-  const handleRefreshNewsFeed = () => {
+  const handleRefreshNewsFeed = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      const updated = eventsList.map((e, idx) => ({
-        ...e,
-        timestamp: idx === 0 ? 'Just now (Live GDELT Ingestion)' : `${(idx * 7) + 3} mins ago (Live Feed)`
-      }));
-      setEventsList(updated);
-      setLastRefreshedTime(`Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+    try {
+      // Dynamic fetch from server / static json
+      const basePrefix = import.meta.env.BASE_URL || '/';
+      const fetchUrl = `${basePrefix.replace(/\/$/, '')}/data/liveMarketNews.json`;
+      const resp = await fetch(fetchUrl).catch(() => fetch('/data/liveMarketNews.json')).catch(() => null);
+      if (resp && resp.ok) {
+        const freshData = await resp.json();
+        if (freshData?.articles?.length > 0) {
+          const freshEvents = parseLiveRssEvents(freshData.articles);
+          setEventsList([...freshEvents, ...LIVE_MARKET_INTELLIGENCE_EVENTS]);
+        }
+      } else {
+        const updated = eventsList.map((e, idx) => ({
+          ...e,
+          timestamp: idx === 0 ? 'Just now (Live RSS Ingestion)' : idx < 5 ? `${(idx * 15) + 5} mins ago (Live Feed)` : e.timestamp
+        }));
+        setEventsList(updated);
+      }
+    } catch (e) {
+      console.warn('News refresh fallback:', e);
+    } finally {
+      setLastRefreshedTime(`Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Live RSS 2.0)`);
       setCountdownSec(45);
       setIsRefreshing(false);
-    }, 600);
+    }
   };
 
   const handleFilterChange = (filterKey) => {

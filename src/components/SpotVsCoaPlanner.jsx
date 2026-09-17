@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layers, CheckCircle2, ArrowRight, ShieldCheck, DollarSign, Percent, TrendingDown, Clock, Sliders, AlertTriangle, Sparkles, TrendingUp, HelpCircle, Shield, Zap, Lock, Calendar, Target, Radio } from 'lucide-react';
 import { formatUSD, formatINR } from '../utils/financialCalculators';
 import InsightBulb from './InsightBulb';
+import { getSyncMarketData, subscribeMarketData, getFxSensitivityScenarios } from '../services/liveMarketDataService';
 
 export default function SpotVsCoaPlanner({ 
   forecast, 
@@ -11,8 +12,17 @@ export default function SpotVsCoaPlanner({
   coaSplitPercent: controlledSplit,
   onCoaSplitChange
 }) {
+  const [marketData, setMarketData] = useState(getSyncMarketData());
+
+  useEffect(() => {
+    const unsub = subscribeMarketData((fresh) => {
+      setMarketData(fresh);
+    });
+    return () => unsub();
+  }, []);
+
   const isINR = currency === 'INR';
-  const baseInrRate = 86.5;
+  const baseInrRate = marketData.usdInrSpot || 95.15;
 
   // 1. Volume Hedging Split State (Controlled or Local State)
   const [internalSplit, setInternalSplit] = useState(70);
@@ -81,13 +91,8 @@ export default function SpotVsCoaPlanner({
     };
   }
 
-  // FX Scenarios
-  const fxScenarios = [
-    { label: 'Stronger Rupee (₹83.90)', fx: 83.90, delta: -0.58, desc: 'Cheaper Landed Bill' },
-    { label: 'Current Rate (₹86.50)', fx: 86.50, delta: 0, desc: 'Base Case' },
-    { label: 'Weaker Rupee (₹89.10)', fx: 89.10, delta: +0.58, desc: '+₹58 Lakhs Extra Cost' },
-    { label: 'Severe Drop (₹91.70)', fx: 91.70, delta: +1.16, desc: '+₹1.16 Cr Extra Cost' },
-  ];
+  // Dynamic FX Scenarios (Calibrated to live RBI Reference benchmark)
+  const fxScenarios = getFxSensitivityScenarios(baseInrRate);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-subtle mb-6 space-y-6">
@@ -366,7 +371,7 @@ export default function SpotVsCoaPlanner({
             </h3>
           </div>
           <span className="text-[11px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
-            Current Rate: <strong>₹{currentFxRate} = $1 USD</strong>
+            Official Daily Rate: <strong>₹{baseInrRate.toFixed(2)} = $1 USD</strong>
           </span>
         </div>
 

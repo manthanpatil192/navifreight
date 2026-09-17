@@ -94,7 +94,7 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
       isLightLoaded = true;
       lightLoadingCapMT = Math.round((maxAllowableDraft / vessel.ladenDraft) * vessel.typicalParcel * 0.94);
       const shortCargoMT = vessel.typicalParcel - lightLoadingCapMT;
-      deadFreightPenaltyINRCr = +((shortCargoMT * 18.5 * 86.5) / 10000000).toFixed(2);
+      deadFreightPenaltyINRCr = +((shortCargoMT * 18.5 * 95.0) / 10000000).toFixed(2);
       
       if (availableOriginDraft < availableDestDraft) {
         bindingConstraint = `Origin (${origin.name} max ${availableOriginDraft}m)`;
@@ -127,13 +127,13 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   if (extraOverLaytime > 0 || live.waitDays > 1.5 || tripsRequired > 1) {
     const demurrageDays = Math.max(0, extraOverLaytime + Math.max(0, live.waitDays - 1.0) + voyageMultiplierWaitDays);
     demurrageINRCr = +((demurrageDays * DEMURRAGE_RATE_INR_PER_DAY) / 10000000).toFixed(2);
-    demurrageUSD = Math.round((demurrageINRCr * 10000000) / 86.5);
+    demurrageUSD = Math.round((demurrageINRCr * 10000000) / 95.0);
   } else if (extraOverLaytime < 0 && live.waitDays <= 1.5 && tripsRequired === 1) {
     // Unloaded ahead of laytime schedule on a single voyage -> Dispatch Bonus Earned!
     isDispatchEarned = true;
     const earlyDays = Math.abs(extraOverLaytime);
     dispatchBonusINRLakhs = +((earlyDays * DISPATCH_RATE_INR_PER_DAY) / 100000).toFixed(1);
-    dispatchBonusUSD = Math.round((dispatchBonusINRLakhs * 100000) / 86.5);
+    dispatchBonusUSD = Math.round((dispatchBonusINRLakhs * 100000) / 95.0);
   }
 
   // Traffic Light Verdict Generation

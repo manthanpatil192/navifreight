@@ -234,7 +234,7 @@ export const ORIGIN_LOADING_PORTS = {
     maxLOA: 330,
     handlingRateTPD: 85000,
     primaryCargoes: ['Premium Hard Coking Coal', 'PCI Coal'],
-    distanceToEastCoastNM: 4120, // Nautical miles to Paradip
+    distanceToEastCoastNM: 5350, // Realistic nautical routing via Torres Strait / Indonesian Archipelago / Malacca Strait
     officialSource: 'Dalrymple Bay Coal Terminal (DBCT) Australia Port Operations Manual'
   },
   gladstone: {
@@ -246,7 +246,7 @@ export const ORIGIN_LOADING_PORTS = {
     maxLOA: 315,
     handlingRateTPD: 75000,
     primaryCargoes: ['Coking Coal', 'Thermal Coal'],
-    distanceToEastCoastNM: 4250,
+    distanceToEastCoastNM: 5420, // Nautical corridor routing via Torres Strait / Malacca
     officialSource: 'Gladstone Ports Corporation Operations Manual'
   },
   newcastle: {
@@ -258,7 +258,7 @@ export const ORIGIN_LOADING_PORTS = {
     maxLOA: 300,
     handlingRateTPD: 80000,
     primaryCargoes: ['Thermal Coal', 'Semi-Soft Coking Coal'],
-    distanceToEastCoastNM: 4450,
+    distanceToEastCoastNM: 5650, // Nautical corridor routing via Torres Strait / Malacca
     officialSource: 'Port Authority of New South Wales Marine Operations Manual'
   },
   hampton_roads: {

@@ -19,7 +19,7 @@ export default function ExecutiveReportModal({
   if (!isOpen) return null;
 
   const isINR = currency === 'INR';
-  const multiplier = isINR ? 86.5 : 1;
+  const multiplier = isINR ? 95.0 : 1;
   const unit = isINR ? '₹/MT' : '$/MT';
   const currSym = isINR ? '₹' : '$';
 
