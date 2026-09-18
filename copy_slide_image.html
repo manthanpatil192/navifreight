@@ -58,14 +58,39 @@
         <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Operational Decision Defense & Challenge Cards (Pic 2 Size & Format: 1220×888)</p>
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('sandbox')">What-If Sandbox Card</button>
+        <button class="tab-btn active" onclick="switchTab('solution')">Page 2 Solution Slide (Pic 2)</button>
+        <button class="tab-btn" onclick="switchTab('sandbox')">What-If Sandbox Card</button>
         <button class="tab-btn" onclick="switchTab('card')">Challenges & Mitigations Card</button>
         <button class="tab-btn" onclick="switchTab('slide')">Full Presentation Slide</button>
       </div>
     </div>
 
+    <!-- TAB 0: PAGE 2 SOLUTION SLIDE (PIC 2 FORMAT) -->
+    <div id="tabSolution" class="slide-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.15rem; color: #38bdf8;">NaviFreight — Page 2 Proposed Solution Slide (Pic 2 Format)</h2>
+          <p style="color: #94a3b8; font-size: 0.85rem;">Formatted in exact Smart India Hackathon Page 2 format: Solution (6 key pillars), Napkin AI Multi-modal Flow, Prototype Mockups & USPs.</p>
+        </div>
+        <div class="actions">
+          <button onclick="copyImage('imgSolution')">📋 Copy Slide to Clipboard</button>
+          <a href="NaviFreight_Solution_Slide_Pic2_Format.png" download="NaviFreight_Solution_Slide_Pic2_Format.png" class="btn secondary">⬇️ Download High-Res (1920×1080)</a>
+          <a href="solution_slide_pic2_format.html" target="_blank" class="btn secondary">🌐 Open HTML Slide</a>
+        </div>
+      </div>
+
+      <div class="file-path">
+        <span><strong>File:</strong> c:\Users\Manthan\OneDrive\Desktop\sih26006\NaviFreight_Solution_Slide_Pic2_Format.png</span>
+        <button class="secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText('c:\\Users\\Manthan\\OneDrive\\Desktop\\sih26006\\NaviFreight_Solution_Slide_Pic2_Format.png'); showToast('Path copied to clipboard!')">Copy Path</button>
+      </div>
+
+      <div class="image-wrapper" style="max-height: 650px;">
+        <img id="imgSolution" src="NaviFreight_Solution_Slide_Pic2_Format.png" alt="NaviFreight Page 2 Proposed Solution Slide in Pic 2 Format">
+      </div>
+    </div>
+
     <!-- TAB 1: WHAT-IF SANDBOX DEFENSE CARD -->
-    <div id="tabSandbox" class="slide-card">
+    <div id="tabSandbox" class="slide-card" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="font-size: 1.15rem; color: #38bdf8;">Interactive "What-If" Sandbox & Operator Override Card (Pic 2 Format)</h2>
@@ -149,6 +174,7 @@
     }
 
     function switchTab(tab) {
+      const tabSolution = document.getElementById('tabSolution');
       const tabSandbox = document.getElementById('tabSandbox');
       const tabCard = document.getElementById('tabCard');
       const tabSlide = document.getElementById('tabSlide');
@@ -156,21 +182,23 @@
 
       btns.forEach(b => b.classList.remove('active'));
 
-      if (tab === 'sandbox') {
-        tabSandbox.style.display = 'flex';
-        tabCard.style.display = 'none';
-        tabSlide.style.display = 'none';
+      tabSolution.style.display = 'none';
+      tabSandbox.style.display = 'none';
+      tabCard.style.display = 'none';
+      tabSlide.style.display = 'none';
+
+      if (tab === 'solution') {
+        tabSolution.style.display = 'flex';
         btns[0].classList.add('active');
-      } else if (tab === 'card') {
-        tabSandbox.style.display = 'none';
-        tabCard.style.display = 'flex';
-        tabSlide.style.display = 'none';
+      } else if (tab === 'sandbox') {
+        tabSandbox.style.display = 'flex';
         btns[1].classList.add('active');
-      } else {
-        tabSandbox.style.display = 'none';
-        tabCard.style.display = 'none';
-        tabSlide.style.display = 'flex';
+      } else if (tab === 'card') {
+        tabCard.style.display = 'flex';
         btns[2].classList.add('active');
+      } else {
+        tabSlide.style.display = 'flex';
+        btns[3].classList.add('active');
       }
     }
 
