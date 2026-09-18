@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NaviFreight — Page 2 Proposed Solution Slide</title>
+  <title>NaviFreight — Page 2 Proposed Solution Slide (Pic 2 Format)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -10,65 +10,68 @@
       height: 1080px;
       background: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: #0f172a;
-      padding: 22px 30px 16px 30px;
+      color: #000000;
+      padding: 20px 26px 14px 26px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
-    /* TOP HEADER */
+    /* ================= TOP HEADER ================= */
     .top-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #000000;
     }
     .brand-pill {
-      border: 2px solid #0f172a;
+      border: 2px solid #000000;
       border-radius: 9999px;
-      padding: 5px 26px;
+      padding: 4px 26px;
       font-weight: 800;
-      font-size: 19px;
-      color: #0f172a;
-      letter-spacing: -0.5px;
-      background: #f8fafc;
+      font-size: 20px;
+      color: #000000;
+      background: #ffffff;
+      letter-spacing: -0.3px;
     }
     .slide-title {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 900;
-      letter-spacing: 2px;
-      color: #0f172a;
+      letter-spacing: 3px;
+      color: #000000;
       text-transform: uppercase;
     }
     .sih-badge-container {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       text-align: right;
     }
     .sih-tagline {
       font-size: 11px;
       font-weight: 600;
-      color: #475569;
-      max-width: 380px;
-      line-height: 1.35;
+      color: #334155;
+      max-width: 360px;
+      line-height: 1.3;
     }
     .sih-logo-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #f1f5f9;
       border: 1.5px solid #cbd5e1;
       padding: 5px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .sih-logo-icon {
+      font-size: 20px;
     }
     .sih-logo-text {
       font-size: 10.5px;
-      font-weight: 800;
-      color: #0f172a;
+      font-weight: 900;
+      color: #000000;
       line-height: 1.15;
       text-align: left;
     }
@@ -76,369 +79,422 @@
       color: #ea580c;
     }
 
-    /* MAIN CONTENT: SPLIT SOLUTION & PROTOTYPE */
+    /* ================= MAIN 2-COLUMN GRID ================= */
     .main-grid {
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
-      gap: 24px;
+      gap: 20px;
       flex: 1;
-      margin-top: 12px;
-      margin-bottom: 12px;
+      margin-top: 10px;
+      margin-bottom: 10px;
       min-height: 0;
     }
 
-    /* SECTION PILL HEADERS */
-    .section-header-pill {
+    /* PILL BADGES */
+    .pill-header {
       display: inline-block;
       background: #000000;
       color: #ffffff;
-      font-size: 13.5px;
-      font-weight: 800;
-      padding: 4px 20px;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 3px 18px;
       border-radius: 9999px;
       letter-spacing: 1px;
       text-transform: uppercase;
       margin-bottom: 8px;
     }
 
-    /* LEFT: SOLUTION BOX */
-    .solution-box {
-      border: 2.5px solid #0f172a;
-      border-radius: 16px;
-      padding: 16px 20px;
+    /* ================= LEFT: SOLUTION CONTAINER ================= */
+    .solution-container {
+      border: 2px solid #000000;
+      border-radius: 14px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
-    .solution-lead {
-      font-size: 14.5px;
+    .solution-lead-text {
+      font-size: 14px;
       font-weight: 700;
-      color: #1e293b;
+      color: #0f172a;
       line-height: 1.4;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding-bottom: 8px;
-      border-bottom: 1.5px dashed #cbd5e1;
+      border-bottom: 1.5px solid #e2e8f0;
     }
 
-    .solution-bullets-grid {
+    .solution-points-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px 16px;
-      margin-bottom: 12px;
+      gap: 10px 14px;
+      flex: 1;
     }
-    .bullet-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background: #f8fafc;
+    .point-card {
+      background: #ffffff;
       border: 1px solid #e2e8f0;
-      padding: 10px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border-left: 3.5px solid #0284c7;
     }
-    .bullet-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #0284c7;
-      margin-top: 5px;
-      flex-shrink: 0;
-    }
-    .bullet-text {
-      font-size: 12px;
-      color: #334155;
-      line-height: 1.4;
-    }
-    .bullet-text strong {
-      color: #0f172a;
-      font-size: 12.5px;
-      display: block;
-      margin-bottom: 2px;
-    }
+    .point-card.pt-bunching { border-left-color: #0284c7; }
+    .point-card.pt-rail { border-left-color: #16a34a; }
+    .point-card.pt-market { border-left-color: #8b5cf6; }
+    .point-card.pt-cag { border-left-color: #ea580c; }
+    .point-card.pt-early { border-left-color: #ef4444; }
+    .point-card.pt-vessel { border-left-color: #06b6d4; }
 
-    .solution-footer-banner {
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 9px 12px;
-      font-size: 11.5px;
+    .point-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .point-body {
+      font-size: 11px;
       color: #334155;
       line-height: 1.35;
     }
-    .solution-footer-banner strong {
+    .point-body strong {
+      color: #0f172a;
+    }
+
+    .solution-bottom-banner {
+      margin-top: 10px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      color: #1e293b;
+      line-height: 1.35;
+    }
+    .solution-bottom-banner strong {
       color: #0284c7;
     }
-    .completion-tag {
+    .status-badge {
       display: inline-block;
       background: #dbeafe;
       color: #1e40af;
       font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 5px;
+      padding: 1px 6px;
+      border-radius: 4px;
       font-size: 11px;
     }
 
-    /* RIGHT: PROTOTYPE BOX */
-    .prototype-box {
-      border: 2.5px solid #0f172a;
-      border-radius: 16px;
-      padding: 16px 18px;
+    /* ================= RIGHT: PROTOTYPE CONTAINER ================= */
+    .prototype-container {
+      border: 2px solid #000000;
+      border-radius: 14px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
-    
-    .prototype-cards-container {
+
+    .proto-content-area {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       flex: 1;
       justify-content: space-between;
     }
 
-    /* TOP ROW: DUAL MOCKUP FRAMES (MOBILE + DESKTOP) */
-    .prototype-top-mockups {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .mini-mockup-frame {
+    /* SUB-SECTION 1: MOBILE APPS (CROSS PLATFORM) */
+    .proto-sub-box {
       border: 1.5px solid #cbd5e1;
       border-radius: 10px;
-      background: #f8fafc;
       padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      background: #fafafa;
     }
-    .mini-frame-head {
+    .proto-sub-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 6px;
       padding-bottom: 3px;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .mini-frame-title {
-      font-size: 10.5px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .mini-frame-badge {
-      font-size: 8.5px;
+    .proto-sub-header span.sub-tag {
+      font-size: 9px;
       font-weight: 700;
-      padding: 1px 5px;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 1px 6px;
       border-radius: 4px;
     }
 
-    /* NAPKIN AI STYLE DIAGRAM */
-    .diagram-napkin-card {
-      background: #f0fdf4;
-      border: 2px solid #16a34a;
-      border-radius: 12px;
-      padding: 10px 12px;
+    /* 3 PHONE MOCKUPS */
+    .phones-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
     }
-    .diagram-title {
-      font-size: 11px;
+    .phone-mockup {
+      border: 2px solid #334155;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 6px 7px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+    }
+    .phone-notch {
+      width: 32px;
+      height: 3px;
+      background: #334155;
+      border-radius: 2px;
+      margin: 0 auto 3px auto;
+    }
+    .phone-app-bar {
+      font-size: 8.5px;
       font-weight: 800;
-      color: #166534;
+      padding: 2px 5px;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+      color: #ffffff;
+    }
+    .bar-blue { background: #0284c7; }
+    .bar-emerald { background: #15803d; }
+    .bar-amber { background: #d97706; }
+
+    .phone-card-content {
+      font-size: 8px;
+      color: #475569;
+      line-height: 1.25;
+      padding: 2px 0;
+    }
+    .phone-card-content strong {
+      color: #0f172a;
+      display: block;
+      font-size: 8.5px;
+    }
+
+    /* SUB-SECTION 2: NAPKIN FLOW (MULTI-MODAL TIMELINE) */
+    .napkin-flow-box {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+    .napkin-flow-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #15803d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      margin-bottom: 4px;
     }
-    .napkin-flow {
+    .flow-steps-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 4px;
     }
-    .flow-node {
+    .flow-step-item {
       background: #ffffff;
-      border: 1.5px solid #86efac;
-      padding: 5px 8px;
-      border-radius: 7px;
+      border: 1px solid #bbf7d0;
+      border-radius: 5px;
+      padding: 3px 5px;
       text-align: center;
       flex: 1;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .flow-node .node-step {
-      font-size: 8.5px;
+    .flow-step-tag {
+      font-size: 7.5px;
       font-weight: 800;
       color: #15803d;
       text-transform: uppercase;
     }
-    .flow-node .node-name {
-      font-size: 10.5px;
+    .flow-step-name {
+      font-size: 9px;
       font-weight: 700;
       color: #0f172a;
-      margin-top: 1px;
+      white-space: nowrap;
     }
-    .flow-node .node-metric {
-      font-size: 9px;
-      color: #0369a1;
+    .flow-step-metric {
+      font-size: 8px;
+      color: #0284c7;
       font-family: monospace;
-      font-weight: 600;
+      font-weight: 700;
     }
-    .flow-arrow {
-      color: #16a34a;
+    .flow-arrow-sym {
+      font-size: 11px;
       font-weight: 900;
-      font-size: 14px;
+      color: #16a34a;
     }
 
-    /* PROTOTYPE UI PREVIEWS */
-    .prototype-ui-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .ui-mockup-frame {
+    /* SUB-SECTION 3: DESKTOP APPLICATION MOCKUP */
+    .desktop-mockup-frame {
+      border: 2px solid #1e293b;
+      border-radius: 8px;
       background: #f8fafc;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      padding: 6px 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      position: relative;
     }
-    .ui-frame-header {
+    .desktop-title-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #e2e8f0;
       padding-bottom: 3px;
+      border-bottom: 1px solid #cbd5e1;
+      margin-bottom: 4px;
     }
-    .ui-frame-title {
-      font-size: 10.5px;
+    .desktop-dots {
+      display: flex;
+      gap: 3px;
+    }
+    .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+    .desktop-app-title {
+      font-size: 8.5px;
       font-weight: 800;
       color: #0f172a;
     }
-    .ui-badge {
-      font-size: 8.5px;
-      font-weight: 700;
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-    .badge-blue { background: #e0f2fe; color: #0369a1; }
-    .badge-purple { background: #f3e8ff; color: #7e22ce; }
-    .badge-emerald { background: #dcfce7; color: #15803d; }
 
-    .ui-stat-row {
+    .desktop-panels-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 6px;
+    }
+    .dash-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 4px 6px;
+    }
+    .dash-panel-header {
+      font-size: 8px;
+      font-weight: 800;
+      color: #334155;
+      text-transform: uppercase;
       display: flex;
       justify-content: space-between;
-      font-size: 10px;
-      color: #475569;
+      margin-bottom: 2px;
     }
-    .ui-stat-row strong {
+    .dash-table-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      color: #475569;
+      padding: 1px 0;
+      border-bottom: 0.5px solid #f1f5f9;
+    }
+    .dash-table-row strong {
       color: #0f172a;
-      font-family: monospace;
     }
 
-    .proto-footer-callout {
+    /* TELEMETRY TAG */
+    .telemetry-callout {
       background: #eff6ff;
-      border: 1.5px solid #bfdbfe;
-      border-radius: 9px;
-      padding: 7px 10px;
-      font-size: 10.5px;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 9.5px;
       color: #1e40af;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .proto-footer-callout strong {
-      font-weight: 800;
-    }
 
-    /* BOTTOM: WHY WE STAND OUT (USPs) */
-    .standout-section {
-      border: 2.5px solid #0f172a;
-      border-radius: 16px;
-      padding: 14px 18px;
+    /* ================= BOTTOM: WHY WE STAND OUT ================= */
+    .standout-container {
+      border: 2px solid #000000;
+      border-radius: 14px;
+      padding: 10px 16px;
       background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     }
-    .standout-header-row {
+    .standout-head-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
-    .standout-subtitle {
-      font-size: 11.5px;
+    .standout-lead {
+      font-size: 11px;
       font-weight: 700;
       color: #2563eb;
     }
 
-    .usp-grid {
+    .usp-cards-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      gap: 10px;
     }
-    .usp-card {
+    .usp-item-box {
       border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 10px 12px;
+      border-radius: 8px;
+      padding: 8px 10px;
       background: #f8fafc;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
-    .usp-card.card-1 { border-top: 3.5px solid #8b5cf6; background: #faf5ff; }
-    .usp-card.card-2 { border-top: 3.5px solid #ef4444; background: #fef2f2; }
-    .usp-card.card-3 { border-top: 3.5px solid #0284c7; background: #f0f9ff; }
-    .usp-card.card-4 { border-top: 3.5px solid #10b981; background: #f0fdf4; }
+    .usp-item-box.card-1 { border-top: 3.5px solid #a855f7; background: #faf5ff; }
+    .usp-item-box.card-2 { border-top: 3.5px solid #ea580c; background: #fff7ed; }
+    .usp-item-box.card-3 { border-top: 3.5px solid #0284c7; background: #f0f9ff; }
+    .usp-item-box.card-4 { border-top: 3.5px solid #10b981; background: #f0fdf4; }
 
-    .usp-title-row {
+    .usp-header-line {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 2px;
+      gap: 5px;
     }
-    .usp-icon {
-      font-size: 15px;
-    }
-    .usp-card-title {
-      font-size: 11.5px;
+    .usp-icon { font-size: 13px; }
+    .usp-title {
+      font-size: 11px;
       font-weight: 800;
       color: #0f172a;
-      line-height: 1.25;
+      line-height: 1.2;
     }
-    .usp-card-desc {
-      font-size: 10.5px;
+    .usp-desc {
+      font-size: 9.8px;
       color: #475569;
-      line-height: 1.38;
+      line-height: 1.35;
     }
-    .usp-card-desc strong {
+    .usp-desc strong {
       color: #0f172a;
     }
 
-    /* FOOTER */
-    .slide-footer {
+    /* ================= FOOTER ================= */
+    .slide-footer-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 8px;
-      font-size: 11px;
+      padding-top: 6px;
+      font-size: 10.5px;
       color: #64748b;
       font-weight: 600;
     }
-    .footer-left {
-      background: #0284c7;
+    .footer-pill-tag {
+      background: #000000;
       color: #ffffff;
-      padding: 2.5px 12px;
+      padding: 2px 12px;
       border-radius: 9999px;
-      font-size: 10.5px;
-      font-weight: 700;
+      font-size: 10px;
+      font-weight: 800;
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. TOP HEADER -->
+  <!-- TOP HEADER -->
   <div class="top-header">
     <div class="brand-pill">
       NaviFreight
@@ -453,7 +509,7 @@
         Built for Indian PSUs (SAIL / RINL) • GFR 2017 & PM Gati Shakti Compliant • Real-time Multi-modal Maritime AI
       </div>
       <div class="sih-logo-badge">
-        <div style="font-size: 18px;">💡</div>
+        <div class="sih-logo-icon">💡</div>
         <div class="sih-logo-text">
           SMART INDIA<br/><span>HACKATHON 2024</span>
         </div>
@@ -461,275 +517,324 @@
     </div>
   </div>
 
-  <!-- 2. MAIN GRID: SOLUTION & PROTOTYPE -->
+  <!-- MAIN GRID: SOLUTION (LEFT) + PROTOTYPE (RIGHT) -->
   <div class="main-grid">
-    
-    <!-- LEFT: SOLUTION -->
-    <div class="solution-box">
+
+    <!-- LEFT: SOLUTION BOX -->
+    <div class="solution-container">
       <div>
-        <div class="section-header-pill">SOLUTION</div>
-        <div class="solution-lead">
+        <div class="pill-header">SOLUTION</div>
+        
+        <div class="solution-lead-text">
           NaviFreight is an AI-powered maritime logistics and chartering platform that unifies Port AIS, Railway FOIS, and Market Econometrics for smoother, demurrage-free PSU raw-material supply chains.
         </div>
 
-        <div class="solution-bullets-grid">
-          <!-- Bullet 1: Vessel Bunching -->
-          <div class="bullet-item">
-            <div class="bullet-dot"></div>
-            <div class="bullet-text">
-              <strong>Vessel Bunching & Virtual Arrival</strong>
-              Predicts port anchorage queues 7 days out, pacing steaming speed (13.5 → 10.5 kts) to berth JIT, cutting demurrage by 78%.
+        <div class="solution-points-grid">
+          
+          <!-- 1. Optimal Market Entry (Spot vs COA) -->
+          <div class="point-card pt-market">
+            <div class="point-title">
+              <span>📈</span>
+              <span>Optimal Market Entry (Spot vs COA)</span>
+            </div>
+            <div class="point-body">
+              Advises procurement managers <strong>when to book long-term COA tenders vs spot fixtures</strong> as per real-time market price cycles, locking in low rates and enforcing the 65:35 blend norm to avoid spot freight spikes.
             </div>
           </div>
 
-          <!-- Bullet 2: Railway FOIS -->
-          <div class="bullet-item">
-            <div class="bullet-dot" style="background: #16a34a;"></div>
-            <div class="bullet-text">
-              <strong>Railway FOIS Siding Synchronization</strong>
-              Real-time integration with Indian Railways FOIS automates port-to-plant rake allocation, eliminating inland stockout bottlenecks.
+          <!-- 2. Vessel Bunching & Priority Berthing -->
+          <div class="point-card pt-bunching">
+            <div class="point-title">
+              <span>⚓</span>
+              <span>Vessel Bunching & Priority Berthing</span>
+            </div>
+            <div class="point-body">
+              <strong>Analyzes live AIS ETAs across all incoming bulk carriers</strong> and assigns priority-based berth allocations. Commands slow-steaming speed pacing (13.5 → 10.5 kts) to berth JIT, cutting anchorage queues and demurrage by 78%.
             </div>
           </div>
 
-          <!-- Bullet 3: Optimal Market Entry -->
-          <div class="bullet-item">
-            <div class="bullet-dot" style="background: #8b5cf6;"></div>
-            <div class="bullet-text">
-              <strong>Optimal Market Entry (Spot vs COA)</strong>
-              Econometric chartering planner models rate cycles to time fixtures and enforce the 65:35 blend norm, avoiding spot rate spikes.
+          <!-- 3. Railway FOIS & 80 NM Geofence -->
+          <div class="point-card pt-rail">
+            <div class="point-title">
+              <span>🚆</span>
+              <span>Railway FOIS & 80 NM Geofenced Dispatch</span>
+            </div>
+            <div class="point-body">
+              When a vessel crosses the <strong>80 NM port geofence</strong>, the AI evaluates <strong>Rail vs. Truck logistics costs</strong> against live FOIS rake availability. If railway rakes are bottlenecked, it dynamically switches to road trucks to prevent port yard choke.
             </div>
           </div>
 
-          <!-- Bullet 4: CAG Inventory Defense -->
-          <div class="bullet-item">
-            <div class="bullet-dot" style="background: #f59e0b;"></div>
-            <div class="bullet-text">
-              <strong>CAG Inventory & Carrying Cost Defense</strong>
-              Enforces statutory ₹7.03/MT/day benchmark on ₹21,698 Cr stock, shielding blast furnaces from 9.32 Lakh MT production loss.
+          <!-- 4. CAG Inventory & Carrying Cost Defense -->
+          <div class="point-card pt-cag">
+            <div class="point-title">
+              <span>🏭</span>
+              <span>CAG Inventory & Carrying Cost Defense</span>
+            </div>
+            <div class="point-body">
+              Supplies executive suggestions for plant managers on <strong>exact coal replenishment timing</strong>. Enforces the statutory ₹7.03/MT/day carrying cost benchmark on ₹21,698 Cr stock, shielding blast furnaces from 9.32 Lakh MT off-blast shutdowns.
             </div>
           </div>
 
-          <!-- Bullet 5: Early Market Prediction -->
-          <div class="bullet-item">
-            <div class="bullet-dot" style="background: #ef4444;"></div>
-            <div class="bullet-text">
-              <strong>Early Market Prediction Radar</strong>
-              Multi-channel NLP engine ingests live maritime feeds & chokepoints to forecast Baltic dry bulk rates up to 30 days in advance.
+          <!-- 5. Early Market Prediction (Fine-Tuned NLP) -->
+          <div class="point-card pt-early">
+            <div class="point-title">
+              <span>📡</span>
+              <span>Early Market Prediction (Fine-Tuned NLP)</span>
+            </div>
+            <div class="point-body">
+              <strong>Ingests live global maritime feeds</strong>, naval chokepoint risks (Red Sea/Hormuz), and bunker trends. Processes news via fine-tuned FinBERT models to forecast Baltic dry bulk freight rate volatility 14–30 days in advance.
             </div>
           </div>
 
-          <!-- Bullet 6: Vessel Suggestions -->
-          <div class="bullet-item">
-            <div class="bullet-dot" style="background: #06b6d4;"></div>
-            <div class="bullet-text">
-              <strong>Vessel Suggestions & Deadhead Reduction</strong>
-              Replaces 5,350 NM empty ballast voyages with domestic coastal coal hops (Paradip ➔ Ennore) & iron ore export loops.
+          <!-- 6. Vessel Suggestions & Coastal Triangulation -->
+          <div class="point-card pt-vessel">
+            <div class="point-title">
+              <span>🔄</span>
+              <span>Vessel Suggestions & Coastal Triangulation</span>
+            </div>
+            <div class="point-body">
+              Analyzes port bathymetric drafts and tidal windows to <strong>suggest high-yield domestic coastal coal backhauls (Paradip ➔ Ennore)</strong> under cabotage waivers, eliminating 5,350 NM empty ballast deadheading.
             </div>
           </div>
+
         </div>
       </div>
 
-      <div class="solution-footer-banner">
-        We solve maritime supply bottlenecks with sovereign Indian telemetry, eliminating demurrage, stockouts, and empty ballast voyages. 
-        <span class="completion-tag">NaviFreight is 90% completed; live validation across 45 vessels ongoing.</span>
+      <div class="solution-bottom-banner">
+        We solve maritime supply bottlenecks with sovereign Indian telemetry, offering dynamic priority berthing, inventory defense, and AI dispatch. 
+        <span class="status-badge">NaviFreight is 90% completed; live validation across 45 vessels ongoing.</span>
       </div>
     </div>
 
-    <!-- RIGHT: PROTOTYPE -->
-    <div class="prototype-box">
+    <!-- RIGHT: PROTOTYPE BOX -->
+    <div class="prototype-container">
       <div>
-        <div class="section-header-pill">PROTOTYPE</div>
+        <div class="pill-header">PROTOTYPE</div>
       </div>
 
-      <div class="prototype-cards-container">
+      <div class="proto-content-area">
         
-        <!-- ROW 1: MINI PROTOTYPE MOCKUPS -->
-        <div class="prototype-top-mockups">
-          <div class="mini-mockup-frame">
-            <div class="mini-frame-head">
-              <span class="mini-frame-title">📱 Operator & Captain App</span>
-              <span class="mini-frame-badge badge-emerald">JIT Speed Signal</span>
-            </div>
-            <div style="font-size: 9.5px; color: #475569; line-height: 1.35;">
-              Vessel: <strong>MV NAVIOS STAR</strong> (75k MT Coking)<br/>
-              Order: <strong style="color: #16a34a;">Slow-Steam 10.5 kts</strong> • ETA Berth Slot: Day 12
-            </div>
+        <!-- 1. MOBILE APPS (CROSS PLATFORM) -->
+        <div class="proto-sub-box">
+          <div class="proto-sub-header">
+            <span>📱 Mobile App — Cross Platform (Master & Operator Suite)</span>
+            <span class="sub-tag">Captains • Sidings • Logistics Desk</span>
           </div>
 
-          <div class="mini-mockup-frame">
-            <div class="mini-frame-head">
-              <span class="mini-frame-title">💻 Charterer Decision Suite</span>
-              <span class="mini-frame-badge badge-blue">Spot vs COA AI</span>
+          <div class="phones-row">
+            
+            <!-- Phone 1 -->
+            <div class="phone-mockup">
+              <div class="phone-notch"></div>
+              <div class="phone-app-bar bar-emerald">
+                <span>Vessel Master App</span>
+                <span>JIT</span>
+              </div>
+              <div class="phone-card-content">
+                <strong>MV NAVIOS STAR</strong>
+                Order: <span style="color:#15803d; font-weight:700;">Slow-Steam 10.5 kts</span><br/>
+                Slot: Paradip Berth #2<br/>
+                Fuel Saved: <strong>6.5 MT/day</strong>
+              </div>
             </div>
-            <div style="font-size: 9.5px; color: #475569; line-height: 1.35;">
-              Tender Recommendation: <strong style="color: #0284c7;">LOCK 65% COA</strong><br/>
-              Signal: Baltic Drift (+4.2%) • Avoid Spot Spike
+
+            <!-- Phone 2 -->
+            <div class="phone-mockup">
+              <div class="phone-notch"></div>
+              <div class="phone-app-bar bar-blue">
+                <span>80 NM Geofence</span>
+                <span>MODAL</span>
+              </div>
+              <div class="phone-card-content">
+                <strong>Multi-Modal Chooser</strong>
+                Rail: ₹1,420/MT (48h wait)<br/>
+                Truck: <span style="color:#0284c7; font-weight:700;">₹1,780/MT (Spot Ready)</span><br/>
+                Action: <strong>Dispatch 12 Trucks</strong>
+              </div>
             </div>
+
+            <!-- Phone 3 -->
+            <div class="phone-mockup">
+              <div class="phone-notch"></div>
+              <div class="phone-app-bar bar-amber">
+                <span>Plant Stock Radar</span>
+                <span>SAFETY</span>
+              </div>
+              <div class="phone-card-content">
+                <strong>Rourkela (RSP) Yard</strong>
+                Runway: <span style="color:#b45309; font-weight:700;">12.4 Days Buffer</span><br/>
+                Safety Norm: 15.0 Days<br/>
+                Status: <strong>P90 JIT Replenish</strong>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- ROW 2: NAPKIN AI STYLE MULTI-MODAL PIPELINE DIAGRAM -->
-        <div class="diagram-napkin-card">
-          <div class="diagram-title">
+        <!-- 2. NAPKIN FLOW DIAGRAM -->
+        <div class="napkin-flow-box">
+          <div class="napkin-flow-title">
             <span>Multi-Modal Port-to-Plant Synchronization (Napkin Flow)</span>
-            <span style="font-size: 9px; background: #dcfce7; color: #166534; padding: 1px 5px; border-radius: 4px;">Live Closed-Loop</span>
+            <span style="font-size: 8px; color: #166534; background: #dcfce7; padding: 1px 5px; border-radius: 3px;">Live Pipeline</span>
           </div>
-
-          <div class="napkin-flow">
-            <div class="flow-node">
-              <div class="node-step">1. Load Port</div>
-              <div class="node-name">Hay Point</div>
-              <div class="node-metric">75k MT Coal</div>
+          <div class="flow-steps-row">
+            <div class="flow-step-item">
+              <div class="flow-step-tag">1. Load Port</div>
+              <div class="flow-step-name">Hay Point</div>
+              <div class="flow-step-metric">75k MT Coal</div>
             </div>
-            <div class="flow-arrow">➔</div>
-            <div class="flow-node">
-              <div class="node-step">2. Sea Transit</div>
-              <div class="node-name">AIS Pacing</div>
-              <div class="node-metric">10.5 kts (Eco)</div>
+            <div class="flow-arrow-sym">➔</div>
+            <div class="flow-step-item">
+              <div class="flow-step-tag">2. Sea Transit</div>
+              <div class="flow-step-name">AIS Pacing</div>
+              <div class="flow-step-metric">10.5 kts (Eco)</div>
             </div>
-            <div class="flow-arrow">➔</div>
-            <div class="flow-node">
-              <div class="node-step">3. East Port</div>
-              <div class="node-name">Paradip Berth</div>
-              <div class="node-metric">Zero Demurrage</div>
+            <div class="flow-arrow-sym">➔</div>
+            <div class="flow-step-item">
+              <div class="flow-step-tag">3. 80 NM Zone</div>
+              <div class="flow-step-name">Rail vs Truck</div>
+              <div class="flow-step-metric">FOIS Rake Sync</div>
             </div>
-            <div class="flow-arrow">➔</div>
-            <div class="flow-node">
-              <div class="node-step">4. Rail Siding</div>
-              <div class="node-name">FOIS Rakes</div>
-              <div class="node-metric">1.2d TAT</div>
+            <div class="flow-arrow-sym">➔</div>
+            <div class="flow-step-item">
+              <div class="flow-step-tag">4. East Berth</div>
+              <div class="flow-step-name">Paradip Port</div>
+              <div class="flow-step-metric">Priority Dock</div>
             </div>
-            <div class="flow-arrow">➔</div>
-            <div class="flow-node">
-              <div class="node-step">5. Steel Plant</div>
-              <div class="node-name">RSP Furnace</div>
-              <div class="node-metric">15d Safe Buffer</div>
+            <div class="flow-arrow-sym">➔</div>
+            <div class="flow-step-item">
+              <div class="flow-step-tag">5. Steel Plant</div>
+              <div class="flow-step-name">RSP Furnace</div>
+              <div class="flow-step-metric">15d Safe Stock</div>
             </div>
           </div>
         </div>
 
-        <!-- ROW 3: TWO SIDE-BY-SIDE UI STAT PANELS -->
-        <div class="prototype-ui-grid">
-          
-          <!-- UI Panel 1: Master Decision Pipeline -->
-          <div class="ui-mockup-frame">
-            <div class="ui-frame-header">
-              <span class="ui-frame-title">Master Decision Terminal</span>
-              <span class="ui-badge badge-blue">Live AIS Fleet</span>
+        <!-- 3. DESKTOP SUPERVISOR APPLICATION MOCKUP -->
+        <div class="desktop-mockup-frame">
+          <div class="desktop-title-bar">
+            <div class="desktop-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
             </div>
-            <div class="ui-stat-row">
-              <span>Active Bulkers Tracked:</span>
-              <strong>45 Capesize / Panamax</strong>
-            </div>
-            <div class="ui-stat-row">
-              <span>Average Anchorage Dwell:</span>
-              <strong style="color: #16a34a;">1.2d (vs 5.8d baseline)</strong>
-            </div>
-            <div class="ui-stat-row">
-              <span>Demurrage Avoided:</span>
-              <strong style="color: #0284c7;">$115,000 / shipment</strong>
-            </div>
+            <span class="desktop-app-title">💻 NaviFreight Supervisor Desktop Hub & Priority Terminal</span>
+            <span style="font-size: 7.5px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 1px 4px; border-radius: 2px;">LIVE AIS TELEMETRY</span>
           </div>
 
-          <!-- UI Panel 2: CAG Inventory Shield -->
-          <div class="ui-mockup-frame">
-            <div class="ui-frame-header">
-              <span class="ui-frame-title">CAG Inventory Shield</span>
-              <span class="ui-badge badge-purple">₹7.03/MT Benchmark</span>
+          <div class="desktop-panels-grid">
+            <div class="dash-panel">
+              <div class="dash-panel-header">
+                <span>Priority Berthing Queue (Paradip / Vizag)</span>
+                <span style="color:#15803d;">Active Pacing</span>
+              </div>
+              <div class="dash-table-row">
+                <span>MV APURVA (Capesize)</span>
+                <span>ETA: 14:00 Today</span>
+                <strong style="color:#15803d;">Slot #1 (Priority 94)</strong>
+              </div>
+              <div class="dash-table-row">
+                <span>MV STEEL GLORY (Panamax)</span>
+                <span>ETA: Tomorrow</span>
+                <strong style="color:#0284c7;">Slot #2 (Paced 11kt)</strong>
+              </div>
             </div>
-            <div class="ui-stat-row">
-              <span>Blast Furnaces Monitored:</span>
-              <strong>RSP • BSL • DSP</strong>
-            </div>
-            <div class="ui-stat-row">
-              <span>Off-Blast Outages:</span>
-              <strong style="color: #16a34a;">0 (9.32L MT loss shielded)</strong>
-            </div>
-            <div class="ui-stat-row">
-              <span>Annual Holding Savings:</span>
-              <strong style="color: #7e22ce;">+₹162.8 Crore / year</strong>
+
+            <div class="dash-panel">
+              <div class="dash-panel-header">
+                <span>CAG Inventory & Tender Timing</span>
+                <span style="color:#7e22ce;">WACC 9.8%</span>
+              </div>
+              <div class="dash-table-row">
+                <span>Carrying Cost Benchmark:</span>
+                <strong style="color:#7e22ce;">₹7.03 / MT / day</strong>
+              </div>
+              <div class="dash-table-row">
+                <span>AI Recommendation:</span>
+                <strong style="color:#15803d;">LOCK 65% COA TENDER</strong>
+              </div>
             </div>
           </div>
-
         </div>
 
-        <!-- ROW 4: CALLOUT BANNER -->
-        <div class="proto-footer-callout">
-          <span><strong>100% Free Sovereign Open-Source Telemetry:</strong> IPA Port Dwell • JPC Steel Registry • FOIS Rakes • DGCIS Trade • OpenAIS</span>
-          <span style="font-weight: 800; background: #2563eb; color: #fff; padding: 2px 7px; border-radius: 4px; font-size: 9.5px;">Zero API Fee</span>
+        <!-- TELEMETRY BADGE -->
+        <div class="telemetry-callout">
+          <span><strong>100% Free Sovereign Open-Source Telemetry:</strong> Indian Ports Association (IPA) • JPC Steel Registry • FOIS Railways • DGCIS Customs • OpenAIS</span>
+          <span style="font-weight: 800; background: #2563eb; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 8.5px;">Zero API Fee</span>
         </div>
+
       </div>
     </div>
 
   </div>
 
-  <!-- 3. BOTTOM ROW: WHY WE STAND OUT ? -->
-  <div class="standout-section">
-    <div class="standout-header-row">
-      <div class="section-header-pill" style="margin-bottom: 0;">WHY WE STAND OUT ?</div>
-      <div class="standout-subtitle">
+  <!-- BOTTOM: WHY WE STAND OUT ? -->
+  <div class="standout-container">
+    <div class="standout-head-row">
+      <div class="pill-header" style="margin-bottom: 0;">WHY WE STAND OUT ?</div>
+      <div class="standout-lead">
         Our closed-loop AI engine synchronizes plant consumption with maritime arrivals, completely preventing off-blast furnace shutdowns and demurrage waste.
       </div>
     </div>
 
-    <div class="usp-grid">
+    <div class="usp-cards-grid">
       
       <!-- USP 1 -->
-      <div class="usp-card card-1">
-        <div class="usp-title-row">
+      <div class="usp-item-box card-1">
+        <div class="usp-header-line">
           <span class="usp-icon">📊</span>
-          <span class="usp-card-title">Predictive Simulation & Analysis AI Engine</span>
+          <span class="usp-title">Predictive Simulation & Analysis AI</span>
         </div>
-        <p class="usp-card-desc">
-          Charterers simulate what-if scenarios (monsoon weather, spot freight shocks) to optimize laycan tender timing without commercial risk.
+        <p class="usp-desc">
+          Supervisors simulate market freight shocks, port draft restrictions, and tender timing before committing PSU capital.
         </p>
       </div>
 
       <!-- USP 2 -->
-      <div class="usp-card card-2">
-        <div class="usp-title-row">
+      <div class="usp-item-box card-2">
+        <div class="usp-header-line">
           <span class="usp-icon">⚡</span>
-          <span class="usp-card-title">Multi-Stage Supply Chain Synchronization</span>
+          <span class="usp-title">Priority Multi-Modal Sync (80 NM)</span>
         </div>
-        <p class="usp-card-desc">
-          Unifies maritime AIS, port berthing queues (IPA), and railway rakes (FOIS) into a single predictive arrival timeline.
+        <p class="usp-desc">
+          Unifies maritime AIS ETAs, port priority berthing, and 80 NM geofenced Rail vs. Truck cost optimization in one pipeline.
         </p>
       </div>
 
       <!-- USP 3 -->
-      <div class="usp-card card-3">
-        <div class="usp-title-row">
+      <div class="usp-item-box card-3">
+        <div class="usp-header-line">
           <span class="usp-icon">🛡️</span>
-          <span class="usp-card-title">Empirical CAG Carrying Cost Benchmark</span>
+          <span class="usp-title">Empirical CAG Carrying Cost Defense</span>
         </div>
-        <p class="usp-card-desc">
-          Establishes the missing <strong>$0.074/MT/day (₹7.03/MT/day)</strong> benchmark on ₹21,698 Cr stock, saving <strong>₹162.8 Cr/yr</strong> in holding costs.
+        <p class="usp-desc">
+          Solves CAG Finding #2 with an automated <strong>₹7.03/MT/day benchmark</strong> and 65:35 blend enforcement on ₹21,698 Cr stock.
         </p>
       </div>
 
       <!-- USP 4 -->
-      <div class="usp-card card-4">
-        <div class="usp-title-row">
+      <div class="usp-item-box card-4">
+        <div class="usp-header-line">
           <span class="usp-icon">🔄</span>
-          <span class="usp-card-title">Zero-Ballast Coastal Triangulation</span>
+          <span class="usp-title">Tide & Draft-Aware Coastal Triangulation</span>
         </div>
-        <p class="usp-card-desc">
-          Pairs discharging import bulkers with domestic coastal coal (Paradip to Ennore), converting 5,350 NM deadhead into a <strong>+$480k profit leg</strong>.
+        <p class="usp-desc">
+          Pairs discharging bulkers with domestic coastal coal (Paradip to Ennore), converting 5,350 NM deadheads into <strong>+$480k profit legs</strong>.
         </p>
       </div>
 
     </div>
   </div>
 
-  <!-- 4. SLIDE FOOTER -->
-  <div class="slide-footer">
-    <div class="footer-left">
+  <!-- SLIDE FOOTER BAR -->
+  <div class="slide-footer-bar">
+    <div class="footer-pill-tag">
       NaviFreight - @SIH Idea Submission
     </div>
     <div>
       Problem Statement ID: SIH26006 | Ministry of Steel & Ports
     </div>
-    <div style="font-weight: 800; font-size: 13px; color: #0f172a;">
+    <div style="font-weight: 900; font-size: 13px; color: #000000;">
       2
     </div>
   </div>
