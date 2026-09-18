@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NaviFreight — Page 2 Proposed Solution (Pic 2 Template)</title>
+  <title>NaviFreight — Page 2 Proposed Solution (CoalWorks Template Match)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -36,7 +36,7 @@
       letter-spacing: -0.5px;
     }
     .slide-title {
-      font-size: 40px;
+      font-size: 42px;
       font-weight: 900;
       letter-spacing: 1px;
       color: #000000;
@@ -84,11 +84,11 @@
     /* ================= 2. MAIN 2-COLUMN GRID ================= */
     .main-grid {
       display: grid;
-      grid-template-columns: 48.5% 51.5%;
+      grid-template-columns: 47% 53%;
       gap: 22px;
       flex: 1;
-      margin-top: 6px;
-      margin-bottom: 6px;
+      margin-top: 4px;
+      margin-bottom: 4px;
       min-height: 0;
     }
 
@@ -110,40 +110,41 @@
     .solution-container {
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      gap: 14px;
+      justify-content: space-between;
       padding: 2px 6px;
     }
     .solution-header-center {
       text-align: center;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .solution-lead {
       font-size: 16.5px;
       font-weight: 700;
       color: #000000;
-      line-height: 1.48;
+      line-height: 1.45;
+      margin-bottom: 12px;
     }
 
     .solution-columns-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px 20px;
-      margin-top: 2px;
+      gap: 14px 20px;
+      flex: 1;
     }
 
     .solution-col {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .bullet-item {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      font-size: 12.8px;
-      line-height: 1.48;
+      font-size: 12px;
+      line-height: 1.42;
       color: #0f172a;
     }
     .bullet-dot {
@@ -159,11 +160,11 @@
     }
 
     .solution-summary-bottom {
-      font-size: 13.8px;
-      line-height: 1.48;
+      font-size: 13.5px;
+      line-height: 1.45;
       color: #000000;
-      margin-top: 6px;
-      padding-top: 12px;
+      margin-top: 12px;
+      padding-top: 10px;
       border-top: 1px solid #e2e8f0;
     }
     .completion-blue {
@@ -171,213 +172,426 @@
       font-weight: 800;
     }
 
-    /* ================= RIGHT SECTION: PROTOTYPE & ARCHITECTURE ================= */
+    /* ================= RIGHT SECTION: PROTOTYPE ================= */
     .prototype-container {
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       gap: 8px;
       height: 100%;
     }
-    .proto-header-row {
+    .proto-top-row {
       display: flex;
       align-items: center;
       justify-content: flex-start;
+      margin-bottom: -4px;
     }
 
-    /* THE TWO CARDS MATCHING PIC 2 */
-    .proto-card-top {
-      border: 1.5px solid #94a3b8;
+    /* SUB-LABEL ABOVE CARDS */
+    .app-sub-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #000000;
+      margin-bottom: 3px;
+    }
+
+    /* 1. OPERATOR APP CONTAINER (TOP BOX) */
+    .operator-outer-card {
+      border: 1.5px solid #64748b;
       border-radius: 12px;
       padding: 10px 12px;
       display: grid;
-      grid-template-columns: 56% 44%;
+      grid-template-columns: 71% 29%;
       gap: 12px;
       background: #ffffff;
       flex: 1;
+      min-height: 290px;
     }
-    .proto-card-bottom {
-      border: 1.5px solid #94a3b8;
-      border-radius: 12px;
-      padding: 10px 12px;
-      display: grid;
-      grid-template-columns: 36% 64%;
-      gap: 12px;
-      background: #ffffff;
+
+    /* Mobile App Section */
+    .mobile-app-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .section-header-row {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .section-main-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #000000;
+      line-height: 1.2;
+    }
+    .section-subtitle-tag {
+      font-size: 10px;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .phones-and-buttons-grid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       flex: 1;
     }
 
-    /* INNER SUB-BOXES */
-    .inner-sub-box {
+    /* Phone Mockups */
+    .phone-pair {
+      display: flex;
+      gap: 6px;
+    }
+    .mini-phone {
+      width: 95px;
+      height: 195px;
+      border: 2.5px solid #0f172a;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    .phone-notch {
+      width: 24px;
+      height: 3px;
+      background: #0f172a;
+      border-radius: 2px;
+      margin: 0 auto 4px auto;
+    }
+    .phone-screen {
+      background: #f8fafc;
+      border-radius: 8px;
+      flex: 1;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .phone-head-bar {
+      height: 16px;
+      border-radius: 4px;
+      font-size: 8px;
+      color: #ffffff;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
+    .phone-card-mini {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 3px 4px;
+      font-size: 7.5px;
+      line-height: 1.25;
+    }
+    .phone-card-mini strong {
+      font-size: 8px;
+      color: #0f172a;
+      display: block;
+    }
+    .phone-bar-line {
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 2px;
+      margin: 2px 0;
+    }
+    .phone-pill-badge {
+      font-size: 7.5px;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 4px;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    /* 4 Center Buttons (2x2 Grid) */
+    .operator-buttons-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      flex: 1;
+      margin: 0 4px;
+    }
+    .op-btn {
+      background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
+      padding: 8px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.25;
+    }
+    .op-btn-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Safety Nodes (Top Right) */
+    .safety-nodes-box {
+      border: 1px solid #94a3b8;
+      border-radius: 10px;
       padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      gap: 8px;
-      background: #ffffff;
-    }
-
-    /* CARD HEADINGS */
-    .card-section-title {
-      font-size: 12px;
-      font-weight: 900;
-      color: #000000;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 2px;
-    }
-    .card-section-subtitle {
-      font-size: 9.5px;
-      color: #64748b;
-      margin-bottom: 4px;
-    }
-
-    /* MARKET GAP VS SOLUTION IN CARD TOP LEFT */
-    .gap-comparison {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .gap-row-bad {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 6px;
-      padding: 7px 10px;
-      font-size: 9.6px;
-      line-height: 1.42;
-      color: #991b1b;
-    }
-    .gap-row-good {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 6px;
-      padding: 7px 10px;
-      font-size: 9.6px;
-      line-height: 1.42;
-      color: #166534;
-    }
-    .gap-header-title {
-      font-weight: 800;
-      font-size: 10.2px;
-      margin-bottom: 3px;
-      display: block;
-    }
-
-    /* MULTI-MODAL PIPELINE IN CARD TOP RIGHT */
-    .pipeline-step-list {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    .pipeline-step {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 5px 8px;
-      font-size: 9.8px;
+      text-align: center;
+      background: #fafafa;
     }
-    .step-badge {
+    .node-header {
+      font-size: 12px;
       font-weight: 800;
-      color: #0284c7;
-      font-size: 9px;
-    }
-    .step-val {
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .step-extra {
-      font-size: 8.8px;
-      color: #16a34a;
-      font-weight: 800;
-    }
-
-    /* WHY SHOULD ADOPT IN CARD BOTTOM LEFT */
-    .adopt-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .adopt-card-mini {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 7px 10px;
-      font-size: 10.2px;
-      line-height: 1.4;
-      color: #1e293b;
-    }
-    .adopt-card-mini strong {
       color: #000000;
-      font-weight: 800;
     }
-
-    /* WHY OUR SOLUTION IS GREAT (4 METRICS) IN CARD BOTTOM RIGHT */
-    .roi-section-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .node-sub {
+      font-size: 8.5px;
+      color: #64748b;
+      margin-bottom: 6px;
     }
-    .roi-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    .roi-card {
+    .node-image-container {
+      background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 9px 6px;
-      text-align: center;
-      background: #f8fafc;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex: 1;
     }
-    .roi-num {
-      font-size: 22px;
-      font-weight: 900;
-      line-height: 1.1;
+    .node-photo-icon {
+      font-size: 46px;
+      line-height: 1;
     }
-    .roi-lbl {
-      font-size: 9px;
-      font-weight: 700;
-      color: #475569;
-      line-height: 1.25;
-      margin-top: 3px;
-    }
-
-    .proto-feature-pills {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-    }
-    .proto-pill {
+    .node-chip-tag {
+      font-size: 8.5px;
+      font-weight: 800;
       background: #eff6ff;
+      color: #1d4ed8;
+      padding: 2px 6px;
+      border-radius: 4px;
       border: 1px solid #bfdbfe;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #1e40af;
+    }
+    .node-captions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+      text-align: left;
+    }
+    .node-cap-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      font-size: 8.5px;
+      color: #1e293b;
+      line-height: 1.25;
     }
 
-    .audit-validation-banner {
-      background: #f0fdf4;
-      border: 1px solid #86efac;
+    /* 2. SUPERVISOR APP CONTAINER (BOTTOM BOX) */
+    .supervisor-outer-card {
+      border: 1.5px solid #64748b;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 29% 71%;
+      gap: 12px;
+      background: #ffffff;
+      flex: 1;
+      min-height: 290px;
+    }
+
+    /* Safety Vest / Telemetry Beacon */
+    .safety-vest-box {
+      border: 1px solid #94a3b8;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+      background: #fafafa;
+    }
+    .vest-header {
+      font-size: 12px;
+      font-weight: 800;
+      color: #000000;
+    }
+    .vest-sub {
+      font-size: 8.5px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .vest-image-container {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex: 1;
+    }
+    .vest-photo-icon {
+      font-size: 48px;
+      line-height: 1;
+    }
+    .vest-params-box {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 5px 6px;
+      font-size: 8.5px;
+      text-align: left;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .vest-params-box strong {
+      color: #000000;
+      display: block;
       font-size: 9px;
-      color: #15803d;
-      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    /* Desktop Application Section */
+    .desktop-app-section {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .monitors-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    /* Desktop Monitor Frames */
+    .monitor-frame {
+      border: 2px solid #1e293b;
+      border-radius: 8px;
+      background: #0f172a;
+      padding: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+    }
+    .monitor-screen {
+      background: #ffffff;
+      border-radius: 5px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .monitor-screen-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 3px;
+    }
+    .monitor-table-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8px;
+      color: #334155;
+      padding: 1.5px 0;
+    }
+    .monitor-bar-container {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 20px;
+      padding-top: 3px;
+    }
+    .bar-col {
+      flex: 1;
+      border-radius: 2px;
+    }
+    .monitor-stand {
+      width: 18px;
+      height: 6px;
+      background: #64748b;
+      margin: 0 auto;
+    }
+    .monitor-base {
+      width: 42px;
+      height: 3px;
+      background: #334155;
+      border-radius: 2px;
+      margin: 0 auto;
+    }
+
+    /* Desktop App Right Controls (Header + 4 Cards) */
+    .desktop-right-controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 205px;
+    }
+    .desktop-header-box {
+      text-align: right;
+    }
+    .desktop-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #000000;
+    }
+    .desktop-sub {
+      font-size: 9.5px;
+      color: #475569;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .desktop-feature-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 5px;
+      margin-top: 6px;
+    }
+    .desk-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 9.2px;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.25;
+    }
+    .desk-card-icon {
+      font-size: 15px;
+      flex-shrink: 0;
     }
 
     /* ================= 3. BOTTOM ROW: WHY WE STAND OUT ? ================= */
@@ -477,245 +691,349 @@
   <!-- 2. MAIN 2-COLUMN GRID -->
   <div class="main-grid">
 
-    <!-- LEFT: SOLUTION (7 POINTS AS MANDATED, EXACT PIC 2 CLEAN FORMAT) -->
+    <!-- LEFT: SOLUTION (EXACT PIC 2 CLEAN FORMAT WITH 8 BALANCED POINTS) -->
     <div class="solution-container">
-      <div class="solution-header-center">
-        <div class="black-pill-header">SOLUTION</div>
-      </div>
-      
-      <div class="solution-lead">
-        NaviFreight is a maritime operations and inventory defense software that combines App, Web, and AI for a smoother, safer, and more efficient raw-material import process.
-      </div>
-
-      <div class="solution-columns-container">
+      <div>
+        <div class="solution-header-center">
+          <div class="black-pill-header">SOLUTION</div>
+        </div>
         
-        <!-- Column 1 (4 Points) -->
-        <div class="solution-col">
-          <!-- Point 1 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Optimal Market Entry</strong>: We suggest managers when to book tenders as per market price cycles, locking COA at cycle bottoms to secure lowest rates and enforce the 65:35 blend norm.
-            </div>
-          </div>
-
-          <!-- Point 2 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Vessel Bunching & Priority Berthing</strong>: Analyzes live AIS ETAs across all ships to assign priority berthing and slow-steaming (13.5 → 10.5 kts), cutting demurrage by 78%.
-            </div>
-          </div>
-
-          <!-- Point 3 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Railway FOIS & 80 NM Geofence</strong>: When a ship crosses the 80 NM geofence, the AI compares Rail vs Truck logistics costs; if rail is constrained, it enables road truck dispatch.
-            </div>
-          </div>
-
-          <!-- Point 4 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Emergency Port Diversion Protocol</strong>: Automatically reroutes inbound vessels from congested shallow ports (Haldia 4.2d queue) to deepwater berths (Dhamra 65k TPD) with express rail rakes.
-            </div>
-          </div>
+        <div class="solution-lead">
+          NaviFreight is a maritime operations software that combines App, Web, and IoT for a smoother, safer, and more efficient raw-material import process.
         </div>
 
-        <!-- Column 2 (3 Points) -->
-        <div class="solution-col">
-          <!-- Point 5 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>CAG Inventory & Carrying Cost Defense</strong>: Suggests exact coal replenishment timing for managers, enforcing the statutory ₹7.03/MT/day benchmark on ₹21,698 Cr stock to prevent off-blast shutdowns.
+        <div class="solution-columns-container">
+          
+          <!-- Column 1 (4 Points) -->
+          <div class="solution-col">
+            <!-- Point 1 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Optimal Market Entry</strong>: Suggests when to book long-term COA vs spot fixtures at cycle bottoms, locking 65:35 blend norm.
+              </div>
+            </div>
+
+            <!-- Point 2 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Vessel Bunching & Priority Berthing</strong>: Analyzes live AIS ETAs to assign priority berths and slow-steaming (13.5 → 10.5 kts), cutting demurrage by 78%.
+              </div>
+            </div>
+
+            <!-- Point 3 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Railway FOIS & 80 NM Geofence</strong>: Evaluates Rail vs Truck logistics costs at 80 NM; triggers dynamic truck dispatch if sidings choke.
+              </div>
+            </div>
+
+            <!-- Point 4 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Emergency Port Diversion Protocol</strong>: Reroutes inbound bulkers from shallow congested ports (Haldia) to deepwater berths (Dhamra 65k TPD).
+              </div>
             </div>
           </div>
 
-          <!-- Point 6 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Early Market Prediction Radar</strong>: Ingests global maritime news and naval chokepoints (Red Sea/Hormuz), fine-tuned with FinBERT NLP to forecast Baltic freight rate trends 14–30 days ahead.
+          <!-- Column 2 (4 Points) -->
+          <div class="solution-col">
+            <!-- Point 5 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>CAG Inventory & Carrying Cost Defense</strong>: Enforces statutory ₹7.03/MT/day benchmark on ₹21,698 Cr stock, shielding blast furnaces from 9.32L MT outages.
+              </div>
+            </div>
+
+            <!-- Point 6 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Early Market Prediction Radar</strong>: Ingests global maritime news and chokepoints via fine-tuned FinBERT NLP to forecast Baltic freight trends.
+              </div>
+            </div>
+
+            <!-- Point 7 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>Vessel Suggestions & Coastal Triangulation</strong>: Pairs discharging bulkers with domestic coastal coal (Paradip ➔ Ennore), cutting 5,350 NM deadheading.
+              </div>
+            </div>
+
+            <!-- Point 8 -->
+            <div class="bullet-item">
+              <span class="bullet-dot">•</span>
+              <div class="bullet-content">
+                <strong>OCR/NLP & ERP Migration</strong>: Scans paper charterparties and logbooks into digital forms with seamless SAP and FOIS data mapping.
+              </div>
             </div>
           </div>
 
-          <!-- Point 7 -->
-          <div class="bullet-item">
-            <span class="bullet-dot">•</span>
-            <div class="bullet-content">
-              <strong>Vessel Suggestions & Coastal Triangulation</strong>: Analyzes port tides and bathymetry to pair discharging bulkers with domestic coastal coal (Paradip ➔ Ennore), eliminating 5,350 NM deadheading.
-            </div>
-          </div>
         </div>
-
       </div>
 
       <div class="solution-summary-bottom">
-        We solve the problem with complete maritime software tailored for India, offering demurrage prevention, inventory defense, and AI for efficiency. <span class="completion-blue">NaviFreight is 90% completed; testing and validation are ongoing.</span>
+        We solve the problem with complete maritime software tailored for India, offering digital logging, safety management, and AI/IoT for efficiency. <span class="completion-blue">NaviFreight is 90% completed; testing and validation are ongoing.</span>
       </div>
     </div>
 
-    <!-- RIGHT: PROTOTYPE & VALUE ARCHITECTURE (MATCHING PIC 2'S TWO-CARD CONTAINER) -->
+    <!-- RIGHT: PROTOTYPE (MATCHING PIC 2'S EXACT VISUAL ARCHITECTURE) -->
     <div class="prototype-container">
-      <div class="proto-header-row">
-        <div class="black-pill-header">PROTOTYPE & VALUE ARCHITECTURE</div>
+      <div class="proto-top-row">
+        <div class="black-pill-header">PROTOTYPE</div>
       </div>
 
-      <!-- CARD 1: MARKET GAP VS HOW WE SOLVE IT + MULTI-MODAL PIPELINE -->
-      <div class="proto-card-top">
-        <!-- Left Sub-Box: Market Gap vs Solution -->
-        <div class="inner-sub-box">
-          <div>
-            <div class="card-section-title">
-              <span>Market Gap vs. NaviFreight Solution</span>
-            </div>
-            <div class="card-section-subtitle">Addressing ₹21,698 Cr inventory holding & 5.8-day demurrage bottlenecks</div>
-          </div>
+      <!-- 1. TOP BOX: OPERATOR APP (MOBILE PHONES + 4 BUTTONS + SAFETY NODES) -->
+      <div>
+        <div class="app-sub-label">Operator App</div>
+        
+        <div class="operator-outer-card">
           
-          <div class="gap-comparison">
-            <div class="gap-row-bad">
-              <span class="gap-header-title">❌ Existing Siloed Industry Gap:</span>
-              • <strong>Blind Chartering</strong>: Tenders awarded without rate cycle forecasting cause peak fixtures.<br/>
-              • <strong>Vessel Bunching</strong>: Bulkers steam full speed into 5.8-day anchorage queues ($25k/day).<br/>
-              • <strong>Siding Deficit</strong>: Rake starvation causes port dumping and blast furnace outages.
+          <!-- Left: Mobile App Cross Platform -->
+          <div class="mobile-app-section">
+            <div class="section-header-row">
+              <div class="section-main-title">Mobile App Cross Platform</div>
+              <div class="section-subtitle-tag">
+                <span>👷</span>
+                <span>Designed for field workers of ports and rail sidings</span>
+              </div>
             </div>
 
-            <div class="gap-row-good">
-              <span class="gap-header-title">✓ NaviFreight Closed-Loop Solution:</span>
-              • <strong>Cycle-Aware Timing</strong>: Algorithmic prediction locks 65% COA at freight price troughs.<br/>
-              • <strong>Virtual Arrival Pacing</strong>: Slow-steams (10.5 kts) directly to ready berths with 0-hr queue.<br/>
-              • <strong>FOIS Siding Sync</strong>: Pre-spotted rakes on dock; dynamic truck evacuation avoids stockouts.
-            </div>
-          </div>
-        </div>
+            <div class="phones-and-buttons-grid">
+              
+              <!-- Left Phone Pair -->
+              <div class="phone-pair">
+                <!-- Phone 1: Vessel Master -->
+                <div class="mini-phone">
+                  <div class="phone-notch"></div>
+                  <div class="phone-screen">
+                    <div class="phone-head-bar" style="background: #0284c7;">Vessel JIT</div>
+                    <div class="phone-card-mini">
+                      <strong>MV NAVIOS</strong>
+                      <span>ETA: 14:00</span>
+                    </div>
+                    <div class="phone-bar-line" style="width: 80%;"></div>
+                    <div class="phone-bar-line" style="width: 60%;"></div>
+                    <div class="phone-pill-badge" style="background: #dcfce7; color: #166534;">Paced 10.5k</div>
+                  </div>
+                </div>
 
-        <!-- Right Sub-Box: End-to-End Port-to-Plant Pipeline -->
-        <div class="inner-sub-box">
-          <div>
-            <div class="card-section-title">
-              <span>Port-to-Plant Flow Pipeline</span>
+                <!-- Phone 2: Port Queue -->
+                <div class="mini-phone">
+                  <div class="phone-notch"></div>
+                  <div class="phone-screen">
+                    <div class="phone-head-bar" style="background: #16a34a;">Berth #2</div>
+                    <div class="phone-card-mini">
+                      <strong>PARADIP DOCK</strong>
+                      <span>Queue: 0 Vessels</span>
+                    </div>
+                    <div class="phone-bar-line" style="width: 90%;"></div>
+                    <div class="phone-bar-line" style="width: 50%;"></div>
+                    <div class="phone-pill-badge" style="background: #e0e7ff; color: #3730a3;">Priority 94</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Center 4 Buttons (2x2 Grid) -->
+              <div class="operator-buttons-2x2">
+                <div class="op-btn">
+                  <span class="op-btn-icon">📋</span>
+                  <span>Track/View assigned Shift work</span>
+                </div>
+                <div class="op-btn">
+                  <span class="op-btn-icon" style="color: #0284c7;">📄</span>
+                  <span>Submit daily shift log digitally</span>
+                </div>
+                <div class="op-btn">
+                  <span class="op-btn-icon" style="color: #16a34a;">🚆</span>
+                  <span>Track 80 NM Rail vs Truck cost</span>
+                </div>
+                <div class="op-btn">
+                  <span class="op-btn-icon" style="color: #ea580c;">⚠️</span>
+                  <span>View demurrage alerts in real-time</span>
+                </div>
+              </div>
+
+              <!-- Right Phone Pair -->
+              <div class="phone-pair">
+                <!-- Phone 3: Siding Radar -->
+                <div class="mini-phone">
+                  <div class="phone-notch"></div>
+                  <div class="phone-screen">
+                    <div class="phone-head-bar" style="background: #ea580c;">80 NM Zone</div>
+                    <div class="phone-card-mini">
+                      <strong>RAIL SIDING</strong>
+                      <span>FOIS Rakes: 4/5</span>
+                    </div>
+                    <div class="phone-bar-line" style="width: 75%;"></div>
+                    <div class="phone-bar-line" style="width: 45%;"></div>
+                    <div class="phone-pill-badge" style="background: #fef3c7; color: #92400e;">Truck Sync</div>
+                  </div>
+                </div>
+
+                <!-- Phone 4: Coastal Hop -->
+                <div class="mini-phone">
+                  <div class="phone-notch"></div>
+                  <div class="phone-screen">
+                    <div class="phone-head-bar" style="background: #7e22ce;">Coastal Hop</div>
+                    <div class="phone-card-mini">
+                      <strong>PARADIP ➔ ENN</strong>
+                      <span>Triangular Coal</span>
+                    </div>
+                    <div class="phone-bar-line" style="width: 85%;"></div>
+                    <div class="phone-bar-line" style="width: 55%;"></div>
+                    <div class="phone-pill-badge" style="background: #fae8ff; color: #86198f;">+$480k Leg</div>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div class="card-section-subtitle">Real-time synchronized multimodal execution</div>
           </div>
 
-          <div class="pipeline-step-list">
-            <div class="pipeline-step">
-              <span class="step-badge">1. LOAD PORT</span>
-              <span class="step-val">Hay Point (Australia)</span>
-              <span class="step-extra">75k MT Coal</span>
+          <!-- Right: Safety Nodes -->
+          <div class="safety-nodes-box">
+            <div>
+              <div class="node-header">Safety nodes</div>
+              <div class="node-sub">Spread across ports & sidings</div>
             </div>
-            <div class="pipeline-step">
-              <span class="step-badge">2. SEA TRANSIT</span>
-              <span class="step-val">AIS Eco-Pacing (10.5 kts)</span>
-              <span class="step-extra">-78% Demurrage</span>
+
+            <div class="node-image-container">
+              <div class="node-photo-icon">📡</div>
+              <div class="node-chip-tag">AIS VHF Station</div>
             </div>
-            <div class="pipeline-step">
-              <span class="step-badge">3. 80 NM GEOFENCE</span>
-              <span class="step-val">Rail FOIS vs Truck Sync</span>
-              <span class="step-extra">Auto-Dispatch</span>
-            </div>
-            <div class="pipeline-step">
-              <span class="step-badge">4. DISCHARGE DOCK</span>
-              <span class="step-val">Paradip Port Berth 14</span>
-              <span class="step-extra">0-Hour Wait</span>
-            </div>
-            <div class="pipeline-step">
-              <span class="step-badge">5. STEEL PLANT</span>
-              <span class="step-val">Rourkela Steel Plant (RSP)</span>
-              <span class="step-extra">15d Safe Stock</span>
-            </div>
-            <div class="pipeline-step">
-              <span class="step-badge">6. COASTAL HOP</span>
-              <span class="step-val">Paradip ➔ Ennore Hop</span>
-              <span class="step-extra">+$480k Profit</span>
+
+            <div class="node-captions">
+              <div class="node-cap-item">
+                <span>🛰️</span>
+                <span>Anchorage queue & AIS tracking</span>
+              </div>
+              <div class="node-cap-item">
+                <span>🌊</span>
+                <span>Tidal surge, shallow draft & wave alert</span>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
 
-      <!-- CARD 2: WHY SHOULD INDUSTRY ADOPT IT + MEASURED PSU ROI -->
-      <div class="proto-card-bottom">
-        <!-- Left Sub-Box: Why Should Industry Adopt It? -->
-        <div class="inner-sub-box">
-          <div>
-            <div class="card-section-title">
-              <span>Why Should Industry Adopt It?</span>
-            </div>
-            <div class="card-section-subtitle">Statutory compliance & operational defense</div>
-          </div>
+      <!-- 2. BOTTOM BOX: SUPERVISOR APP (SAFETY VEST + MONITORS + DESKTOP APP) -->
+      <div>
+        <div class="app-sub-label">Supervisor App</div>
 
-          <div class="adopt-list">
-            <div class="adopt-card-mini">
-              <strong>🏛️ CAG Audit Resolution:</strong> Enforces statutory ₹7.03/MT/day carrying cost benchmark on ₹21,698 Cr stock, directly resolving CAG Report No. 10 of 2025.
-            </div>
-            <div class="adopt-card-mini">
-              <strong>🛡️ Blast Furnace Protection:</strong> Prevents off-blast shutdowns across Rourkela, Bokaro & Durgapur, safeguarding ₹1,231.52 Cr in hot metal output (9.32L MT).
-            </div>
-            <div class="adopt-card-mini">
-              <strong>🌐 100% Free Sovereign Data:</strong> Built on IPA, JPC, FOIS Railways, and OpenAIS with zero external recurring API toll.
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Sub-Box: Why Our Solution is Great? (PSU ROI) -->
-        <div class="inner-sub-box">
-          <div>
-            <div class="card-section-title">
-              <span>Why Our Solution is Great? (Targeted PSU ROI)</span>
-            </div>
-            <div class="card-section-subtitle">Enterprise economic impact verified on SAIL logistics data</div>
-          </div>
-
-          <div class="roi-section-container">
-            <div class="roi-grid-4">
-              <div class="roi-card">
-                <div class="roi-num" style="color: #0284c7;">-78%</div>
-                <div class="roi-lbl">Demurrage Cut<br/>(5.8d ➔ 1.2d queue)</div>
-              </div>
-
-              <div class="roi-card">
-                <div class="roi-num" style="color: #16a34a;">+₹162.8 Cr</div>
-                <div class="roi-lbl">Carrying Savings<br/>(₹7.03/MT/d norm)</div>
-              </div>
-
-              <div class="roi-card">
-                <div class="roi-num" style="color: #7e22ce;">0 Outages</div>
-                <div class="roi-lbl">Shields 9.32L MT<br/>Hot Metal Production</div>
-              </div>
-
-              <div class="roi-card">
-                <div class="roi-num" style="color: #ea580c;">+$480,000</div>
-                <div class="roi-lbl">Coastal Hop Profit<br/>(Zero Deadhead)</div>
-              </div>
+        <div class="supervisor-outer-card">
+          
+          <!-- Left: Safety Vest / Pilot Telemetry Beacon -->
+          <div class="safety-vest-box">
+            <div>
+              <div class="vest-header">Safety Vest</div>
+              <div class="vest-sub">IoT device for pilots included in vest</div>
             </div>
 
-            <div class="proto-feature-pills">
-              <div class="proto-pill">
-                <span>⚓</span>
-                <span>Virtual Arrival Eco-Pacing</span>
-              </div>
-              <div class="proto-pill">
-                <span>🚂</span>
-                <span>Indian Railways FOIS Sync</span>
-              </div>
-              <div class="proto-pill">
-                <span>📰</span>
-                <span>FinBERT Maritime Intelligence</span>
-              </div>
-              <div class="proto-pill">
-                <span>⚖️</span>
-                <span>65:35 Blend Statutory Norm</span>
-              </div>
+            <div class="vest-image-container">
+              <div class="vest-photo-icon">🦺</div>
             </div>
 
-            <div class="audit-validation-banner">
-              <span>✓ Verified against 7-year CAG Audit Report No. 10 of 2025 parameters</span>
-              <span>100% Audit Defensible</span>
+            <div class="vest-params-box">
+              <strong>Parameters:</strong>
+              • AIS Beacon: 156.025 MHz<br/>
+              • Draft Sensor: ±0.1m<br/>
+              • Fall / Man-Overboard Alert
             </div>
           </div>
+
+          <!-- Right: Desktop Application (Monitors + 4 Feature Cards) -->
+          <div class="desktop-app-section">
+            
+            <!-- 2 Monitors Column -->
+            <div class="monitors-column">
+              <!-- Monitor 1 -->
+              <div>
+                <div class="monitor-frame">
+                  <div class="monitor-screen">
+                    <div class="monitor-screen-head">
+                      <span>Priority Berthing Queue Terminal (Paradip)</span>
+                      <span style="color: #16a34a; font-size: 7.5px;">LIVE</span>
+                    </div>
+                    <div class="monitor-table-row">
+                      <span>MV APURVA (Capesize)</span>
+                      <span>ETA 14:00</span>
+                      <span style="color: #16a34a; font-weight: 800;">Slot #1 (Priority 94)</span>
+                    </div>
+                    <div class="monitor-table-row">
+                      <span>MV STEEL GLORY</span>
+                      <span>ETA Tomorrow</span>
+                      <span style="color: #0284c7; font-weight: 800;">Paced: 10.5 kts</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="monitor-stand"></div>
+                <div class="monitor-base"></div>
+              </div>
+
+              <!-- Monitor 2 -->
+              <div>
+                <div class="monitor-frame">
+                  <div class="monitor-screen">
+                    <div class="monitor-screen-head">
+                      <span>Spot vs COA Tender Planner & CAG Norm</span>
+                      <span style="color: #7e22ce; font-size: 7.5px;">₹7.03/MT</span>
+                    </div>
+                    <div class="monitor-table-row">
+                      <span>RSP Stock Buffer: 12.4 Days</span>
+                      <span style="color: #16a34a; font-weight: 800;">ACTION: LOCK 65% COA</span>
+                    </div>
+                    <div class="monitor-bar-container">
+                      <div class="bar-col" style="height: 60%; background: #0284c7;"></div>
+                      <div class="bar-col" style="height: 85%; background: #16a34a;"></div>
+                      <div class="bar-col" style="height: 45%; background: #ea580c;"></div>
+                      <div class="bar-col" style="height: 70%; background: #7e22ce;"></div>
+                      <div class="bar-col" style="height: 95%; background: #0284c7;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="monitor-stand"></div>
+                <div class="monitor-base"></div>
+              </div>
+            </div>
+
+            <!-- Right Controls (Header + 4 Cards) -->
+            <div class="desktop-right-controls">
+              <div class="desktop-header-box">
+                <div class="desktop-title">Desktop Application</div>
+                <div class="desktop-sub">
+                  <span>👤</span>
+                  <span>Designed for Chartering & Admins</span>
+                </div>
+              </div>
+
+              <div class="desktop-feature-cards">
+                <div class="desk-card">
+                  <span class="desk-card-icon" style="color: #0284c7;">📄</span>
+                  <span>OCR to scan SMP and logs to form</span>
+                </div>
+                <div class="desk-card">
+                  <span class="desk-card-icon" style="color: #16a34a;">🖥️</span>
+                  <span>Real-time monitoring of fleet & rakes</span>
+                </div>
+                <div class="desk-card">
+                  <span class="desk-card-icon" style="color: #f59e0b;">💡</span>
+                  <span>AI-based Shift Handover Recommender</span>
+                </div>
+                <div class="desk-card">
+                  <span class="desk-card-icon" style="color: #2563eb;">🗄️</span>
+                  <span>Easy data migration from existing system</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
 
@@ -728,7 +1046,7 @@
     <div class="standout-head">
       <div class="black-pill-header" style="margin-bottom: 0;">WHY WE STAND OUT ?</div>
       <div class="standout-blue-tagline">
-        Our AI/ML solution <span>digitalizes the maritime supply chain</span>, making it dynamic for <span>better tracking, demurrage elimination, and real-time updates.</span>
+        Our AI/IoT solution <span>digitalizes the maritime supply chain</span>, making it dynamic for <span>better tracking, efficiency, and real-time updates.</span>
       </div>
     </div>
 
@@ -739,7 +1057,7 @@
         <div class="usp-icon-box">📊</div>
         <div class="usp-text-content">
           <div class="usp-item-title">Predictive Simulation and Analysis AI Engine</div>
-          <div class="usp-item-desc">Supervisors can simulate freight cycles, port draft constraints, and tender timing for optimal decisions.</div>
+          <div class="usp-item-desc">Supervisors can simulate freight cycles, port draft constraints, and tender timing for better decisions.</div>
         </div>
       </div>
 
@@ -747,8 +1065,8 @@
       <div class="usp-item">
         <div class="usp-icon-box">⚡</div>
         <div class="usp-text-content">
-          <div class="usp-item-title">Priority Multi-Modal Sync (80 NM Geofence)</div>
-          <div class="usp-item-desc">Our AI predicts anchorage queues, paces vessel speed, and optimizes Rail vs. Truck dispatch for optimal cost.</div>
+          <div class="usp-item-title">Optimizing Workflows and Resources</div>
+          <div class="usp-item-desc">Our AI predicts hazards, paces vessel speed, assigns berths, optimizes FOIS rakes and safety.</div>
         </div>
       </div>
 
@@ -756,8 +1074,8 @@
       <div class="usp-item">
         <div class="usp-icon-box">💻</div>
         <div class="usp-text-content">
-          <div class="usp-item-title">Cross-Platform Solution with FOSS Integration</div>
-          <div class="usp-item-desc">Our Product ensures consistent performance using 100% free sovereign open telemetry (IPA, JPC, FOIS, DGCIS).</div>
+          <div class="usp-item-title">Cross-Platform Solution with Docker Integration</div>
+          <div class="usp-item-desc">Our Product ensures consistent performance and accessibility across different environments.</div>
         </div>
       </div>
 
@@ -765,8 +1083,8 @@
       <div class="usp-item">
         <div class="usp-icon-box">🔄</div>
         <div class="usp-text-content">
-          <div class="usp-item-title">Dynamic Tide & Port-Aware Coastal Triangulation</div>
-          <div class="usp-item-desc">Our engine pairs discharging bulkers with domestic coastal coal, eliminating 5,350 NM empty deadhead voyages.</div>
+          <div class="usp-item-title">Scalable IoT Deployment for cross validation and safety</div>
+          <div class="usp-item-desc">Our IoT devices ensure safety and productivity at ports and sidings, even if no internet.</div>
         </div>
       </div>
 
