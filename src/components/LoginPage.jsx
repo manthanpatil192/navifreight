@@ -148,14 +148,9 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                 <Ship className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-                    NaviFreight
-                  </span>
-                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 tracking-wide">
-                    FREIGHT TERMINAL
-                  </span>
-                </div>
+                <span className="text-2xl font-extrabold tracking-tight text-slate-900">
+                  NaviFreight
+                </span>
                 <p className="text-xs text-slate-500 font-medium">
                   East Coast India Bulk Logistics & Chartering Decision Engine
                 </p>
@@ -164,17 +159,6 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
 
             {/* Right Status, Clocks & Quick Access */}
             <div className="flex items-center space-x-3 sm:space-x-5">
-              {/* AIS Radar Feed Status */}
-              <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-xs font-semibold text-slate-700">
-                  AIS Radar Feed: <span className="text-emerald-600 font-bold">100% Operational</span>
-                </span>
-              </div>
-
               {/* Dual UTC / IST Time */}
               <div className="hidden lg:block text-right">
                 <div className="text-xs font-mono font-bold text-slate-800">
