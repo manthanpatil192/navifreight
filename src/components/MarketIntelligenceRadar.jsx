@@ -515,9 +515,11 @@ const RECENT_DISCARDED_NOISE = [
 export const parseLiveRssEvents = (articles = []) => {
   return articles.map((art, idx) => {
     const isPriceUp = art.priceDirection === 'UP';
+    const isPriceDown = art.priceDirection === 'DOWN';
+    const isNeutral = art.priceDirection === 'NEUTRAL';
     const baseUSD = 13.85;
     const baseINR = +(baseUSD * 95.0).toFixed(1);
-    const driftMult = art.spotDriftMultiplier || (isPriceUp ? 1.15 : 0.90);
+    const driftMult = art.spotDriftMultiplier !== undefined ? art.spotDriftMultiplier : (isPriceUp ? 1.15 : isPriceDown ? 0.905 : 1.00);
     const finalUSD = +(baseUSD * driftMult).toFixed(2);
     const finalINR = +(finalUSD * 95.0).toFixed(1);
     const netChangeUSD = +(finalUSD - baseUSD).toFixed(2);
@@ -534,23 +536,29 @@ export const parseLiveRssEvents = (articles = []) => {
     else if (catLower.includes('bunker') || catLower.includes('fuel') || catLower.includes('energy')) IconComponent = Flame;
     else if (catLower.includes('congestion') || catLower.includes('strike') || catLower.includes('queue')) IconComponent = Anchor;
     else if (catLower.includes('regulatory') || catLower.includes('restriction')) IconComponent = ShieldCheck;
-    else if (catLower.includes('supply') || catLower.includes('glut') || catLower.includes('fleet')) IconComponent = Ship;
+    else if (catLower.includes('supply') || catLower.includes('glut') || catLower.includes('fleet') || catLower.includes('softening')) IconComponent = Ship;
+
+    const defaultBadge = isPriceUp 
+      ? 'bg-rose-100 text-rose-800 border-rose-200' 
+      : isPriceDown 
+      ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+      : 'bg-blue-100 text-blue-800 border-blue-200';
 
     return {
       id: art.id || `live_rss_${idx}`,
       portFilterKey: art.portFilterKey || 'paradip',
       category: art.category,
       categoryIcon: IconComponent,
-      categoryBadgeColor: art.categoryBadgeColor || (isPriceUp ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200'),
+      categoryBadgeColor: art.categoryBadgeColor || defaultBadge,
       portLocation: art.portLocation || 'PS Corridor Live Feed',
       title: art.title,
       rawSource: art.rawSource,
       sourceUrl: art.sourceUrl,
       timestamp: art.timestamp || 'Live RSS Feed',
       publishedUtc: art.publishedUtc,
-      predictionDaysAhead: isPriceUp ? 'In 2 – 4 Days' : 'In 7 – 10 Days',
-      predictedDate: isPriceUp ? formatDynamicDateRangeOffset(2, 4) : formatDynamicDateRangeOffset(7, 10),
-      predictionHorizonLabel: isPriceUp ? 'T+48h to T+96h (Prompt Laycan Squeeze)' : 'T+7 to T+10 Days (Tonnage Relief Window)',
+      predictionDaysAhead: isPriceUp ? 'In 2 – 4 Days' : isPriceDown ? 'In 7 – 10 Days' : 'Monitoring Horizon',
+      predictedDate: isPriceUp ? formatDynamicDateRangeOffset(2, 4) : isPriceDown ? formatDynamicDateRangeOffset(7, 10) : formatDynamicDateRangeOffset(14, 30),
+      predictionHorizonLabel: isPriceUp ? 'T+48h to T+96h (Prompt Laycan Squeeze)' : isPriceDown ? 'T+7 to T+10 Days (Tonnage Relief Window)' : 'Macro Infrastructure Trajectory',
       impactTimeline: `Peak Impact: ${formatDynamicDateOffset(3)} • Live RSS Ingested`,
       entities: art.entities || ['Live RSS Ingestion'],
       finbertSentiment: art.finbertSentiment,
@@ -564,7 +572,9 @@ export const parseLiveRssEvents = (articles = []) => {
       oneLiner: art.oneLiner,
       actionRecommendation: art.actionRecommendation,
       calculation: {
-        formula: `Projected Freight = Base ($${baseUSD.toFixed(2)}) ${netChangeUSD >= 0 ? '+' : '-'} Shift ($${Math.abs(netChangeUSD).toFixed(2)}) = $${finalUSD.toFixed(2)} / MT`,
+        formula: isNeutral || Math.abs(netChangeUSD) < 0.01
+          ? `Projected Freight = Base ($${baseUSD.toFixed(2)}) + Macro Benchmark ($0.00) = $${baseUSD.toFixed(2)} / MT`
+          : `Projected Freight = Base ($${baseUSD.toFixed(2)}) ${netChangeUSD >= 0 ? '+' : '-'} Shift ($${Math.abs(netChangeUSD).toFixed(2)}) = $${finalUSD.toFixed(2)} / MT`,
         baseFreightUSD: baseUSD,
         baseFreightINR: baseINR,
         netChangeUSD: `${netChangeUSD >= 0 ? '+' : ''}${netChangeUSD.toFixed(2)}`,
@@ -985,8 +995,12 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300 font-bold">Active Signal Injected into Forecast</span>
-              <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded ${activeEvent.priceDirection === 'UP' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
-                {activeEvent.priceDirection === 'UP' ? 'SPOT INFLATION' : 'SPOT SOFTENING'}
+              <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded ${
+                activeEvent.priceDirection === 'UP' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                activeEvent.priceDirection === 'DOWN' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+              }`}>
+                {activeEvent.priceDirection === 'UP' ? 'SPOT INFLATION' : activeEvent.priceDirection === 'DOWN' ? 'SPOT SOFTENING' : 'MACRO NEUTRAL'}
               </span>
             </div>
             <div className="text-xs font-bold text-white truncate max-w-xl mt-0.5">
@@ -997,8 +1011,12 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
         <div className="flex items-center space-x-3 shrink-0">
           <div className="text-right font-mono">
             <span className="text-[9px] text-slate-400 block uppercase">Spot Drift</span>
-            <span className={`text-xs font-bold ${activeEvent.priceDirection === 'UP' ? 'text-rose-400' : 'text-emerald-400'}`}>
-              {activeEvent.spotDriftPct} ({activeEvent.priceDirection === 'UP' ? '+' : '-'}${Math.abs(parseFloat(activeEvent.calculation?.netChangeUSD || 1.5))}/MT)
+            <span className={`text-xs font-bold ${
+              activeEvent.priceDirection === 'UP' ? 'text-rose-400' :
+              activeEvent.priceDirection === 'DOWN' ? 'text-emerald-400' :
+              'text-blue-400'
+            }`}>
+              {activeEvent.spotDriftPct} {activeEvent.priceDirection !== 'NEUTRAL' && `(${activeEvent.priceDirection === 'UP' ? '+' : '-'}$${Math.abs(parseFloat(activeEvent.calculation?.netChangeUSD || 1.5))}/MT)`}
             </span>
           </div>
           <button

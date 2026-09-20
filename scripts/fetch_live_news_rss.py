@@ -3,17 +3,19 @@ NaviFreight - Real-Time Live RSS News Ingestion & 4-Stage NLP Intelligence Pipel
 SIH 26006 - Part (d) Market Intelligence Radar
 
 Fetches live maritime, coal, iron ore, port, and geopolitical articles from Google News RSS feeds,
-filters through PS corridor whitelisting, scores severity via NLP, and outputs live JSON
-for the frontend MarketIntelligenceRadar and DeadheadOptimizer.
+filters through PS corridor whitelisting, eliminates non-commercial accidents/rescues,
+scores directional sentiment (UP, DOWN, NEUTRAL) via NLP economics using word-boundary regex,
+and outputs live JSON strictly bounded to the last 24-48 hours for MarketIntelligenceRadar and DeadheadOptimizer.
 """
 
 import sys
 import os
+import re
 import json
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Windows console UTF-8 setup
 if hasattr(sys.stdout, 'reconfigure'):
@@ -26,37 +28,51 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_PATH_SRC = os.path.join(BASE_DIR, 'src', 'data', 'liveMarketNews.json')
 OUTPUT_PATH_PUB = os.path.join(BASE_DIR, 'public', 'data', 'liveMarketNews.json')
 
+# Strictly time-bounded to last 2 days (when:2d) to eliminate stale 25-day-old results
 RSS_QUERIES = [
     {
-        "query": "coking coal OR metallurgical coal India",
+        "query": "coking coal OR metallurgical coal India when:2d",
         "category_hint": "Commodity & Coal Supply",
         "portFilterKey": "australia"
     },
     {
-        "query": "iron ore freight shipping China India",
+        "query": "iron ore freight shipping China India when:2d",
         "category_hint": "Iron Ore & Steel Belt Demand",
         "portFilterKey": "australia"
     },
     {
-        "query": "Paradip Port OR Visakhapatnam Port OR Dhamra Port shipping",
+        "query": "Paradip Port OR Visakhapatnam Port OR Dhamra Port shipping when:2d",
         "category_hint": "Indian East Coast Port Congestion",
         "portFilterKey": "paradip"
     },
     {
-        "query": "Red Sea shipping OR Bab el-Mandeb OR Strait of Hormuz",
+        "query": "Red Sea shipping OR Bab el-Mandeb OR Strait of Hormuz when:2d",
         "category_hint": "Geopolitical Conflict & Chokepoint Detour",
         "portFilterKey": "geopolitical"
     },
     {
-        "query": "Baltic Dry Index OR Capesize freight rate",
+        "query": "Baltic Dry Index OR Capesize freight rate when:2d",
         "category_hint": "Dry Bulk Freight Volatility",
         "portFilterKey": "australia"
     },
     {
-        "query": "VLSFO bunker fuel oil shipping Singapore",
+        "query": "bunker fuel oil shipping Singapore when:2d",
         "category_hint": "Bunker Fuel & Energy Shock",
         "portFilterKey": "bunker_fuel"
+    },
+    {
+        "query": "SAIL steel coal shipping imports when:2d",
+        "category_hint": "SAIL Steel Mill Procurement",
+        "portFilterKey": "paradip"
     }
+]
+
+# Strict exclusions: Non-commercial accidents, rescues, passenger boats, crime, generic site sections
+EXCLUDE_TERMS = [
+    "rescue", "rescued", "searches for others", "sunken cargo ship", "crew missing",
+    "drowning", "body found", "fisherman", "fishing boat", "tourist boat", "passenger ferry",
+    "migrant", "navy rescues", "car plunged", "yacht", "body recovered", "capsized boat",
+    "bollywood", "cricket", "horoscope", "entertainment news"
 ]
 
 PS_CORRIDOR_ENTITIES = {
@@ -68,8 +84,26 @@ PS_CORRIDOR_ENTITIES = {
     "chokepoints": ["red sea", "suez", "bab el-mandeb", "malacca", "panama", "cape of good hope", "strait of hormuz", "gulf of aden"],
     "vessels": ["capesize", "panamax", "supramax", "kamsarmax", "bulk carrier", "bulker", "dry bulk", "vessel", "tonnage", "fleet", "freight"],
     "commodities": ["coking coal", "metallurgical coal", "thermal coal", "iron ore", "pellet", "bunker", "vlsfo", "crude", "steel", "limestone", "flux"],
-    "operations": ["demurrage", "anchorage", "queue", "berth", "cyclone", "depression", "strike", "laycan", "charter", "detour", "rerout", "ban", "quota"]
+    "operations": ["demurrage", "anchorage", "queue", "berth", "cyclone", "depression", "strike", "laycan", "charter", "detour", "rerout", "ban", "quota", "import", "export"]
 }
+
+def clean_text(t):
+    if not t:
+        return ""
+    # Clean curly quotes and non-breaking spaces
+    t = t.replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
+    t = t.replace('\u2014', ' - ').replace('\u2013', ' - ').replace('&amp;', '&').replace('&quot;', '"')
+    return t.strip()
+
+def has_word(pattern, text):
+    """Accurate word-boundary search to avoid matching 'war' inside 'arbitral award'."""
+    return bool(re.search(r'\b' + re.escape(pattern) + r'\b', text, re.IGNORECASE))
+
+def has_any_word(patterns, text):
+    for p in patterns:
+        if has_word(p, text):
+            return True
+    return False
 
 def fetch_live_rss():
     articles = []
@@ -90,7 +124,7 @@ def fetch_live_rss():
                 root = ET.fromstring(xml_data)
                 feed_items = root.findall('.//item')
 
-                for fi in feed_items[:6]:
+                for fi in feed_items[:8]:
                     title_elem = fi.find('title')
                     link_elem = fi.find('link')
                     pub_elem = fi.find('pubDate')
@@ -104,6 +138,9 @@ def fetch_live_rss():
                     desc = desc_elem.text.strip() if desc_elem is not None and desc_elem.text else ''
 
                     clean_title = title.split(' - ')[0] if ' - ' in title else title
+                    clean_title = clean_text(clean_title)
+                    desc_clean = clean_text(desc)
+
                     if clean_title and clean_title.lower() not in seen_titles:
                         seen_titles.add(clean_title.lower())
                         articles.append({
@@ -111,7 +148,7 @@ def fetch_live_rss():
                             "source": source,
                             "source_url": link,
                             "published": pub_date,
-                            "raw_text": desc,
+                            "raw_text": desc_clean,
                             "category_hint": item["category_hint"],
                             "portFilterKey": item["portFilterKey"]
                         })
@@ -120,21 +157,102 @@ def fetch_live_rss():
 
     return articles
 
-def filter_relevance(article):
+def filter_relevance_and_age(article):
     corpus = f"{article['title']} {article['raw_text']}".lower()
+
+    # 1. Reject non-commercial accidents / rescues / generic site homepages
+    if any(ew in corpus for ew in EXCLUDE_TERMS):
+        return False, {}, 0
+
+    # 2. Enforce strict max 48-hour age limit (no 25-day-old stale news)
+    try:
+        pub_dt = datetime.strptime(article['published'][:25], "%a, %d %b %Y %H:%M:%S")
+        now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+        age_hours = (now_utc - pub_dt).total_seconds() / 3600.0
+        if age_hours > 48.0 or age_hours < -2.0:
+            return False, {}, age_hours
+    except Exception:
+        age_hours = 12.0
+
+    # 3. Match corridor keywords
     matched = {}
     total = 0
     for cat, kw_list in PS_CORRIDOR_ENTITIES.items():
-        hits = [kw for kw in kw_list if kw in corpus]
+        hits = [kw for kw in kw_list if has_word(kw, corpus)]
         if hits:
             matched[cat] = hits
             total += len(hits)
-    return (total >= 1), matched
+
+    return (total >= 1), matched, age_hours
 
 def classify_severity(article, matched):
+    """
+    Economic 3-Direction Classification with strict word boundary checking:
+    - DOWN: Demand contraction, flat/falling coal power, imports drop, surplus tonnage, price falls
+    - UP: Geopolitical conflict, chokepoint diversion, cyclonic depression, strike, port delay, bunker spike
+    - NEUTRAL: Infrastructure approvals, green energy expansion, general reports/previews without price shock
+    """
     text = f"{article['title']} {article['raw_text']}".lower()
 
-    if any(w in text for w in ["cyclone", "depression", "squall", "storm", "monsoon", "flood", "gale", "imd"]):
+    # BEARISH SIGNALS (Price Direction: DOWN)
+    bearish_words = [
+        "flat", "no growth", "did not grow", "imports down", "down by 35%", "slump", "downturn",
+        "drops", "fell", "fall", "falling", "softens", "softening", "plunge", "oversupply",
+        "surplus", "losing run", "weak demand", "slack", "declining", "stops shipments",
+        "curtailed imports", "inventory high", "glut", "slowdown"
+    ]
+
+    # BULLISH CONFLICT / CHOKEPOINT (Price Direction: UP)
+    # Using strict phrases so 'award' never matches 'war'
+    conflict_words = [
+        "red sea", "houthi", "houthis", "bab el-mandeb", "strait of hormuz", "missile", "naval war",
+        "naval conflict", "military conflict", "chokepoint detour", "reroute", "warships",
+        "navy to deploy", "attack on shipping"
+    ]
+
+    # BULLISH WEATHER DISRUPTION (Price Direction: UP)
+    weather_words = [
+        "cyclone", "depression", "squall", "storm", "monsoon", "flood", "gale", "imd squall"
+    ]
+
+    # BULLISH PORT DELAYS / CONGESTION (Price Direction: UP)
+    port_delay_words = [
+        "strike", "port congestion", "berth queue", "anchorage queue", "demurrage",
+        "waiting time", "high moisture", "pre-berthing detention", "unable to ship"
+    ]
+
+    # BULLISH FREIGHT SPIKE / RATE SURGE (Price Direction: UP)
+    rate_surge_words = [
+        "rises", "surge", "spike", "snaps losing run", "higher rates", "rally", "lifted",
+        "15-month high", "restocking surge", "soar", "gain"
+    ]
+
+    # NEUTRAL INFRASTRUCTURE / EXPANSION (Price Direction: NEUTRAL)
+    neutral_words = [
+        "approves", "wins bid", "develop", "green hydrogen", "jetty", "preview", "trends",
+        "terminal", "commissioned", "mou", "invest", "rs crore", "study"
+    ]
+
+    # Priority 1: Check Bearish first if it explicitly contains contraction terms
+    if has_any_word(bearish_words, text):
+        category = "Macro Demand Softening & Import Slump"
+        sentiment = "BEARISH (Demand Contraction / Buyer Advantage)"
+        conf = 0.92
+        vol_boost = 0.88
+        drift_pct = -9.5
+        direction = "DOWN"
+        urgency = "OPPORTUNITY"
+        is_conflict = False
+    elif has_any_word(conflict_words, text):
+        category = "Geopolitical Conflict & Chokepoint Detour"
+        sentiment = "NEGATIVE (War Risk & Detour Shock)"
+        conf = 0.96
+        vol_boost = 1.50
+        drift_pct = 22.5
+        direction = "UP"
+        urgency = "CRITICAL"
+        is_conflict = True
+    elif has_any_word(weather_words, text):
         category = "Weather Disruption & Cyclonic Squall"
         sentiment = "NEGATIVE (Disruption Shock)"
         conf = 0.94
@@ -143,25 +261,7 @@ def classify_severity(article, matched):
         direction = "UP"
         urgency = "CRITICAL"
         is_conflict = False
-    elif any(w in text for w in ["red sea", "houthi", "bab el-mandeb", "strait of hormuz", "missile", "war", "conflict", "detour", "rerout", "attack"]):
-        category = "Geopolitical Conflict & Chokepoint Detour"
-        sentiment = "NEGATIVE (War Risk Inflation)"
-        conf = 0.96
-        vol_boost = 1.50
-        drift_pct = 22.5
-        direction = "UP"
-        urgency = "CRITICAL"
-        is_conflict = True
-    elif any(w in text for w in ["bunker", "vlsfo", "fuel", "crude", "oil spike", "brent"]):
-        category = "Bunker Fuel & Energy Shock"
-        sentiment = "NEGATIVE (Fuel Opex Shock)"
-        conf = 0.91
-        vol_boost = 1.25
-        drift_pct = 11.5
-        direction = "UP"
-        urgency = "HIGH"
-        is_conflict = False
-    elif any(w in text for w in ["strike", "congestion", "queue", "anchorage", "delay", "demurrage", "waiting time"]):
+    elif has_any_word(port_delay_words, text):
         category = "Port Congestion & Demurrage Risk"
         sentiment = "NEGATIVE (Demurrage Exposure)"
         conf = 0.90
@@ -170,31 +270,40 @@ def classify_severity(article, matched):
         direction = "UP"
         urgency = "HIGH"
         is_conflict = False
-    elif any(w in text for w in ["ban", "quota", "dmo", "restriction", "halt", "curb", "freeze"]):
-        category = "Regulatory & Trade Restriction"
-        sentiment = "NEGATIVE (Export Constraint)"
-        conf = 0.93
-        vol_boost = 1.38
-        drift_pct = 16.5
+    elif has_any_word(["bunker", "vlsfo", "fuel oil", "crude spike", "oil price"], text):
+        category = "Bunker Fuel & Energy Shock"
+        sentiment = "NEGATIVE (Fuel Opex Shock)"
+        conf = 0.91
+        vol_boost = 1.25
+        drift_pct = 11.5
         direction = "UP"
-        urgency = "CRITICAL"
+        urgency = "HIGH"
         is_conflict = False
-    elif any(w in text for w in ["deliver", "glut", "surplus", "drop", "fell", "cut", "fall", "soften", "plunge", "decline"]):
-        category = "Vessel Supply Surplus & Softening"
-        sentiment = "POSITIVE (Buyer Opportunity)"
-        conf = 0.89
-        vol_boost = 0.86
-        drift_pct = -10.5
-        direction = "DOWN"
-        urgency = "OPPORTUNITY"
+    elif has_any_word(rate_surge_words, text):
+        category = "Dry Bulk Freight Volatility"
+        sentiment = "BULLISH (Capesize Rate Firming)"
+        conf = 0.92
+        vol_boost = 1.20
+        drift_pct = 12.0
+        direction = "UP"
+        urgency = "HIGH"
+        is_conflict = False
+    elif has_any_word(neutral_words, text):
+        category = "Port Infrastructure & Capacity Expansion"
+        sentiment = "NEUTRAL (Infrastructure / Macro Benchmark)"
+        conf = 0.88
+        vol_boost = 1.00
+        drift_pct = 0.0
+        direction = "NEUTRAL"
+        urgency = "MONITOR"
         is_conflict = False
     else:
         category = article.get("category_hint", "Maritime Trade & Fleet Flow")
-        sentiment = "NEUTRAL / MACRO"
+        sentiment = "NEUTRAL / MACRO BENCHMARK"
         conf = 0.85
-        vol_boost = 1.08
-        drift_pct = 3.0
-        direction = "UP"
+        vol_boost = 1.00
+        drift_pct = 0.0
+        direction = "NEUTRAL"
         urgency = "MONITOR"
         is_conflict = False
 
@@ -210,26 +319,21 @@ def classify_severity(article, matched):
         "isConflictOrDisruption": is_conflict
     }
 
-def format_relative_time(pub_str):
-    try:
-        # e.g., "Sun, 06 Sep 2026 07:00:00 GMT"
-        pub_dt = datetime.strptime(pub_str[:25], "%a, %d %b %Y %H:%M:%S")
-        diff = datetime.utcnow() - pub_dt
-        hours = int(diff.total_seconds() // 3600)
-        if hours <= 0:
-            return "Just now (Live RSS Ingestion)"
-        elif hours == 1:
-            return "1 hour ago (Live RSS)"
-        elif hours < 24:
-            return f"{hours} hours ago (Live RSS)"
-        else:
-            days = hours // 24
-            return f"{days} day{'s' if days > 1 else ''} ago (Live RSS)"
-    except Exception:
-        return "Live Ingestion"
+def format_relative_time(age_hours):
+    if age_hours <= 0.2:
+        return "Just now (Live RSS)"
+    elif age_hours < 1.0:
+        mins = max(5, int(age_hours * 60))
+        return f"{mins} mins ago (Live RSS)"
+    elif age_hours < 24.0:
+        hours = int(round(age_hours))
+        return f"{hours} hour{'s' if hours > 1 else ''} ago (Live RSS)"
+    else:
+        days = int(round(age_hours / 24.0))
+        return f"{days} day{'s' if days > 1 else ''} ago (Live RSS)"
 
 def build_intelligence_payload():
-    print(f"[{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}] Fetching live RSS feeds...")
+    print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}] Fetching fresh live RSS feeds (when:2d)...")
     raw_articles = fetch_live_rss()
     print(f"Fetched {len(raw_articles)} candidate articles from Google News RSS.")
 
@@ -237,7 +341,7 @@ def build_intelligence_payload():
     conflict_count = 0
 
     for idx, art in enumerate(raw_articles):
-        is_rel, matched = filter_relevance(art)
+        is_rel, matched, age_hours = filter_relevance_and_age(art)
         if not is_rel:
             continue
 
@@ -249,41 +353,59 @@ def build_intelligence_payload():
         cat = sev["category"]
         drift = sev["spotDriftPct"]
         vol = sev["volatilityBoost"]
+        direction = sev["priceDirection"]
 
-        one_liner = f"{title[:110]}... Volatility impact calibrated at {vol:.2f}x ({drift})."
-        if "Geopolitical" in cat:
-            one_liner = f"Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at {drift} (Activate Part C Alternative Routings)."
-        elif "Weather" in cat:
-            one_liner = f"Marine weather depression tracks near East Coast ports; expect pilotage delays and +{drift} spot volatility."
-        elif "Bunker" in cat:
-            one_liner = f"Marine bunker fuel movements add voyage steaming opex; forward drift estimated at {drift}."
-
-        action = "Fix multi-voyage COA at pre-disruption benchmark. Monitor laycan extensions."
-        if sev["priceDirection"] == "DOWN":
-            action = "Float on spot market or delay reverse auction tender award to capture discounted fixtures."
-        elif sev["isConflictOrDisruption"]:
-            action = "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
+        # Context-aware 1-line executive takeaway & actionable advice
+        if direction == "DOWN":
+            one_liner = f"{title[:105]}... Demand contraction indicator: freight pressure softening ({drift})."
+            action = "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
+        elif direction == "NEUTRAL":
+            one_liner = f"{title[:105]}... Macro infrastructure update; neutral immediate spot rate drift (0.0%)."
+            action = "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
+        else:
+            # UP
+            if "Geopolitical" in cat:
+                one_liner = f"Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at {drift} (Activate Part C Alternative Routings)."
+                action = "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
+            elif "Weather" in cat:
+                one_liner = f"Marine weather depression tracks near East Coast ports; expect pilotage delays and {drift} spot volatility."
+                action = "Pre-warn laycan buffers; shift loading stems or anchor in deep water off storm path."
+            elif "Port Congestion" in cat:
+                one_liner = f"Berth wait and cargo discharge delays prompt demurrage exposure calibrated at {drift}."
+                action = "Re-route inbound Capesize/Panamax carriers to alternate deep mechanized berths (e.g. Dhamra or Gangavaram)."
+            elif "Bunker" in cat:
+                one_liner = f"Marine bunker fuel movements add voyage steaming opex; forward drift estimated at {drift}."
+                action = "Enforce Eco-Speed (11.5 kts) charter parties or fix fuel-inclusive multi-voyage COAs with capped BAF."
+            else:
+                one_liner = f"{title[:105]}... Volatility impact calibrated at {vol:.2f}x ({drift})."
+                action = "Fix multi-voyage COA at pre-disruption benchmark. Monitor laycan extensions."
 
         port_key = art.get("portFilterKey", "paradip")
         if any(p in title.lower() for p in ["vizag", "visakhapatnam", "gangavaram"]):
             port_key = "vizag"
         elif any(p in title.lower() for p in ["dhamra"]):
             port_key = "dhamra"
-        elif any(p in title.lower() for p in ["haldia", "sandheads"]):
+        elif any(p in title.lower() for p in ["haldia", "sandheads", "kolkata"]):
             port_key = "haldia"
         elif any(p in title.lower() for p in ["red sea", "hormuz", "bab el-mandeb", "suez"]):
             port_key = "geopolitical"
 
+        badge_color = (
+            "bg-rose-100 text-rose-800 border-rose-200" if direction == "UP" else
+            "bg-emerald-100 text-emerald-800 border-emerald-200" if direction == "DOWN" else
+            "bg-blue-100 text-blue-800 border-blue-200"
+        )
+
         processed.append({
-            "id": f"live_rss_{idx}_{int(datetime.utcnow().timestamp())}",
+            "id": f"live_rss_{idx}_{int(datetime.now(timezone.utc).timestamp())}",
             "portFilterKey": port_key,
             "category": cat,
-            "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200" if sev["priceDirection"] == "UP" else "bg-emerald-100 text-emerald-800 border-emerald-200",
+            "categoryBadgeColor": badge_color,
             "portLocation": f"PS Corridor Ingestion ({port_key.upper()})",
             "title": title,
             "rawSource": f"{art['source']} / Google News RSS",
             "sourceUrl": art["source_url"],
-            "timestamp": format_relative_time(art["published"]),
+            "timestamp": format_relative_time(age_hours),
             "publishedUtc": art["published"],
             "entities": list(set([e for sublist in matched.values() for e in sublist]))[:5],
             "finbertSentiment": sev["finbertSentiment"],
@@ -291,20 +413,29 @@ def build_intelligence_payload():
             "volatilityBoost": sev["volatilityBoost"],
             "spotDriftMultiplier": sev["spotDriftMultiplier"],
             "spotDriftPct": sev["spotDriftPct"],
-            "priceDirection": sev["priceDirection"],
+            "priceDirection": direction,
             "urgencyLevel": sev["urgencyLevel"],
             "isConflictOrDisruption": sev["isConflictOrDisruption"],
             "oneLiner": one_liner,
             "actionRecommendation": action
         })
 
+    # Sort strictly newest first (by publishedUtc)
+    def parse_dt(item):
+        try:
+            return datetime.strptime(item["publishedUtc"][:25], "%a, %d %b %Y %H:%M:%S")
+        except Exception:
+            return datetime.min
+
+    processed.sort(key=parse_dt, reverse=True)
+
     payload = {
         "metadata": {
-            "lastIngestionTimestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "lastIngestionTimestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
             "totalIngested": len(raw_articles),
             "totalAccepted": len(processed),
             "activeConflictsDetected": conflict_count,
-            "status": "LIVE_FEED_ONLINE"
+            "status": "LIVE_FEED_ONLINE_STRICT_48H"
         },
         "articles": processed
     }

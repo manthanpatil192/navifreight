@@ -20,7 +20,7 @@ export default function Navbar({ onOpenDatasets, currency, setCurrency, onExport
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold tracking-tight text-maritime-900">BeyRoute / NaviFreight</span>
+                <span className="text-xl font-bold tracking-tight text-maritime-900">NaviFreight</span>
                 <span className="bg-maritime-50 text-maritime-800 text-xs font-semibold px-2 py-0.5 rounded border border-maritime-200">
                   AI TERMINAL
                 </span>
@@ -38,11 +38,11 @@ export default function Navbar({ onOpenDatasets, currency, setCurrency, onExport
             {currentUser ? (
               <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
                 <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
-                  {currentUser.roleName ? currentUser.roleName.charAt(0) : 'U'}
+                  {currentUser.roleName ? currentUser.roleName.charAt(0) : 'L'}
                 </div>
                 <div className="text-left hidden md:block">
                   <div className="text-xs font-bold text-slate-800 leading-tight">
-                    {currentUser.roleName || 'Chartering Officer'}
+                    {currentUser.roleName || 'Logistics Manager'}
                   </div>
                   <div className="text-[10px] text-slate-500 font-mono">
                     {currentUser.code || 'AUTHENTICATED'}
