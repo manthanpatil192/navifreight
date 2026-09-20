@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Ship, Anchor, ShieldCheck, ArrowRight, Eye, EyeOff, 
-  Lock, Mail, CheckCircle2, Building2, UserCheck,
-  X, FileText, AlertTriangle
+  Lock, Mail, CheckCircle2, Building2, UserCheck
 } from 'lucide-react';
 import shipHeroImage from '../assets/navifreight_ship_hero.jpg';
 
@@ -56,7 +55,6 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginFeedback, setLoginFeedback] = useState(null);
-  const [isPSModalOpen, setIsPSModalOpen] = useState(false);
 
   // Live dual clocks (UTC & IST)
   const [timeState, setTimeState] = useState({ utc: '', ist: '' });
@@ -258,36 +256,20 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                   
                   {/* Logistics Manager Target Profile Banner */}
                   <div className="mb-4 p-3.5 rounded-xl bg-slate-900 text-white shadow-sm border border-slate-800">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-extrabold border border-emerald-500/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        PRIMARY OPERATOR
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-400">DISPATCH COMMAND</span>
-                    </div>
                     <h3 className="text-xs sm:text-sm font-bold text-white mb-0.5">
                       Logistics Manager
                     </h3>
                     <p className="text-[11px] text-slate-300 mb-2.5 leading-snug">
                       Bulk logistics dispatch, multi-voyage contract scheduling & East Coast port clearance.
                     </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemo('logistics_manager')}
-                        className="flex-1 min-w-[140px] py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        <span>Access as Logistics Manager</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsPSModalOpen(true)}
-                        className="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Terminal Specs
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickDemo('logistics_manager')}
+                      className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                    >
+                      <span>Access as Logistics Manager</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   {/* Header Title */}
@@ -491,15 +473,6 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
 
               </div>
 
-              {/* Bottom Subtitle / AIS Feed status inside Ship Card */}
-              <div className="mt-6 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between text-[11px] text-slate-300 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  EAST COAST BULK CHARTERING TERMINAL · AIS LINK ACTIVE
-                </span>
-                <span className="text-slate-400 font-mono">PARADIP / VIZAG / DHAMRA / HALDIA</span>
-              </div>
-
             </div>
 
           </div>
@@ -606,210 +579,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
         </div>
       </footer>
 
-      {/* ========================================================================= */}
-      {/* PROBLEM STATEMENT ANALYSIS & PROFILE CLEARANCE MODAL                      */}
-      {/* ========================================================================= */}
-      {isPSModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
-            
-            {/* Modal Header */}
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-bold tracking-tight">NaviFreight Strategy Analysis & Logistics Clearance</span>
-                    <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30 font-bold">
-                      VERIFIED
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400">
-                    Bulk Cargo Logistics & Chartering Architecture for India's East Coast Ports
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsPSModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Scrollable Body */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-800 text-xs sm:text-sm">
-              
-              {/* Primary Objective Banner */}
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-1">
-                  Core Objective of Bulk Logistics Strategy
-                </div>
-                <p className="text-sm font-bold text-emerald-950 leading-relaxed">
-                  "Development of model to facilitate moving from multiple single spot contracts being entered into currently to short term / medium term multiple voyage contracts (COAs)."
-                </p>
-                <p className="text-xs text-emerald-800 mt-2">
-                  Target Profile: <span className="font-bold text-slate-900">Logistics Manager</span> (Managing Coking Coal, Thermal Coal & Iron Ore for East Coast Indian Ports).
-                </p>
-              </div>
-
-              {/* Problem Analysis & Flaws of Current Daily Spot Exploration */}
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm mb-2 flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  1. Critical Flaws of Current Daily Spot Operations
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="font-bold text-slate-900">High Volatility & Reactive Losses:</span>
-                    <p className="text-slate-600 mt-1">
-                      Daily engagements leave procurement exposed to sudden Baltic Dry Index (BDI) spikes, geopolitical bottlenecks, and seasonal peaks without forward rate lock-ins.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="font-bold text-slate-900">Port Infrastructure Mismatch:</span>
-                    <p className="text-slate-600 mt-1">
-                      Chartering Capesize vessels for shallow ports (e.g., Haldia riverine draft 8.5m or Gopalpur 14.5m) forces expensive offshore lighterage at Sagar Sandheads or severe deadfreight.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="font-bold text-slate-900">Severe Idle & Deadhead Losses:</span>
-                    <p className="text-slate-600 mt-1">
-                      Vessels return empty on ballast legs to Australia or Indonesia without return tramp cargo, inflating voyage freight costs.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <span className="font-bold text-slate-900">Demurrage & Congestion Blindspots:</span>
-                    <p className="text-slate-600 mt-1">
-                      Failure to integrate real-time port waiting days and Bay of Bengal monsoon cyclone alerts results in $15,000–$30,000/day vessel demurrage penalties.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4 Pillars Expected Solution Matrix */}
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm mb-2 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  2. Architecture Mapping: How Our Platform Solves Key Logistics Challenges
-                </h4>
-                <div className="space-y-2.5 text-xs">
-                  
-                  <div className="p-3 bg-white border border-slate-200 rounded-lg flex items-start gap-3">
-                    <div className="p-2 rounded bg-rose-50 border border-rose-200 text-rose-600 font-bold shrink-0">
-                      PART A
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-900">(a) Optimal Market Entry Timing:</span>
-                      <p className="text-slate-600 mt-0.5">
-                        Forecasts future freight curves (1M to 6M forward) using econometric regression, forward freight agreements (FFA), and commodity news coupling. Evaluates optimal timing windows to secure 3-Month / 6-Month COAs to capture rate bottoms.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-white border border-slate-200 rounded-lg flex items-start gap-3">
-                    <div className="p-2 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 font-bold shrink-0">
-                      PART B
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-900">(b) Vessel Type & Port Infrastructure Fit:</span>
-                      <p className="text-slate-600 mt-0.5">
-                        Evaluates Capesize, Panamax, Supramax, and Handysize feasibility across 5 origins (Australia, US, Mozambique, Indonesia, Russia) and East Coast Indian discharge ports: Paradip (17.1m), Vizag (18.1m), Gangavaram (21m), Gopalpur (14.5m), Dhamra (18.5m), Haldia (8.5m), factoring in draft, LOA, beam, and daily discharge TPD rates.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-white border border-slate-200 rounded-lg flex items-start gap-3">
-                    <div className="p-2 rounded bg-purple-50 border border-purple-200 text-purple-600 font-bold shrink-0">
-                      PART C
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-900">(c) Idle Scenario Management & Deadhead Reduction:</span>
-                      <p className="text-slate-600 mt-0.5">
-                        Algorithms detect empty ballast legs and automatically compute triangular backhaul routing (e.g. Paradip/Dhamra discharge ➔ SE Asia / Australia backhaul tramp) cutting ballast days from 18 to 4.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-white border border-slate-200 rounded-lg flex items-start gap-3">
-                    <div className="p-2 rounded bg-sky-50 border border-sky-200 text-sky-600 font-bold shrink-0">
-                      PART D
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-900">(d) Risk Mitigation & Early Warning Radar:</span>
-                      <p className="text-slate-600 mt-0.5">
-                        Coupled with live IMD weather data (depression, cyclone risk, swell height) and AIS port waiting queues to compute demurrage risk buffers and dynamic spot-vs-COA hedge ratios (e.g., 70% COA / 30% Spot).
-                      </p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Profile Credentials Clearance */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-slate-900">Verified Profile Clearance:</span>
-                  <span className="font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[11px] font-bold">
-                    CLEARANCE: LEVEL 5 (UNRESTRICTED)
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Officer Name</span>
-                    <span className="font-semibold text-slate-800">Lead Logistics Manager</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Organization</span>
-                    <span className="font-semibold text-slate-800">East Coast Bulk Alliance</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Access Token</span>
-                    <span className="font-mono font-semibold text-slate-800">NF-LOGISTICS-LEAD</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">Contract Authority</span>
-                    <span className="font-semibold text-emerald-700">3M/6M COA Execution</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Modal Bottom Actions */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="text-xs text-slate-500">
-                Ready to explore with this role? Click below to instantly authenticate.
-              </div>
-              <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setIsPSModalOpen(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPSModalOpen(false);
-                    handleQuickDemo('logistics_manager');
-                  }}
-                  className="flex-1 sm:flex-initial px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Grant Profile Access & Launch Terminal</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
+
 
