@@ -152,7 +152,7 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
   * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,411 /MT ($14.85 /MT) for immediate plant coal basestock.
-  * Forward Dip Schedule:     🟢 FORWARD DIP SCHEDULE: For secondary volume, float tender on ${initTenderPlan.tenderPublishDeadline} to capture the seasonal P10 low freight dip (${initTenderPlan.targetDipWindow}).
+  * Forward Dip Schedule:     ${initTenderPlan.secondaryTenderAdvice}
   * Market Risk Regime:       PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
@@ -191,7 +191,7 @@ export default function WebTerminalModelTrainer({
   * Earliest Legal Laycan (Tendered Today): ${initTenderPlan.promptLaycanWindow}
     ↳ [21-Day Statutory Tender: Issued Today (${initTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${initTenderPlan.promptLaycanWindow}]
   * Forward Dip Laycan (Tendered ${initTenderPlan.tenderPublishDeadline}):   ${initTenderPlan.targetDipWindow}
-    ↳ [Target Dip Optimization: Float tender on ${initTenderPlan.tenderPublishDeadline} to lock in the lowest P10 market freight rate]
+    ↳ [Target Dip Optimization: Float tender on ${initTenderPlan.tenderPublishDeadline} to lock in lowest P10 rate (${initTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${initTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
@@ -609,10 +609,10 @@ export default function WebTerminalModelTrainer({
         secondarySpotHedgingDirective = `⚠️ CONTRACT DEFAULT RISK: Tender issuance suspended until weather subsides. Avoid committing to unviable laycans.`;
       } else if (compositeRiskScore >= 50 || portCongestionData.trafficRiskScore >= 55 || portCongestionData.avgAnchorageWaitDays >= 3.0) {
         primaryProcurementDirective = `🟡 PROMPT TENDER NOTICE (Elevated Anchorage Queue): Float tender today (${psuTenderPlan.todayDate}) for ${psuTenderPlan.promptLaycanWindow} Laycan with 48h Weather Working Day (WWD) clause to shield from ₹${demurrageExposureINR_Lakhs} Lakhs demurrage.`;
-        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Issue secondary tender notice by ${psuTenderPlan.tenderPublishDeadline} targeting the low freight dip (${primaryWaitDate}).`;
+        secondarySpotHedgingDirective = psuTenderPlan.secondaryTenderAdvice;
       } else {
         primaryProcurementDirective = `🟢 PROMPT TENDER NOTICE (Immediate Baseline Demand): Issue tender notice today (${psuTenderPlan.todayDate}) for ${psuTenderPlan.promptLaycanWindow} Laycan at target rate ₹${estP10INR.toLocaleString()}/MT ($${estP10.toFixed(2)}/MT) for baseline blast furnace feed.`;
-        secondarySpotHedgingDirective = `🟢 FORWARD TENDER SCHEDULE: Float secondary tender notice on ${psuTenderPlan.tenderPublishDeadline} targeting the forecasted dip (${primaryWaitDate}) to capture low freight rates.`;
+        secondarySpotHedgingDirective = psuTenderPlan.secondaryTenderAdvice;
       }
 
       let compositeAlertBadge = '🟢 GREEN ALERT (Low Operational Risk)';
@@ -782,7 +782,7 @@ export default function WebTerminalModelTrainer({
   * Earliest Legal Laycan (Tendered Today): ${psuTenderPlan.promptLaycanWindow}
     ↳ [21-Day Statutory Tender: Issued Today (${psuTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${psuTenderPlan.promptLaycanWindow}]
   * Forward Dip Laycan (Tendered ${psuTenderPlan.tenderPublishDeadline}):   ${primaryWaitDate}
-    ↳ [Target Dip Optimization: Float tender by ${psuTenderPlan.tenderPublishDeadline} to lock in the lowest P10 market freight rate]
+    ↳ [Target Dip Optimization: Float tender by ${psuTenderPlan.tenderPublishDeadline} to lock in lowest P10 rate (${psuTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${psuTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------

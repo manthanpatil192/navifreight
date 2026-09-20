@@ -262,13 +262,19 @@ export default function CharterTimingDecisionMatrix({
                 <strong>Procurement Directive:</strong>{' '}
                 {isExtremeDemand 
                   ? 'Extreme demand surge detected. Do NOT hold out exclusively for P10 bottom as vessel capacity may sell out. Issue tender notice within the P10–P50 price corridor to lock in required volume and protect blast furnace basestock feed.'
-                  : `Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by ${activeTenderPlan.tenderPublishDeadline} targeting the ${forwardDipWindowDate} laycan window with 70% COA / 30% Spot allocation.`}
+                  : (contractHorizonMonths >= 5 
+                      ? `6-Month Multi-Voyage Program calibrated to ${activeTenderPlan.plantConsumption?.plantName || 'Plant'} burn rate (${activeTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day). Tranche 1 loads ${activeTenderPlan.promptLaycanWindow}. Float Tranche 2 tender notice on ${activeTenderPlan.tenderPublishDeadline} targeting the seasonal P10 low freight dip (${forwardDipWindowDate}) to replenish stockyard reserves before winter surge.`
+                      : (contractHorizonMonths >= 3
+                          ? `Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by ${activeTenderPlan.tenderPublishDeadline} targeting the ${forwardDipWindowDate} quarterly laycan window with 70% COA / 30% Spot allocation.`
+                          : `Confirmed calm synoptic sea window. Issue prompt tender notice today for ${activeTenderPlan.promptLaycanWindow} Laycan at target rate to feed immediate basestock demand.`
+                        )
+                    )}
               </p>
             </div>
             <div className="flex items-center space-x-2 text-[11px] text-emerald-800 bg-emerald-100/60 rounded px-2 py-1 font-medium">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>
-                Recommended Action: Trigger tender for {activeVolume.toLocaleString()} MT parcel feed ({isExtremeDemand ? '80% COA Allocation' : '70% COA / 30% Spot'}).
+                Recommended Action: Trigger tender for {activeVolume.toLocaleString()} MT parcel feed ({contractHorizonMonths >= 5 ? 'Tranche 2 Replenishment' : (isExtremeDemand ? '80% COA Allocation' : '70% COA / 30% Spot')}).
               </span>
             </div>
           </div>
@@ -457,11 +463,16 @@ export default function CharterTimingDecisionMatrix({
                   PSU Statutory Tender Planning (21-Day Advance Notice)
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                  Mandatory 21-Day Window
+                  {activeTenderPlan.tenderTag || 'Mandatory 21-Day Window'}
                 </span>
+                {activeTenderPlan.plantConsumption && (
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
+                    🏭 {activeTenderPlan.plantConsumption.plantName} ({activeTenderPlan.plantConsumption.dailyBurnMT.toLocaleString()} MT/day)
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                Under Indian Public Procurement rules (GFR 2017), advertised freight tenders require a minimum <strong>21-day</strong> bidding period. To book a vessel for the forecasted freight rate dip, the tender must be issued 3 weeks in advance.
+                Under Indian Public Procurement rules (GFR 2017), advertised freight tenders require a minimum <strong>21-day</strong> bidding period. Calibrated to {activeTenderPlan.plantConsumption?.plantName || 'Steel Plant'} consumption ({activeTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day) to schedule tender replenishment without stockout or excessive port demurrage.
               </p>
             </div>
             <div className="shrink-0 bg-blue-50/70 border border-blue-200 rounded-lg p-2 text-right">
@@ -470,23 +481,29 @@ export default function CharterTimingDecisionMatrix({
             </div>
           </div>
 
-          {/* 4 Essential Logistics Spec Points */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
-            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
+          {/* 5 Essential Logistics & Consumption Spec Points */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
+            <div className="p-2 rounded bg-slate-50 border border-slate-100">
               <span className="text-[10px] uppercase font-bold text-slate-600 block">Sea Transit ({activeTenderPlan.distanceNM.toLocaleString()} NM)</span>
               <span className="text-xs font-mono font-bold text-slate-800">~{activeTenderPlan.sailingDays} Sailing Days</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
+            <div className="p-2 rounded bg-slate-50 border border-slate-100">
               <span className="text-[10px] uppercase font-bold text-slate-600 block">Target Low Window (P10 Dip)</span>
               <span className="text-xs font-mono font-bold text-slate-800">{activeTenderPlan.targetDipWindow}</span>
             </div>
-            <div className="p-2.5 rounded bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-bold text-slate-600 block">Statutory Bidding Lead Time</span>
+            <div className="p-2 rounded bg-slate-50 border border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Statutory Notice Lead Time</span>
               <span className="text-xs font-mono font-bold text-slate-800">21 Days Notice (GFR 2017)</span>
             </div>
-            <div className="p-2.5 rounded bg-blue-50/50 border border-blue-200/80">
+            <div className="p-2 rounded bg-blue-50/50 border border-blue-200/80">
               <span className="text-[10px] uppercase font-bold text-blue-700 block">Vessel Booking & Award</span>
               <span className="text-xs font-mono font-bold text-blue-900">{activeTenderPlan.bookingDate}</span>
+            </div>
+            <div className="p-2 rounded bg-amber-50/50 border border-amber-200/80">
+              <span className="text-[10px] uppercase font-bold text-amber-800 block">Plant Consumption</span>
+              <span className="text-xs font-mono font-bold text-amber-900">
+                {activeTenderPlan.plantConsumption ? `${activeTenderPlan.plantConsumption.dailyBurnMT.toLocaleString()} MT/d (~${activeTenderPlan.plantConsumption.daysOfBasestockCover}d)` : '12,200 MT/day'}
+              </span>
             </div>
           </div>
 
