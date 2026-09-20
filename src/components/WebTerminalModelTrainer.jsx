@@ -176,15 +176,15 @@ export default function WebTerminalModelTrainer({
                       - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
                       - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
                       - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
-  * Active Allocation: 70% COA / 30% Spot (Balanced Regime)
-  * Recommended COA:  70% (Guarantees Plant Basestock & Hedges Spike)
+  * Active Allocation: 35% COA / 65% Spot (Prices Stable Regime)
+  * Recommended COA:  35% (Base Contract Volume & Stability)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: 30% (Captures P10 Dip Windows)
+  * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.14 /MT  (₹1,438 /MT)  (Saves $2.18/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.70 × $14.85 COA) + (0.30 × $15.80 Current Spot) = $15.14/MT]
-    ↳ [Forward Expectation: $15.59 /MT (₹1,490 /MT) with 30% floating on Forward P50 ($17.32)]
-    ↳ [Opportunistic Target: $14.85 /MT (₹1,420 /MT) when capturing P10 Dip Window ($14.85)]
+  * Blended Rate:     $15.47 /MT  (₹1,472 /MT)  (Saves $1.85/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.35 × $14.85 COA) + (0.65 × $15.80 Current Spot) = $15.47/MT]
+    ↳ [Forward Expectation: $16.46 /MT (₹1,566 /MT) with 65% floating on Forward P50 ($17.32)]
+    ↳ [Opportunistic Target: $14.85 /MT (₹1,413 /MT) when capturing P10 Dip Window ($14.85)]
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
@@ -420,7 +420,16 @@ export default function WebTerminalModelTrainer({
       let naviFreightRecommendation = "More Spot";
       let coaSplit = 35; // Default baseline
 
-      const isHighUncertainty = (!originProper || !destProper || destWeather?.severity === 'CRITICAL' || originWeather?.severity === 'CRITICAL' || (newsNlpAnalysis?.riskLevel && newsNlpAnalysis.riskLevel.includes("CRITICAL")) || volatilityMult >= 1.50 || compositeRiskScore >= 70);
+      const isHighUncertainty = (
+        isExtremeDemand ||
+        !originProper || 
+        !destProper || 
+        destWeather?.severity === 'CRITICAL' || 
+        originWeather?.severity === 'CRITICAL' || 
+        (newsNlpAnalysis?.riskLevel && newsNlpAnalysis.riskLevel.includes("CRITICAL")) || 
+        volatilityMult >= 1.45 || 
+        compositeRiskScore >= 70
+      );
       const isPricesRising = (!isHighUncertainty && (
         (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd > 2.0) || 
         destWeather?.severity === 'HIGH' || 
@@ -434,26 +443,47 @@ export default function WebTerminalModelTrainer({
       ));
       const isPricesFalling = (!isHighUncertainty && !isPricesRising && (newsNlpAnalysis?.spotDriftUsd && newsNlpAnalysis.spotDriftUsd < -1.0) && compositeRiskScore < 40);
 
+      let marketStateHeader = "⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)";
+      let allocationRegimeLabel = "Prices Stable Regime";
+      let coaActionNote = "Base Contract Volume & Stability";
+      let spotActionNote = "Captures P10 Dip Windows & Daily Spot Bargains";
+
       if (isHighUncertainty) {
         marketSituationLabel = "Very High Uncertainty / Severe Risk";
         marketSituationDesc = "Extreme weather / geopolitical shock / critical berth queue";
         naviFreightRecommendation = "More Long-Term (COA)";
         coaSplit = 85;
+        marketStateHeader = "⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)";
+        allocationRegimeLabel = "High Uncertainty Regime";
+        coaActionNote = "Hedges Worst-Case Tail Risk & Ensures Plant Continuity";
+        spotActionNote = "Strictly Limited Spot Exposure";
       } else if (isPricesRising) {
         marketSituationLabel = "Prices Rising / Moderate Congestion Queue";
         marketSituationDesc = "Elevated port anchorage queue & bullish freight drift";
         naviFreightRecommendation = "More Long-Term (COA)";
         coaSplit = 70; // 100% SYNCHRONIZED WITH SECTION [6] CONGESTION DIRECTIVE!
+        marketStateHeader = "📈 ELEVATED FREIGHT / PRICES RISING (Queue & Bullish Drift)";
+        allocationRegimeLabel = "Prices Likely Rise Regime";
+        coaActionNote = "Locks Wholesale Rates Before Surge";
+        spotActionNote = "Captures P10 Dip Windows";
       } else if (isPricesFalling) {
         marketSituationLabel = "Prices Expected to Fall";
         marketSituationDesc = "Bearish freight trend & low port queue";
         naviFreightRecommendation = "More Spot";
         coaSplit = 20;
+        marketStateHeader = "📉 SOFTENING FREIGHT / PRICES FALLING (Bearish Market Trend)";
+        allocationRegimeLabel = "Prices Falling Regime";
+        coaActionNote = "Minimum Plant Basestock Protection";
+        spotActionNote = "Rides Spot Market Down & Captures Bargains";
       } else {
         marketSituationLabel = "Prices Stable";
         marketSituationDesc = "Stable synoptic berthing & steady freight rates";
         naviFreightRecommendation = "More Spot";
         coaSplit = 35;
+        marketStateHeader = "⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)";
+        allocationRegimeLabel = "Prices Stable Regime";
+        coaActionNote = "Base Contract Volume & Stability";
+        spotActionNote = "Captures P10 Dip Windows & Daily Spot Bargains";
       }
 
       let weatherImpactNote = `${marketSituationLabel} - ${naviFreightRecommendation} (${coaSplit}% COA / ${100 - coaSplit}% Spot)`;
@@ -689,7 +719,7 @@ export default function WebTerminalModelTrainer({
   Vessel & Cargo:    ${vesselObj.name || recommendedVesselKey} | ${activeVolume.toLocaleString()} MT ${activeCargo} (${activeHorizon}-Month Horizon)
   Freight Rates:     Spot: $${baseRate.toFixed(2)}/MT (₹${spotRateINR.toLocaleString()}/MT) | P50: $${estSpot.toFixed(2)}/MT (₹${estSpotINR.toLocaleString()}/MT) | P10: $${estP10.toFixed(2)}/MT (₹${estP10INR.toLocaleString()}/MT)
   Sea Feasibility:   ${bothWeatherProper ? '🟢 PROPER SEA WEATHER AT BOTH PORTS' : '🔴 IMPROPER SEA WEATHER DETECTED (OPERATIONAL ACTION REQUIRED)'}
-  Market State:      ${isExtremeDemand ? '⚡ EXTREME DEMAND / SQUEEZE DETECTED (Regime Shift)' : '⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)'}
+  Market State:      ${marketStateHeader}
   Fuel Prices VLSFO: $${vlsfoPriceUSD.toFixed(0)}/MT (Global 20-Ports Average IMO 2020 Benchmark)
                      ↳ [Fuel Impact: Daily fuel burn (${vesselFuelBurnMT} MT/day ${vesselObj.name || recommendedVesselKey} = $${vesselDailyFuelCostUSD.toLocaleString()}/day / ₹${((vesselDailyFuelCostUSD * baseFxRate) / 100000).toFixed(1)} Lakhs/day) & Bunker Adjustment Factor (BAF) floor.]
   Tariff & Trade:    Active: Yes (${activeCargo} Import Duty 5.0% & Safeguard Quotas Audited)
@@ -737,12 +767,12 @@ export default function WebTerminalModelTrainer({
                       - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
                       - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
                       - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
-  * Active Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot (Balanced Regime)
-  * Recommended COA:  ${coaSplit}% (Guarantees Plant Basestock & Hedges Spike)
+  * Active Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot (${allocationRegimeLabel})
+  * Recommended COA:  ${coaSplit}% (${coaActionNote})
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: ${100-coaSplit}% (Captures P10 Dip Windows)
+  * Recommended Spot: ${100-coaSplit}% (${spotActionNote})
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $${blendedSpot.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)
+  * Blended Rate:     $${blendedSpot.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)  (Saves $${Math.max(0, estSpot - blendedSpot).toFixed(2)}/MT vs Spot P50)
     ↳ [Spot Reconciliation: (${(coaSplit/100).toFixed(2)} × $${coaFixed.toFixed(2)} COA) + (${((100-coaSplit)/100).toFixed(2)} × $${baseRate.toFixed(2)} Current Spot) = $${blendedSpot.toFixed(2)}/MT]
     ↳ [Forward Expectation: $${blendedP50.toFixed(2)} /MT (₹${blendedP50INR.toLocaleString()} /MT) with ${100-coaSplit}% floating on Forward P50 ($${estSpot.toFixed(2)})]
     ↳ [Opportunistic Target: $${blendedP10.toFixed(2)} /MT (₹${blendedP10INR.toLocaleString()} /MT) when capturing P10 Dip Window ($${estP10.toFixed(2)})]
@@ -796,12 +826,12 @@ export default function WebTerminalModelTrainer({
       p90INR: 2025,
       coaUSD: 14.85,
       coaINR: 1411,
-      blendedUSD: 15.14,
-      blendedINR: 1438,
-      savingsUSD: 344250,
-      savingsINR_Cr: '3.27',
+      blendedUSD: 15.47,
+      blendedINR: 1472,
+      savingsUSD: 277500,
+      savingsINR_Cr: '2.64',
       unhedgedINR_Cr: '24.84',
-      optINR_Cr: '21.57',
+      optINR_Cr: '22.08',
       forwardFxRate: 95.60,
       totalCongestionDays: 2.5,
       weatherDelayDays: 0.0,
@@ -854,7 +884,7 @@ export default function WebTerminalModelTrainer({
       horizon: 3,
       volatility: 1.0,
       newsSignal: null,
-      coaSplit: 70,
+      coaSplit: 35,
       terminalMetrics: terminalMetricsPayload
     });
 
@@ -884,12 +914,12 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA:  70% (Guarantees Plant Basestock)
+  * Recommended COA:  35% (Base Contract Volume & Stability)
     ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: 30% (Captures P10 Dip Windows)
+  * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
     ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.14 /MT  (₹1,438 /MT)  (Saves $2.18/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.70 × $14.85 COA) + (0.30 × $15.80 Spot) = $15.14/MT | Forward P50: $15.59/MT]
+  * Blended Rate:     $15.47 /MT  (₹1,472 /MT)  (Saves $1.85/MT vs Spot P50)
+    ↳ [Spot Reconciliation: (0.35 × $14.85 COA) + (0.65 × $15.80 Spot) = $15.47/MT | Forward P50: $16.46/MT]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test1TenderPlan.promptLaycanWindow}
