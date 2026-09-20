@@ -112,7 +112,8 @@ export default function WebTerminalModelTrainer({
       vesselKey: 'capesize',
       volumeMT: 150000,
       horizonMonths: 3,
-      cargoType: 'Coking Coal'
+      cargoType: 'Coking Coal',
+      coaSplit: 35
     });
 
     return [
@@ -150,10 +151,16 @@ export default function WebTerminalModelTrainer({
     - WAIT DIRECTIVE:Immediate berthing clearance granted (Zero weather delay).
 
 ----------------------------------------------------------------------
-[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
-  * Prompt Tender Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,411 /MT ($14.85 /MT) for immediate plant coal basestock.
-  * Forward Dip Schedule:     ${initTenderPlan.secondaryTenderAdvice}
-  * Market Risk Regime:       PRICES STABLE (Calm market & low volatility baseline)
+[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES (BALANCED DUAL-TRANCHE):
+  * TRANCHE 1 (35% BASE COA ALLOCATION - ${initTenderPlan.tranche1.volumeMT.toLocaleString()} MT):
+    - Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,411 /MT ($14.85 /MT).
+    - Laycan:      ${initTenderPlan.promptLaycanWindow} (Award: ${initTenderPlan.promptBookingDate} | Discharge: ${initTenderPlan.promptArrivalDate})
+    - Role:        Continuous blast furnace basestock feed; protects 15-day safety buffer (${initTenderPlan.plantConsumption.safetyStockMT.toLocaleString()} MT).
+  * TRANCHE 2 (65% FORWARD SPOT ALLOCATION - ${initTenderPlan.tranche2.volumeMT.toLocaleString()} MT):
+    - Directive:   ${initTenderPlan.secondaryTenderAdvice}
+    - Laycan:      ${initTenderPlan.targetDipWindow} (Award: ${initTenderPlan.bookingDate} | Discharge: ${initTenderPlan.arrivalDate})
+    - Role:        P10 freight dip optimization; aligned with ${initTenderPlan.plantConsumption?.plantName || 'Plant'} burn (${initTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day).
+  * Market Risk Regime: PRICES STABLE (Calm market & low volatility baseline)
 
 ----------------------------------------------------------------------
 [3] FORWARD FREIGHT PREDICTION & QUANTILE CONES:
@@ -188,19 +195,28 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): ${initTenderPlan.promptLaycanWindow}
-    ↳ [21-Day Statutory Tender: Issued Today (${initTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${initTenderPlan.promptLaycanWindow}]
-  * Forward Dip Laycan (Tendered ${initTenderPlan.tenderPublishDeadline}):   ${initTenderPlan.targetDipWindow}
-    ↳ [Target Dip Optimization: Float tender on ${initTenderPlan.tenderPublishDeadline} to lock in lowest P10 rate (${initTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${initTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
+  * Tranche 1 Laycan (35% Base COA - Tendered Today):    ${initTenderPlan.promptLaycanWindow}
+    ↳ [Prompt 21-Day Statutory Notice: Issued Today (${initTenderPlan.todayDate}) -> Earliest Legal Loading ${initTenderPlan.promptLaycanWindow}]
+  * Tranche 2 Laycan (65% Forward Spot - Tendered ${initTenderPlan.tenderPublishDeadline}): ${initTenderPlan.targetDipWindow}
+    ↳ [Forward Dip Optimization: Float tender on ${initTenderPlan.tenderPublishDeadline} for ${initTenderPlan.targetDipWindow} Laycan (${initTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${initTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
   * Berth Draft Clearance:                 [WARNING DRAFT EXCEEDED] Vessel 18.0m > Port 16.0m (Offshore Lighterage Required at Sandheads Anchor!)
 
 ----------------------------------------------------------------------
-[6] PSU STATUTORY TENDER & BOOKING TIMELINE:
-  * Tender Notice ID:    ${initTenderPlan.tenderId}
-  * Tender Scope:        150,000 MT Coking Coal (+/- 10% MOLOO)
-  * Target Laycan Dip:   ${initTenderPlan.targetDipWindow} (~${initTenderPlan.sailingDays}d eco-transit / ~${initTenderPlan.expressSailingDays || 14.4}d express via Torres Strait)
-  * Publish Tender By:   ${initTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Ship Booking Date:   ${initTenderPlan.bookingDate} (L1 reverse auction & Charter Party fixed)
+[6] PSU STATUTORY DUAL-TENDER PROCUREMENT TIMELINE:
+  * Tender Notice ID:    ${initTenderPlan.tenderId} (Total Scope: 150,000 MT Coking Coal +/- 10% MOLOO)
+  * --------------------------------------------------------------------
+  * [A] TRANCHE 1: 35% BASE COA CONTRACT (${initTenderPlan.tranche1.volumeMT.toLocaleString()} MT - ${initTenderPlan.tranche1.contractType}):
+    - Publish Notice:    ${initTenderPlan.todayDate} (Mandatory 21-day statutory notice period)
+    - Ship Award Date:   ${initTenderPlan.promptBookingDate} (L1 reverse auction & Charter Party fixed)
+    - Vessel Laycan:     ${initTenderPlan.promptLaycanWindow} (~${initTenderPlan.sailingDays}d sea transit to India)
+    - Discharge ETA:     ${initTenderPlan.promptArrivalDate} (Immediate blast furnace basestock feed)
+  * --------------------------------------------------------------------
+  * [B] TRANCHE 2: 65% SPOT REPLENISHMENT (${initTenderPlan.tranche2.volumeMT.toLocaleString()} MT - ${initTenderPlan.tranche2.contractType}):
+    - Publish Notice:    ${initTenderPlan.tenderPublishDeadline} (Float notice 3 weeks prior to dip)
+    - Ship Award Date:   ${initTenderPlan.bookingDate} (Spot reverse auction & CP fixture)
+    - Vessel Laycan:     ${initTenderPlan.targetDipWindow} (Captures seasonal P10 low freight)
+    - Discharge ETA:     ${initTenderPlan.arrivalDate} (Replenishes stockyard before winter surge)
+  * --------------------------------------------------------------------
   * Action Advisory:     ${initTenderPlan.tenderStrategyAdvice}
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
@@ -590,7 +606,8 @@ export default function WebTerminalModelTrainer({
         horizonMonths: activeHorizon,
         cargoType: activeCargo,
         originWeather,
-        destWeather
+        destWeather,
+        coaSplit: coaSplit
       });
 
       const primaryWaitDate = !originProper 
@@ -741,9 +758,15 @@ export default function WebTerminalModelTrainer({
     - WAIT DIRECTIVE:${destProper ? 'Immediate berthing clearance granted (Zero weather delay).' : `WAIT TILL ${destWeather?.recommendedWaitDate || getFutureDateString(3)} for pilotage clearance.`}
 
 ----------------------------------------------------------------------
-[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES:
-  * Primary Directive:   ${primaryProcurementDirective}
-  * Secondary Advice:    ${secondarySpotHedgingDirective}
+[2] TACTICAL TENDER & PROCUREMENT DIRECTIVES (BALANCED DUAL-TRANCHE):
+  * TRANCHE 1 (${coaSplit}% BASE COA ALLOCATION - ${psuTenderPlan.tranche1.volumeMT.toLocaleString()} MT):
+    - Directive:   ${primaryProcurementDirective}
+    - Laycan:      ${psuTenderPlan.promptLaycanWindow} (Award: ${psuTenderPlan.promptBookingDate} | Discharge: ${psuTenderPlan.promptArrivalDate})
+    - Role:        Continuous plant coal continuity; protects 15-day safety stockyard buffer (${psuTenderPlan.plantConsumption.safetyStockMT.toLocaleString()} MT).
+  * TRANCHE 2 (${100-coaSplit}% FORWARD SPOT ALLOCATION - ${psuTenderPlan.tranche2.volumeMT.toLocaleString()} MT):
+    - Directive:   ${secondarySpotHedgingDirective}
+    - Laycan:      ${psuTenderPlan.targetDipWindow} (Award: ${psuTenderPlan.bookingDate} | Discharge: ${psuTenderPlan.arrivalDate})
+    - Role:        P10 freight dip optimization; aligned with ${psuTenderPlan.plantConsumption?.plantName || 'Plant'} burn (${psuTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day).
   * Market Risk Regime:  ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
 
 ----------------------------------------------------------------------
@@ -779,19 +802,28 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
-  * Earliest Legal Laycan (Tendered Today): ${psuTenderPlan.promptLaycanWindow}
-    ↳ [21-Day Statutory Tender: Issued Today (${psuTenderPlan.todayDate}) -> 21-day notice -> Earliest Legal Loading ${psuTenderPlan.promptLaycanWindow}]
-  * Forward Dip Laycan (Tendered ${psuTenderPlan.tenderPublishDeadline}):   ${primaryWaitDate}
-    ↳ [Target Dip Optimization: Float tender by ${psuTenderPlan.tenderPublishDeadline} to lock in lowest P10 rate (${psuTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${psuTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
+  * Tranche 1 Laycan (${coaSplit}% Base COA - Tendered Today):    ${psuTenderPlan.promptLaycanWindow}
+    ↳ [Prompt 21-Day Statutory Notice: Float Today (${psuTenderPlan.todayDate}) -> Earliest Legal Loading ${psuTenderPlan.promptLaycanWindow}]
+  * Tranche 2 Laycan (${100-coaSplit}% Forward Spot - Tendered ${psuTenderPlan.tenderPublishDeadline}): ${primaryWaitDate}
+    ↳ [Forward P10 Optimization: Float Tender by ${psuTenderPlan.tenderPublishDeadline} -> Loading ${psuTenderPlan.targetDipWindow} (${psuTenderPlan.plantConsumption?.plantName || 'Plant'} burn: ${psuTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day)]
   * Berth Draft Clearance:                 ${draftClearanceText}
 
 ----------------------------------------------------------------------
-[6] PSU STATUTORY TENDER & BOOKING TIMELINE:
-  * Tender Notice ID:    ${psuTenderPlan.tenderId}
-  * Tender Scope:        ${activeVolume.toLocaleString()} MT ${activeCargo} (+/- 10% MOLOO)
-  * Target Laycan Dip:   ${psuTenderPlan.targetDipWindow} (~${psuTenderPlan.sailingDays}d eco-transit / ~${psuTenderPlan.expressSailingDays || 14.4}d express)
-  * Publish Tender By:   ${psuTenderPlan.tenderPublishDeadline} (Mandatory 21-day statutory notice period)
-  * Ship Booking Date:   ${psuTenderPlan.bookingDate} (L1 reverse auction & Charter Party fixed)
+[6] PSU STATUTORY DUAL-TENDER PROCUREMENT TIMELINE:
+  * Tender Notice ID:    ${psuTenderPlan.tenderId} (Total Scope: ${activeVolume.toLocaleString()} MT ${activeCargo} +/- 10% MOLOO)
+  * --------------------------------------------------------------------
+  * [A] TRANCHE 1: ${coaSplit}% BASE COA CONTRACT (${psuTenderPlan.tranche1.volumeMT.toLocaleString()} MT - ${psuTenderPlan.tranche1.contractType}):
+    - Publish Notice:    ${psuTenderPlan.todayDate} (Mandatory 21-day statutory notice period)
+    - Ship Award Date:   ${psuTenderPlan.promptBookingDate} (L1 reverse auction & Charter Party fixed)
+    - Vessel Laycan:     ${psuTenderPlan.promptLaycanWindow} (~${psuTenderPlan.sailingDays}d sea transit to India)
+    - Discharge ETA:     ${psuTenderPlan.promptArrivalDate} (Immediate blast furnace basestock feed)
+  * --------------------------------------------------------------------
+  * [B] TRANCHE 2: ${100-coaSplit}% SPOT REPLENISHMENT (${psuTenderPlan.tranche2.volumeMT.toLocaleString()} MT - ${psuTenderPlan.tranche2.contractType}):
+    - Publish Notice:    ${psuTenderPlan.tenderPublishDeadline} (Float notice 3 weeks prior to dip)
+    - Ship Award Date:   ${psuTenderPlan.bookingDate} (Spot reverse auction & CP fixture)
+    - Vessel Laycan:     ${psuTenderPlan.targetDipWindow} (Captures seasonal P10 low freight)
+    - Discharge ETA:     ${psuTenderPlan.arrivalDate} (Replenishes stockyard before winter surge)
+  * --------------------------------------------------------------------
   * Action Advisory:     ${psuTenderPlan.tenderStrategyAdvice}
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`

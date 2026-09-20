@@ -453,17 +453,17 @@ export default function CharterTimingDecisionMatrix({
           </div>
         </div>
 
-        {/* Single Unified Tender Planning Card */}
+        {/* Single Unified Dual-Tranche Tender Planning Card */}
         <div className="mt-3.5 p-4 rounded-lg border border-slate-200 bg-white shadow-2xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-slate-100 gap-2">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-blue-600" />
-                  PSU Statutory Tender Planning (21-Day Advance Notice)
+                  PSU Statutory Dual-Tender Planning (21-Day Advance Notice)
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                  {activeTenderPlan.tenderTag || 'Mandatory 21-Day Window'}
+                  {activeTenderPlan.tenderTag || 'Dual-Tranche Procurement'}
                 </span>
                 {activeTenderPlan.plantConsumption && (
                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
@@ -472,12 +472,83 @@ export default function CharterTimingDecisionMatrix({
                 )}
               </div>
               <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
-                Under Indian Public Procurement rules (GFR 2017), advertised freight tenders require a minimum <strong>21-day</strong> bidding period. Calibrated to {activeTenderPlan.plantConsumption?.plantName || 'Steel Plant'} consumption ({activeTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day) to schedule tender replenishment without stockout or excessive port demurrage.
+                Under Indian Public Procurement rules (GFR 2017), advertised freight tenders require a minimum <strong>21-day</strong> bidding period. Synchronized to balance both <strong>Tranche 1 ({activeTenderPlan.tranche1?.allocationPct || 70}% Base COA)</strong> for blast furnace continuity and <strong>Tranche 2 ({activeTenderPlan.tranche2?.allocationPct || 30}% Forward Spot)</strong> to capture the lowest P10 market freight dip.
               </p>
             </div>
-            <div className="shrink-0 bg-blue-50/70 border border-blue-200 rounded-lg p-2 text-right">
-              <span className="text-[10px] uppercase font-bold text-blue-800 tracking-wider block">Action Required</span>
-              <span className="text-xs font-mono font-bold text-blue-900">Float Tender by {activeTenderPlan.tenderPublishDeadline}</span>
+            <div className="shrink-0 flex items-center gap-2">
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-lg p-2 text-right">
+                <span className="text-[9px] uppercase font-bold text-emerald-800 tracking-wider block">Tranche 1 (Base COA)</span>
+                <span className="text-xs font-mono font-bold text-emerald-900">Float Today ({activeTenderPlan.todayDate})</span>
+              </div>
+              <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-2 text-right">
+                <span className="text-[9px] uppercase font-bold text-blue-800 tracking-wider block">Tranche 2 (Spot Dip)</span>
+                <span className="text-xs font-mono font-bold text-blue-900">Float {activeTenderPlan.tenderPublishDeadline}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dual-Tranche Side-by-Side Specifications */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            {/* Tranche 1 Card */}
+            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/30">
+              <div className="flex items-center justify-between pb-2 border-b border-emerald-200/60 mb-2">
+                <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  Tranche 1: Base COA ({activeTenderPlan.tranche1?.allocationPct || 70}% - {activeTenderPlan.tranche1?.volumeMT?.toLocaleString() || Math.round(activeVolume * 0.7).toLocaleString()} MT)
+                </span>
+                <span className="text-[10px] font-mono font-bold text-emerald-800 bg-white border border-emerald-200 px-1.5 py-0.5 rounded">
+                  Notice Today
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div>
+                  <span className="text-[10px] text-slate-500 block">Notice Float</span>
+                  <span className="font-mono font-bold text-slate-800">{activeTenderPlan.todayDate}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 block">Vessel Award</span>
+                  <span className="font-mono font-bold text-slate-800">{activeTenderPlan.promptBookingDate}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-emerald-700 font-semibold block">Loading Laycan</span>
+                  <span className="font-mono font-bold text-emerald-900">{promptLaycanWindowDate}</span>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-emerald-100 flex items-center justify-between text-[10px] text-emerald-800">
+                <span>ETA India: <strong>{activeTenderPlan.promptArrivalDate}</strong> (~{activeTenderPlan.sailingDays}d transit)</span>
+                <span className="font-medium">Basestock Feed Security</span>
+              </div>
+            </div>
+
+            {/* Tranche 2 Card */}
+            <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/30">
+              <div className="flex items-center justify-between pb-2 border-b border-blue-200/60 mb-2">
+                <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                  <TrendingDown className="w-4 h-4 text-blue-600" />
+                  Tranche 2: Spot Dip ({activeTenderPlan.tranche2?.allocationPct || 30}% - {activeTenderPlan.tranche2?.volumeMT?.toLocaleString() || Math.round(activeVolume * 0.3).toLocaleString()} MT)
+                </span>
+                <span className="text-[10px] font-mono font-bold text-blue-800 bg-white border border-blue-200 px-1.5 py-0.5 rounded">
+                  Forward P10 Dip
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div>
+                  <span className="text-[10px] text-slate-500 block">Notice Float</span>
+                  <span className="font-mono font-bold text-slate-800">{activeTenderPlan.tenderPublishDeadline}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 block">Vessel Award</span>
+                  <span className="font-mono font-bold text-slate-800">{activeTenderPlan.bookingDate}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-blue-700 font-semibold block">Loading Laycan</span>
+                  <span className="font-mono font-bold text-blue-900">{forwardDipWindowDate}</span>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-blue-100 flex items-center justify-between text-[10px] text-blue-800">
+                <span>ETA India: <strong>{activeTenderPlan.arrivalDate}</strong> (~{activeTenderPlan.sailingDays}d transit)</span>
+                <span className="font-medium">P10 Wholesale Savings</span>
+              </div>
             </div>
           </div>
 
@@ -487,17 +558,17 @@ export default function CharterTimingDecisionMatrix({
               <span className="text-[10px] uppercase font-bold text-slate-600 block">Sea Transit ({activeTenderPlan.distanceNM.toLocaleString()} NM)</span>
               <span className="text-xs font-mono font-bold text-slate-800">~{activeTenderPlan.sailingDays} Sailing Days</span>
             </div>
-            <div className="p-2 rounded bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-bold text-slate-600 block">Target Low Window (P10 Dip)</span>
-              <span className="text-xs font-mono font-bold text-slate-800">{activeTenderPlan.targetDipWindow}</span>
-            </div>
-            <div className="p-2 rounded bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-bold text-slate-600 block">Statutory Notice Lead Time</span>
-              <span className="text-xs font-mono font-bold text-slate-800">21 Days Notice (GFR 2017)</span>
+            <div className="p-2 rounded bg-emerald-50/50 border border-emerald-200/80">
+              <span className="text-[10px] uppercase font-bold text-emerald-800 block">Tranche 1 Laycan (Prompt)</span>
+              <span className="text-xs font-mono font-bold text-emerald-900">{promptLaycanWindowDate}</span>
             </div>
             <div className="p-2 rounded bg-blue-50/50 border border-blue-200/80">
-              <span className="text-[10px] uppercase font-bold text-blue-700 block">Vessel Booking & Award</span>
-              <span className="text-xs font-mono font-bold text-blue-900">{activeTenderPlan.bookingDate}</span>
+              <span className="text-[10px] uppercase font-bold text-blue-800 block">Tranche 2 Laycan (Dip)</span>
+              <span className="text-xs font-mono font-bold text-blue-900">{forwardDipWindowDate}</span>
+            </div>
+            <div className="p-2 rounded bg-slate-50 border border-slate-100">
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Statutory Lead Time</span>
+              <span className="text-xs font-mono font-bold text-slate-800">21 Days Notice (GFR 2017)</span>
             </div>
             <div className="p-2 rounded bg-amber-50/50 border border-amber-200/80">
               <span className="text-[10px] uppercase font-bold text-amber-800 block">Plant Consumption</span>
@@ -509,9 +580,9 @@ export default function CharterTimingDecisionMatrix({
 
           {/* Operational Clarification Note */}
           <div className="mt-3 p-2.5 rounded bg-amber-50/70 border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-2">
-            <span className="font-bold shrink-0">💡 How "When to Book" connects to Tender:</span>
+            <span className="font-bold shrink-0">💡 Balanced Dual-Tranche Program:</span>
             <span>
-              The AI Decision Matrix above indicates <strong>when to book</strong> (Laycan: {activeTenderPlan.targetDipWindow}). In public procurement, "booking" happens by awarding an open tender. Publishing the tender on <strong>{activeTenderPlan.tenderPublishDeadline}</strong> ensures the 21-day bidding and L1 award complete on time to secure the ship for the low freight dip.
+              The AI Decision Matrix balances both contracts: <strong>Tranche 1 ({activeTenderPlan.tranche1?.allocationPct || 70}% Base COA)</strong> is tendered today ({activeTenderPlan.todayDate}) for loading {promptLaycanWindowDate} to safeguard continuous blast furnace operations. <strong>Tranche 2 ({activeTenderPlan.tranche2?.allocationPct || 30}% Spot Dip)</strong> is tendered on {activeTenderPlan.tenderPublishDeadline} for loading {forwardDipWindowDate} to exploit the seasonal P10 freight drop without congesting the port.
             </span>
           </div>
         </div>
@@ -522,15 +593,15 @@ export default function CharterTimingDecisionMatrix({
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
               <span className="text-[11px] font-bold tracking-wide uppercase text-slate-800">
-                End-to-End Execution Sequence (From Tender Start to Blast Furnace Feed)
+                End-to-End Dual-Tranche Execution Sequence (From Tender Starts to Blast Furnace Feed)
               </span>
             </div>
             <span className="text-[10px] text-slate-500 font-mono">
-              21-Day Tender Lead Time + ~{activeTenderPlan.sailingDays}d Ocean Steaming
+              21-Day Statutory Tender Lead Time + ~{activeTenderPlan.sailingDays}d Ocean Steaming
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 relative">
             {activeTenderPlan.milestoneSteps?.map((ms, idx) => (
               <div 
                 key={ms.step} 
@@ -546,10 +617,11 @@ export default function CharterTimingDecisionMatrix({
                     </span>
                   </div>
                   <h4 className="text-xs font-bold text-slate-900 mt-1 flex items-center gap-1.5">
-                    {idx === 0 && <FileText className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
-                    {idx === 1 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
-                    {idx === 2 && <Ship className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
-                    {idx === 3 && <Anchor className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                    {idx === 0 && <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                    {idx === 1 && <Ship className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                    {idx === 2 && <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                    {idx === 3 && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                    {idx === 4 && <Anchor className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
                     <span>{ms.title}</span>
                   </h4>
                   <p className="text-[10.5px] text-slate-500 mt-1.5 leading-snug">
@@ -558,9 +630,9 @@ export default function CharterTimingDecisionMatrix({
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
                   <span className="font-medium text-slate-500">
-                    {idx === 0 ? 'Tender Published' : idx === 1 ? 'Charter Party Fixed' : idx === 2 ? 'Loading at Origin' : 'Unloaded in India'}
+                    {idx === 0 ? 'Tender 1 Opened' : idx === 1 ? 'Tranche 1 Loading' : idx === 2 ? 'Tender 2 Opened' : idx === 3 ? 'Tranche 2 Loading' : 'Unloaded in India'}
                   </span>
-                  {idx < 3 && <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />}
+                  {idx < 4 && <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />}
                 </div>
               </div>
             ))}
