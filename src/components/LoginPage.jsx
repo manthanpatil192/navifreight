@@ -4,6 +4,7 @@ import {
   Lock, Mail, CheckCircle2, Building2, UserCheck,
   X, FileText, AlertTriangle
 } from 'lucide-react';
+import shipHeroImage from '../assets/navifreight_ship_hero.jpg';
 
 const USER_ROLES = [
   {
@@ -219,19 +220,22 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
         {/* ========================================================================= */}
         <div className="max-w-6xl w-full mx-auto my-2">
           
-          {/* THE SHIP PART CONTAINER (Focal center element with aerial container ship) */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-[#032f50]">
+          {/* THE SHIP PART CONTAINER (Focal center element with high-definition bulk freight ship) */}
+          <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900">
             
-            {/* Aerial Container Vessel Background Image - Clean, Static & High-Res */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
+            {/* High-Resolution Ship & Ocean Background Image */}
+            <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
               <img
-                src="/maritime_vessel_hero.jpg"
-                alt="Aerial view of container freight vessel sailing through azure ocean water"
-                className="w-full h-full object-cover object-center"
+                src={shipHeroImage}
+                alt="NaviFreight Bulk Carrier Vessel Sailing Across Azure Ocean"
+                className="w-full h-full object-cover object-[22%_center] scale-105"
+                onError={(e) => {
+                  e.currentTarget.src = '/navifreight_ship_hero.jpg';
+                }}
               />
-              {/* Gentle gradient overlay for high contrast and crystal-clear text legibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/20 pointer-events-none" />
-              <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-slate-950/85 via-slate-950/40 to-transparent pointer-events-none" />
+              {/* Balanced subtle gradient overlays ensuring the ship hull and sea are clearly visible while text remains sharp */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/15 to-slate-950/20 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-slate-950/70 via-slate-950/20 to-transparent pointer-events-none" />
             </div>
 
             {/* Inner Content Layer inside the Ship Part */}
