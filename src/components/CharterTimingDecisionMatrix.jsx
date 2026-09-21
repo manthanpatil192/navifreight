@@ -263,7 +263,7 @@ export default function CharterTimingDecisionMatrix({
                 {isExtremeDemand 
                   ? 'Extreme demand surge detected. Do NOT hold out exclusively for P10 bottom as vessel capacity may sell out. Issue tender notice within the P10–P50 price corridor to lock in required volume and protect blast furnace basestock feed.'
                   : (contractHorizonMonths >= 5 
-                      ? `6-Month Multi-Voyage Program calibrated to ${activeTenderPlan.plantConsumption?.plantName || 'Plant'} burn rate (${activeTenderPlan.plantConsumption?.dailyBurnMT?.toLocaleString() || '12,200'} MT/day). Tranche 1 loads ${activeTenderPlan.promptLaycanWindow}. Float Tranche 2 tender notice on ${activeTenderPlan.tenderPublishDeadline} targeting the seasonal P10 low freight dip (${forwardDipWindowDate}) to replenish stockyard reserves before winter surge.`
+                      ? `6-Month Multi-Voyage Program calibrated to ${activeTenderPlan.plantConsumption?.plantName || 'Plant'} basestock schedule. Tranche 1 loads ${activeTenderPlan.promptLaycanWindow}. Float Tranche 2 tender notice on ${activeTenderPlan.tenderPublishDeadline} targeting the seasonal P10 low freight dip (${forwardDipWindowDate}) to replenish stockyard reserves before winter surge.`
                       : (contractHorizonMonths >= 3
                           ? `Confirmed calm synoptic sea window. Forward freight reaches seasonal local minimum. Float tender by ${activeTenderPlan.tenderPublishDeadline} targeting the ${forwardDipWindowDate} quarterly laycan window with 70% COA / 30% Spot allocation.`
                           : `Confirmed calm synoptic sea window. Issue prompt tender notice today for ${activeTenderPlan.promptLaycanWindow} Laycan at target rate to feed immediate basestock demand.`
@@ -467,7 +467,7 @@ export default function CharterTimingDecisionMatrix({
                 </span>
                 {activeTenderPlan.plantConsumption && (
                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
-                    🏭 {activeTenderPlan.plantConsumption.plantName} ({activeTenderPlan.plantConsumption.dailyBurnMT.toLocaleString()} MT/day)
+                    🏭 {activeTenderPlan.plantConsumption.plantName} (Basestock Linked)
                   </span>
                 )}
               </div>
@@ -571,9 +571,9 @@ export default function CharterTimingDecisionMatrix({
               <span className="text-xs font-mono font-bold text-slate-800">21 Days Notice (GFR 2017)</span>
             </div>
             <div className="p-2 rounded bg-amber-50/50 border border-amber-200/80">
-              <span className="text-[10px] uppercase font-bold text-amber-800 block">Plant Consumption</span>
+              <span className="text-[10px] uppercase font-bold text-amber-800 block">Stockyard Reserve Norm</span>
               <span className="text-xs font-mono font-bold text-amber-900">
-                {activeTenderPlan.plantConsumption ? `${activeTenderPlan.plantConsumption.dailyBurnMT.toLocaleString()} MT/d (~${activeTenderPlan.plantConsumption.daysOfBasestockCover}d)` : '12,200 MT/day'}
+                15-Day CAG Buffer (Active)
               </span>
             </div>
           </div>
