@@ -11,9 +11,10 @@ import liveMarketNewsPayload from '../data/liveMarketNews.json';
 import InsightBulb from './InsightBulb';
 import MasterDecisionPipeline from './MasterDecisionPipeline';
 import CagAuditInventoryShield from './CagAuditInventoryShield';
+import CargoToHoldMatcher from './CargoToHoldMatcher';
 
 export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null, activeNewsSignal = null }) {
-  const [activeSubTab, setActiveSubTab] = useState('pipeline'); // 'pipeline', 'tramp', 'all'
+  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'pipeline', 'tramp', 'seavium', 'cag_audit', 'all'
   const [selectedLivePort, setSelectedLivePort] = useState(selectedDestination || 'paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('');
   const [matchedId, setMatchedId] = useState(null);
@@ -124,6 +125,20 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold">
           <button
             type="button"
+            onClick={() => setActiveSubTab('matcher')}
+            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
+              activeSubTab === 'matcher'
+                ? 'bg-emerald-700 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5 text-emerald-300" />
+            <span>1. Cargo-to-Hold Matcher (Coastal Triangulation)</span>
+            <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-extrabold ml-1">LIVE DATA</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveSubTab('pipeline')}
             className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeSubTab === 'pipeline'
@@ -132,7 +147,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
             }`}
           >
             <GitMerge className="w-3.5 h-3.5" />
-            <span>1. Master Operational Flowchart (7–30d ETA)</span>
+            <span>2. Master Operational Flowchart (7–30d ETA)</span>
           </button>
 
           <button
@@ -144,8 +159,8 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
                 : 'text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <Compass className="w-3.5 h-3.5" />
-            <span>2. Live Tramp & "Hop-and-Load" Pairs</span>
+            <Ship className="w-3.5 h-3.5" />
+            <span>3. Live Tramp & "Hop-and-Load" Pairs</span>
           </button>
 
           <button
@@ -158,7 +173,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>3. Seavium Idle Management Engine (PS Part C)</span>
+            <span>4. Seavium Idle Management Engine (PS Part C)</span>
           </button>
 
           <button
@@ -171,7 +186,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
             }`}
           >
             <Factory className="w-3.5 h-3.5 text-amber-400" />
-            <span>4. CAG Audit Inventory & Carrying Cost Defense</span>
+            <span>5. CAG Audit Inventory & Carrying Cost Defense</span>
           </button>
 
           <button
@@ -189,7 +204,14 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
         </div>
       </div>
 
-      {/* MODULE 1: Master Operational Flowchart Simulator */}
+      {/* MODULE 1: Interactive Cargo-to-Hold Matcher (Coastal Triangulation) */}
+      {(activeSubTab === 'matcher' || activeSubTab === 'all') && (
+        <CargoToHoldMatcher 
+          currency={currency} 
+        />
+      )}
+
+      {/* MODULE 2: Master Operational Flowchart Simulator */}
       {(activeSubTab === 'pipeline' || activeSubTab === 'all') && (
         <MasterDecisionPipeline 
           currency={currency} 

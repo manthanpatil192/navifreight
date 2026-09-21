@@ -637,7 +637,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                   {currentVesselSpeedKnots} kts
                 </span>
                 <span className="text-[10px] text-slate-500 block">
-                  {congestionResponse === 'slow_steam' && !berthAvailable ? 'Eco Slow-Steam' : 'Full Sea Speed'}
+                  {currentVesselSpeedKnots <= 1.0 
+                    ? 'At Anchor / Drifting' 
+                    : (congestionResponse === 'slow_steam' && !berthAvailable ? 'Eco Slow-Steam' : 'Full Sea Speed')}
                 </span>
               </div>
 
@@ -646,7 +648,9 @@ export default function MasterDecisionPipeline({ currency = 'INR', selectedPort 
                 <span className="font-mono text-[11px] font-bold text-slate-700">
                   {activeVessel.coordinates ? `${activeVessel.coordinates[0]}°N, ${activeVessel.coordinates[1]}°E` : '20.21°N, 86.75°E'}
                 </span>
-                <span className="text-[10px] text-indigo-600 font-semibold block">ETA: ~14 Days Out</span>
+                <span className={`text-[10px] font-semibold block ${currentVesselSpeedKnots <= 1.0 ? 'text-amber-700' : 'text-indigo-600'}`}>
+                  {currentVesselSpeedKnots <= 1.0 ? 'At Anchorage (Queue Pos #1)' : 'ETA: ~14 Days Out'}
+                </span>
               </div>
 
             </div>
