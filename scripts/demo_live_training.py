@@ -202,7 +202,7 @@ def display_case_studies():
     
     case_studies = [
         {
-            "title": "CASE STUDY 1: Tata Steel & East Coast India Demurrage Crisis (Aug–Nov 2021)",
+            "title": "CASE STUDY 1: SAIL & East Coast India Demurrage Crisis (Aug–Nov 2021)",
             "route": "Hay Point (Australia) -> Paradip Port (Odisha) | Capesize 150k MT",
             "historical_shock": "Baltic Capesize Index (BCI) skyrocketed to 10,000+ points; Australia-India spot spiked from $14.50/MT to $32.80/MT.",
             "unhedged_statutory_result": "Rigid statutory buyers buying 100% on spot incurred massive $18.30/MT freight premiums + 14-day anchorage queues ($25k/day demurrage = $350k/vessel).",

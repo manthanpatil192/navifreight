@@ -1461,7 +1461,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
   * Case-Study P10-P90 Coverage:     91.3% (Target: 90.00% — Successfully Bounded Spike)
   * Case-Study Forward MAPE:         12.4% (Significantly beats 15-25% naive random walk)
 ----------------------------------------------------------------------
-[STEP 4: INDUSTRIAL LOGISTICS APPLICATION (SAIL / TATA STEEL)]
+[STEP 4: INDUSTRIAL LOGISTICS APPLICATION (SAIL - STEEL AUTHORITY OF INDIA LIMITED)]
   * Operational Scenario:            Queensland Cyclone Jasper disrupted Hay Point loading.
   * NaviFreight Recommendation:      Shifted portfolio to 85% COA coverage at $8.15 before peak.
   * Quantified Demurrage Avoidance:  Saved 11 waiting days (INR 2.1 Crore net benefit).

@@ -419,7 +419,7 @@ export const LIVE_AIS_VESSELS = [
   {
     mmsi: '538008910',
     imo: '9785412',
-    name: 'MV ADANI VOYAGER',
+    name: 'MV SAIL DURGAPUR',
     vesselType: 'Capesize',
     dwt: 182000,
     currentDraughtMeters: 18.1,
@@ -541,7 +541,7 @@ export const LIVE_AIS_VESSELS = [
   {
     mmsi: '563124500',
     imo: '9741209',
-    name: 'MV ADANI TRADER',
+    name: 'MV SAIL BURNPUR',
     vesselType: 'Kamsarmax',
     dwt: 82500,
     currentDraughtMeters: 14.1,
@@ -589,7 +589,7 @@ export const LIVE_AIS_VESSELS = [
   {
     mmsi: '419006340',
     imo: '9784120',
-    name: 'MV TATA MARITIME',
+    name: 'MV SAIL ROURKELA',
     vesselType: 'Baby Cape / Post-Panamax',
     dwt: 115000,
     currentDraughtMeters: 14.9,
@@ -1753,7 +1753,7 @@ export const LIVE_AIS_VESSELS = [
 {
   "mmsi": "419200026",
   "imo": "9400026",
-  "name": "MV TATA ENDEAVOUR",
+  "name": "MV SAIL BHILAI",
   "vesselType": "Kamsarmax",
   "category": "Dry Bulk",
   "dwt": 82500,
@@ -1778,7 +1778,7 @@ export const LIVE_AIS_VESSELS = [
 {
   "mmsi": "419200027",
   "imo": "9400027",
-  "name": "MV JSW RATNAGIRI",
+  "name": "MV SAIL BOKARO",
   "vesselType": "Panamax",
   "category": "Dry Bulk",
   "dwt": 75000,
@@ -1803,7 +1803,7 @@ export const LIVE_AIS_VESSELS = [
 {
   "mmsi": "419200028",
   "imo": "9400028",
-  "name": "MV ADANI PIONEER",
+  "name": "MV SAIL VISAKHA",
   "vesselType": "Ultramax",
   "category": "Dry Bulk",
   "dwt": 64000,

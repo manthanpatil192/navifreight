@@ -77,7 +77,7 @@ def run_case_study():
     print(f"  * Case-Study Forward MAPE:         {mape_pct:.1f}% (Significantly beats 15-25% naive random walk)")
     print("-" * 70)
     
-    print("[STEP 4: INDUSTRIAL LOGISTICS APPLICATION (SAIL / TATA STEEL)]")
+    print("[STEP 4: INDUSTRIAL LOGISTICS APPLICATION (SAIL - STEEL AUTHORITY OF INDIA LIMITED)]")
     print("  * Operational Scenario:            Queensland Cyclone Jasper disrupted Hay Point loading.")
     print("  * Traditional Unhedged Action:     Arrived blind; incurred 19-day anchorage wait ($22k/day demurrage).")
     print("  * NaviFreight Recommendation:      Shifted portfolio to 85% COA coverage at $8.15 before the $10.20 surge.")
