@@ -177,20 +177,9 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
-  * Dynamic Strategy: Rejects static 70/30 rules. Dynamically balances based on live market risk:
-                      - Prices Stable:       35% COA / 65% Spot (Captures cheap daily dips)
-                      - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
-                      - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
-                      - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
   * Active Allocation: 35% COA / 65% Spot (Prices Stable Regime)
   * Recommended COA:  35% (Base Contract Volume & Stability)
-    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
-    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.47 /MT  (₹1,472 /MT)  (Saves $1.85/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.35 × $14.85 COA) + (0.65 × $15.80 Current Spot) = $15.47/MT]
-    ↳ [Forward Expectation: $16.46 /MT (₹1,566 /MT) with 65% floating on Forward P50 ($17.32)]
-    ↳ [Opportunistic Target: $14.85 /MT (₹1,413 /MT) when capturing P10 Dip Window ($14.85)]
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
       }
@@ -757,20 +746,9 @@ export default function WebTerminalModelTrainer({
 
 ----------------------------------------------------------------------
 [4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
-  * Dynamic Strategy: Rejects static 70/30 rules. Dynamically balances based on live market risk:
-                      - Prices Stable:       35% COA / 65% Spot (Captures cheap daily dips)
-                      - Prices Likely Rise:  70% COA / 30% Spot (Locks wholesale rates before surge)
-                      - High Uncertainty:    85% COA / 15% Spot (Hedges worst-case tail risk)
-                      - Prices Falling:      20% COA / 80% Spot (Rides spot market down)
   * Active Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot (${allocationRegimeLabel})
   * Recommended COA:  ${coaSplit}% (${coaActionNote})
-    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: ${100-coaSplit}% (${spotActionNote})
-    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $${blendedSpot.toFixed(2)} /MT  (₹${blendedINR.toLocaleString()} /MT)  (Saves $${Math.max(0, estSpot - blendedSpot).toFixed(2)}/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (${(coaSplit/100).toFixed(2)} × $${coaFixed.toFixed(2)} COA) + (${((100-coaSplit)/100).toFixed(2)} × $${baseRate.toFixed(2)} Current Spot) = $${blendedSpot.toFixed(2)}/MT]
-    ↳ [Forward Expectation: $${blendedP50.toFixed(2)} /MT (₹${blendedP50INR.toLocaleString()} /MT) with ${100-coaSplit}% floating on Forward P50 ($${estSpot.toFixed(2)})]
-    ↳ [Opportunistic Target: $${blendedP10.toFixed(2)} /MT (₹${blendedP10INR.toLocaleString()} /MT) when capturing P10 Dip Window ($${estP10.toFixed(2)})]
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`
         }
@@ -893,11 +871,7 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  35% (Base Contract Volume & Stability)
-    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
-    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.47 /MT  (₹1,472 /MT)  (Saves $1.85/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.35 × $14.85 COA) + (0.65 × $15.80 Spot) = $15.47/MT | Forward P50: $16.46/MT]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test1TenderPlan.promptLaycanWindow}
@@ -1051,11 +1025,7 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [4] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  85% (Protects Blast Furnace against Peak Spike)
-    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
   * Recommended Spot: 15% (Strictly Limited Spot Exposure)
-    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $15.57 /MT  (₹1,479 /MT)  (Saves $4.08/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.85 × $15.42 COA) + (0.15 × $16.40 Spot) = $15.57/MT | Forward P50: $16.05/MT]
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test2TenderPlan.promptLaycanWindow}
@@ -1181,11 +1151,7 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] ALGORITHMIC CVaR CARGO ALLOCATION:
   * Recommended COA:  80% (Locks Long-Term Capacity Before Squeeze)
-    ↳ [Meaning: % of cargo under fixed contract so plant never runs out of coal]
-  * Recommended Spot: 20%
-    ↳ [Meaning: % kept open in daily market to catch lucky price drops]
-  * Blended Rate:     $13.52 /MT  (₹1,284 /MT)  (Saves $7.58/MT vs Spot P50)
-    ↳ [Spot Reconciliation: (0.80 × $13.35 COA) + (0.20 × $14.20 Spot) = $13.52/MT | Forward P50: $14.90/MT]
+  * Recommended Spot: 20% (Strictly Limited Spot Exposure)
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test3TenderPlan.promptLaycanWindow}
