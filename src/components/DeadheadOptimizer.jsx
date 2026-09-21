@@ -2,19 +2,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, 
   MapPin, Zap, TrendingUp, CloudRain, Waves, Flame, Gauge, 
-  ShieldCheck, DollarSign, Layers, Compass, GitMerge, FileText,
-  TrendingDown, Clock, Cpu, Navigation, AlertTriangle, Factory, Ship
+  Layers, Compass, AlertTriangle, Factory, Ship
 } from 'lucide-react';
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import liveMarketNewsPayload from '../data/liveMarketNews.json';
 import InsightBulb from './InsightBulb';
-import MasterDecisionPipeline from './MasterDecisionPipeline';
 import CagAuditInventoryShield from './CagAuditInventoryShield';
 import CargoToHoldMatcher from './CargoToHoldMatcher';
 
 export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null, activeNewsSignal = null }) {
-  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'pipeline', 'tramp', 'seavium', 'cag_audit', 'all'
+  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'tramp', 'cag_audit', 'all'
   const [selectedLivePort, setSelectedLivePort] = useState(selectedDestination || 'paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('');
   const [matchedId, setMatchedId] = useState(null);
@@ -139,19 +137,6 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('pipeline')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'pipeline'
-                ? 'bg-purple-900 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <GitMerge className="w-3.5 h-3.5" />
-            <span>2. Master Operational Flowchart (7–30d ETA)</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveSubTab('tramp')}
             className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeSubTab === 'tramp'
@@ -160,20 +145,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
             }`}
           >
             <Ship className="w-3.5 h-3.5" />
-            <span>3. Live Tramp & "Hop-and-Load" Pairs</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('seavium')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'seavium'
-                ? 'bg-purple-900 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>4. Seavium Idle Management Engine (PS Part C)</span>
+            <span>2. Live Tramp & "Hop-and-Load" Pairs</span>
           </button>
 
           <button
@@ -186,7 +158,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
             }`}
           >
             <Factory className="w-3.5 h-3.5 text-amber-400" />
-            <span>5. CAG Audit Inventory & Carrying Cost Defense</span>
+            <span>3. CAG Audit Inventory & Carrying Cost Defense</span>
           </button>
 
           <button
@@ -208,14 +180,6 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       {(activeSubTab === 'matcher' || activeSubTab === 'all') && (
         <CargoToHoldMatcher 
           currency={currency} 
-        />
-      )}
-
-      {/* MODULE 2: Master Operational Flowchart Simulator */}
-      {(activeSubTab === 'pipeline' || activeSubTab === 'all') && (
-        <MasterDecisionPipeline 
-          currency={currency} 
-          selectedPort={selectedLivePort} 
         />
       )}
 
@@ -453,236 +417,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
         </div>
       )}
 
-      {/* MODULE 3: Seavium-Aligned Idle Scenario Management & Deadheading Reduction Engine */}
-      {(activeSubTab === 'seavium' || activeSubTab === 'all') && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-subtle mb-6 space-y-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
-            <div>
-              <div className="flex items-center space-x-2">
-                <Cpu className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center space-x-2">
-                  <span>Part C Architecture: Seavium Offshore Utilization & Idle Minimization</span>
-                  <InsightBulb
-                    title="Seavium Vessel Utilization Mapping"
-                    subtitle="Forecasting Low Demand ➔ Triangular Arbitrage ➔ Staging Positioning"
-                    dataset="Seavium Vessel Utilization Benchmark + DGS Cabotage Rules + AIS Live"
-                    logic="Satisfies the core PS mandate by implementing Seavium's 5 pillars: (1) Forecasting low-demand seasonal lulls, (2) AI-matching alternative employment fixtures, (3) Mid-corridor staging to cut deadhead ballast by 64%, and (4) JIT Virtual Arrival to eliminate non-productive anchorage idle time."
-                    impact="Eliminates up to 18 days of empty ballast deadheading ($450,000+ saved per voyage)."
-                  />
-                </h3>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Direct compliance with PS Part (c): Forecasting low demand, alternative employment, and optimized positioning.
-              </p>
-            </div>
-            <span className="bg-indigo-50 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded">
-              Seavium Industry Standard
-            </span>
-          </div>
 
-          {/* 4 Deep Strategic Pillar Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* PILLAR 1: FORECASTING PERIODS OF LOW DEMAND */}
-            <div className="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <TrendingDown className="w-4 h-4 text-amber-600" />
-                    1. Forecasting Periods of Low Demand
-                  </span>
-                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">
-                    Demand Lull AI
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                  Predicts seasonal, meteorological, and cyclical cargo lulls before charter commitments lock in idle tonnage.
-                </p>
-                <div className="space-y-2 text-[11px] text-slate-700">
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-amber-900 flex justify-between">
-                      <span>🌧️ Southwest Monsoon (July–August):</span>
-                      <span className="text-amber-700 font-mono">-18% Coal Demand</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Rain dampens open-cast handling and steel restocking slows down. <strong>Pacing Strategy:</strong> Slow-steam fleet at 10.5 kts and schedule mandatory dry-docking / hull surveys.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-slate-900 flex justify-between">
-                      <span>🏮 Chinese Golden Week / Lunar Lull:</span>
-                      <span className="text-rose-700 font-mono">-14% Pacific Bulk</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Pacific basin manufacturing slowdown causes spot freight collapse. <strong>Pacing Strategy:</strong> Shift uncommitted vessels into domestic coastal coal or coastal pellet trade.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-indigo-900 flex justify-between">
-                      <span>📉 Forward P10 Freight Valleys (Day 38–45):</span>
-                      <span className="text-indigo-700 font-mono">Bargain Sniping</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Quantile ML cones identify seasonal dip windows ($14.85/MT) to lock supplemental spot parcels without paying peak COA premiums.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* PILLAR 2: ALTERNATIVE EMPLOYMENT OPPORTUNITIES */}
-            <div className="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
-                    2. Alternative Employment Opportunities
-                  </span>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
-                    Arbitrage Matching
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                  Matches discharged bulkers with alternative revenue fixtures before lines are cast off, transforming idle time into profit.
-                </p>
-                <div className="space-y-2 text-[11px] text-slate-700">
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-emerald-900 flex justify-between">
-                      <span>🔄 Coastal "Hop-and-Load" (92 NM Hop):</span>
-                      <span className="text-emerald-700 font-mono">+$7,400/day TCE</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Discharges coking coal at Paradip ➔ 7.6h hop to Dhamra ➔ Loads 120,000 MT iron ore pellets bound for East Asia. Eliminates 82% empty ballast.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-blue-900 flex justify-between">
-                      <span>🇮🇳 DGS Cabotage Waiver Coupling:</span>
-                      <span className="text-blue-700 font-mono">+$480,000 Revenue</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Foreign-flagged ships utilize Indian cabotage exemptions to move domestic coal to Tamil Nadu utilities (Ennore/Tuticorin) during international lulls.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-purple-900 flex justify-between">
-                      <span>⚓ Offshore Lighterage Daughter Craft:</span>
-                      <span className="text-purple-700 font-mono">$14,000/day Hire</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      During zero-cargo weeks, employs bulkers as floating transshipment buffers at Sandheads/Sagar anchorage rather than paying idle anchorage mooring fines.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* PILLAR 3: OPTIMIZED POSITIONING TO REDUCE DEADHEADING */}
-            <div className="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Navigation className="w-4 h-4 text-blue-600" />
-                    3. Optimized Positioning to Reduce Deadheading
-                  </span>
-                  <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">
-                    Ballast Reduction
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                  Eliminates uncompensated empty return voyages ("deadheading") by intelligent fleet staging and charter timing.
-                </p>
-                <div className="space-y-2 text-[11px] text-slate-700">
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-blue-900 flex justify-between">
-                      <span>⏱️ Pre-Discharge Forward CVC Locking:</span>
-                      <span className="text-blue-700 font-mono">0.5d Turnaround</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Consecutive Voyage Charters (CVC) confirmed 48h prior to completing discharge. Slashes port idle dwell time from 4.2 days down to 12 hours.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-teal-900 flex justify-between">
-                      <span>📍 Malacca & Colombo Staging Hubs:</span>
-                      <span className="text-teal-700 font-mono">-64% Deadhead NM</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Instead of committing to a 5,350 NM empty deadhead to Australia, stages vessels at Malacca/Colombo to bid across Australia, Indonesia, and Mozambique within 3 days.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-slate-900 flex justify-between">
-                      <span>🌊 Parallel Underway Hold Cleaning:</span>
-                      <span className="text-slate-700 font-mono">Zero Hold Delay</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Audits IMD wave telemetry (Hs &lt;= 1.8m) to wash cargo holds during ballast transit, avoiding 48 hours of idle berth delay for cargo hold survey.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* PILLAR 4: JIT VIRTUAL ARRIVAL & PREDICTIVE UPTIME */}
-            <div className="border border-slate-200 bg-slate-50/50 rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-purple-600" />
-                    4. JIT Virtual Arrival & Predictive Uptime
-                  </span>
-                  <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">
-                    Seavium JIT Model
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                  Adopts Seavium's Just-In-Time arrival and predictive asset maintenance to eliminate waiting at anchor.
-                </p>
-                <div className="space-y-2 text-[11px] text-slate-700">
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-purple-900 flex justify-between">
-                      <span>⚡ Virtual Arrival (IMO MEPC.404):</span>
-                      <span className="text-purple-700 font-mono">6.5 MT Fuel/Day Saved</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Detects berth queues 7 days out. Slow-steaming from 13.5 to 10.5 kts converts idle anchorage delay into productive, fuel-efficient transit (+{currSym}{(4030 * multiplier).toFixed(0)}/day savings).
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-emerald-900 flex justify-between">
-                      <span>🪸 Predictive Subsurface Biofouling Grooming:</span>
-                      <span className="text-emerald-700 font-mono">Averts +15-35% Drag</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Monitors tropical idle days (&gt;28°C Bay of Bengal). Schedules robotic micro-grooming during mandatory laycan gaps before slime turns to calcareous barnacles.
-                    </p>
-                  </div>
-
-                  <div className="bg-white p-2.5 rounded border border-slate-200">
-                    <div className="font-bold text-slate-900 flex justify-between">
-                      <span>🌱 IMO CII Grade & EU ETS Shield:</span>
-                      <span className="text-slate-700 font-mono">Grade A/B Retention</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-500 mt-0.5">
-                      Zero-ballast triangulation saves 1,420 MT CO2 per voyage, shielding vessel owners from EU ETS carbon fines ($127,800 USD) and CII downgrade penalties.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* MODULE: CAG Audit Inventory & Carrying Cost Defense */}
       {(activeSubTab === 'cag_audit' || activeSubTab === 'all') && (
