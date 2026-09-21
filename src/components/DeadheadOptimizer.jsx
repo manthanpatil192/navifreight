@@ -3,7 +3,7 @@ import {
   RefreshCw, ArrowRight, CheckCircle2, Sparkles, Leaf, Anchor, 
   MapPin, Zap, TrendingUp, CloudRain, Waves, Flame, Gauge, 
   ShieldCheck, DollarSign, Layers, Compass, GitMerge, FileText,
-  TrendingDown, Clock, Cpu, Navigation, AlertTriangle, Factory
+  TrendingDown, Clock, Cpu, Navigation, AlertTriangle, Factory, Ship
 } from 'lucide-react';
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
