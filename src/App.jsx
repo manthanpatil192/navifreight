@@ -225,6 +225,7 @@ export default function App() {
               selectedVessel={selectedVessel}
               cargoVolumeMT={cargoVolumeMT}
               contractHorizonMonths={contractHorizonMonths}
+              coaSplitPercent={coaSplitPercent}
             />
 
             {/* 2. SECOND: OPTIMAL MARKET ENTRY TIMING, PSU TENDER & CONTRACT HORIZON MATRIX */}

@@ -31,7 +31,8 @@ export default function WebTerminalModelTrainer({
   selectedDestination,
   selectedVessel,
   cargoVolumeMT,
-  contractHorizonMonths
+  contractHorizonMonths,
+  coaSplitPercent
 }) {
   const [marketData, setMarketData] = useState(getSyncMarketData());
 
@@ -58,9 +59,12 @@ export default function WebTerminalModelTrainer({
 
   // Dynamic Part B Dual-Vessel Optimization based on current terminal inputs & Dual-Tranche split
   const currentDualVesselOptimization = React.useMemo(() => {
-    const coaPct = coaSplit || 70;
-    const t1Vol = Math.round((manualVolume * coaPct) / 100);
-    const t2Vol = manualVolume - t1Vol;
+    const rawCoaPct = typeof coaSplitPercent === 'number' && !isNaN(coaSplitPercent)
+      ? coaSplitPercent
+      : (currentForecast?.optimalCoaSplitPercent || 70);
+    const coaPct = Math.max(0, Math.min(100, rawCoaPct));
+    const t1Vol = Math.max(1000, Math.round((manualVolume * coaPct) / 100));
+    const t2Vol = Math.max(1000, manualVolume - Math.round((manualVolume * coaPct) / 100));
 
     const optT1 = optimizeVesselType({
       originId: manualOrigin,
@@ -83,22 +87,24 @@ export default function WebTerminalModelTrainer({
       cargoType: manualCargo
     });
 
+    const fallbackVessel = { name: 'Capesize', dwt: 180000, draftMargin: 1.8 };
+
     return {
       total: totalOpt,
       tranche1: {
-        volumeMT: t1Vol,
+        volumeMT: Math.round((manualVolume * coaPct) / 100),
         allocationPct: coaPct,
         opt: optT1,
-        vessel: optT1.recommendedVessel
+        vessel: optT1?.recommendedVessel || fallbackVessel
       },
       tranche2: {
-        volumeMT: t2Vol,
+        volumeMT: manualVolume - Math.round((manualVolume * coaPct) / 100),
         allocationPct: 100 - coaPct,
         opt: optT2,
-        vessel: optT2.recommendedVessel
+        vessel: optT2?.recommendedVessel || fallbackVessel
       }
     };
-  }, [manualOrigin, manualDest, manualVolume, manualCargo, coaSplit]);
+  }, [manualOrigin, manualDest, manualVolume, manualCargo, coaSplitPercent, currentForecast?.optimalCoaSplitPercent]);
 
   const currentVesselOptimization = currentDualVesselOptimization.total;
 

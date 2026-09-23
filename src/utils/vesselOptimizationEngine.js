@@ -217,7 +217,7 @@ export function optimizeVesselType({
     const baseRouteRateUSD = 15.80; // Baseline
     let effectiveRateUSD = Number((baseRouteRateUSD * vessel.scaleFactor).toFixed(2));
     if (lighterageRequired) effectiveRateUSD += 4.20; // $4.20/MT offshore grab-and-barge lighterage
-    if (isLightLoaded) effectiveRateUSD += Number(((deadfreightPenaltyINR_Cr * 10000000) / (cargoVolumeMT * 95.0)).toFixed(2));
+    if (isLightLoaded && cargoVolumeMT > 0) effectiveRateUSD += Number(((deadfreightPenaltyINR_Cr * 10000000) / (cargoVolumeMT * 95.0)).toFixed(2));
     const effectiveRateINR = Math.round(effectiveRateUSD * 95.0);
     const totalFreightINR_Cr = Number(((effectiveRateUSD * cargoVolumeMT * 95.0) / 10000000).toFixed(2));
 
