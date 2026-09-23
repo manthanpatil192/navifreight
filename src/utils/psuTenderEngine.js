@@ -28,7 +28,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 183000,
     baselineCargoMT: 150000, // Standard 15-day / multi-rake blast furnace basestock parcel
-    hinterlandLink: '390 km rail link to Rourkela'
+    hinterlandLink: '390 km rail link to Rourkela',
+    currentStockMT: 151280,
+    stockCoverDays: 12.4,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   dhamra: {
     portId: 'dhamra',
@@ -39,7 +42,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 195000,
     baselineCargoMT: 160000,
-    hinterlandLink: '410 km dedicated rail line to Bokaro'
+    hinterlandLink: '410 km dedicated rail line to Bokaro',
+    currentStockMT: 169000,
+    stockCoverDays: 13.0,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   vizag: {
     portId: 'vizag',
@@ -50,7 +56,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 172500,
     baselineCargoMT: 140000,
-    hinterlandLink: '560 km rail link to Bhilai / coastal RINL'
+    hinterlandLink: '560 km rail link to Bhilai / coastal RINL',
+    currentStockMT: 149500,
+    stockCoverDays: 13.0,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   gangavaram: {
     portId: 'gangavaram',
@@ -61,7 +70,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 172500,
     baselineCargoMT: 140000,
-    hinterlandLink: 'Automated conveyor & 560 km Bhilai rail trunk'
+    hinterlandLink: 'Automated conveyor & 560 km Bhilai rail trunk',
+    currentStockMT: 149500,
+    stockCoverDays: 13.0,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   haldia: {
     portId: 'haldia',
@@ -72,7 +84,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 102000,
     baselineCargoMT: 55000, // River draft lock limit (8.5m draft)
-    hinterlandLink: '220 km SER rail head to Durgapur/Burnpur'
+    hinterlandLink: '220 km SER rail head to Durgapur/Burnpur',
+    currentStockMT: 59840,
+    stockCoverDays: 8.8,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   gopalpur: {
     portId: 'gopalpur',
@@ -83,7 +98,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 112500,
     baselineCargoMT: 75000,
-    hinterlandLink: '430 km South Odisha rail link'
+    hinterlandLink: '430 km South Odisha rail link',
+    currentStockMT: 90000,
+    stockCoverDays: 12.0,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   },
   sandheads: {
     portId: 'sandheads',
@@ -94,7 +112,10 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     safetyNormDays: 15,
     safetyStockMT: 102000,
     baselineCargoMT: 75000,
-    hinterlandLink: 'River barge lightering corridor'
+    hinterlandLink: 'River barge lightering corridor',
+    currentStockMT: 59840,
+    stockCoverDays: 8.8,
+    latestReport: 'Ministry of Coal & CEA Daily Coal Stock Bulletin (Sep 2026 Latest Report)'
   }
 };
 

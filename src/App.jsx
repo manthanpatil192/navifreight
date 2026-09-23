@@ -248,6 +248,9 @@ export default function App() {
               selectedVessel={selectedVessel}
               cargoVolumeMT={cargoVolumeMT}
               terminalMetrics={terminalMetrics}
+              contractHorizonMonths={contractHorizonMonths}
+              forecast={forecast}
+              coaSplitPercent={coaSplitPercent}
             />
 
             {/* 4. FOURTH (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}
