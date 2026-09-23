@@ -2,6 +2,7 @@ import React from 'react';
 import { Anchor, Navigation, Calendar, Package, Layers, Sliders, Info, Compass } from 'lucide-react';
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
+import { PORT_COAL_CONSUMPTION_PROFILES } from '../utils/psuTenderEngine';
 import InsightBulb from './InsightBulb';
 
 export default function RouteSelector({
@@ -83,7 +84,14 @@ export default function RouteSelector({
           </label>
           <select
             value={selectedDestination}
-            onChange={(e) => setSelectedDestination(e.target.value)}
+            onChange={(e) => {
+              const newDest = e.target.value;
+              setSelectedDestination(newDest);
+              const profile = PORT_COAL_CONSUMPTION_PROFILES[newDest];
+              if (profile?.baselineCargoMT) {
+                setCargoVolumeMT(profile.baselineCargoMT);
+              }
+            }}
             className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-maritime-800 focus:border-transparent transition-all shadow-xs"
           >
             {Object.values(INDIAN_EAST_COAST_PORTS).map((port) => (
@@ -119,12 +127,18 @@ export default function RouteSelector({
               className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-maritime-900"
             />
           </div>
-          <div className="flex justify-between mt-1.5 text-[10px] text-slate-400 font-medium">
-            <button type="button" onClick={() => setCargoVolumeMT(55000)} className="hover:text-slate-700">55k (Supra)</button>
-            <button type="button" onClick={() => setCargoVolumeMT(75000)} className="hover:text-slate-700">75k (Panamax)</button>
-            <button type="button" onClick={() => setCargoVolumeMT(120000)} className="hover:text-slate-700">120k (Cape)</button>
-            <button type="button" onClick={() => setCargoVolumeMT(160000)} className="hover:text-slate-700">160k (Full)</button>
+          <div className="flex justify-between mt-1 text-[10px] text-slate-400 font-medium">
+            <button type="button" onClick={() => setCargoVolumeMT(55000)} className="hover:text-slate-700">55k (HDC)</button>
+            <button type="button" onClick={() => setCargoVolumeMT(75000)} className="hover:text-slate-700">75k (GPL)</button>
+            <button type="button" onClick={() => setCargoVolumeMT(140000)} className="hover:text-slate-700">140k (VPT)</button>
+            <button type="button" onClick={() => setCargoVolumeMT(150000)} className="hover:text-slate-700">150k (PPT)</button>
+            <button type="button" onClick={() => setCargoVolumeMT(160000)} className="hover:text-slate-700">160k (DPCL)</button>
           </div>
+          {PORT_COAL_CONSUMPTION_PROFILES[selectedDestination] && (
+            <div className="mt-1.5 text-[10px] font-medium text-indigo-700 bg-indigo-50/80 border border-indigo-100 rounded px-1.5 py-0.5 truncate">
+              🏭 {PORT_COAL_CONSUMPTION_PROFILES[selectedDestination].plantName}: burns {PORT_COAL_CONSUMPTION_PROFILES[selectedDestination].dailyBurnMT.toLocaleString()} MT/day
+            </div>
+          )}
         </div>
 
         {/* 4. Contract Horizon / Charter Mode */}

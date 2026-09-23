@@ -26,6 +26,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 366000,
     safetyNormDays: 15,
     safetyStockMT: 183000,
+    baselineCargoMT: 150000, // Standard 15-day / multi-rake blast furnace basestock parcel
     hinterlandLink: '390 km rail link to Rourkela'
   },
   dhamra: {
@@ -36,6 +37,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 390000,
     safetyNormDays: 15,
     safetyStockMT: 195000,
+    baselineCargoMT: 160000,
     hinterlandLink: '410 km dedicated rail line to Bokaro'
   },
   vizag: {
@@ -46,6 +48,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 345000,
     safetyNormDays: 15,
     safetyStockMT: 172500,
+    baselineCargoMT: 140000,
     hinterlandLink: '560 km rail link to Bhilai / coastal RINL'
   },
   gangavaram: {
@@ -56,6 +59,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 345000,
     safetyNormDays: 15,
     safetyStockMT: 172500,
+    baselineCargoMT: 140000,
     hinterlandLink: 'Automated conveyor & 560 km Bhilai rail trunk'
   },
   haldia: {
@@ -66,6 +70,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 204000,
     safetyNormDays: 15,
     safetyStockMT: 102000,
+    baselineCargoMT: 55000, // River draft lock limit (8.5m draft)
     hinterlandLink: '220 km SER rail head to Durgapur/Burnpur'
   },
   gopalpur: {
@@ -76,6 +81,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 225000,
     safetyNormDays: 15,
     safetyStockMT: 112500,
+    baselineCargoMT: 75000,
     hinterlandLink: '430 km South Odisha rail link'
   },
   sandheads: {
@@ -86,6 +92,7 @@ export const PORT_COAL_CONSUMPTION_PROFILES = {
     monthlyBurnMT: 204000,
     safetyNormDays: 15,
     safetyStockMT: 102000,
+    baselineCargoMT: 75000,
     hinterlandLink: 'River barge lightering corridor'
   }
 };
@@ -99,7 +106,7 @@ export function buildPsuTenderPlan({
   originId = 'hay_point',
   destinationId = 'paradip',
   vesselKey = 'capesize',
-  volumeMT = 150000,
+  volumeMT = null,
   horizonMonths = 3,
   cargoType = 'Coking Coal',
   baseDate = null,
@@ -112,7 +119,14 @@ export function buildPsuTenderPlan({
   const plantProfile = PORT_COAL_CONSUMPTION_PROFILES[destinationId] || PORT_COAL_CONSUMPTION_PROFILES.paradip;
   const dailyBurnMT = plantProfile.dailyBurnMT || 12200;
   const safetyStockMT = plantProfile.safetyStockMT || (dailyBurnMT * 15);
-  const daysOfBasestockCover = Number((volumeMT / dailyBurnMT).toFixed(1));
+  
+  // Destination Port Coal Consumption Baseline:
+  // Take destination port's coal consumption baseline if volumeMT is not explicitly specified
+  const baselineCargoInputMT = plantProfile.baselineCargoMT || Math.round(dailyBurnMT * 12.5);
+  const effectiveVolumeMT = volumeMT && volumeMT > 0 ? volumeMT : baselineCargoInputMT;
+  
+  const importedDailyBurnMT = dailyBurnMT * 0.65; // 65% imported coking coal blend norm
+  const daysOfBasestockCover = Number((effectiveVolumeMT / importedDailyBurnMT).toFixed(1));
   const totalHorizonConsumptionMT = Math.round(dailyBurnMT * (horizonMonths * 30));
 
   const distanceNM = originObj.distanceToEastCoastNM || 5350;
@@ -130,10 +144,14 @@ export function buildPsuTenderPlan({
   const todayDate = formatDate(refDate);
 
   // Dynamic Tranche Split based on Active Risk Matrix (e.g. 70% COA / 30% Spot, or dynamic coaSplit)
+  // Tranches are explicitly calibrated to destination steel plant's daily burn rate & 15-day safety buffer
   const coaPercent = coaSplit !== undefined && coaSplit !== null ? coaSplit : 70;
   const spotPercent = 100 - coaPercent;
-  const tranche1VolumeMT = Math.round((volumeMT * coaPercent) / 100);
-  const tranche2VolumeMT = volumeMT - tranche1VolumeMT;
+  const tranche1VolumeMT = Math.round((effectiveVolumeMT * coaPercent) / 100);
+  const tranche2VolumeMT = effectiveVolumeMT - tranche1VolumeMT;
+
+  const tranche1DaysCover = Number((tranche1VolumeMT / importedDailyBurnMT).toFixed(1));
+  const tranche2DaysCover = Number((tranche2VolumeMT / importedDailyBurnMT).toFixed(1));
 
   // 1. TRANCHE 1: Dynamic Prompt Tender (Base COA Contract - Issued Today):
   // 21 days mandatory statutory notice period (GFR 2017 Rule 161)
@@ -196,13 +214,13 @@ export function buildPsuTenderPlan({
     secondaryTenderAdvice = `🟢 SPOT RE-ORDER ADVICE (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT): Monitor daily spot freight; if rates dip towards ${targetDipWindow}, issue next monthly tender notice on ${tenderPublishDeadline}.`;
   }
 
-  const tenderContractType = `Global Dual-Tranche Freight E-Tender (${volumeMT.toLocaleString()} MT ${cargoType})`;
+  const tenderContractType = `Global Dual-Tranche Freight E-Tender (${effectiveVolumeMT.toLocaleString()} MT ${cargoType})`;
   const tenderLotDescription = `Dual-Tranche Procurement: ${tranche1VolumeMT.toLocaleString()} MT Tranche 1 (${coaPercent}% Base COA) + ${tranche2VolumeMT.toLocaleString()} MT Tranche 2 (${spotPercent}% Spot Dip) for ${destObj.name.split('(')[0].trim()}`;
   
   const tenderStrategyAdvice = horizonMonths >= 5
-    ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT) tendered today (${todayDate}) for ${promptLaycanWindow} Laycan. Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT) tendered on ${tenderPublishDeadline} for ${targetDipWindow} Laycan, calibrated to ${plantProfile.plantName} basestock replenishment schedule.`
+    ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn) tendered today (${todayDate}) for ${promptLaycanWindow} Laycan. Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn) tendered on ${tenderPublishDeadline} for ${targetDipWindow} Laycan, calibrated to ${plantProfile.plantName} basestock replenishment schedule.`
     : (horizonMonths >= 3
-        ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT) loads ${promptLaycanWindow}; Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT) tendered by ${tenderPublishDeadline} for ${targetDipWindow} Laycan.`
+        ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn) loads ${promptLaycanWindow}; Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn) tendered by ${tenderPublishDeadline} for ${targetDipWindow} Laycan.`
         : `Execute Prompt Program: Tender today (${todayDate}) for ${promptLaycanWindow} Laycan within statutory notice.`);
 
   const tenderTag = horizonMonths >= 5 
@@ -213,11 +231,12 @@ export function buildPsuTenderPlan({
     name: `Tranche 1: Base COA Contract (${coaPercent}%)`,
     allocationPct: coaPercent,
     volumeMT: tranche1VolumeMT,
+    daysCover: tranche1DaysCover,
     noticeFloatDate: todayDate,
     bookingDate: promptBookingDate,
     laycanWindow: promptLaycanWindow,
     arrivalDate: promptArrivalDate,
-    purpose: `Immediate blast furnace feed & statutory 15-day safety buffer protection`,
+    purpose: `Immediate blast furnace feed (${tranche1DaysCover}d burn) & CAG 15-day safety buffer protection`,
     contractType: 'COA Wholesale Fixed'
   };
 
@@ -225,11 +244,12 @@ export function buildPsuTenderPlan({
     name: `Tranche 2: Forward Spot Optimization (${spotPercent}%)`,
     allocationPct: spotPercent,
     volumeMT: tranche2VolumeMT,
+    daysCover: tranche2DaysCover,
     noticeFloatDate: tenderPublishDeadline,
     bookingDate: bookingDate,
     laycanWindow: targetDipWindow,
     arrivalDate: arrivalDate,
-    purpose: `P10 seasonal dip freight savings & mid-horizon stockyard replenishment`,
+    purpose: `P10 seasonal dip replenishment (${tranche2DaysCover}d burn) sustaining stockyard above 15-day buffer`,
     contractType: 'Spot E-Reverse Auction'
   };
 
@@ -314,7 +334,11 @@ export function buildPsuTenderPlan({
       monthlyBurnMT: plantProfile.monthlyBurnMT,
       safetyNormDays: plantProfile.safetyNormDays,
       safetyStockMT,
+      baselineCargoInputMT,
+      effectiveVolumeMT,
       daysOfBasestockCover,
+      tranche1DaysCover,
+      tranche2DaysCover,
       totalHorizonConsumptionMT,
       hinterlandLink: plantProfile.hinterlandLink
     },

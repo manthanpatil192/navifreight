@@ -1,5 +1,6 @@
 import React from 'react';
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
+import { PORT_COAL_CONSUMPTION_PROFILES } from '../utils/psuTenderEngine';
 
 /**
  * DetailedRouteScenarioAnalysis
@@ -10,26 +11,28 @@ import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData
  * Constraints strictly respected:
  * - Shows ONLY: Scenario, Total Cost (INR), Weighted (INR), Total Expected Cost, and Detailed Analysis header.
  * - ZERO icons or logos (100% typographic layout).
- * - Real dataset calculations coupled to live Web Terminal metrics.
+ * - Real dataset calculations coupled to live Web Terminal metrics & Destination Port Coal Consumption baseline.
  */
 export default function DetailedRouteScenarioAnalysis({
   selectedOrigin = 'tubarao',
   selectedDestination = 'paradip',
   selectedVessel = 'handysize',
-  cargoVolumeMT = 80000,
+  cargoVolumeMT = null,
   terminalMetrics = null
 }) {
   const originObj = ORIGIN_LOADING_PORTS[selectedOrigin] || { name: 'Tubarao (Brazil)', distanceToEastCoastNM: 8500 };
   const destObj = INDIAN_EAST_COAST_PORTS[selectedDestination] || { name: 'Paradip Port (PPT)', avgWaitDays: 3.2 };
+  const plantProfile = PORT_COAL_CONSUMPTION_PROFILES[selectedDestination] || PORT_COAL_CONSUMPTION_PROFILES.paradip;
 
   // Route Labeling
   const isBrazilRoute = selectedOrigin === 'tubarao' || (selectedOrigin && selectedOrigin.toLowerCase().includes('brazil'));
   const originTitle = isBrazilRoute ? 'Brazil' : originObj.name.split('/')[0].split('(')[0].trim();
   const routeLabel = `${originTitle} Route (${originObj.name.split('/')[0].split('(')[0].trim()} ➔ ${destObj.name.split('(')[0].trim()})`;
 
-  // Real Dataset & Terminal Linkage: FX Rate & Base Costs
+  // Real Dataset & Terminal Linkage: Ground baseline cargo input in destination port's coal consumption
   const fxRate = terminalMetrics?.forwardFxRate || 83.00; // Real USD/INR benchmark rate
-  const activeVolume = cargoVolumeMT || 80000;
+  const destCoalBaselineMT = plantProfile.baselineCargoMT || Math.round(plantProfile.dailyBurnMT * 12.5);
+  const activeVolume = cargoVolumeMT && cargoVolumeMT > 0 ? cargoVolumeMT : destCoalBaselineMT;
 
   // Formatting helpers for Indian Rupee presentation (Crores & full format)
   const formatCroresINR = (valINR) => {
@@ -117,7 +120,7 @@ export default function DetailedRouteScenarioAnalysis({
             Detailed Analysis: {routeLabel}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Probabilistic Scenario Cost Evaluation synchronized with Web Terminal
+            Probabilistic Scenario Cost Evaluation • Destination Coal Baseline: {plantProfile.plantName} ({plantProfile.dailyBurnMT.toLocaleString()} MT/day burn • 15d CAG Buffer: {plantProfile.safetyStockMT.toLocaleString()} MT)
           </p>
         </div>
 

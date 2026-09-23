@@ -516,7 +516,7 @@ export default function CharterTimingDecisionMatrix({
               </div>
               <div className="mt-2 pt-2 border-t border-emerald-100 flex items-center justify-between text-[10px] text-emerald-800">
                 <span>ETA India: <strong>{activeTenderPlan.promptArrivalDate}</strong> (~{activeTenderPlan.sailingDays}d transit)</span>
-                <span className="font-medium">Basestock Feed Security</span>
+                <span className="font-semibold">Basestock: <strong>{activeTenderPlan.tranche1?.daysCover || activeTenderPlan.tranche1RunwayDays}d burn</strong> ({activeTenderPlan.plantConsumption?.plantName?.split('(')[0]?.trim() || 'Plant'})</span>
               </div>
             </div>
 
@@ -547,7 +547,7 @@ export default function CharterTimingDecisionMatrix({
               </div>
               <div className="mt-2 pt-2 border-t border-blue-100 flex items-center justify-between text-[10px] text-blue-800">
                 <span>ETA India: <strong>{activeTenderPlan.arrivalDate}</strong> (~{activeTenderPlan.sailingDays}d transit)</span>
-                <span className="font-medium">P10 Wholesale Savings</span>
+                <span className="font-semibold">Replenishment: <strong>{activeTenderPlan.tranche2?.daysCover || '12.0'}d feed</strong> (15d Buffer)</span>
               </div>
             </div>
           </div>
