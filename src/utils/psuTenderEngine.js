@@ -1,5 +1,6 @@
 import { ORIGIN_LOADING_PORTS, INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { VESSEL_CLASSES } from '../data/vesselTypes';
+import { optimizeVesselType } from './vesselOptimizationEngine';
 
 // Helper functions for dynamic date arithmetic
 function addDays(date, days) {
@@ -153,6 +154,22 @@ export function buildPsuTenderPlan({
   const tranche1DaysCover = Number((tranche1VolumeMT / importedDailyBurnMT).toFixed(1));
   const tranche2DaysCover = Number((tranche2VolumeMT / importedDailyBurnMT).toFixed(1));
 
+  // Operational Dual-Vessel Optimization via Part B Engine:
+  // Evaluates appropriate vessel class individually for each tranche parcel & destination port constraints
+  const tranche1Opt = optimizeVesselType({
+    originId,
+    destinationId,
+    cargoVolumeMT: tranche1VolumeMT,
+    cargoType
+  });
+
+  const tranche2Opt = optimizeVesselType({
+    originId,
+    destinationId,
+    cargoVolumeMT: tranche2VolumeMT,
+    cargoType
+  });
+
   // 1. TRANCHE 1: Dynamic Prompt Tender (Base COA Contract - Issued Today):
   // 21 days mandatory statutory notice period (GFR 2017 Rule 161)
   const promptNoticeClose = addDays(refDate, 21);
@@ -207,20 +224,20 @@ export function buildPsuTenderPlan({
   // Tailored, consumption-grounded secondary tender advice (abstracted for terminal clarity)
   let secondaryTenderAdvice = "";
   if (horizonMonths >= 5) {
-    secondaryTenderAdvice = `🟢 6-MONTH TRANCHE 2 REPLENISHMENT (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT): Float secondary tender notice on ${tenderPublishDeadline} for ${targetDipWindow} Laycan to capture the seasonal P10 low freight dip, replenishing ${plantProfile.plantName} stockyard reserves before winter surge.`;
+    secondaryTenderAdvice = `🟢 6-MONTH TRANCHE 2 REPLENISHMENT (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT via ${tranche2Opt.recommendedVessel.name}): Float secondary tender notice on ${tenderPublishDeadline} for ${targetDipWindow} Laycan to capture the seasonal P10 low freight dip, replenishing ${plantProfile.plantName} stockyard reserves before winter surge.`;
   } else if (horizonMonths >= 3) {
-    secondaryTenderAdvice = `🟢 3-MONTH TRANCHE 2 SCHEDULE (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT): Float secondary tender notice on ${tenderPublishDeadline} for ${targetDipWindow} Laycan to capture the quarterly P10 freight dip, maintaining ${plantProfile.plantName} safety buffer without demurrage.`;
+    secondaryTenderAdvice = `🟢 3-MONTH TRANCHE 2 SCHEDULE (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT via ${tranche2Opt.recommendedVessel.name}): Float secondary tender notice on ${tenderPublishDeadline} for ${targetDipWindow} Laycan to capture the quarterly P10 freight dip, maintaining ${plantProfile.plantName} safety buffer without demurrage.`;
   } else {
-    secondaryTenderAdvice = `🟢 SPOT RE-ORDER ADVICE (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT): Monitor daily spot freight; if rates dip towards ${targetDipWindow}, issue next monthly tender notice on ${tenderPublishDeadline}.`;
+    secondaryTenderAdvice = `🟢 SPOT RE-ORDER ADVICE (${spotPercent}% Spot - ${tranche2VolumeMT.toLocaleString()} MT via ${tranche2Opt.recommendedVessel.name}): Monitor daily spot freight; if rates dip towards ${targetDipWindow}, issue next monthly tender notice on ${tenderPublishDeadline}.`;
   }
 
   const tenderContractType = `Global Dual-Tranche Freight E-Tender (${effectiveVolumeMT.toLocaleString()} MT ${cargoType})`;
-  const tenderLotDescription = `Dual-Tranche Procurement: ${tranche1VolumeMT.toLocaleString()} MT Tranche 1 (${coaPercent}% Base COA) + ${tranche2VolumeMT.toLocaleString()} MT Tranche 2 (${spotPercent}% Spot Dip) for ${destObj.name.split('(')[0].trim()}`;
+  const tenderLotDescription = `Dual-Tranche Procurement: ${tranche1VolumeMT.toLocaleString()} MT Tranche 1 (${coaPercent}% Base COA - ${tranche1Opt.recommendedVessel.name}) + ${tranche2VolumeMT.toLocaleString()} MT Tranche 2 (${spotPercent}% Spot Dip - ${tranche2Opt.recommendedVessel.name}) for ${destObj.name.split('(')[0].trim()}`;
   
   const tenderStrategyAdvice = horizonMonths >= 5
-    ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn) tendered today (${todayDate}) for ${promptLaycanWindow} Laycan. Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn) tendered on ${tenderPublishDeadline} for ${targetDipWindow} Laycan, calibrated to ${plantProfile.plantName} basestock replenishment schedule.`
+    ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn via ${tranche1Opt.recommendedVessel.name}) tendered today (${todayDate}) for ${promptLaycanWindow} Laycan. Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn via ${tranche2Opt.recommendedVessel.name}) tendered on ${tenderPublishDeadline} for ${targetDipWindow} Laycan, calibrated to ${plantProfile.plantName} basestock replenishment schedule.`
     : (horizonMonths >= 3
-        ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn) loads ${promptLaycanWindow}; Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn) tendered by ${tenderPublishDeadline} for ${targetDipWindow} Laycan.`
+        ? `Execute Dual-Tranche Strategy: Tranche 1 (${coaPercent}% COA, ${tranche1VolumeMT.toLocaleString()} MT, ${tranche1DaysCover}d burn via ${tranche1Opt.recommendedVessel.name}) loads ${promptLaycanWindow}; Tranche 2 (${spotPercent}% Spot, ${tranche2VolumeMT.toLocaleString()} MT, ${tranche2DaysCover}d burn via ${tranche2Opt.recommendedVessel.name}) tendered by ${tenderPublishDeadline} for ${targetDipWindow} Laycan.`
         : `Execute Prompt Program: Tender today (${todayDate}) for ${promptLaycanWindow} Laycan within statutory notice.`);
 
   const tenderTag = horizonMonths >= 5 
@@ -232,11 +249,13 @@ export function buildPsuTenderPlan({
     allocationPct: coaPercent,
     volumeMT: tranche1VolumeMT,
     daysCover: tranche1DaysCover,
+    recommendedVessel: tranche1Opt.recommendedVessel,
+    recommendedVesselId: tranche1Opt.recommendedVesselId,
     noticeFloatDate: todayDate,
     bookingDate: promptBookingDate,
     laycanWindow: promptLaycanWindow,
     arrivalDate: promptArrivalDate,
-    purpose: `Immediate blast furnace feed (${tranche1DaysCover}d burn) & CAG 15-day safety buffer protection`,
+    purpose: `Immediate blast furnace feed (${tranche1DaysCover}d burn) via ${tranche1Opt.recommendedVessel.name} (${Math.round(tranche1Opt.recommendedVessel.dwt/1000)}k DWT) & CAG 15-day safety buffer protection`,
     contractType: 'COA Wholesale Fixed'
   };
 
@@ -245,11 +264,13 @@ export function buildPsuTenderPlan({
     allocationPct: spotPercent,
     volumeMT: tranche2VolumeMT,
     daysCover: tranche2DaysCover,
+    recommendedVessel: tranche2Opt.recommendedVessel,
+    recommendedVesselId: tranche2Opt.recommendedVesselId,
     noticeFloatDate: tenderPublishDeadline,
     bookingDate: bookingDate,
     laycanWindow: targetDipWindow,
     arrivalDate: arrivalDate,
-    purpose: `P10 seasonal dip replenishment (${tranche2DaysCover}d burn) sustaining stockyard above 15-day buffer`,
+    purpose: `P10 seasonal dip replenishment (${tranche2DaysCover}d burn) via ${tranche2Opt.recommendedVessel.name} (${Math.round(tranche2Opt.recommendedVessel.dwt/1000)}k DWT) sustaining stockyard above 15-day buffer`,
     contractType: 'Spot E-Reverse Auction'
   };
 
@@ -318,6 +339,8 @@ export function buildPsuTenderPlan({
     arrivalDate,
     tranche1,
     tranche2,
+    tranche1Vessel: tranche1Opt.recommendedVessel,
+    tranche2Vessel: tranche2Opt.recommendedVessel,
     tranche1RunwayDays,
     stockyardContinuityAdvice,
     milestoneSteps,

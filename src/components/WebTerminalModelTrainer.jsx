@@ -56,15 +56,51 @@ export default function WebTerminalModelTrainer({
   const [manualHorizon, setManualHorizon] = useState(contractHorizonMonths || 3);
   const [showManualControls, setShowManualControls] = useState(true);
 
-  // Dynamic Part B Vessel Type Optimization based on current terminal inputs
-  const currentVesselOptimization = React.useMemo(() => {
-    return optimizeVesselType({
+  // Dynamic Part B Dual-Vessel Optimization based on current terminal inputs & Dual-Tranche split
+  const currentDualVesselOptimization = React.useMemo(() => {
+    const coaPct = coaSplit || 70;
+    const t1Vol = Math.round((manualVolume * coaPct) / 100);
+    const t2Vol = manualVolume - t1Vol;
+
+    const optT1 = optimizeVesselType({
+      originId: manualOrigin,
+      destinationId: manualDest,
+      cargoVolumeMT: t1Vol,
+      cargoType: manualCargo
+    });
+
+    const optT2 = optimizeVesselType({
+      originId: manualOrigin,
+      destinationId: manualDest,
+      cargoVolumeMT: t2Vol,
+      cargoType: manualCargo
+    });
+
+    const totalOpt = optimizeVesselType({
       originId: manualOrigin,
       destinationId: manualDest,
       cargoVolumeMT: manualVolume,
       cargoType: manualCargo
     });
-  }, [manualOrigin, manualDest, manualVolume, manualCargo]);
+
+    return {
+      total: totalOpt,
+      tranche1: {
+        volumeMT: t1Vol,
+        allocationPct: coaPct,
+        opt: optT1,
+        vessel: optT1.recommendedVessel
+      },
+      tranche2: {
+        volumeMT: t2Vol,
+        allocationPct: 100 - coaPct,
+        opt: optT2,
+        vessel: optT2.recommendedVessel
+      }
+    };
+  }, [manualOrigin, manualDest, manualVolume, manualCargo, coaSplit]);
+
+  const currentVesselOptimization = currentDualVesselOptimization.total;
 
   // Live Real-Time Source & Destination Marine Weather Telemetry State
   const [liveBobWeather, setLiveBobWeather] = useState(null);
@@ -154,9 +190,11 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES (BALANCED DUAL-TRANCHE):
   * TRANCHE 1 (35% BASE COA ALLOCATION - ${initTenderPlan.tranche1.volumeMT.toLocaleString()} MT):
+    - Recommended Vessel (Part B): ${initTenderPlan.tranche1.recommendedVessel ? `${initTenderPlan.tranche1.recommendedVessel.name} (${Math.round(initTenderPlan.tranche1.recommendedVessel.dwt / 1000)}k DWT) [Draft Margin: ${initTenderPlan.tranche1.recommendedVessel.draftMargin >= 0 ? '+' + initTenderPlan.tranche1.recommendedVessel.draftMargin + 'm Safe' : 'Lighterage'}]` : 'Panamax (75k DWT)'}
     - Directive:   🟢 PROMPT TENDER NOTICE (Today: ${initTenderPlan.todayDate}): Issue 21-day tender today for ${initTenderPlan.promptLaycanWindow} Laycan at target rate ₹1,411 /MT ($14.85 /MT).
     - Laycan:      ${initTenderPlan.promptLaycanWindow} (Award: ${initTenderPlan.promptBookingDate} | Discharge: ${initTenderPlan.promptArrivalDate})
   * TRANCHE 2 (65% FORWARD SPOT ALLOCATION - ${initTenderPlan.tranche2.volumeMT.toLocaleString()} MT):
+    - Recommended Vessel (Part B): ${initTenderPlan.tranche2.recommendedVessel ? `${initTenderPlan.tranche2.recommendedVessel.name} (${Math.round(initTenderPlan.tranche2.recommendedVessel.dwt / 1000)}k DWT) [Draft Margin: ${initTenderPlan.tranche2.recommendedVessel.draftMargin >= 0 ? '+' + initTenderPlan.tranche2.recommendedVessel.draftMargin + 'm Safe' : 'Lighterage'}]` : 'Handymax (35k DWT)'}
     - Directive:   ${initTenderPlan.secondaryTenderAdvice}
     - Laycan:      ${initTenderPlan.targetDipWindow} (Award: ${initTenderPlan.bookingDate} | Discharge: ${initTenderPlan.arrivalDate})
   * Market Risk Regime: PRICES STABLE (Calm market & low volatility baseline)
@@ -723,9 +761,11 @@ export default function WebTerminalModelTrainer({
 ----------------------------------------------------------------------
 [2] TACTICAL TENDER & PROCUREMENT DIRECTIVES (BALANCED DUAL-TRANCHE):
   * TRANCHE 1 (${coaSplit}% BASE COA ALLOCATION - ${psuTenderPlan.tranche1.volumeMT.toLocaleString()} MT):
+    - Recommended Vessel (Part B): ${psuTenderPlan.tranche1.recommendedVessel ? `${psuTenderPlan.tranche1.recommendedVessel.name} (${Math.round(psuTenderPlan.tranche1.recommendedVessel.dwt / 1000)}k DWT) [Draft Margin: ${psuTenderPlan.tranche1.recommendedVessel.draftMargin >= 0 ? '+' + psuTenderPlan.tranche1.recommendedVessel.draftMargin + 'm Safe' : 'Lighterage'}]` : 'Panamax (75k DWT)'}
     - Directive:   ${primaryProcurementDirective}
     - Laycan:      ${psuTenderPlan.promptLaycanWindow} (Award: ${psuTenderPlan.promptBookingDate} | Discharge: ${psuTenderPlan.promptArrivalDate})
   * TRANCHE 2 (${100-coaSplit}% FORWARD SPOT ALLOCATION - ${psuTenderPlan.tranche2.volumeMT.toLocaleString()} MT):
+    - Recommended Vessel (Part B): ${psuTenderPlan.tranche2.recommendedVessel ? `${psuTenderPlan.tranche2.recommendedVessel.name} (${Math.round(psuTenderPlan.tranche2.recommendedVessel.dwt / 1000)}k DWT) [Draft Margin: ${psuTenderPlan.tranche2.recommendedVessel.draftMargin >= 0 ? '+' + psuTenderPlan.tranche2.recommendedVessel.draftMargin + 'm Safe' : 'Lighterage'}]` : 'Handymax (35k DWT)'}
     - Directive:   ${secondarySpotHedgingDirective}
     - Laycan:      ${psuTenderPlan.targetDipWindow} (Award: ${psuTenderPlan.bookingDate} | Discharge: ${psuTenderPlan.arrivalDate})
   * Market Risk Regime:  ${marketSituationLabel.toUpperCase()} (${marketSituationDesc})
@@ -2093,24 +2133,53 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </div>
               </div>
 
-              {/* 4. AI-Recommended Vessel Class (PS Part B Connected) */}
+              {/* 4. AI-Recommended Dual Vessels for Both Tranches (PS Part B Port Fit) */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
-                  <Ship className="w-3 h-3 text-emerald-400" />
-                  <span>Optimal Vessel (PS Part B)</span>
-                </label>
-                <div className="w-full bg-slate-900 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-xs shadow-inner">
-                  <div className="flex items-center space-x-1.5 truncate">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                    <span className="font-bold text-emerald-300 truncate">
-                      {currentVesselOptimization.recommendedVessel.name} ({Math.round(currentVesselOptimization.recommendedVessel.dwt / 1000)}k DWT)
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-emerald-300 font-mono font-bold shrink-0 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-700/60">
-                    {currentVesselOptimization.recommendedVessel.draftMargin >= 0 
-                      ? `+${currentVesselOptimization.recommendedVessel.draftMargin}m Draft`
-                      : 'Lighterage'}
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                  <span className="flex items-center space-x-1">
+                    <Ship className="w-3 h-3 text-emerald-400" />
+                    <span>Tranche Vessels (Part B Port Fit)</span>
                   </span>
+                  <span className="text-[9px] text-slate-400">COA & Spot Split</span>
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {/* Tranche 1 (COA) Vessel */}
+                  <div className="bg-slate-900 border border-emerald-500/50 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-inner">
+                    <div className="flex items-center justify-between text-[10px] text-emerald-400 font-bold mb-0.5">
+                      <span>T1: {currentDualVesselOptimization.tranche1.allocationPct}% COA</span>
+                      <span className="text-[9px] text-slate-400">({Math.round(currentDualVesselOptimization.tranche1.volumeMT / 1000)}k MT)</span>
+                    </div>
+                    <div className="font-bold text-emerald-200 truncate text-[11px]">
+                      {currentDualVesselOptimization.tranche1.vessel.name}
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                      <span>{Math.round(currentDualVesselOptimization.tranche1.vessel.dwt / 1000)}k DWT</span>
+                      <span className="font-mono text-emerald-300 font-bold">
+                        {currentDualVesselOptimization.tranche1.vessel.draftMargin >= 0 
+                          ? `+${currentDualVesselOptimization.tranche1.vessel.draftMargin}m` 
+                          : 'Lighterage'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tranche 2 (Spot) Vessel */}
+                  <div className="bg-slate-900 border border-blue-500/50 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-inner">
+                    <div className="flex items-center justify-between text-[10px] text-blue-400 font-bold mb-0.5">
+                      <span>T2: {currentDualVesselOptimization.tranche2.allocationPct}% Spot</span>
+                      <span className="text-[9px] text-slate-400">({Math.round(currentDualVesselOptimization.tranche2.volumeMT / 1000)}k MT)</span>
+                    </div>
+                    <div className="font-bold text-blue-200 truncate text-[11px]">
+                      {currentDualVesselOptimization.tranche2.vessel.name}
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                      <span>{Math.round(currentDualVesselOptimization.tranche2.vessel.dwt / 1000)}k DWT</span>
+                      <span className="font-mono text-blue-300 font-bold">
+                        {currentDualVesselOptimization.tranche2.vessel.draftMargin >= 0 
+                          ? `+${currentDualVesselOptimization.tranche2.vessel.draftMargin}m` 
+                          : 'Lighterage'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
