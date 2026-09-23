@@ -20,6 +20,7 @@ import {
 import ActionableBookingDirective from './components/ActionableBookingDirective';
 import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
 import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
+import DetailedRouteScenarioAnalysis from './components/DetailedRouteScenarioAnalysis';
 import LoginPage from './components/LoginPage';
 
 const PS_TABS = [
@@ -239,7 +240,16 @@ export default function App() {
               forecast={forecast}
             />
 
-            {/* 3. THIRD (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}
+            {/* 3. LATER PART OF PART A: DETAILED ROUTE SCENARIO ANALYSIS (IN RUPEES, JOINED WITH WEB TERMINAL) */}
+            <DetailedRouteScenarioAnalysis
+              selectedOrigin={selectedOrigin}
+              selectedDestination={selectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              terminalMetrics={terminalMetrics}
+            />
+
+            {/* 4. FOURTH (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}
             <ForecastChart
               forecast={forecast}
               currency={currency}

@@ -320,5 +320,29 @@ export const ORIGIN_LOADING_PORTS = {
     primaryCargoes: ['Kuzbass Coking Coal', 'PCI Coal', 'Anthracite'],
     distanceToEastCoastNM: 4850,
     officialSource: 'FSUE Rosmorport Far Eastern Basin Branch & Vostochny Port Operations'
+  },
+  tubarao: {
+    id: 'tubarao',
+    name: 'Tubarao / Ponta da Madeira (Brazil)',
+    country: 'Brazil',
+    coordinates: [-20.2833, -40.2458],
+    maxDraftLaden: 23.0,
+    maxLOA: 362,
+    handlingRateTPD: 100000,
+    primaryCargoes: ['Iron Ore', 'Pellets', 'Manganese'],
+    distanceToEastCoastNM: 8500, // Cape of Good Hope routing to Indian East Coast
+    officialSource: 'Vale Tubarao Marine Terminal Regulations & Nautical Guide'
+  },
+  richards_bay: {
+    id: 'richards_bay',
+    name: 'Richards Bay Coal Terminal (RBCT)',
+    country: 'South Africa',
+    coordinates: [-28.8000, 32.0833],
+    maxDraftLaden: 17.5,
+    maxLOA: 314,
+    handlingRateTPD: 85000,
+    primaryCargoes: ['Thermal Coal', 'Anthracite'],
+    distanceToEastCoastNM: 4200,
+    officialSource: 'Transnet Port Terminals Richards Bay Marine Manual'
   }
 };

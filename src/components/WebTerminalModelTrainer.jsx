@@ -1696,6 +1696,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
     if (cmd.includes('cape') || cmd.includes('180') || cmd.includes('170')) parsedVessel = 'capesize';
     else if (cmd.includes('panamax') || cmd.includes('75')) parsedVessel = 'panamax';
     else if (cmd.includes('supra') || cmd.includes('58')) parsedVessel = 'supramax';
+    else if (cmd.includes('handy') || cmd.includes('38') || cmd.includes('28')) parsedVessel = 'handysize';
 
     // Detect Volume numbers (e.g. 170000, 150000, 170k, 80k) — FILTER OUT CALENDAR YEARS!
     const allNums = cmd.match(/\b(\d{2,6})\b/g) || [];
