@@ -267,7 +267,7 @@ export default function DetailedRouteScenarioAnalysis({
             Detailed Analysis: {routeLabel}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Probabilistic Scenario Cost Evaluation • Destination Coal Baseline: {plantProfile.plantName} ({plantProfile.dailyBurnMT.toLocaleString()} MT/day burn • 15d CAG Buffer: {plantProfile.safetyStockMT.toLocaleString()} MT)
+            Probabilistic Scenario Cost Evaluation • Destination Coal Baseline: {plantProfile.plantName} ({plantProfile.dailyBurnMT.toLocaleString()} MT/day burn • 15d Safety Buffer: {plantProfile.safetyStockMT.toLocaleString()} MT)
           </p>
         </div>
 
@@ -307,7 +307,7 @@ export default function DetailedRouteScenarioAnalysis({
             Current Stock: <span className="font-mono font-bold text-amber-700">{(plantProfile.currentStockMT || 151280).toLocaleString()} MT</span> ({plantProfile.stockCoverDays || 12.4}d cover)
           </div>
           <div className="text-[10px] text-amber-800 font-semibold mt-0.5">
-            Status: Critical (&lt; 15-Day CAG Buffer of {plantProfile.safetyStockMT.toLocaleString()} MT)
+            Status: Critical (&lt; 15-Day Safety Buffer of {plantProfile.safetyStockMT.toLocaleString()} MT)
           </div>
         </div>
 
@@ -399,7 +399,7 @@ export default function DetailedRouteScenarioAnalysis({
           PSU Freight Tender Ref: <span className="font-mono font-bold text-slate-700">{activeTenderPlan.tenderId}</span> • 21-Day Statutory Bidding Window: <span className="font-mono text-slate-700">{tenderPeriodLabel}</span>
         </div>
         <div className="font-medium text-slate-600">
-          Source: {plantProfile.latestReport || 'Ministry of Coal & CEA Daily Stock Report'} (15-Day CAG Buffer: {plantProfile.safetyStockMT.toLocaleString()} MT)
+          Source: {plantProfile.latestReport || 'Ministry of Coal & CEA Daily Stock Report'} (15-Day Safety Buffer: {plantProfile.safetyStockMT.toLocaleString()} MT)
         </div>
       </div>
 

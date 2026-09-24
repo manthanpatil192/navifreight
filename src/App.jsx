@@ -26,7 +26,7 @@ import LoginPage from './components/LoginPage';
 const PS_TABS = [
   { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
   { id: 'part_b', label: 'Part B: Vessel & Port Fit', sublabel: 'Draft & TPD Optimization', badge: 'Section (b)', icon: Ship },
-  { id: 'part_c', label: 'Part C: Idle & Deadhead', sublabel: 'Backhaul Tramp Routing', badge: 'Section (c)', icon: RefreshCw },
+  { id: 'part_c', label: 'Part C: Idle & Vessel Bunching', sublabel: 'Tramp Routing & Anti-Congestion', badge: 'Section (c)', icon: RefreshCw },
   { id: 'part_d', label: 'Part D: Risk & Congestion', sublabel: 'NLP Radar & AIS Tracking', badge: 'Section (d)', icon: ShieldCheck },
   { id: 'all', label: 'Complete Pipeline', sublabel: 'Full Continuous Flow', badge: 'All Phases', icon: Layers },
 ];
@@ -290,28 +290,29 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= PAGE 4: PART C - IDLE SCENARIO & DEADHEADING REDUCTION ================= */}
+        {/* ================= PAGE 4: PART C - IDLE SCENARIO, DEADHEADING & VESSEL BUNCHING ================= */}
         {(activeTab === 'part_c' || activeTab === 'all') && (
           <div className="space-y-6 mt-6 animate-in fade-in duration-200">
             <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-3 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <RefreshCw className="w-4 h-4 text-purple-700" />
                 <span className="text-xs font-bold text-purple-900">
-                  PS Part (c): Idle Scenario Management & Return Tramp (Backhaul) Deadheading Elimination
+                  PS Part (c): Idle Scenario Management, Tramp Deadheading & Vessel Bunching Anti-Congestion
                 </span>
               </div>
               <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
-                Rebate Credit: $3.50–$5.20/MT
+                Rebate Credit: $3.50–$5.20/MT • Zero Congestion Collisions
               </span>
             </div>
 
-            {/* Deadheading & Tramp Return Optimizer */}
+            {/* Deadheading, Tramp Return & Vessel Bunching Anti-Congestion Optimizer */}
             <DeadheadOptimizer
               selectedDestination={selectedDestination}
               currency={currency}
               forecast={forecast}
               terminalMetrics={terminalMetrics}
               activeNewsSignal={activeNewsSignal}
+              onSelectPort={(portId) => setSelectedDestination(portId)}
             />
           </div>
         )}

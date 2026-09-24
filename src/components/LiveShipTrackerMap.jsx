@@ -12,7 +12,6 @@ import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/li
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { evaluatePortDiversion, evaluateVesselPortCongestionDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
-import VesselBunchingTerminal from './VesselBunchingTerminal';
 
 // Embedded AISStream.io API Key (Pre-configured for uninterrupted real-time streaming)
 export const DEFAULT_AISSTREAM_API_KEY = '7f5a13a987a858f391f923ab9dedd8a892d3ed38';
@@ -2603,13 +2602,23 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
       </div>
 
-      {/* Vessel Bunching & Fleet Anti-Congestion Dispatch Terminal (Below Map) */}
-      <VesselBunchingTerminal
-        selectedDestination={selectedDestination}
-        onSelectPort={onSelectPort}
-        vessels={vessels}
-        onUpdateVesselSpeed={handleUpdateVesselSpeed}
-      />
+      {/* Vessel Bunching & Fleet Anti-Congestion Dispatch Terminal Reference (Transferred to Part C) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-300">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400">
+            <RefreshCw className="w-4 h-4 animate-spin-slow" />
+          </div>
+          <div>
+            <div className="font-bold text-white flex items-center space-x-2">
+              <span>Vessel Bunching & Anti-Congestion Dispatch Terminal</span>
+              <span className="text-[10px] bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded font-mono">ACTIVE IN PART C</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Same-day ETA collision detection, alternative port diversions, and demurrage avoidance are actively managed in <strong>Part C: Idle & Vessel Bunching</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* AISStream WebSocket Key Modal */}
       {showWsModal && (

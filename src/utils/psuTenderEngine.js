@@ -276,7 +276,7 @@ export function buildPsuTenderPlan({
     bookingDate: promptBookingDate,
     laycanWindow: promptLaycanWindow,
     arrivalDate: promptArrivalDate,
-    purpose: `Immediate blast furnace feed (${tranche1DaysCover}d burn) via ${tranche1Opt.recommendedVessel.name} (${Math.round(tranche1Opt.recommendedVessel.dwt/1000)}k DWT) & CAG 15-day safety buffer protection`,
+    purpose: `Immediate blast furnace feed (${tranche1DaysCover}d burn) via ${tranche1Opt.recommendedVessel.name} (${Math.round(tranche1Opt.recommendedVessel.dwt/1000)}k DWT) & mandatory 15-day safety buffer protection`,
     contractType: 'COA Wholesale Fixed'
   };
 
@@ -334,7 +334,7 @@ export function buildPsuTenderPlan({
   ];
 
   const tranche1RunwayDays = Number((tranche1VolumeMT / (dailyBurnMT * 0.65)).toFixed(1)); // 65% imported coking coal blend
-  const stockyardContinuityAdvice = `🛡️ STOCKYARD CONTINUITY: Tranche 1 provides basestock runway into late November. Between Tranche 1 discharge and Tranche 2 arrival (${arrivalDate}), blast furnace operations remain continuous, protected by ${plantProfile.plantName}'s mandatory 15-day CAG safety buffer and daily domestic washed coal rakes. Tranche 2 lands right on time to replenish reserves before the winter surge.`;
+  const stockyardContinuityAdvice = `🛡️ STOCKYARD CONTINUITY: Tranche 1 provides basestock runway into late November. Between Tranche 1 discharge and Tranche 2 arrival (${arrivalDate}), blast furnace operations remain continuous, protected by ${plantProfile.plantName}'s mandatory 15-day strategic safety buffer and daily domestic washed coal rakes. Tranche 2 lands right on time to replenish reserves before the winter surge.`;
 
   const tenderId = `TDR-${refDate.getFullYear()}-${(originObj.name || 'ORG').substring(0, 3).toUpperCase()}-${(destObj.name || 'DST').substring(0, 3).toUpperCase()}-${vesselKey.substring(0, 4).toUpperCase()}`;
 

@@ -575,7 +575,7 @@ export default function CharterTimingDecisionMatrix({
             <div className="p-2 rounded bg-amber-50/50 border border-amber-200/80">
               <span className="text-[10px] uppercase font-bold text-amber-800 block">Stockyard Reserve Norm</span>
               <span className="text-xs font-mono font-bold text-amber-900">
-                15-Day CAG Buffer (Active)
+                15-Day Strategic Safety Buffer (Active)
               </span>
             </div>
           </div>

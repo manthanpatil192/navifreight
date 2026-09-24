@@ -8,11 +8,11 @@ import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import liveMarketNewsPayload from '../data/liveMarketNews.json';
 import InsightBulb from './InsightBulb';
-import CagAuditInventoryShield from './CagAuditInventoryShield';
+import VesselBunchingTerminal from './VesselBunchingTerminal';
 import CargoToHoldMatcher from './CargoToHoldMatcher';
 
-export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null, activeNewsSignal = null }) {
-  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'tramp', 'cag_audit', 'all'
+export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null, activeNewsSignal = null, onSelectPort = null }) {
+  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'tramp', 'bunching', 'all'
   const [selectedLivePort, setSelectedLivePort] = useState(selectedDestination || 'paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('');
   const [matchedId, setMatchedId] = useState(null);
@@ -150,15 +150,16 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('cag_audit')}
+            onClick={() => setActiveSubTab('bunching')}
             className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'cag_audit'
-                ? 'bg-purple-900 text-white shadow-xs font-bold'
+              activeSubTab === 'bunching'
+                ? 'bg-rose-900 text-white shadow-xs font-bold'
                 : 'text-slate-600 hover:bg-slate-200'
             }`}
           >
-            <Factory className="w-3.5 h-3.5 text-amber-400" />
-            <span>3. CAG Audit Inventory & Carrying Cost Defense</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+            <span>3. Vessel Bunching & Anti-Congestion Dispatch Terminal</span>
+            <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-extrabold ml-1">LIVE COLLISION RADAR</span>
           </button>
 
           <button
@@ -419,12 +420,14 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
 
 
 
-      {/* MODULE: CAG Audit Inventory & Carrying Cost Defense */}
-      {(activeSubTab === 'cag_audit' || activeSubTab === 'all') && (
-        <CagAuditInventoryShield 
-          currency={currency} 
-          selectedPort={selectedLivePort} 
-          activeNewsSignal={activeNewsSignal} 
+      {/* MODULE 3: Vessel Bunching & Anti-Congestion Dispatch Terminal */}
+      {(activeSubTab === 'bunching' || activeSubTab === 'all') && (
+        <VesselBunchingTerminal 
+          selectedDestination={selectedLivePort} 
+          onSelectPort={(portKey) => {
+            setSelectedLivePort(portKey);
+            if (onSelectPort) onSelectPort(portKey);
+          }}
         />
       )}
 
