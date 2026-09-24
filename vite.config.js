@@ -3,8 +3,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // Base path configuration: '/navifreight/' for production GitHub Pages build, '/' for local dev server
-export default defineConfig(({ command }) => ({
-  base: process.env.NODE_ENV === 'production' || command === 'build' ? '/navifreight/' : '/',
+export default defineConfig(({ command }) => {
+  // If deployed on Render or root path hosting, use '/'. If deploying to GitHub Pages, use '/navifreight/'
+  const basePath = (process.env.RENDER || process.env.VITE_BASE_PATH === '/')
+    ? '/' 
+    : (process.env.NODE_ENV === 'production' || command === 'build' ? '/navifreight/' : '/');
+
+  return {
+    base: basePath,
   plugins: [
     react(),
     tailwindcss(),
@@ -21,4 +27,5 @@ export default defineConfig(({ command }) => ({
     strictPort: true,
     cors: true,
   }
-}))
+};
+})

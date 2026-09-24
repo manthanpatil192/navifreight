@@ -1,87 +1,68 @@
-# NaviFreight Backend - Render Free Hosting Deployment Guide
+# NaviFreight - Render Full-Stack Hosting Guide (Web + Backend)
 
-This guide walks you through deploying the NaviFreight Python REST API backend on **Render's 100% Free Tier ($0/month)** using the official Git repository link:
+Render can host **BOTH** the React Web Application and the Python REST API Backend on its **100% Free Tier ($0/month)**.
 
-**Git Repository Link:**  
+**Official Git Repository:**  
 👉 `https://github.com/manthanpatil192/navifreight.git`
 
 ---
 
-## ⚡ Option 1: One-Click Instant Blueprint Deployment (Recommended)
+## 🏗️ Architecture on Render
 
-1. Open Render's Blueprint deployer in your browser:
+| Service | Render Type | Price | Key Benefit |
+| :--- | :--- | :--- | :--- |
+| **NaviFreight Web App** | **Static Site** | **$0/month (Free)** | **Never sleeps**, instant global CDN, automatic SSL, SPA routing |
+| **NaviFreight API** | **Web Service** | **$0/month (Free)** | Full Python 3.11 + Gunicorn REST API |
+
+---
+
+## ⚡ Option 1: Host the Web App on Render (Static Site)
+
+1. Go to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** ➔ **Static Site**.
+3. Under *Connect a repository*, enter:  
+   `https://github.com/manthanpatil192/navifreight`
+4. Configure the settings:
+   - **Name:** `navifreight-web` (or any name you like)
+   - **Branch:** `main`
+   - **Build Command:** `npm install && npm run build`
+   - **Publish Directory:** `dist`
+5. **Add Environment Variable (Links Web App to your Live Backend):**
+   - Click **Add Environment Variable**:
+     - Key: `VITE_BACKEND_URL`
+     - Value: `https://navifreight.onrender.com`
+6. **Add SPA Redirect (for clean navigation):**
+   - Scroll down to **Redirects/Rewrites**.
+   - Click **Add Rule**:
+     - **Type:** `Rewrite`
+     - **Source:** `/*`
+     - **Destination:** `/index.html`
+7. Click **Create Static Site**.
+   Render will build the Vite app and issue a free SSL URL (e.g. `https://navifreight-web.onrender.com`).
+   > [!NOTE]
+   > Unlike Web Services, Render Static Sites **never sleep**! Your web app will load instantly 24/7.
+
+---
+
+## ⚡ Option 2: Blueprint Deployment (Both Web + Backend via render.yaml)
+
+Render supports deploying both services together using [`render.yaml`](../render.yaml):
+
+1. Click the Render Blueprint Deploy button:
    [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/manthanpatil192/navifreight)
-
-   **Direct Link:**  
-   `https://render.com/deploy?repo=https://github.com/manthanpatil192/navifreight`
-
-2. If prompted, sign in with your GitHub account.
-3. Render will automatically read [`render.yaml`](../render.yaml) from the repository.
-4. Click **Apply**. Render will build and deploy the backend automatically on the free tier!
+2. Render will automatically detect both `navifreight` (backend) and `navifreight-web` (frontend) and deploy them together on the free tier.
 
 ---
 
-## 🛠️ Option 2: Step-by-Step Manual Web Service Setup on Render
+## 🔗 Live URLs Reference
 
-If you prefer to configure it via the Render Dashboard manually:
-
-1. **Log in to Render:**  
-   Navigate to [https://dashboard.render.com](https://dashboard.render.com) and log in with GitHub.
-
-2. **Create New Web Service:**  
-   Click the **New +** button in the top right and select **Web Service**.
-
-3. **Connect Your Git Repository:**  
-   - Enter your public Git repository URL:  
-     `https://github.com/manthanpatil192/navifreight`  
-   - Click **Connect**.
-
-4. **Configure Web Service Settings:**
-   | Setting | Value |
-   | :--- | :--- |
-   | **Name** | `navifreight-backend` |
-   | **Region** | `Singapore (Southeast Asia)` or `Oregon (US West)` |
-   | **Branch** | `main` |
-   | **Root Directory** | *(leave blank)* |
-   | **Runtime** | `Python 3` |
-   | **Build Command** | `pip install -r requirements.txt` |
-   | **Start Command** | `gunicorn backend.server:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120` |
-   | **Instance Type** | **Free ($0/month)** |
-
-5. **Advanced Settings (Optional Healthcheck):**
-   - Click **Advanced**.
-   - Under **Health Check Path**, enter: `/api/health`
-
-6. **Deploy:**  
-   Click **Create Web Service**.  
-   Render will clone `https://github.com/manthanpatil192/navifreight.git`, install dependencies, and launch your API in ~2 minutes!
-
----
-
-## 🌐 Verifying Your Deployed Backend
-
-Once deployed, Render provides a free SSL URL (e.g., `https://navifreight-backend.onrender.com`).
-
-You can test all endpoints immediately:
-- **Interactive API Dashboard:** `https://<your-service>.onrender.com/`
-- **Health Check:** `https://<your-service>.onrender.com/api/health`
-- **Vessel Bunching Analytics:** `https://<your-service>.onrender.com/api/bunching?port=paradip`
-- **Live News Intelligence:** `https://<your-service>.onrender.com/api/news`
-- **AIS Vessels Telemetry:** `https://<your-service>.onrender.com/api/vessels`
-- **East Coast Ports Info:** `https://<your-service>.onrender.com/api/ports`
-- **Bay of Bengal Weather:** `https://<your-service>.onrender.com/api/weather`
-
----
-
-## 💻 Running the Backend Locally
-
-To test the backend on your computer:
-
-```bash
-# Run server
-python backend/server.py
-
-# Or via npm shortcut
-npm run backend
-```
-Open [http://localhost:5000](http://localhost:5000) in your browser to view the interactive API dashboard.
+- **Backend API (Already Live):**  
+  [https://navifreight.onrender.com](https://navifreight.onrender.com)
+  - `/api/health` — Health check
+  - `/api/bunching` — Vessel bunching collision radar
+  - `/api/news` — Real-time maritime intelligence
+  - `/api/forecast` — Quantile forecasting & CVaR risk split
+- **Web App on Render:**  
+  `https://navifreight-web.onrender.com` (after setting up Static Site)
+- **Web App on GitHub Pages (Existing):**  
+  [https://manthanpatil192.github.io/navifreight/](https://manthanpatil192.github.io/navifreight/)
