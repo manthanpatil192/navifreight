@@ -10,7 +10,7 @@ export const BACKEND_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
-    : 'https://navifreight-backend.onrender.com');
+    : 'https://navifreight.onrender.com');
 
 /**
  * Health check helper to verify if the Render backend service is awake
