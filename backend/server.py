@@ -473,7 +473,30 @@ def get_vessel_bunching():
         ],
         "totalDemurrageShieldedINR_Cr": 13.7,
         "totalDemurrageShieldedUSD": 1620000,
-        "actionRecommendation": "Execute Smart Port Redirection to eliminate 5-day anchorage bottleneck and safeguard furnace basestock."
+        "actionRecommendation": "Execute Smart Port Redirection to eliminate 5-day anchorage bottleneck and safeguard furnace basestock.",
+        "railwayAdvanceAlerts": {
+            "alert1_48hRakeIndentation": {
+                "rule": "Indian Railways (FOIS) 48-Hour Electronic Wagon Demand",
+                "customsRule": "ICEGATE 96-Hour Pre-Arrival Notification System (PANS) Prior Entry BoE",
+                "targetPort": selected_port["name"],
+                "targetVessel": "MV OLYMPIC GLORY",
+                "rakesRequired": 42,
+                "wagonType": "BOXN (58 wagons / 3,800 MT each)",
+                "evacuationSchedule": "14 rakes/day into port internal sidings",
+                "zonalRailway": "East Coast Railway (ECoR) / South Eastern Railway (SER)",
+                "status": "ACTION_MANDATORY_48H_WINDOW",
+                "action": "Place electronic wagon indent on FOIS portal 48 hours prior to vessel arrival"
+            },
+            "alert2_80NMSidingContingency": {
+                "rule": "80 Nautical Miles Fairway Siding Availability Gate",
+                "distanceNM": 80.0,
+                "hoursToPilot": 6.2,
+                "sidingStatus": "UNAVAILABLE_CONGESTION_RISK",
+                "contingencyOption": f"Divert vessel to alternate deepwater port with available empty rakes & zero wait",
+                "demurrageAvoidanceCr": 13.7,
+                "ecoSpeedSavingsVLSFO": "6.5 MT/day (Pacing to 9.0 kts)"
+            }
+        }
     }
     return jsonify(bunching_analytics), 200
 
