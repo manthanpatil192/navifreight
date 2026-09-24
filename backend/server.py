@@ -23,7 +23,7 @@ import json
 import math
 import time
 from datetime import datetime, timezone
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, send_from_directory
 
 # Ensure UTF-8 output on console
 if hasattr(sys.stdout, 'reconfigure'):
@@ -38,6 +38,8 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_NEWS_PATH = os.path.join(BASE_DIR, 'src', 'data', 'liveMarketNews.json')
 PUB_NEWS_PATH = os.path.join(BASE_DIR, 'public', 'data', 'liveMarketNews.json')
+DIST_DIR = os.path.join(BASE_DIR, 'dist')
+ASSETS_DIR = os.path.join(DIST_DIR, 'assets')
 
 # Start timestamp for uptime tracking
 SERVER_START_TIME = time.time()
@@ -183,8 +185,7 @@ PORTS_DATA = {
 # ROUTES
 # ---------------------------------------------------------------------------
 
-@app.route('/')
-def home():
+def render_api_dashboard():
     """Interactive HTML API landing page."""
     uptime_seconds = int(time.time() - SERVER_START_TIME)
     uptime_minutes = uptime_seconds // 60
@@ -343,6 +344,48 @@ def home():
     </body>
     </html>
     """
+
+# ---------------------------------------------------------------------------
+# Static Assets & React Single Page Application (SPA) Delivery
+# ---------------------------------------------------------------------------
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Serve compiled frontend CSS, JS, and image assets."""
+    if os.path.exists(ASSETS_DIR):
+        return send_from_directory(ASSETS_DIR, filename)
+    return Response(status=404)
+
+@app.route('/docs')
+@app.route('/api/docs')
+def api_documentation():
+    """Developer API dashboard & interactive endpoint tester."""
+    return render_api_dashboard()
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_spa(path):
+    """
+    Serve the full-stack NaviFreight production web application.
+    If dist/index.html exists, delivers the complete React frontend.
+    Falls back to the API Dashboard if frontend is not built.
+    """
+    if path.startswith('api/'):
+        return jsonify({"error": "API route not found"}), 404
+
+    # 1. Check if specific file exists in dist (e.g. vite.svg, favicon.ico)
+    if path:
+        target_file = os.path.join(DIST_DIR, path)
+        if os.path.exists(target_file) and os.path.isfile(target_file):
+            return send_from_directory(DIST_DIR, path)
+
+    # 2. If index.html exists, serve the React Web Application
+    index_file = os.path.join(DIST_DIR, 'index.html')
+    if os.path.exists(index_file):
+        return send_from_directory(DIST_DIR, 'index.html')
+
+    # 3. Fallback to API documentation dashboard
+    return render_api_dashboard()
+
 
 # ---------------------------------------------------------------------------
 # Healthcheck Endpoint (Required by Render)
