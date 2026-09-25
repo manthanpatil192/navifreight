@@ -349,6 +349,7 @@ def render_api_dashboard():
 # Static Assets & React Single Page Application (SPA) Delivery
 # ---------------------------------------------------------------------------
 @app.route('/assets/<path:filename>')
+@app.route('/navifreight/assets/<path:filename>')
 def serve_assets(filename):
     """Serve compiled frontend CSS, JS, and image assets."""
     if os.path.exists(ASSETS_DIR):
@@ -372,11 +373,18 @@ def serve_spa(path):
     if path.startswith('api/'):
         return jsonify({"error": "API route not found"}), 404
 
-    # 1. Check if specific file exists in dist (e.g. vite.svg, favicon.ico)
-    if path:
-        target_file = os.path.join(DIST_DIR, path)
+    # Normalize path if prefixed with 'navifreight/' or 'navifreight'
+    clean_path = path
+    if clean_path.startswith('navifreight/'):
+        clean_path = clean_path[len('navifreight/'):]
+    elif clean_path == 'navifreight':
+        clean_path = ''
+
+    # 1. Check if specific file exists in dist (e.g. assets, favicon.ico, images)
+    if clean_path:
+        target_file = os.path.join(DIST_DIR, clean_path)
         if os.path.exists(target_file) and os.path.isfile(target_file):
-            return send_from_directory(DIST_DIR, path)
+            return send_from_directory(DIST_DIR, clean_path)
 
     # 2. If index.html exists, serve the React Web Application
     index_file = os.path.join(DIST_DIR, 'index.html')
