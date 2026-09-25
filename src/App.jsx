@@ -4,7 +4,6 @@ import ForecastChart from './components/ForecastChart';
 import VesselOptimization from './components/VesselOptimization';
 import SpotVsCoaPlanner from './components/SpotVsCoaPlanner';
 import DeadheadOptimizer from './components/DeadheadOptimizer';
-import RiskCongestionRadar from './components/RiskCongestionRadar';
 import MarketNewsFeed from './components/InteractiveRouteMap';
 import LiveShipTrackerMap from './components/LiveShipTrackerMap';
 import MarketIntelligenceRadar from './components/MarketIntelligenceRadar';
@@ -343,13 +342,6 @@ export default function App() {
             <LiveShipTrackerMap
               selectedDestination={selectedDestination}
               onSelectPort={(portId) => setSelectedDestination(portId)}
-              selectedVessel={selectedVessel}
-            />
-
-            {/* Bay of Bengal Weather & Demurrage Risk Radar */}
-            <RiskCongestionRadar
-              selectedDestination={selectedDestination}
-              currency={currency}
               selectedVessel={selectedVessel}
             />
           </div>

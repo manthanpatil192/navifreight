@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Ship, Anchor, ShieldCheck, ArrowRight, Eye, EyeOff, 
-  Lock, Mail, CheckCircle2, Building2, UserCheck
+  Lock, Mail, CheckCircle2, Building2, UserCheck,
+  TrendingUp, RefreshCw, BarChart3, Layers, Compass, 
+  Clock, AlertTriangle, Cpu, Radio, Sparkles, FileText
 } from 'lucide-react';
 import shipHeroImage from '../assets/navifreight_ship_hero.jpg';
 
@@ -17,36 +19,12 @@ const USER_ROLES = [
     organization: 'East Coast India Bulk Freight Alliance (SAIL / RINL / NTPC Desk)',
     default2FA: '782-941',
     description: 'Lead operator managing multimodal bulk freight distribution, 3M/6M COA allocation, and vessel schedules.'
-  },
-  {
-    id: 'port_authority',
-    label: 'Port Infrastructure Authority',
-    badge: 'PORT CONSTRAINT',
-    sublabel: 'Paradip, Vizag & Dhamra Draft Clearance',
-    email: 'operations@paradip-port.gov.in',
-    code: 'PA-EASTCOAST-01',
-    roleTitle: 'Chief Marine Berthing & Draft Officer',
-    organization: 'Paradip, Visakhapatnam & Dhamra Port Authorities',
-    default2FA: '492-108',
-    description: 'Enforces draft, LOA, beam, and daily discharge TPD restrictions at East Coast Indian ports.'
-  },
-  {
-    id: 'dispatch',
-    label: 'Tramp Fleet Controller',
-    badge: 'DEADHEAD OPTIMIZER',
-    sublabel: 'Backhaul Tramp Routing & Ballast Reduction',
-    email: 'fleet.dispatch@navifreight.com',
-    code: 'FD-TRAMP-BACKHAUL',
-    roleTitle: 'Global Tramp Routing & Ballast Avoidance Lead',
-    organization: 'Bay of Bengal Tramp Vessel Coordination Command',
-    default2FA: '331-502',
-    description: 'Eliminates vessel idle time and empty deadheading via triangular backhaul trade routes.'
   }
 ];
 
 export default function LoginPage({ onLogin, onGuestAccess }) {
   const [selectedRoleIndex, setSelectedRoleIndex] = useState(0);
-  const activeRole = USER_ROLES[selectedRoleIndex];
+  const activeRole = USER_ROLES[selectedRoleIndex] || USER_ROLES[0];
 
   const [email, setEmail] = useState(activeRole.email);
   const [password, setPassword] = useState('Maritime@2026Secure');
@@ -73,8 +51,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
   }, []);
 
   const handleRoleChange = (index) => {
-    setSelectedRoleIndex(index);
-    const role = USER_ROLES[index];
+    setSelectedRoleIndex(0);
+    const role = USER_ROLES[0];
     setEmail(role.email);
     setPassword('Maritime@2026Secure');
     setTwoFactorCode(role.default2FA);
@@ -107,13 +85,10 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
   };
 
   const handleQuickDemo = (roleId) => {
-    // Map 'charterer' to 'logistics_manager' for backward compatibility
-    const normalizedId = (roleId === 'charterer' || !roleId) ? 'logistics_manager' : roleId;
-    const index = USER_ROLES.findIndex(r => r.id === normalizedId);
-    const targetIndex = index !== -1 ? index : 0;
-    
-    handleRoleChange(targetIndex);
-    const role = USER_ROLES[targetIndex];
+    const role = USER_ROLES[0];
+    setEmail(role.email);
+    setPassword('Maritime@2026Secure');
+    setTwoFactorCode(role.default2FA);
     setIsSubmitting(true);
     setLoginFeedback({ type: 'success', message: `Quick Demo authorized as ${role.label}...` });
     setTimeout(() => {
@@ -285,33 +260,24 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                     </span>
                   </div>
 
-                  {/* Role Tabs */}
-                  <div className="mb-3.5">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      Select Terminal Role
-                    </label>
-                    <div className="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
-                      {USER_ROLES.map((role, idx) => {
-                        const isSelected = selectedRoleIndex === idx;
-                        return (
-                          <button
-                            key={role.id}
-                            type="button"
-                            onClick={() => handleRoleChange(idx)}
-                            className={`flex flex-col items-center justify-center text-center py-2 px-1 rounded-lg transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-white text-slate-900 font-bold shadow-sm border border-slate-200/80'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-medium'
-                            }`}
-                          >
-                            <span className="text-[11px] truncate w-full">{role.label.split('/')[0].trim()}</span>
-                            <span className={`text-[8px] truncate w-full ${isSelected ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
-                              {role.badge}
-                            </span>
-                          </button>
-                        );
-                      })}
+                  {/* Active Terminal Profile Card (Replaces redundant role tabs) */}
+                  <div className="mb-3.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-emerald-400 shrink-0">
+                        <UserCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">
+                          Logistics Manager Terminal
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          Bulk Procurement, COA Hedging & Port Dispatch
+                        </div>
+                      </div>
                     </div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      PRIMARY ACCESS
+                    </span>
                   </div>
 
                   {/* Form */}
@@ -439,34 +405,19 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                     </button>
                   </form>
 
-                  {/* 1-Click Quick Demo Row */}
+                  {/* 1-Click Instant Demo Access (Cleaned up, no extra roles) */}
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Quick Profiles:
+                      1-Click Instant Access:
                     </span>
-                    <div className="flex items-center gap-1.5 flex-1 justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemo('logistics_manager')}
-                        className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded text-[10px] font-bold transition-colors cursor-pointer"
-                      >
-                        Logistics Manager
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemo('port_authority')}
-                        className="px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                      >
-                        Port Auth
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDemo('dispatch')}
-                        className="px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                      >
-                        Dispatch
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickDemo('logistics_manager')}
+                      className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Logistics Manager Demo</span>
+                    </button>
                   </div>
 
                 </div>
@@ -480,64 +431,236 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
         </div>
 
         {/* ========================================================================= */}
-        {/* WHITE STATISTICS BAR                                                      */}
+        {/* PLATFORM FEATURES & ARCHITECTURE (WHAT WE DO - REPLACES OLD STATS BAR)     */}
         {/* ========================================================================= */}
         <div className="mt-12 pt-8 border-t border-slate-200">
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              MARITIME EXCELLENCE & INFRASTRUCTURE
+          
+          {/* Header section */}
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-emerald-600" />
+              SYSTEM CAPABILITIES & ARCHITECTURE
             </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
-              Company Fueled by Passion for Logistics
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2.5 tracking-tight">
+              What NaviFreight Does: Core Platform Features
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Providing integrated bulk freight intelligence for coking coal, iron ore, and limestone across the Bay of Bengal.
+            <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+              An integrated maritime intelligence and procurement optimization engine designed specifically for Indian steel plants (SAIL, RINL) and power utilities (NTPC) importing bulk commodities across the Bay of Bengal.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          {/* 6 Core Feature Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             
-            {/* Stat 1 */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors shadow-subtle group">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <Building2 className="w-5 h-5" />
+            {/* Feature 1: Rate Forecasting */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    PART A · ML ENGINE
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  AI Freight Rate Forecasting
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Probabilistic forward spot rate forecasting using P10, P50 (expected), and P90 quantile cones. Trained on Breakwave Dry Bulk (<span className="font-mono font-medium">BDRY</span>) futures, ICE Brent VLSFO bunker fuel, and global commodity indices.
+                </p>
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">26+</div>
-              <div className="text-xs font-bold text-slate-700 mt-1">Years of Maritime Experience</div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Established operations in Indian ports</p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Walk-Forward Pinball
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  30-180 Day Cones
+                </span>
+              </div>
             </div>
 
-            {/* Stat 2 */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors shadow-subtle group">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <Ship className="w-5 h-5" />
+            {/* Feature 2: Spot vs COA Planner */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    CVaR HEDGING
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Spot vs. COA Allocation Optimizer
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Calculates optimal volume split between spot market voyages and 3-Month / 6-Month Contracts of Affreightment (COAs). Uses Conditional Value-at-Risk (<span className="font-mono font-medium">CVaR</span>) to prevent blast furnace stockouts.
+                </p>
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">284+</div>
-              <div className="text-xs font-bold text-slate-700 mt-1">Owned & Chartered Vessels</div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Capesize, Panamax & Supramax</p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Stockout Protection
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  6-Day Buffer Shield
+                </span>
+              </div>
             </div>
 
-            {/* Stat 3 */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors shadow-subtle group">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <UserCheck className="w-5 h-5" />
+            {/* Feature 3: Port Berth & Draft Limits */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Anchor className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    PART B · PORT FIT
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Port Draft & Berth Constraint Checker
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Validates operational draft and LOA limits across Paradip, Visakhapatnam, Dhamra, Haldia, and Gopalpur. Evaluates Capesize, Panamax, and Supramax discharge rates (TPD) with automated lighterage alerts.
+                </p>
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">650+</div>
-              <div className="text-xs font-bold text-slate-700 mt-1">Port & Dispatch Staff</div>
-              <p className="text-[11px] text-slate-400 mt-0.5">24/7 continuous operations team</p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Tidal Clearance
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  TPD Discharge Pacing
+                </span>
+              </div>
             </div>
 
-            {/* Stat 4 */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors shadow-subtle group">
-              <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                <Anchor className="w-5 h-5" />
+            {/* Feature 4: Anti-Bunching Terminal */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    PART C · DISPATCH
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Vessel Bunching & Demurrage Defense
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Real-time collision radar identifying same-day ETA overlaps before vessels arrive at port anchorage. Recommends virtual queuing, staggered steaming speeds, and berth reassignments to eliminate $22,000/day demurrage fines.
+                </p>
               </div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">374k+</div>
-              <div className="text-xs font-bold text-slate-700 mt-1">Voyages Safely Completed</div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Zero environmental incidents recorded</p>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  ETA Collision Radar
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Virtual Berthing Queue
+                </span>
+              </div>
+            </div>
+
+            {/* Feature 5: Tramp Deadhead Triangulation */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <RefreshCw className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    BALLAST REDUCTION
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Coastal Triangular Backhaul Optimizer
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Triangulates return voyages with domestic coastal bulk movements (iron ore pellets, coastal thermal coal, limestone). Converts empty ballast deadheading into revenue legs while reducing overall bunker fuel consumption.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Hold Matching
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  Zero Deadhead Routing
+                </span>
+              </div>
+            </div>
+
+            {/* Feature 6: Real-Time AIS & NLP Radar */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                    <Radio className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    PART D · SATELLITE AIS
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  Live AIS Fleet & Weather Risk Radar
+                </h4>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Live satellite AIS tracking of 165+ bulk carriers traversing the Bay of Bengal, coupled with 4-stage FinBERT NLP maritime news sentiment analysis, cyclone trajectory warnings, and early-warning congestion flags.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  165+ Live Vessels
+                </span>
+                <span className="text-[10px] bg-slate-50 text-slate-600 font-medium px-2 py-0.5 rounded border border-slate-200">
+                  FinBERT News Radar
+                </span>
+              </div>
             </div>
 
           </div>
+
+          {/* 4-Step Continuous Decision Pipeline Bar */}
+          <div className="mt-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="text-center lg:text-left">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 font-mono">
+                  DECISION PIPELINE
+                </span>
+                <h4 className="text-lg font-extrabold text-white mt-0.5">
+                  How NaviFreight Optimizes Every Bulk Voyage
+                </h4>
+                <p className="text-xs text-slate-400 mt-1 max-w-md">
+                  From raw market signals to berthing discharge, decisions are mathematically validated at each stage.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
+                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 1</div>
+                  <div className="text-xs font-bold text-white mt-1">Predict</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">P10/50/90 Cones</div>
+                </div>
+                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
+                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 2</div>
+                  <div className="text-xs font-bold text-white mt-1">Hedge</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Spot vs COA CVaR</div>
+                </div>
+                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
+                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 3</div>
+                  <div className="text-xs font-bold text-white mt-1">Dispatch</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Anti-Bunching Fit</div>
+                </div>
+                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
+                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 4</div>
+                  <div className="text-xs font-bold text-white mt-1">Monitor</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Live AIS Satellite</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* ========================================================================= */}

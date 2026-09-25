@@ -489,6 +489,39 @@ export const calculateVesselEta = (vessel) => {
   return `${datePrefix}, ${timeFormatted} IST (~${hoursFormatted} • ${distNM.toFixed(1)} NM)`;
 };
 
+// Calculate ETA hours remaining to destination port
+export const getVesselEtaHours = (vessel) => {
+  if (!vessel) return null;
+  const status = (vessel.status || '').toLowerCase();
+  if (
+    status.includes('anchor') ||
+    status.includes('awaiting') ||
+    status.includes('queue') ||
+    (vessel.speedKnots !== undefined && vessel.speedKnots < 0.5 && !status.includes('at berth')) ||
+    status.includes('at berth') ||
+    status.includes('berthed') ||
+    status.includes('moored')
+  ) {
+    return 0;
+  }
+  const destId = (vessel.destinationId || 'paradip').toLowerCase();
+  const destCoords = PORT_APPROACH_COORDINATES[destId] || [20.2450, 86.7150];
+  if (!vessel.coordinates || vessel.coordinates.length < 2) return null;
+  const [vLat, vLng] = vessel.coordinates;
+  const [dLat, dLng] = destCoords;
+  const distKm = getHaversineDistanceKm(vLat, vLng, dLat, dLng);
+  const distNM = distKm / 1.852;
+  const speed = Math.max(vessel.speedKnots || 12.0, 1.0);
+  return distNM / speed;
+};
+
+// Helper: Check if vessel arrives in 2–3 Days window (~40h to 76h)
+export const isVesselEta2To3Days = (vessel) => {
+  const hours = getVesselEtaHours(vessel);
+  if (hours === null || hours <= 0) return false;
+  return hours >= 40 && hours <= 76;
+};
+
 // Web Audio API Synthesizer: Two-Tone Naval Sonar Ping (Zero External File Dependencies)
 const playRadarChime = () => {
   try {
@@ -570,6 +603,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   const [selectedCorridor, setSelectedCorridor] = useState('ALL');
   const [showCorridors, setShowCorridors] = useState(true);
   const [showGeofences, setShowGeofences] = useState(true);
+  const [showEta2To3Days, setShowEta2To3Days] = useState(false);
   const [showLogbookDrawer, setShowLogbookDrawer] = useState(false);
   const [mapTheme, setMapTheme] = useState('osm'); // Always colorful OpenStreetMap
   const [lastTelemetryUpdate, setLastTelemetryUpdate] = useState(new Date());
@@ -1077,6 +1111,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
   // Dynamic filter and search computation
   const filteredVessels = useMemo(() => {
     return vessels.filter(v => {
+      // 0. ETA 2–3 Days Arrival Filter
+      if (showEta2To3Days && !isVesselEta2To3Days(v)) {
+        return false;
+      }
+
       // 1. Search filter
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -1128,7 +1167,12 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
       return true;
     });
-  }, [vessels, vesselFilter, searchQuery]);
+  }, [vessels, vesselFilter, searchQuery, showEta2To3Days]);
+
+  // Vessels arriving in 2-3 Days window count
+  const eta2To3DaysCount = useMemo(() => {
+    return vessels.filter(v => isVesselEta2To3Days(v)).length;
+  }, [vessels]);
 
   // Counts by category
   const categoryCounts = useMemo(() => {
@@ -1263,6 +1307,25 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           >
             <CircleDot className="w-3.5 h-3.5 text-amber-600" />
             <span>⭕ 80 NM Geofences</span>
+          </button>
+
+          {/* ETA Arrival (2–3 Days Window) Filter Toggle Button */}
+          <button
+            onClick={() => setShowEta2To3Days(!showEta2To3Days)}
+            className={`px-2.5 py-1 border rounded text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
+              showEta2To3Days 
+                ? 'bg-emerald-600 text-white border-emerald-700 font-bold shadow-xs' 
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+            }`}
+            title="Filter vessels with Estimated Time of Arrival (ETA) within 2–3 Days (40h–76h)"
+          >
+            <Clock className={`w-3.5 h-3.5 ${showEta2To3Days ? 'text-white' : 'text-emerald-600'}`} />
+            <span>⏱️ ETA Arrival (2–3 Days)</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              showEta2To3Days ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              {eta2To3DaysCount}
+            </span>
           </button>
 
           {/* Railway Alert Button & Sonar Audio Toggle */}
@@ -2062,8 +2125,13 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       <div className="text-[10px] text-slate-500 truncate max-w-[210px] mt-0.5">
                         Bound: <span className="font-medium text-slate-700">{v.destinationPort}</span>
                       </div>
-                      <div className="text-[9.5px] font-semibold text-emerald-800 pt-0.5 border-t border-slate-100 mt-1">
-                        ETA: {calculateVesselEta(v)}
+                      <div className="text-[9.5px] font-semibold text-emerald-800 pt-0.5 border-t border-slate-100 mt-1 flex items-center justify-between">
+                        <span>ETA: {calculateVesselEta(v)}</span>
+                        {isVesselEta2To3Days(v) && (
+                          <span className="ml-1 bg-emerald-600 text-white text-[8.5px] font-bold px-1.5 py-0.2 rounded shadow-2xs whitespace-nowrap">
+                            2–3d ETA
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Tooltip>
@@ -2523,9 +2591,16 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   <span className="text-slate-500">Cargo Manifest:</span>
                   <span className="font-semibold text-slate-800 truncate max-w-[140px]">{selectedVessel.cargo}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-start">
                   <span className="text-slate-500">ETA / Arrival:</span>
-                  <span className="font-bold text-slate-900">{calculateVesselEta(selectedVessel)}</span>
+                  <div className="text-right">
+                    <span className="font-bold text-slate-900 block">{calculateVesselEta(selectedVessel)}</span>
+                    {isVesselEta2To3Days(selectedVessel) && (
+                      <span className="inline-block mt-0.5 bg-emerald-100 text-emerald-800 text-[9.5px] font-bold px-2 py-0.5 rounded border border-emerald-300">
+                        ⏱️ Arriving in 2–3 Days Window
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px]">
                   <span className="text-slate-500">Telemetry Engine:</span>
@@ -2600,24 +2675,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
 
         </div>
 
-      </div>
-
-      {/* Vessel Bunching & Fleet Anti-Congestion Dispatch Terminal Reference (Transferred to Part C) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-300">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400">
-            <RefreshCw className="w-4 h-4 animate-spin-slow" />
-          </div>
-          <div>
-            <div className="font-bold text-white flex items-center space-x-2">
-              <span>Vessel Bunching & Anti-Congestion Dispatch Terminal</span>
-              <span className="text-[10px] bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded font-mono">ACTIVE IN PART C</span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Same-day ETA collision detection, alternative port diversions, and demurrage avoidance are actively managed in <strong>Part C: Idle & Vessel Bunching</strong>.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* AISStream WebSocket Key Modal */}
