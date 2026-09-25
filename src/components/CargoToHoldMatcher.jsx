@@ -7,7 +7,12 @@ import {
 import { BACKHAUL_OPPORTUNITIES } from '../data/backhaulRoutes';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 
-export default function CargoToHoldMatcher({ currency = 'INR', onSimulateHop }) {
+export default function CargoToHoldMatcher({ 
+  currency = 'INR', 
+  selectedMmsi: controlledMmsi, 
+  onSelectShip, 
+  onSimulateHop 
+}) {
   const isINR = currency === 'INR';
   const fxRate = 95.0; // RBI Reference Rate for maritime freight conversion
 
@@ -20,14 +25,17 @@ export default function CargoToHoldMatcher({ currency = 'INR', onSimulateHop }) 
     ).slice(0, 8);
   }, []);
 
-  const [selectedMmsi, setSelectedMmsi] = useState(berthedShips[0]?.mmsi || '563112000');
+  const [internalMmsi, setInternalMmsi] = useState('563112000');
+  const selectedMmsi = controlledMmsi || internalMmsi;
   const [activeFilterPort, setActiveFilterPort] = useState('all');
   const [lockedFixture, setLockedFixture] = useState(null);
   const [showDataProvenance, setShowDataProvenance] = useState(false);
 
   // Active Ship Object
   const activeShip = useMemo(() => {
-    return berthedShips.find(s => s.mmsi === selectedMmsi) || berthedShips[0] || {
+    return berthedShips.find(s => s.mmsi === selectedMmsi) || 
+      LIVE_AIS_VESSELS.find(s => s.mmsi === selectedMmsi) || 
+      berthedShips[0] || {
       name: 'MV OLYMPIC GLORY',
       vesselType: 'Capesize',
       dwt: 181200,
@@ -232,7 +240,10 @@ export default function CargoToHoldMatcher({ currency = 'INR', onSimulateHop }) 
               <button
                 key={ship.mmsi}
                 type="button"
-                onClick={() => setSelectedMmsi(ship.mmsi)}
+                onClick={() => {
+                  setInternalMmsi(ship.mmsi);
+                  if (onSelectShip) onSelectShip(ship);
+                }}
                 className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                   isSelected 
                     ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-300 shadow-xs' 
@@ -356,9 +367,21 @@ export default function CargoToHoldMatcher({ currency = 'INR', onSimulateHop }) 
                             <Award className="w-3 h-3" /> #1 Best Arbitrage Match
                           </span>
                         )}
-                        <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.2 rounded">
-                          {opp.hsCode}
-                        </span>
+                        {opp.liveDatasetBadge && (
+                          <span className="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded flex items-center gap-1">
+                            <Database className="w-2.5 h-2.5 text-emerald-600" />
+                            <span>{opp.liveDatasetBadge}</span>
+                          </span>
+                        )}
+                        {opp.hopType && (
+                          <span className={`text-[10px] font-bold px-2 py-0.2 rounded border ${
+                            opp.hopDistanceNM > 0 
+                              ? 'bg-amber-50 text-amber-900 border-amber-300' 
+                              : 'bg-blue-50 text-blue-900 border-blue-300'
+                          }`}>
+                            {opp.hopDistanceNM > 0 ? `🌊 ${opp.hopDistanceNM} NM Coastal Hop` : '⚓ Direct Port Berth'}
+                          </span>
+                        )}
                         <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.2 rounded">
                           Shipper: {opp.shipper}
                         </span>

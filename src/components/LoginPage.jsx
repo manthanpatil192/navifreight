@@ -455,13 +455,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 1: Rate Forecasting */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    PART A · ML ENGINE
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   AI Freight Rate Forecasting
@@ -483,13 +478,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 2: Spot vs COA Planner */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    CVaR HEDGING
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <Layers className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   Spot vs. COA Allocation Optimizer
@@ -511,13 +501,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 3: Port Berth & Draft Limits */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <Anchor className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    PART B · PORT FIT
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <Anchor className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   Port Draft & Berth Constraint Checker
@@ -539,13 +524,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 4: Anti-Bunching Terminal */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    PART C · DISPATCH
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <Clock className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   Vessel Bunching & Demurrage Defense
@@ -567,13 +547,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 5: Tramp Deadhead Triangulation */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <RefreshCw className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    BALLAST REDUCTION
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <RefreshCw className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   Coastal Triangular Backhaul Optimizer
@@ -595,13 +570,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             {/* Feature 6: Real-Time AIS & NLP Radar */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all group flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-                    <Radio className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    PART D · SATELLITE AIS
-                  </span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform mb-4">
+                  <Radio className="w-5 h-5" />
                 </div>
                 <h4 className="text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   Live AIS Fleet & Weather Risk Radar
@@ -620,45 +590,6 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
               </div>
             </div>
 
-          </div>
-
-          {/* 4-Step Continuous Decision Pipeline Bar */}
-          <div className="mt-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="text-center lg:text-left">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 font-mono">
-                  DECISION PIPELINE
-                </span>
-                <h4 className="text-lg font-extrabold text-white mt-0.5">
-                  How NaviFreight Optimizes Every Bulk Voyage
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 max-w-md">
-                  From raw market signals to berthing discharge, decisions are mathematically validated at each stage.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
-                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
-                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 1</div>
-                  <div className="text-xs font-bold text-white mt-1">Predict</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">P10/50/90 Cones</div>
-                </div>
-                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
-                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 2</div>
-                  <div className="text-xs font-bold text-white mt-1">Hedge</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Spot vs COA CVaR</div>
-                </div>
-                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
-                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 3</div>
-                  <div className="text-xs font-bold text-white mt-1">Dispatch</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Anti-Bunching Fit</div>
-                </div>
-                <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
-                  <div className="text-emerald-400 font-bold text-xs font-mono">STEP 4</div>
-                  <div className="text-xs font-bold text-white mt-1">Monitor</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">Live AIS Satellite</div>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>
