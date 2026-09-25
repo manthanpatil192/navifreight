@@ -518,6 +518,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       {(activeSubTab === 'bunching' || activeSubTab === 'all') && (
         <VesselBunchingTerminal 
           selectedDestination={selectedLivePort} 
+          vessels={LIVE_AIS_VESSELS}
           onSelectPort={(portKey) => {
             setSelectedLivePort(portKey);
             if (onSelectPort) onSelectPort(portKey);
