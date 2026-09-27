@@ -3,9 +3,11 @@ import {
   Ship, Anchor, ShieldCheck, ArrowRight, Eye, EyeOff, 
   Lock, Mail, CheckCircle2, Building2, UserCheck,
   TrendingUp, RefreshCw, BarChart3, Layers, Compass, 
-  Clock, AlertTriangle, Cpu, Radio, Sparkles, FileText
+  Clock, AlertTriangle, Cpu, Radio, Sparkles, FileText,
+  Maximize2, Minimize2, Navigation
 } from 'lucide-react';
 import shipHeroImage from '../assets/navifreight_ship_hero.jpg';
+import VoyagePlaybackMap from './VoyagePlaybackMap';
 
 const USER_ROLES = [
   {
@@ -33,6 +35,7 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginFeedback, setLoginFeedback] = useState(null);
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
 
   // Live dual clocks (UTC & IST)
   const [timeState, setTimeState] = useState({ utc: '', ist: '' });
@@ -177,252 +180,307 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
         {/* ========================================================================= */}
         <div className="max-w-6xl w-full mx-auto my-2">
           
-          {/* THE SHIP PART CONTAINER (Focal center element with high-definition bulk freight ship) */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900">
+          {/* THE MARITIME CONTAINER (Live AIS Moving Vessel Map replaces static normal ship) */}
+          <div className="relative rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl bg-[#080c14] min-h-[640px] flex flex-col justify-between">
             
-            {/* High-Resolution Ship & Ocean Background Image */}
-            <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
-              <img
-                src={shipHeroImage}
-                alt="NaviFreight Bulk Carrier Vessel Sailing Across Azure Ocean"
-                className="w-full h-full object-cover object-[22%_center] scale-105"
-                onError={(e) => {
-                  e.currentTarget.src = '/navifreight_ship_hero.jpg';
-                }}
-              />
-              {/* Balanced subtle gradient overlays ensuring the ship hull and sea are clearly visible while text remains sharp */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/15 to-slate-950/20 pointer-events-none" />
-              <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-slate-950/70 via-slate-950/20 to-transparent pointer-events-none" />
+            {/* 1. LIVE MOVING SHIP VOYAGE MAP BACKGROUND (Replaces the static normal ship photo) */}
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <VoyagePlaybackMap />
+              {/* Subtle gradient vignette to ensure text contrast while keeping ship, routes & telemetry crisp */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080c14]/90 via-transparent to-[#080c14]/50 pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-full lg:w-2/5 bg-gradient-to-r from-[#080c14]/90 via-[#080c14]/40 to-transparent pointer-events-none" />
             </div>
 
-            {/* Inner Content Layer inside the Ship Part */}
-            <div className="relative z-10 p-5 sm:p-7 lg:p-9 flex flex-col justify-between min-h-[540px]">
+            {/* 2. TOP TOOLBAR: View Mode Toggle */}
+            <div className="relative z-10 px-4 pt-14 sm:pt-14 pb-2 flex items-center justify-between pointer-events-none">
+              <div className="pointer-events-auto flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0e1726]/90 border border-cyan-500/40 text-[11px] font-bold text-cyan-300 backdrop-blur-md shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span>Interactive AIS Voyage Simulation</span>
+                </span>
+              </div>
+
+              <div className="pointer-events-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMapExpanded(!isMapExpanded)}
+                  className="px-3 py-1.5 rounded-xl bg-[#0e1726]/90 hover:bg-[#1a263d] text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-bold backdrop-blur-md transition-all shadow-lg flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isMapExpanded ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Show Login Terminal</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Expand Full Map</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* 3. INNER CONTENT LAYER OVER THE MAP */}
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-20 pt-2 flex flex-col justify-center flex-1 pointer-events-none">
               
-              {/* Main Center Body: Left side has clean typography over ship/ocean, Right side has Login */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto">
-                
-                {/* Left Side: Clean branding over unobstructed ship & ocean background */}
-                <div className="lg:col-span-5 text-white space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/70 border border-white/20 backdrop-blur-md">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="text-xs font-bold tracking-wider uppercase text-emerald-300">
-                      East Coast Freight Command
-                    </span>
-                  </div>
-
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white drop-shadow-lg">
-                    NaviFreight
-                  </h2>
-
-                  <p className="text-sm sm:text-base text-slate-200 leading-relaxed drop-shadow-md font-medium max-w-md">
-                    Transitioning East Coast Indian bulk procurement from daily spot market volatility to optimized 3-Month & 6-Month Multiple Voyage Contracts (COAs).
-                  </p>
-
-                  <div className="pt-2">
-                    <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 bg-slate-950/60 px-3.5 py-1.5 rounded-xl border border-white/10 backdrop-blur-sm">
-                      <Anchor className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Paradip · Vizag · Dhamra · Haldia · Gopalpur</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Side inside Ship Part: THE LOGIN PART INSIDE THE SHIP CONTAINER */}
-                <div className="lg:col-span-7 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-5 sm:p-6 border border-white/80 text-slate-900">
+              {!isMapExpanded ? (
+                /* SPLIT VIEW: Left Branding + Right Sleek Glassmorphic Login Card */
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto">
                   
-                  {/* Logistics Manager Target Profile Banner */}
-                  <div className="mb-4 p-3.5 rounded-xl bg-slate-900 text-white shadow-sm border border-slate-800">
-                    <h3 className="text-xs sm:text-sm font-bold text-white mb-0.5">
-                      Logistics Manager
-                    </h3>
-                    <p className="text-[11px] text-slate-300 mb-2.5 leading-snug">
-                      Bulk logistics dispatch, multi-voyage contract scheduling & East Coast port clearance.
+                  {/* Left Side: Clean branding over live moving ship & ocean map */}
+                  <div className="lg:col-span-5 text-white space-y-4 pointer-events-auto">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0b121e]/90 border border-cyan-500/30 backdrop-blur-md">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span className="text-xs font-bold tracking-wider uppercase text-emerald-300">
+                        East Coast Freight Command
+                      </span>
+                    </div>
+
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white drop-shadow-xl">
+                      NaviFreight
+                    </h2>
+
+                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium max-w-md bg-[#0b121e]/80 p-3.5 rounded-2xl border border-white/10 backdrop-blur-md shadow-xl">
+                      Transitioning East Coast Indian bulk procurement from daily spot market volatility to optimized 3-Month & 6-Month Multiple Voyage Contracts (COAs). Real-time AIS fleet telemetry tracking Capesize & Panamax bulkers across Bay of Bengal trade lanes.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDemo('logistics_manager')}
-                      className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                    >
-                      <span>Access as Logistics Manager</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+
+                    <div className="pt-1">
+                      <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 bg-[#0b121e]/90 px-3.5 py-2 rounded-xl border border-white/15 backdrop-blur-md shadow-lg">
+                        <Anchor className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Paradip · Vizag · Gangavaram · Dhamra · Haldia</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Header Title */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                        Sign In to Freight Terminal
+                  {/* Right Side: HIGH-GRADE FROSTED GLASSMORPHIC LOGIN CARD */}
+                  <div className="lg:col-span-7 bg-[#0b121e]/95 sm:bg-[#0b121e]/90 backdrop-blur-2xl rounded-2xl shadow-2xl p-5 sm:p-6 border border-slate-700/80 text-white pointer-events-auto">
+                    
+                    {/* Logistics Manager Target Profile Banner */}
+                    <div className="mb-4 p-3.5 rounded-xl bg-slate-900/90 text-white shadow-sm border border-slate-700/80">
+                      <h3 className="text-xs sm:text-sm font-bold text-white mb-0.5">
+                        Logistics Manager
                       </h3>
-                      <p className="text-xs text-slate-500">Logistics Manager Portal · Multi-voyage COA forecasting & port fit checks.</p>
+                      <p className="text-[11px] text-slate-300 mb-2.5 leading-snug">
+                        Bulk logistics dispatch, multi-voyage contract scheduling & East Coast port clearance.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemo('logistics_manager')}
+                        className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <span>Access as Logistics Manager</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      LIVE TERMINAL
-                    </span>
-                  </div>
 
-                  {/* Active Terminal Profile Card (Replaces redundant role tabs) */}
-                  <div className="mb-3.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-emerald-400 shrink-0">
-                        <UserCheck className="w-4 h-4" />
-                      </div>
+                    {/* Header Title */}
+                    <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="text-xs font-bold text-slate-900">
-                          Logistics Manager Terminal
-                        </div>
-                        <div className="text-[10px] text-slate-500">
-                          Bulk Procurement, COA Hedging & Port Dispatch
-                        </div>
+                        <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+                          Sign In to Freight Terminal
+                        </h3>
+                        <p className="text-xs text-slate-400">Logistics Manager Portal · Multi-voyage COA forecasting & port fit checks.</p>
                       </div>
-                    </div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      PRIMARY ACCESS
-                    </span>
-                  </div>
-
-                  {/* Form */}
-                  <form onSubmit={handleSubmit} className="space-y-3">
-                    {/* Email */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Corporate Maritime Email / ID
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                          <Mail className="w-3.5 h-3.5" />
-                        </div>
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="e.g. logistics.manager@navifreight.gov.in"
-                          className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-colors"
-                        />
-                      </div>
+                      <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/60">
+                        LIVE TERMINAL
+                      </span>
                     </div>
 
-                    {/* Password & 2FA row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Active Terminal Profile Card */}
+                    <div className="mb-3.5 p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400 shrink-0 border border-slate-700">
+                          <UserCheck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white">
+                            Logistics Manager Terminal
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Bulk Procurement, COA Hedging & Port Dispatch
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700">
+                        PRIMARY ACCESS
+                      </span>
+                    </div>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                      {/* Email */}
                       <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            Password
-                          </label>
-                          <a 
-                            href="#forgot" 
-                            onClick={(e) => { e.preventDefault(); alert('For credential recovery, please contact your Port Security Officer or email security@shippingfreight.gov.in.'); }}
-                            className="text-[10px] text-rose-600 hover:underline font-medium"
-                          >
-                            Forgot?
-                          </a>
-                        </div>
+                        <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                          Corporate Maritime Email / ID
+                        </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <Lock className="w-3.5 h-3.5" />
+                            <Mail className="w-3.5 h-3.5" />
                           </div>
                           <input
-                            type={showPassword ? 'text' : 'password'}
+                            type="email"
                             required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••••••"
-                            className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-colors"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="e.g. logistics.manager@navifreight.gov.in"
+                            className="w-full pl-9 pr-3 py-2 bg-slate-900/90 border border-slate-700 rounded-lg text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-colors"
                           />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
-                          >
-                            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                          </button>
                         </div>
                       </div>
 
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                            2FA Token
-                          </label>
-                          <span className="text-[10px] text-emerald-600 font-semibold font-mono">
-                            ● DG-AUTH
-                          </span>
+                      {/* Password & 2FA row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                              Password
+                            </label>
+                            <a 
+                              href="#forgot" 
+                              onClick={(e) => { e.preventDefault(); alert('For credential recovery, please contact your Port Security Officer or email security@shippingfreight.gov.in.'); }}
+                              className="text-[10px] text-rose-400 hover:underline font-medium"
+                            >
+                              Forgot?
+                            </a>
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                              <Lock className="w-3.5 h-3.5" />
+                            </div>
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              required
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="••••••••••••"
+                              className="w-full pl-9 pr-8 py-2 bg-slate-900/90 border border-slate-700 rounded-lg text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-colors"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                            >
+                              {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
                         </div>
-                        <input
-                          type="text"
-                          required
-                          value={twoFactorCode}
-                          onChange={(e) => setTwoFactorCode(e.target.value)}
-                          placeholder="000-000"
-                          maxLength={8}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm font-mono tracking-wider text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-colors"
-                        />
+
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                              2FA Token
+                            </label>
+                            <span className="text-[10px] text-emerald-400 font-semibold font-mono">
+                              ● DG-AUTH
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            required
+                            value={twoFactorCode}
+                            onChange={(e) => setTwoFactorCode(e.target.value)}
+                            placeholder="000-000"
+                            maxLength={8}
+                            className="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-lg text-xs sm:text-sm font-mono tracking-wider text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-colors"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Remember me */}
-                    <div className="flex items-center justify-between pt-0.5">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-600 select-none">
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          className="w-3.5 h-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
-                        />
-                        <span className="text-[11px]">Remember session (24h)</span>
-                      </label>
-                    </div>
-
-                    {/* Feedback message */}
-                    {loginFeedback && (
-                      <div className={`p-2.5 rounded-lg text-xs font-medium flex items-center gap-2 ${
-                        loginFeedback.type === 'success' 
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                          : 'bg-slate-100 text-slate-800 border border-slate-200'
-                      }`}>
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                        <span>{loginFeedback.message}</span>
+                      {/* Remember me */}
+                      <div className="flex items-center justify-between pt-0.5">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-400 select-none">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                          />
+                          <span className="text-[11px]">Remember session (24h)</span>
+                        </label>
                       </div>
-                    )}
 
-                    {/* Submit Button */}
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>AUTHORIZING...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>SIGN IN AS LOGISTICS MANAGER</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
+                      {/* Feedback message */}
+                      {loginFeedback && (
+                        <div className={`p-2.5 rounded-lg text-xs font-medium flex items-center gap-2 ${
+                          loginFeedback.type === 'success' 
+                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700' 
+                            : 'bg-slate-900/80 text-slate-200 border border-slate-700'
+                        }`}>
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                          <span>{loginFeedback.message}</span>
+                        </div>
                       )}
-                    </button>
-                  </form>
 
-                  {/* 1-Click Instant Demo Access (Cleaned up, no extra roles) */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      1-Click Instant Access:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDemo('logistics_manager')}
-                      className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Logistics Manager Demo</span>
-                    </button>
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-2.5 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:scale-[0.99] text-slate-950 font-black text-xs sm:text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                            <span>AUTHORIZING...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>SIGN IN AS LOGISTICS MANAGER</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* 1-Click Instant Demo Access */}
+                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        1-Click Instant Access:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemo('logistics_manager')}
+                        className="px-3 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Logistics Manager Demo</span>
+                      </button>
+                    </div>
+
                   </div>
 
                 </div>
-
-              </div>
+              ) : (
+                /* EXPANDED MAP VIEW: Compact floating quick access widget */
+                <div className="flex justify-end my-auto pointer-events-auto">
+                  <div className="bg-[#0b121e]/90 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-4 shadow-2xl max-w-sm text-white space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Quick Sign In</span>
+                      <span className="text-[10px] font-mono text-emerald-400">● READY</span>
+                    </div>
+                    <p className="text-xs text-slate-300">
+                      You are in Full Interactive Map view. Click below for instant terminal access or restore the full login form.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDemo('logistics_manager')}
+                        className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>1-Click Demo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsMapExpanded(false)}
+                        className="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 text-xs font-semibold"
+                      >
+                        Show Form
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
 
