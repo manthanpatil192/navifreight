@@ -235,10 +235,13 @@ export default function WebTerminalModelTrainer({
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [copiedCmd, setCopiedCmd] = useState(null);
-  const terminalEndRef = useRef(null);
+  const terminalContainerRef = useRef(null);
 
+  // Auto-scroll ONLY the terminal box internally without scrolling or moving the browser window
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    }
   }, [terminalHistory]);
 
   // Auto-Unlock Safety Guard: Guarantees terminal NEVER hangs or gets locked permanently
@@ -2335,7 +2338,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 
       {/* Main Terminal Screen Area */}
       <div className="p-4 bg-[#080c14] font-mono text-xs select-text">
-        <div className="h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+        <div ref={terminalContainerRef} className="h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
           {terminalHistory.map((item, idx) => {
             if (item.type === 'system') {
               return <div key={idx} className="text-slate-500 leading-relaxed">{item.text}</div>;
@@ -2377,7 +2380,6 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               </pre>
             );
           })}
-          <div ref={terminalEndRef} />
         </div>
 
         {/* Interactive Command Input Form */}
