@@ -183,7 +183,7 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
         <div className="max-w-7xl w-full mx-auto my-2">
           
           {/* THE MARITIME CONTAINER */}
-          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-[#080c14] h-[600px] sm:h-[640px] flex">
+          <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-[#080c14] h-[620px] sm:h-[670px] flex">
             
             {/* 1. 100% WIDE OPEN LIVE MOVING SHIP VOYAGE MAP (Dominates 80%+ of Visual Viewport) */}
             <div className="absolute inset-0 z-0">
@@ -191,7 +191,7 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             </div>
 
             {/* 2. FOREGROUND: Right-aligned Compact ~20% Sign-In Card (Pointer events active on card only) */}
-            <div className="relative z-10 w-full h-full p-4 sm:p-6 flex items-center justify-end pointer-events-none pb-24 sm:pb-20">
+            <div className="relative z-[1000] w-full h-full p-4 sm:p-6 flex items-center justify-end pointer-events-none pb-24 sm:pb-20">
               
               {/* COMPACT ~20% SIGN-IN CARD */}
               <div className="w-full sm:w-[310px] bg-[#0c1322]/90 backdrop-blur-2xl rounded-2xl shadow-2xl p-4 sm:p-5 border border-slate-700/80 text-white pointer-events-auto flex flex-col justify-between">

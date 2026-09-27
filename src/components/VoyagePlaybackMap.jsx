@@ -1,81 +1,317 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { 
-  Play, Pause, Search, Plus, Minus, RotateCcw, 
-  Navigation, Maximize2, Minimize2, Anchor, Wind, AlertTriangle, ShieldCheck
+  Play, Pause, FastForward
 } from 'lucide-react';
 
-/**
- * High-Precision Vector Voyage Playback Map
- * 
- * Recreates the dark maritime AIS voyage tracking UI from the user's screenshot:
- * - Real-time animated bulk carrier ("Ocean Star • 13 kn") sailing from Gladstone, Australia to East Coast India (Gangavaram / Vizag / Paradip).
- * - Solid cyan "Travelled Route", dashed cyan "Remaining Route", and emerald "Shortcut Pass".
- * - Congestion radar pulses at destination ports, weather/cyclone risk zones.
- * - Interactive top search, layer checkboxes (Weather, Congestion, Nav Restrictions, Alternative Routes).
- * - Full bottom playback scrubber (Play/Pause, Departure, Progress %, AIS telemetry, Legend).
- */
+// Fix Leaflet default marker icons for Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
-// Key Geographic coordinates mapped to SVG viewbox [0, 0, 1000, 520]
-// Equirectangular projection bounds: Lon 15°E to 160°E, Lat -42°S to 38°N
-function project(lon, lat) {
-  const x = ((lon - 15) / (160 - 15)) * 1000;
-  const y = ((38 - lat) / (38 - (-42))) * 520;
-  return [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+// Destination Indian East Coast Ports (High-priority bulk terminals)
+const INDIAN_DESTINATION_PORTS = [
+  { name: 'Paradip (INPRT)', lat: 20.2644, lon: 86.6706, state: 'Odisha', role: 'Primary Coking Coal Hub' },
+  { name: 'Visakhapatnam (INVTZ)', lat: 17.6868, lon: 83.2185, state: 'Andhra Pradesh', role: 'RINL Steel Terminal' },
+  { name: 'Gangavaram (INGGV)', lat: 17.6200, lon: 83.2350, state: 'Andhra Pradesh', role: 'Deepwater Capesize Berth' },
+  { name: 'Dhamra (INDHM)', lat: 20.8167, lon: 86.9667, state: 'Odisha', role: 'TATA / SAIL Bulk Gate' },
+  { name: 'Haldia (INHAL)', lat: 22.0238, lon: 88.0628, state: 'West Bengal', role: 'Riverine Coal Dock' }
+];
+
+// Origin International Loading Ports
+const ORIGIN_PORTS = [
+  { name: 'Gladstone (Australia)', lat: -23.8431, lon: 151.2589 },
+  { name: 'Samarinda (Indonesia)', lat: -0.5022, lon: 117.1536 },
+  { name: 'Taboneo (Indonesia)', lat: -3.6000, lon: 114.4833 },
+  { name: 'Port of Vostochny (Russia)', lat: 42.7381, lon: 133.0803 },
+  { name: 'Maputo TCM (Mozambique)', lat: -25.9692, lon: 32.5732 },
+  { name: 'Beira Port (Mozambique)', lat: -19.8333, lon: 34.8389 }
+];
+
+// 7 Active Simulated Vessels across Australia, Indonesia, Russia & Mozambique
+const SIMULATED_FLEET = [
+  // 1. Australia (Core Flagship Capesize)
+  {
+    id: 'vessel-aus-1',
+    name: 'Ocean Star',
+    fullName: 'MV OCEAN STAR',
+    type: 'Capesize Bulker (178,000 DWT)',
+    flag: '🇦🇺',
+    origin: 'Gladstone, Australia',
+    destination: 'Visakhapatnam (INVTZ)',
+    cargo: '160,000 MT Premium Low-Vol HCC',
+    speed: '13.2 kn',
+    color: '#00f0ff', // Electric Cyan
+    offset: 0.65,
+    coordinates: [
+      [-23.84, 151.26],
+      [-19.50, 147.50],
+      [-11.00, 143.00],
+      [-10.50, 135.00],
+      [-11.00, 125.00],
+      [-8.70, 115.70],
+      [-6.00, 105.80],
+      [2.00, 95.00],
+      [10.00, 88.00],
+      [15.00, 85.50],
+      [17.69, 83.29]
+    ]
+  },
+
+  // 2. Indonesia (Vessel A: Samarinda -> Paradip)
+  {
+    id: 'vessel-indo-1',
+    name: 'Nusantara Bulk',
+    fullName: 'MV NUSANTARA BULK',
+    type: 'Panamax Carrier (82,000 DWT)',
+    flag: '🇮🇩',
+    origin: 'Samarinda, Indonesia',
+    destination: 'Paradip Port (INPRT)',
+    cargo: '74,000 MT Thermal Steam Coal',
+    speed: '13.8 kn',
+    color: '#10b981', // Emerald
+    offset: 0.42,
+    coordinates: [
+      [-0.50, 117.15],
+      [-3.50, 117.50],
+      [-5.50, 110.50],
+      [-5.90, 106.00],
+      [0.00, 97.50],
+      [5.50, 93.00],
+      [12.00, 88.00],
+      [17.50, 86.50],
+      [20.26, 86.67]
+    ]
+  },
+
+  // 3. Indonesia (Vessel B: Taboneo -> Haldia)
+  {
+    id: 'vessel-indo-2',
+    name: 'Borneo Pioneer',
+    fullName: 'MV BORNEO PIONEER',
+    type: 'Supramax Carrier (56,000 DWT)',
+    flag: '🇮🇩',
+    origin: 'Taboneo, Indonesia',
+    destination: 'Haldia Port (INHAL)',
+    cargo: '52,000 MT Low-Ash Coal',
+    speed: '12.4 kn',
+    color: '#38bdf8', // Sky Cyan
+    offset: 0.82,
+    coordinates: [
+      [-3.60, 114.48],
+      [-2.00, 109.00],
+      [1.25, 104.00],
+      [3.00, 100.50],
+      [6.00, 95.00],
+      [14.00, 90.00],
+      [19.00, 88.50],
+      [22.02, 88.06]
+    ]
+  },
+
+  // 4. Russia (Vessel A: Vostochny -> Vizag)
+  {
+    id: 'vessel-rus-1',
+    name: 'Russian Valiant',
+    fullName: 'MV RUSSIAN VALIANT',
+    type: 'Capesize Bulker (115,000 DWT)',
+    flag: '🇷🇺',
+    origin: 'Port of Vostochny, Russia',
+    destination: 'Visakhapatnam (INVTZ)',
+    cargo: '110,000 MT High-Rank Coking Coal',
+    speed: '14.1 kn',
+    color: '#f43f5e', // Crimson Rose
+    offset: 0.58,
+    coordinates: [
+      [42.74, 133.08],
+      [35.00, 129.50],
+      [30.00, 124.00],
+      [23.00, 119.50],
+      [15.00, 114.00],
+      [5.00, 107.00],
+      [1.30, 104.20],
+      [2.50, 101.50],
+      [6.00, 95.50],
+      [11.50, 86.00],
+      [17.69, 83.29]
+    ]
+  },
+
+  // 5. Russia (Vessel B: Vostochny -> Dhamra)
+  {
+    id: 'vessel-rus-2',
+    name: 'Siberian Falcon',
+    fullName: 'MV SIBERIAN FALCON',
+    type: 'Kamsarmax Bulker (84,000 DWT)',
+    flag: '🇷🇺',
+    origin: 'Port of Vostochny, Russia',
+    destination: 'Dhamra Port (INDHM)',
+    cargo: '72,000 MT Russian Anthracite & PCI',
+    speed: '13.0 kn',
+    color: '#fbbf24', // Amber
+    offset: 0.22,
+    coordinates: [
+      [42.74, 133.08],
+      [34.50, 129.00],
+      [28.00, 123.00],
+      [21.00, 118.00],
+      [10.00, 111.00],
+      [1.30, 104.20],
+      [4.00, 99.00],
+      [9.00, 93.00],
+      [16.50, 88.00],
+      [20.82, 86.97]
+    ]
+  },
+
+  // 6. Mozambique (Vessel A: Maputo -> Gangavaram)
+  {
+    id: 'vessel-moz-1',
+    name: 'Mozambique Express',
+    fullName: 'MV MOZAMBIQUE EXPRESS',
+    type: 'Post-Panamax (93,000 DWT)',
+    flag: '🇲🇿',
+    origin: 'Maputo TCM, Mozambique',
+    destination: 'Gangavaram (INGGV)',
+    cargo: '88,000 MT Met Coke',
+    speed: '13.5 kn',
+    color: '#c084fc', // Purple
+    offset: 0.72,
+    coordinates: [
+      [-25.97, 32.58],
+      [-20.00, 37.00],
+      [-12.00, 43.00],
+      [-4.00, 52.00],
+      [1.50, 68.00],
+      [5.80, 80.50],
+      [10.00, 83.50],
+      [15.00, 84.50],
+      [17.62, 83.24]
+    ]
+  },
+
+  // 7. Mozambique (Vessel B: Beira -> Paradip)
+  {
+    id: 'vessel-moz-2',
+    name: 'Zambezi Trader',
+    fullName: 'MV ZAMBEZI TRADER',
+    type: 'Handymax Carrier (52,000 DWT)',
+    flag: '🇲🇿',
+    origin: 'Beira Port, Mozambique',
+    destination: 'Paradip Port (INPRT)',
+    cargo: '48,000 MT Coking Coal',
+    speed: '12.1 kn',
+    color: '#2dd4bf', // Teal
+    offset: 0.32,
+    coordinates: [
+      [-19.83, 34.84],
+      [-15.00, 42.00],
+      [-5.00, 55.00],
+      [2.00, 72.00],
+      [5.90, 80.60],
+      [12.00, 85.00],
+      [17.00, 86.00],
+      [20.26, 86.67]
+    ]
+  }
+];
+
+// Distance between two lat/lon points
+function getDist(p1, p2) {
+  const dLat = p2[0] - p1[0];
+  const dLon = p2[1] - p1[1];
+  return Math.sqrt(dLat * dLat + dLon * dLon);
 }
 
-// 1. Australian Gladstone Departure -> East Coast India Main Route Waypoints
-const VOYAGE_WAYPOINTS = [
-  { lon: 151.25, lat: -23.84, name: 'Gladstone, Australia', speed: '12.8 kn', status: 'Departed Outer Terminal' },
-  { lon: 147.50, lat: -19.50, name: 'Great Barrier Reef Corridor', speed: '13.1 kn', status: 'Eco-Steaming Transit' },
-  { lon: 143.00, lat: -11.00, name: 'Torres Strait Approach', speed: '11.8 kn', status: 'Pilotage Inward' },
-  { lon: 135.00, lat: -10.50, name: 'Arafura Sea Deepwater', speed: '13.4 kn', status: 'Full Sea Speed' },
-  { lon: 125.00, lat: -11.00, name: 'Timor Sea Transit', speed: '13.2 kn', status: 'Navigating Open Corridor' },
-  { lon: 116.00, lat: -9.00,  name: 'Lombok Strait Gateway', speed: '12.0 kn', status: 'Tidal Current Navigation' },
-  { lon: 105.00, lat: -6.50,  name: 'Sunda Strait Alternative Bypass', speed: '13.5 kn', status: 'Open Ocean Steaming' },
-  { lon: 95.00,  lat: 2.00,   name: 'North Sumatra Basin', speed: '13.3 kn', status: 'Deep Water Passage' },
-  { lon: 88.00,  lat: 10.00,  name: 'Bay of Bengal Deepwater Gate', speed: '13.0 kn', status: 'Monitoring Synoptic Sea-State' },
-  { lon: 85.50,  lat: 15.00,  name: 'Bay of Bengal Central Corridor', speed: '13.1 kn', status: 'Approaching 80 NM Siding Gate' },
-  { lon: 83.25,  lat: 17.65,  name: 'Gangavaram / Visakhapatnam Approach', speed: '10.5 kn', status: 'Outer Anchorage Standby' }
-];
+// Total route nautical distance
+function getRouteDist(coords) {
+  let d = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    d += getDist(coords[i], coords[i + 1]);
+  }
+  return d;
+}
 
-// Pre-calculate SVG pixel points for route
-const ROUTE_POINTS = VOYAGE_WAYPOINTS.map(w => project(w.lon, w.lat));
+// Calculate interpolated position and bearing
+function calculatePositionAlongRoute(coords, progress) {
+  const clampedProgress = ((progress % 1) + 1) % 1; // Normalize to [0, 1)
+  const total = getRouteDist(coords);
+  const target = clampedProgress * total;
 
-// 2. Shortcut Pass Waypoints (Through Lombok & Sunda Strait inner corridor)
-const SHORTCUT_WAYPOINTS = [
-  { lon: 135.00, lat: -10.50 },
-  { lon: 122.00, lat: -8.50 },
-  { lon: 115.80, lat: -8.30 }, // Lombok Pass
-  { lon: 108.50, lat: -4.50 }, // Java Sea
-  { lon: 105.90, lat: -5.90 }, // Sunda Strait
-  { lon: 98.00,  lat: 0.50 },
-  { lon: 88.00,  lat: 10.00 }
-];
-const SHORTCUT_POINTS = SHORTCUT_WAYPOINTS.map(w => project(w.lon, w.lat));
+  let acc = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const seg = getDist(p1, p2);
 
-export default function VoyagePlaybackMap({ 
-  onPortSelect,
-  className = '',
-  embedded = false,
-  showControls = true
-}) {
-  const [progress, setProgress] = useState(68); // Start ~68% into voyage (Bay of Bengal entry, matching screenshot)
+    if (acc + seg >= target || i === coords.length - 2) {
+      const frac = seg === 0 ? 0 : (target - acc) / seg;
+      const lat = p1[0] + (p2[0] - p1[0]) * frac;
+      const lon = p1[1] + (p2[1] - p1[1]) * frac;
+
+      // Bearing calculation
+      const dLon = (p2[1] - p1[1]) * (Math.PI / 180);
+      const lat1Rad = p1[0] * (Math.PI / 180);
+      const lat2Rad = p2[0] * (Math.PI / 180);
+      const y = Math.sin(dLon) * Math.cos(lat2Rad);
+      const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+      let heading = (Math.atan2(y, x) * 180) / Math.PI;
+      heading = (heading + 360) % 360;
+
+      return {
+        lat,
+        lon,
+        heading: Math.round(heading),
+        segmentIndex: i,
+        pos: [lat, lon]
+      };
+    }
+    acc += seg;
+  }
+  return {
+    lat: coords[coords.length - 1][0],
+    lon: coords[coords.length - 1][1],
+    heading: 0,
+    segmentIndex: coords.length - 2,
+    pos: coords[coords.length - 1]
+  };
+}
+
+// Auto-fit geographic bounds once on load, offsetting right padding for the sign-in card
+function AutoFitWorldBounds() {
+  const map = useMap();
+  useEffect(() => {
+    try {
+      const isMobile = window.innerWidth < 640;
+      map.fitBounds([
+        [-28.0, 26.0],  // Mozambique & Southern Indian Ocean
+        [46.0, 152.0]   // Russia Far East / Japan / Australia East
+      ], {
+        paddingTopLeft: [20, 20],
+        paddingBottomRight: isMobile ? [20, 20] : [320, 20],
+        maxZoom: 5,
+        animate: false
+      });
+    } catch {
+      // safe fallback
+    }
+  }, [map]);
+  return null;
+}
+
+export default function VoyagePlaybackMap() {
+  const [baseProgress, setBaseProgress] = useState(0.50);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Layer Toggles matching screenshot checkboxes
-  const [layers, setLayers] = useState({
-    weather: true,
-    congestion: true,
-    navRestrictions: true,
-    alternativeRoutes: true
-  });
-
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const animationRef = useRef(null);
   const lastTimeRef = useRef(performance.now());
 
-  // Continuous Voyage Animation
+  // Continuous animation loop (60 FPS)
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -83,10 +319,10 @@ export default function VoyagePlaybackMap({
       const delta = (time - lastTimeRef.current) / 1000;
       lastTimeRef.current = time;
 
-      // Complete full journey in ~40 seconds
-      setProgress((prev) => {
-        const next = prev + (delta * 2.5);
-        return next > 100 ? 0 : next;
+      // ~45 seconds for full loop at 1x
+      setBaseProgress((prev) => {
+        const next = prev + (delta * (0.022 * playbackSpeed));
+        return next >= 1 ? 0 : next;
       });
 
       animationRef.current = requestAnimationFrame(animate);
@@ -98,500 +334,322 @@ export default function VoyagePlaybackMap({
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPlaying]);
+  }, [isPlaying, playbackSpeed]);
 
-  // Calculate current ship coordinate along polyline based on progress % (0 - 100)
-  const currentSegment = (() => {
-    const totalSegments = ROUTE_POINTS.length - 1;
-    const fraction = (progress / 100) * totalSegments;
-    const index = Math.min(Math.floor(fraction), totalSegments - 1);
-    const segmentProgress = fraction - index;
+  // Compute live vessel positions and split paths
+  const fleetData = useMemo(() => {
+    return SIMULATED_FLEET.map((vessel) => {
+      const vesselProgress = (baseProgress + vessel.offset) % 1.0;
+      const state = calculatePositionAlongRoute(vessel.coordinates, vesselProgress);
+      
+      // Sailed portion
+      const sailed = vessel.coordinates.slice(0, state.segmentIndex + 1);
+      sailed.push(state.pos);
 
-    const p1 = ROUTE_POINTS[index];
-    const p2 = ROUTE_POINTS[index + 1];
+      // Remaining portion
+      const remaining = [state.pos, ...vessel.coordinates.slice(state.segmentIndex + 1)];
 
-    const currentX = p1[0] + (p2[0] - p1[0]) * segmentProgress;
-    const currentY = p1[1] + (p2[1] - p1[1]) * segmentProgress;
+      return {
+        ...vessel,
+        state,
+        sailed,
+        remaining,
+        progressPercent: Math.round(vesselProgress * 100)
+      };
+    });
+  }, [baseProgress]);
 
-    // Heading calculation in degrees
-    const dx = p2[0] - p1[0];
-    const dy = p2[1] - p1[1];
-    let angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  // Create vessel DivIcon
+  const createVesselIcon = (vessel, heading) => {
+    return L.divIcon({
+      className: 'custom-fleet-ship-marker',
+      iconSize: [110, 32],
+      iconAnchor: [55, 16],
+      html: `
+        <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+          <!-- Floating Vessel Tag -->
+          <div style="
+            background: rgba(11, 18, 30, 0.94);
+            border: 1px solid ${vessel.color};
+            border-radius: 9999px;
+            padding: 1.5px 6px;
+            display: flex;
+            align-items: center;
+            gap: 3.5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            white-space: nowrap;
+            margin-bottom: 2px;
+          ">
+            <span style="font-size: 9px;">${vessel.flag}</span>
+            <span style="font-size: 8.5px; font-weight: 700; color: #ffffff; font-family: monospace;">${vessel.name}</span>
+            <span style="font-size: 8px; font-weight: 800; color: ${vessel.color};">${vessel.speed}</span>
+          </div>
 
-    const wp = VOYAGE_WAYPOINTS[Math.min(index + 1, VOYAGE_WAYPOINTS.length - 1)];
+          <!-- Directional Ship Pointer -->
+          <div style="position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="
+              position: absolute;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background: ${vessel.color};
+              opacity: 0.35;
+              animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+            "></div>
+            <div style="
+              transform: rotate(${heading}deg);
+              width: 12px;
+              height: 12px;
+              background: ${vessel.color};
+              clip-path: polygon(50% 0%, 0% 100%, 50% 75%, 100% 100%);
+              filter: drop-shadow(0 0 4px ${vessel.color});
+            "></div>
+          </div>
+        </div>
+      `
+    });
+  };
 
-    return {
-      x: currentX,
-      y: currentY,
-      angle: angleDeg,
-      waypoint: wp,
-      index
-    };
-  })();
+  // Indian Port Radar Beacon DivIcon
+  const createPortIcon = (port) => {
+    return L.divIcon({
+      className: 'custom-port-marker',
+      iconSize: [84, 28],
+      iconAnchor: [42, 14],
+      html: `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="position: relative; width: 12px; height: 12px; display: flex; align-items: center; justify-content: center;">
+            <div style="
+              position: absolute;
+              width: 22px;
+              height: 22px;
+              border-radius: 50%;
+              border: 1.5px solid #00f0ff;
+              opacity: 0.75;
+              animation: ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+            "></div>
+            <div style="width: 7px; height: 7px; border-radius: 50%; background: #00f0ff; box-shadow: 0 0 8px #00f0ff;"></div>
+          </div>
+          <div style="
+            background: rgba(8, 12, 22, 0.90);
+            border: 1px solid rgba(0, 240, 255, 0.6);
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-size: 8px;
+            font-weight: 700;
+            color: #00f0ff;
+            font-family: monospace;
+            white-space: nowrap;
+            margin-top: 1px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+          ">
+            ${port.name.split(' ')[0]}
+          </div>
+        </div>
+      `
+    });
+  };
 
-  // Build Travelled Route (solid cyan) and Remaining Route (dashed cyan) SVG paths
-  const travelledPath = (() => {
-    let d = `M ${ROUTE_POINTS[0][0]} ${ROUTE_POINTS[0][1]}`;
-    for (let i = 1; i <= currentSegment.index; i++) {
-      d += ` L ${ROUTE_POINTS[i][0]} ${ROUTE_POINTS[i][1]}`;
-    }
-    d += ` L ${currentSegment.x} ${currentSegment.y}`;
-    return d;
-  })();
-
-  const remainingPath = (() => {
-    let d = `M ${currentSegment.x} ${currentSegment.y}`;
-    for (let i = currentSegment.index + 1; i < ROUTE_POINTS.length; i++) {
-      d += ` L ${ROUTE_POINTS[i][0]} ${ROUTE_POINTS[i][1]}`;
-    }
-    return d;
-  })();
-
-  const shortcutPathD = (() => {
-    return SHORTCUT_POINTS.reduce((acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt[0]} ${pt[1]}`, '');
-  })();
-
-  // Key Destination & Origin Port coordinates
-  const pGladstone = project(151.25, -23.84);
-  const pGangavaram = project(83.22, 17.62);
-  const pVizag = project(83.30, 17.70);
-  const pParadip = project(86.67, 20.26);
-  const pDhamra = project(87.01, 20.82);
-
-  // Weather risk coordinates (Bay of Bengal Depression & Coral Sea)
-  const pWeatherBob = project(88.5, 15.0);
-  const pWeatherCoral = project(149.0, -18.0);
+  // Origin Port Amber DivIcon
+  const createOriginIcon = (port) => {
+    return L.divIcon({
+      className: 'custom-origin-marker',
+      iconSize: [96, 26],
+      iconAnchor: [48, 13],
+      html: `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 6px #f59e0b;"></div>
+          <div style="
+            background: rgba(12, 18, 28, 0.90);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-size: 8px;
+            font-weight: 600;
+            color: #fbbf24;
+            font-family: monospace;
+            white-space: nowrap;
+            margin-top: 1px;
+          ">
+            ${port.name}
+          </div>
+        </div>
+      `
+    });
+  };
 
   return (
-    <div className={`relative w-full h-full bg-[#080c14] overflow-hidden select-none font-sans text-slate-200 ${className}`}>
+    <div className="relative w-full h-full bg-[#080c14] overflow-hidden select-none">
       
-      {/* MAIN SVG VECTOR MAP CANVAS (Unobstructed 80%+ View) */}
-      <div className="w-full h-full origin-center">
-        <svg
-          viewBox="0 0 1000 520"
-          className="w-full h-full object-cover"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <defs>
-            {/* Cyan Glow for Active Travelled Route */}
-            <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+      {/* 1. REAL WORLD LEAFLET MAP WITH ESRI WORLD DARK GRAY (Clean, No Watermarks) */}
+      <MapContainer
+        center={[12.0, 85.0]}
+        zoom={3}
+        zoomControl={false}
+        attributionControl={false}
+        scrollWheelZoom={true}
+        doubleClickZoom={false}
+        style={{ width: '100%', height: '100%', background: '#080c14' }}
+      >
+        <AutoFitWorldBounds />
 
-            {/* Vessel Radar Pulse Gradient */}
-            <radialGradient id="vesselPulse" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.8" />
-              <stop offset="70%" stopColor="#06b6d4" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
-            </radialGradient>
+        {/* Esri World Dark Gray Basemap: High-res, authentic geography, zero watermark */}
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={16}
+        />
 
-            {/* Congested Port Red Pulse */}
-            <radialGradient id="portRedPulse" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.9" />
-              <stop offset="60%" stopColor="#ef4444" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
-            </radialGradient>
+        {/* A. Destination Indian East Coast Ports with Radar Pings */}
+        {INDIAN_DESTINATION_PORTS.map((port) => (
+          <Marker
+            key={port.name}
+            position={[port.lat, port.lon]}
+            icon={createPortIcon(port)}
+          >
+            <Popup className="custom-maritime-popup">
+              <div className="text-xs p-1 text-slate-800">
+                <div className="font-bold text-slate-900">{port.name}</div>
+                <div className="text-emerald-700 font-semibold">{port.role}</div>
+                <div className="text-slate-500 text-[10px]">Bay of Bengal Bulk Terminal</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
-            {/* Weather Risk Orange Pulse */}
-            <radialGradient id="weatherPulse" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
-              <stop offset="70%" stopColor="#f59e0b" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-
-          {/* Deep Ocean Background */}
-          <rect x="0" y="0" width="1000" height="520" fill="#0b1120" />
-
-          {/* Graticule Grid Lines (Longitudinal & Latitudinal oceanic tracks) */}
-          <line x1="210" y1="0" x2="210" y2="520" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="470" y1="0" x2="470" y2="520" stroke="#1e293b" strokeWidth="1" strokeDasharray="4 4" />
-          <line x1="720" y1="0" x2="720" y2="520" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="0" y1="260" x2="1000" y2="260" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-
-          {/* ========================================================================= */}
-          {/* LANDMASSES (Dark Charcoal #1a2234 with subtle borders)                    */}
-          {/* ========================================================================= */}
-          <g fill="#182234" stroke="#2a3850" strokeWidth="0.75" strokeLinejoin="round">
-            
-            {/* AFRICA & ARABIA (Left Side) */}
-            <path d="
-              M 80 40 
-              Q 120 45 160 40 
-              L 180 60 L 195 85 L 185 110 L 205 135 L 225 150 L 235 180 
-              L 230 220 L 210 260 L 195 310 L 180 370 L 155 420 L 140 450 
-              L 125 435 L 100 380 L 85 340 L 75 300 L 60 250 L 50 190 
-              L 55 120 L 70 60 Z
-            " />
-
-            {/* Madagascar */}
-            <path d="M 235 340 Q 248 370 230 420 Q 215 390 222 350 Z" />
-
-            {/* Arabian Peninsula & Red Sea */}
-            <path d="
-              M 205 135 
-              L 240 120 L 275 140 L 290 175 L 260 205 L 235 180 Z
-            " />
-
-            {/* Persian Gulf & Iran/Pakistan Coast */}
-            <path d="
-              M 275 140 
-              L 310 125 L 340 135 L 370 150 L 400 160 Z
-            " />
-
-            {/* INDIA & SOUTH ASIA (Central Geographic Focus) */}
-            <path d="
-              M 370 150 
-              L 410 155 
-              L 430 140 
-              L 470 110 
-              L 515 90 
-              L 550 100 
-              L 520 120 
-              L 504 110 
-              L 494 122 
-              L 470 140 
-              L 450 171 
-              L 440 220 
-              L 425 245 
-              L 415 220 
-              L 395 185 
-              L 370 150 Z
-            " fill="#1b2538" stroke="#364969" strokeWidth="1" />
-
-            {/* Sri Lanka */}
-            <path d="M 445 235 Q 455 255 448 265 Q 438 250 445 235 Z" fill="#1b2538" stroke="#364969" />
-
-            {/* SOUTHEAST ASIA & MALAY PENINSULA */}
-            <path d="
-              M 550 100 
-              L 580 130 L 600 170 L 610 220 L 615 255 
-              L 600 250 L 590 210 L 570 180 L 550 140 Z
-            " />
-
-            {/* INDONESIA (Sumatra, Java, Borneo, Sulawesi) */}
-            {/* Sumatra */}
-            <path d="M 590 240 L 640 295 L 625 315 L 575 255 Z" />
-            {/* Java & Bali & Lombok */}
-            <path d="M 630 315 L 720 325 L 715 338 L 625 328 Z" />
-            {/* Borneo */}
-            <path d="M 645 225 L 690 215 L 710 260 L 660 280 Z" />
-            {/* Sulawesi */}
-            <path d="M 725 230 L 760 240 L 745 290 L 720 270 Z" />
-            {/* Papua New Guinea */}
-            <path d="M 830 265 L 910 285 L 890 325 L 825 305 Z" />
-
-            {/* AUSTRALIA (Right Side Departure Focus) */}
-            <path d="
-              M 770 345 
-              L 810 340 
-              L 845 320 
-              L 877 335 
-              L 865 375 
-              L 910 395 
-              L 940 425 
-              L 945 470 
-              L 915 500 
-              L 850 495 
-              L 790 480 
-              L 740 430 
-              L 714 401 
-              L 730 355 
-              Z
-            " fill="#1c273b" stroke="#3b5073" strokeWidth="1" />
-
-          </g>
-
-          {/* ========================================================================= */}
-          {/* GEOGRAPHICAL LABELS (Matching User Screenshot Typography)                 */}
-          {/* ========================================================================= */}
-          <g fill="#475569" fontSize="9" fontWeight="700" letterSpacing="0.08em" className="select-none">
-            <text x="95" y="55">LIBYA</text>
-            <text x="145" y="60">EGYPT</text>
-            <text x="215" y="85">SAUDI ARABIA</text>
-            <text x="75" y="115">NIGER</text>
-            <text x="115" y="125">CHAD</text>
-            <text x="150" y="130">SUDAN</text>
-            <text x="180" y="175">ETHIOPIA</text>
-            <text x="100" y="240">DR CONGO</text>
-            <text x="165" y="255">TANZANIA</text>
-            <text x="80" y="300">ANGOLA</text>
-            <text x="125" y="315">ZAMBIA</text>
-            <text x="85" y="380">NAMIBIA</text>
-            <text x="110" y="440">SOUTH AFRICA</text>
-
-            <text x="635" y="285" fill="#64748b" fontSize="10">INDONESIA</text>
-            <text x="815" y="420" fill="#64748b" fontSize="12">AUSTRALIA</text>
-
-            <text x="360" y="380" fill="#334155" fontSize="14" fontStyle="italic" letterSpacing="0.15em">
-              Indian Ocean
-            </text>
-            <text x="880" y="80" fill="#334155" fontSize="13" fontStyle="italic">
-              Pacific Ocean
-            </text>
-          </g>
-
-          {/* ========================================================================= */}
-          {/* WEATHER / CYCLONE RISK ZONES (If Layer Active)                           */}
-          {/* ========================================================================= */}
-          {layers.weather && (
-            <g>
-              {/* Bay of Bengal Weather Alert */}
-              <circle cx={pWeatherBob[0]} cy={pWeatherBob[1]} r="32" fill="url(#weatherPulse)" />
-              <circle 
-                cx={pWeatherBob[0]} 
-                cy={pWeatherBob[1]} 
-                r="30" 
-                fill="none" 
-                stroke="#f59e0b" 
-                strokeWidth="1.5" 
-                strokeDasharray="4 4"
-                className="animate-spin"
-                style={{ transformOrigin: `${pWeatherBob[0]}px ${pWeatherBob[1]}px`, animationDuration: '18s' }}
-              />
-              <circle cx={pWeatherBob[0]} cy={pWeatherBob[1]} r="4" fill="#f59e0b" />
-
-              {/* Coral Sea Cyclonic Swell */}
-              <circle cx={pWeatherCoral[0]} cy={pWeatherCoral[1]} r="24" fill="url(#weatherPulse)" />
-              <circle cx={pWeatherCoral[0]} cy={pWeatherCoral[1]} r="22" fill="none" stroke="#f59e0b" strokeWidth="1.2" strokeDasharray="3 3" />
-            </g>
-          )}
-
-          {/* ========================================================================= */}
-          {/* ALTERNATIVE SHORTCUT PASS ROUTE (Green Dashed)                            */}
-          {/* ========================================================================= */}
-          {layers.alternativeRoutes && (
-            <g>
-              <path
-                d={shortcutPathD}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="2"
-                strokeDasharray="5 5"
-                opacity="0.8"
-              />
-              <text x="640" y="300" fill="#10b981" fontSize="8" fontWeight="bold">
-                Lombok / Sunda Shortcut
-              </text>
-            </g>
-          )}
-
-          {/* ========================================================================= */}
-          {/* REMAINING ROUTE (Cyan Dashed)                                             */}
-          {/* ========================================================================= */}
-          <path
-            d={remainingPath}
-            fill="none"
-            stroke="#38bdf8"
-            strokeWidth="2.2"
-            strokeDasharray="6 4"
-            opacity="0.85"
+        {/* B. International Origin Ports */}
+        {ORIGIN_PORTS.map((port) => (
+          <Marker
+            key={port.name}
+            position={[port.lat, port.lon]}
+            icon={createOriginIcon(port)}
           />
+        ))}
 
-          {/* ========================================================================= */}
-          {/* TRAVELLED ROUTE (Solid Glowing Cyan)                                      */}
-          {/* ========================================================================= */}
-          <path
-            d={travelledPath}
-            fill="none"
-            stroke="#06b6d4"
-            strokeWidth="3"
-            filter="url(#cyanGlow)"
-            strokeLinecap="round"
-          />
-
-          {/* ========================================================================= */}
-          {/* DESTINATION CONGESTED PORTS (Red Pulsing Circles)                         */}
-          {/* ========================================================================= */}
-          {layers.congestion && (
-            <g>
-              {/* Gangavaram Port (INGGV) */}
-              <circle cx={pGangavaram[0]} cy={pGangavaram[1]} r="20" fill="url(#portRedPulse)" />
-              <circle cx={pGangavaram[0]} cy={pGangavaram[1]} r="18" fill="none" stroke="#ef4444" strokeWidth="1.5" className="animate-ping" style={{ transformOrigin: `${pGangavaram[0]}px ${pGangavaram[1]}px`, animationDuration: '3s' }} />
-              <circle cx={pGangavaram[0]} cy={pGangavaram[1]} r="4" fill="#ef4444" />
-              <g transform={`translate(${pGangavaram[0] - 80}, ${pGangavaram[1] + 5})`}>
-                <rect x="0" y="0" width="75" height="15" rx="3" fill="#0f172a" stroke="#ef4444" strokeWidth="0.8" />
-                <text x="4" y="11" fill="#fca5a5" fontSize="8" fontWeight="bold">Gangavaram INGGV</text>
-              </g>
-
-              {/* Visakhapatnam Port (INVTZ) */}
-              <circle cx={pVizag[0]} cy={pVizag[1]} r="4" fill="#06b6d4" />
-              <g transform={`translate(${pVizag[0] + 8}, ${pVizag[1] - 4})`}>
-                <rect x="0" y="0" width="55" height="15" rx="3" fill="#0f172a" stroke="#06b6d4" strokeWidth="0.8" />
-                <text x="4" y="11" fill="#67e8f9" fontSize="8" fontWeight="bold">Vizag INVTZ</text>
-              </g>
-
-              {/* Paradip Port (INPRT) */}
-              <circle cx={pParadip[0]} cy={pParadip[1]} r="18" fill="url(#portRedPulse)" opacity="0.7" />
-              <circle cx={pParadip[0]} cy={pParadip[1]} r="4" fill="#ef4444" />
-              <g transform={`translate(${pParadip[0] + 8}, ${pParadip[1] - 4})`}>
-                <rect x="0" y="0" width="60" height="15" rx="3" fill="#0f172a" stroke="#ef4444" strokeWidth="0.8" />
-                <text x="4" y="11" fill="#fca5a5" fontSize="8" fontWeight="bold">Paradip INPRT</text>
-              </g>
-            </g>
-          )}
-
-          {/* Departure Port: Gladstone, Australia */}
-          <g transform={`translate(${pGladstone[0]}, ${pGladstone[1]})`}>
-            <circle cx="0" cy="0" r="10" fill="url(#vesselPulse)" />
-            <circle cx="0" cy="0" r="4" fill="#06b6d4" />
-            <text x="-75" y="16" fill="#e2e8f0" fontSize="8" fontWeight="bold">
-              Gladstone Terminal 🇦🇺
-            </text>
-          </g>
-
-          {/* ========================================================================= */}
-          {/* THE MOVING BULK CARRIER ("Ocean Star • 13 kn")                            */}
-          {/* ========================================================================= */}
-          <g transform={`translate(${currentSegment.x}, ${currentSegment.y})`}>
-            
-            {/* Animated Radar Pulse behind vessel */}
-            <circle cx="0" cy="0" r="16" fill="url(#vesselPulse)" />
-            <circle 
-              cx="0" 
-              cy="0" 
-              r="22" 
-              fill="none" 
-              stroke="#06b6d4" 
-              strokeWidth="1.2" 
-              opacity="0.6"
-              className="animate-ping"
-              style={{ transformOrigin: '0 0', animationDuration: '2.5s' }}
+        {/* C. Shipping Route Lines (Solid for Sailed, Dashed for Remaining) */}
+        {fleetData.map((vessel) => (
+          <React.Fragment key={`corridor-${vessel.id}`}>
+            {/* Sailed Route (Solid, High-Contrast Glow) */}
+            <Polyline
+              positions={vessel.sailed}
+              pathOptions={{
+                color: vessel.color,
+                weight: 2.2,
+                opacity: 0.9,
+                lineCap: 'round',
+                lineJoin: 'round'
+              }}
             />
+            {/* Remaining Course (Dashed) */}
+            <Polyline
+              positions={vessel.remaining}
+              pathOptions={{
+                color: vessel.color,
+                weight: 1.5,
+                dashArray: '5 7',
+                opacity: 0.4,
+                lineCap: 'round'
+              }}
+            />
+          </React.Fragment>
+        ))}
 
-            {/* Ship Body & Directional Arrow */}
-            <g transform={`rotate(${currentSegment.angle + 90})`}>
-              <circle cx="0" cy="0" r="8" fill="#0e7490" stroke="#22d3ee" strokeWidth="2" />
-              {/* Directional navigation chevron pointer */}
-              <polygon points="0,-7 5,5 0,2 -5,5" fill="#ffffff" />
-            </g>
+        {/* D. Live Moving Vessels */}
+        {fleetData.map((vessel) => (
+          <Marker
+            key={vessel.id}
+            position={vessel.state.pos}
+            icon={createVesselIcon(vessel, vessel.state.heading)}
+          >
+            <Popup>
+              <div className="text-xs p-1 text-slate-900 leading-snug">
+                <div className="font-extrabold flex items-center gap-1.5 border-b border-slate-200 pb-1 mb-1">
+                  <span>{vessel.flag}</span>
+                  <span>{vessel.fullName}</span>
+                </div>
+                <div className="text-slate-700 font-semibold text-[11px]">{vessel.type}</div>
+                <div className="text-emerald-700 font-medium text-[10px] mt-0.5">Cargo: {vessel.cargo}</div>
+                <div className="text-slate-600 text-[10px]">Speed: {vessel.speed} • Heading: {vessel.state.heading}°</div>
+                <div className="text-cyan-700 text-[10px] font-bold mt-1">Route: {vessel.origin} ➔ {vessel.destination}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
 
-            {/* FLOATING VESSEL BADGE: "Ocean Star • 13 kn" (Matching Screenshot Exactly) */}
-            <g transform="translate(-46, -26)">
-              <rect
-                x="0"
-                y="0"
-                width="92"
-                height="18"
-                rx="9"
-                fill="#0f172a"
-                stroke="#22d3ee"
-                strokeWidth="1.2"
-                filter="drop-shadow(0 2px 5px rgba(0,0,0,0.7))"
-              />
-              <circle cx="9" cy="9" r="3" fill="#22d3ee" className="animate-pulse" />
-              <text
-                x="17"
-                y="12.5"
-                fill="#ffffff"
-                fontSize="9"
-                fontWeight="bold"
-                letterSpacing="0.02em"
-              >
-                Ocean Star • {currentSegment.waypoint.speed}
-              </text>
-            </g>
-
-          </g>
-
-        </svg>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 4. BOTTOM PLAYBACK SCRUBBER & TELEMETRY CONTROLS (Exact Match)             */}
-      {/* ========================================================================= */}
-      {showControls && (
-        <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-[#080c14] via-[#080c14]/95 to-transparent pt-6 pb-3 px-4 sm:px-6">
+      {/* 2. BOTTOM PLAYBACK SCRUBBER BAR (Left 80%, No Clutter, Clean Controls) */}
+      <div className="absolute bottom-3 left-3 right-3 sm:right-[330px] z-[500] pointer-events-auto">
+        <div className="bg-[#0b1220]/90 backdrop-blur-xl border border-slate-700/80 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-2xl flex flex-col gap-2">
           
-          {/* Control Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs mb-2">
+          {/* Top Row: Playback & Active Fleet Status */}
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
             
-            {/* Play/Pause Button + Departure Label */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Left: Play/Pause and Speed */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
+                type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-8 h-8 rounded-full bg-cyan-500 hover:bg-cyan-400 active:scale-95 text-slate-950 flex items-center justify-center shadow-lg transition-transform cursor-pointer shrink-0"
-                title={isPlaying ? 'Pause Playback' : 'Play Simulation'}
+                className="w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center transition-transform active:scale-95 cursor-pointer shadow-md shadow-emerald-500/30"
+                title={isPlaying ? 'Pause Simulation' : 'Play Simulation'}
               >
-                {isPlaying ? <Pause className="w-4 h-4 fill-slate-950" /> : <Play className="w-4 h-4 fill-slate-950 ml-0.5" />}
+                {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
               </button>
 
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-300">Departure:</span>
-                <span className="text-white font-bold">Gladstone, Australia</span>
+              <button
+                type="button"
+                onClick={() => setPlaybackSpeed(playbackSpeed === 1 ? 2 : playbackSpeed === 2 ? 4 : 1)}
+                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-[10px] font-bold border border-slate-700 transition-colors cursor-pointer flex items-center gap-1"
+                title="Simulation Speed"
+              >
+                <FastForward className="w-3 h-3 text-cyan-400" />
+                <span>{playbackSpeed}x</span>
+              </button>
+
+              <div className="flex items-center gap-1.5 text-slate-300 font-medium text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-semibold text-white">7 Simulated Bulkers</span>
+                <span className="text-slate-500 hidden md:inline">| East Coast Inbound</span>
               </div>
             </div>
 
-            {/* Playback Scrubber Slider */}
-            <div className="flex-1 w-full max-w-md flex items-center gap-3">
-              <span className="text-[11px] text-slate-400 font-mono shrink-0">
-                Playback Progress: <strong className="text-cyan-400">{Math.round(progress)}%</strong>
+            {/* Right: Country Corridors Badges */}
+            <div className="hidden sm:flex items-center gap-1.5 font-mono text-[9px]">
+              <span className="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/60">
+                🇦🇺 Australia (1)
               </span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="0.1"
-                value={progress}
-                onChange={(e) => {
-                  setProgress(parseFloat(e.target.value));
-                  setIsPlaying(false);
-                }}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-              />
-            </div>
-
-            {/* Current AIS Telemetry */}
-            <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
-              <span>Current AIS:</span>
-              <span className="text-cyan-300 font-bold truncate max-w-[210px]">
-                {currentSegment.waypoint.name}
+              <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                🇮🇩 Indonesia (2)
+              </span>
+              <span className="px-2 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800/60">
+                🇷🇺 Russia (2)
+              </span>
+              <span className="px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800/60">
+                🇲🇿 Mozambique (2)
               </span>
             </div>
 
           </div>
 
-          {/* 5. LEGEND PILLS (Active Vessel, Travelled Route, Remaining Route, Shortcut Pass, Congested Port, Weather) */}
-          <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 border-t border-slate-800/80 pt-2 font-medium">
-            
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400" />
-              <span className="text-slate-200">Active Vessel</span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-0.5 bg-cyan-400 rounded" />
-              <span>Travelled Route</span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-0.5 border-b border-cyan-400 border-dashed" />
-              <span>Remaining Route</span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-0.5 border-b border-emerald-400 border-dashed" />
-              <span>Shortcut Pass</span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>Congested Port</span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span>Weather / Nav Risk</span>
-            </div>
-
+          {/* Bottom Row: Scrubber Range Slider */}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-slate-400 w-9">
+              {Math.round(baseProgress * 100)}%
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.005"
+              value={baseProgress}
+              onChange={(e) => setBaseProgress(parseFloat(e.target.value))}
+              className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            />
+            <span className="text-[10px] font-mono text-emerald-400 hidden sm:inline">
+              LIVE AIS CORRIDORS
+            </span>
           </div>
 
         </div>
-      )}
+      </div>
 
     </div>
   );
