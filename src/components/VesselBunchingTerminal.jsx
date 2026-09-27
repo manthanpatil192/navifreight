@@ -515,7 +515,7 @@ export default function VesselBunchingTerminal({
                     <th className="p-2.5">Cargo & Consignee</th>
                     <th className="p-2.5">Fairway Dist</th>
                     <th className="p-2.5">Speed (SOG)</th>
-                    <th className="p-2.5">ETA to 80 NM</th>
+                    <th className="p-2.5">ETA (6h Alert)</th>
                     <th className="p-2.5">Fuel Onboard</th>
                     <th className="p-2.5 text-right">Triage Assignment</th>
                   </tr>
@@ -745,7 +745,7 @@ export default function VesselBunchingTerminal({
                   </div>
 
                   <p className="text-xs text-emerald-300/90 bg-emerald-950/30 p-2.5 rounded border border-emerald-900/50 mt-3 leading-relaxed">
-                    Direct entry to berth upon reaching 80 NM. Coal unloaded directly to daily FOIS rake trains for blast furnaces at <b>{portConfig.consignee1}</b>, addressing its critical <b>{portConfig.inventoryDays1}-day</b> inventory deficit.
+                    Direct entry to berth upon reaching 6-Hour Arrival Window. Coal unloaded directly to daily FOIS rake trains for blast furnaces at <b>{portConfig.consignee1}</b>, addressing its critical <b>{portConfig.inventoryDays1}-day</b> inventory deficit.
                   </p>
                 </div>
 

@@ -146,7 +146,7 @@ const createPortIcon = (portName) => {
 const PORT_CALL_LOGBOOK = [
   { id: 1, vessel: 'MV OLYMPIC GLORY', type: 'Capesize', port: 'Paradip Port Outer', event: 'Entered Geofence', time: '08:45 IST', status: 'Inbound Pilot Check' },
   { id: 2, vessel: 'MV OCEAN FREEDOM', type: 'Capesize', port: 'Paradip Anchorage', event: 'Dropped Anchor', time: '06:12 IST', status: 'Queue Pos #2 (Wait 18h)' },
-  { id: 3, vessel: 'MV MAHA JACQUELINE', type: 'Capesize', port: 'Paradip Port Outer', event: 'Entered 80 NM Gate', time: '09:20 IST', status: 'Approaching Fairway' },
+  { id: 3, vessel: 'MV MAHA JACQUELINE', type: 'Capesize', port: 'Paradip Port Outer', event: 'Entered 6h ETA Window', time: '09:20 IST', status: 'Approaching Fairway' },
   { id: 4, vessel: 'MV TCI ANAND', type: 'Handymax', port: 'Haldia Lock Basin', event: 'Tidal Lock Inbound', time: '07:30 IST', status: 'Draft 7.6m OK' },
   { id: 5, vessel: 'MV CHENNAI SELVAM', type: 'Panamax', port: 'Vizag Outer Harbour', event: 'Pilot Onboard', time: '09:50 IST', status: 'Berthing at OB-1' },
   { id: 6, vessel: 'MT DESH SHANTI', type: 'VLCC Tanker', port: 'Paradip SPM', event: 'Moored to SPM Buoy', time: '05:30 IST', status: 'Crude Discharge Active' },
@@ -287,7 +287,7 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
       if (hoursElapsed > 18) {
         return {
           ...v,
-          status: 'Underway - Approaching 80 NM Gate',
+          status: 'Underway - Inbound Approach',
           speedKnots: 12.4,
           headingDegrees: 345,
           lastTelemetryUpdate: Date.now()
@@ -345,8 +345,9 @@ export const advanceFleetByHours = (vesselsList, hoursElapsed) => {
 
     const remainingDistNM = Math.max(0, currentDistNM - distanceTravelledNM);
     let newStatus = v.status;
-    if (remainingDistNM <= 80 && !v.status.includes('Anchor')) {
-      newStatus = `Underway - Entering ${v.destinationPort || 'Port'} 80 NM Gate`;
+    const estEtaHours = remainingDistNM / speed;
+    if (estEtaHours <= 6.0 && remainingDistNM > 5.0 && !v.status.includes('Anchor')) {
+      newStatus = `Underway - Inbound 6h ETA Window to ${v.destinationPort || 'Port'}`;
     }
 
     return {
@@ -569,16 +570,17 @@ const getInitialFreshNotification = () => [
     vesselType: 'Capesize',
     mmsi: '419001280',
     imo: '9482109',
-    portName: 'Paradip 80 NM Sea Gate',
+    portName: 'Paradip Port Approach (ETA 6h)',
     portId: 'paradip',
     time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-    speedKnots: 10.5,
+    speedKnots: 12.5,
     currentDraught: 18.2,
     cargo: '160,000 MT Semi-Soft Coking Coal',
     dwt: 178000,
-    coordinates: [19.1800, 87.4500], // Real GPS coordinates actively entering Paradip 80 NM Gate (76.3 NM)
-    geofenceRadiusNm: 80,
-    distNM: 76.3,
+    coordinates: [19.1800, 87.4500],
+    etaHours: 6.0,
+    distNM: 75.0,
+    alertType: 'Railway Multi-Modal Dispatch (6h ETA)',
     isFresh: true,
     isLiveAisStream: true,
     timestamp: new Date()
@@ -809,21 +811,23 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 }
               });
 
-              // Dynamically check if live WebSocket vessel is crossing an 80 NM port approach gate
+              // Dynamically check if live WebSocket vessel ETA reaches 6-hour threshold
               if (sog >= 3.0) {
                 PORT_GEOFENCES.forEach(geo => {
                   const geoPortId = geo.id.replace('_zone', '').toLowerCase();
                   const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
                   const distKm = getHaversineDistanceKm(lat, lng, portCoords[0], portCoords[1]);
                   const distNM = distKm / 1.852;
-                  if (distNM <= 80.0 && distNM >= 60.0) {
+                  const etaHours = Number((distNM / sog).toFixed(1));
+
+                  if (etaHours <= 6.0 && distNM >= 5.0) {
                     const freshWsAlert = {
                       id: `ws_alert_${meta.MMSI || meta.MMSI_String}_${Date.now()}`,
                       vesselName: cleanShipName,
                       vesselType: 'Commercial Cargo / Bulker',
                       mmsi: String(meta.MMSI || meta.MMSI_String),
                       imo: meta.IMO ? String(meta.IMO) : '9482109',
-                      portName: `${geo.portName || geo.name} 80 NM Sea Gate`,
+                      portName: `${geo.portName || geo.name} Approach (ETA ~6h)`,
                       portId: geoPortId,
                       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
                       speedKnots: sog,
@@ -831,8 +835,9 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                       cargo: 'Imported Bulk Cargo in Transit',
                       dwt: 120000,
                       coordinates: [lat, lng],
-                      geofenceRadiusNm: 80,
+                      etaHours: etaHours,
                       distNM: Number(distNM.toFixed(1)),
+                      alertType: 'Railway Multi-Modal Dispatch (6h ETA)',
                       isFresh: true,
                       isLiveAisStream: true,
                       timestamp: new Date()
@@ -976,7 +981,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     }
   }, [activeToast]);
 
-  // Geofence entry crossing detection engine: monitors true 80 Nautical Mile perimeter around port
+  // 6-Hour Arrival ETA Railway Dispatch Detection Engine:
+  // Triggers the Railway Multi-Modal alert when any vessel reaches a 6-hour ETA window to its destination port.
   const checkGeofenceCrossings = (currentVessels) => {
     const stateMap = vesselGeofenceStateRef.current;
     const newAlerts = [];
@@ -997,9 +1003,11 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
           const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
           const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], portCoords[0], portCoords[1]);
           const distNM = distKm / 1.852;
+          const speed = (v.speedKnots && v.speedKnots > 2.0) ? v.speedKnots : 12.5;
+          const etaHours = Number((distNM / speed).toFixed(1));
           
-          // Initial state: only consider already inside if firmly inside (< 76 NM) so approachers trigger cleanly
-          stateMap.set(`${v.mmsi}_${geo.id}`, distNM < 76.0);
+          // Initial state: mark as already inside if within 6.0 hours
+          stateMap.set(`${v.mmsi}_${geo.id}`, etaHours <= 6.0);
         });
       });
       isInitialRef.current = false;
@@ -1007,8 +1015,8 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
     }
 
     currentVessels.forEach(v => {
-      // Anchored, berthed, moored or low-speed vessels cannot trigger 80 NM entry alerts
-      if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || v.status.includes('Anchor') || (v.speedKnots || 0) < 2.0)) return;
+      // Anchored, berthed, moored or low-speed vessels cannot trigger 6h arrival alerts
+      if (v.status && (v.status.includes('Berth') || v.status.includes('Moored') || (v.speedKnots || 0) < 1.0)) return;
 
       const vDestId = (v.destinationId || '').toLowerCase();
       const vDestName = (v.destinationPort || '').toLowerCase();
@@ -1022,25 +1030,25 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
         if (!isOwnPort) return;
         if (selectedDestination && geoPortId !== selectedDestination.toLowerCase()) return;
 
-        // True 80 NM Fairway Geofence: Distance between vessel and destination port approach fairway!
+        // Distance & Dynamic ETA calculation to destination port fairway
         const portCoords = PORT_APPROACH_COORDINATES[geoPortId] || geo.portCoordinates || [20.2450, 86.7150];
         const distKm = getHaversineDistanceKm(v.coordinates[0], v.coordinates[1], portCoords[0], portCoords[1]);
         const distNM = distKm / 1.852;
+        const speed = (v.speedKnots && v.speedKnots > 2.0) ? v.speedKnots : 12.5;
+        const etaHours = Number((distNM / speed).toFixed(1));
 
-        // Ignore vessels already arrived inside inner anchorage / pilot station (< 60 NM)
-        if (distNM < 60.0) return;
-
-        const isInside = distNM <= 80.0;
+        // 6-Hour Arrival Threshold: Triggers second alert (Railway Multi-Modal Dispatch)
+        const isInsideSixHours = etaHours <= 6.0 && distNM > 5.0;
         const key = `${v.mmsi}_${geo.id}`;
         const wasInside = stateMap.get(key);
 
-        if (isInside && wasInside === false) {
+        if (isInsideSixHours && wasInside === false) {
           const alertObj = {
             id: `${v.mmsi}_${geo.id}_${Date.now()}`,
             vesselName: v.name,
             vesselType: v.vesselType,
             mmsi: v.mmsi,
-            portName: geo.portName || geo.name,
+            portName: `${geo.portName || geo.name} Approach (ETA ~6h)`,
             portId: geoPortId,
             time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
             speedKnots: v.speedKnots,
@@ -1048,14 +1056,15 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             cargo: v.cargo,
             dwt: v.dwt || 160000,
             coordinates: v.coordinates,
-            geofenceRadiusNm: 80,
+            etaHours: etaHours,
             distNM: Number(distNM.toFixed(1)),
+            alertType: 'Railway Multi-Modal Dispatch (6h ETA)',
             timestamp: new Date()
           };
           newAlerts.push(alertObj);
         }
 
-        stateMap.set(key, isInside);
+        stateMap.set(key, isInsideSixHours);
       });
     });
 
@@ -1295,20 +1304,6 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             🌐 Shipping Lanes
           </button>
 
-          {/* 80 NM Geofence Overlay Toggle */}
-          <button
-            onClick={() => setShowGeofences(!showGeofences)}
-            className={`px-2.5 py-1 border rounded text-xs font-semibold flex items-center space-x-1 transition-all cursor-pointer ${
-              showGeofences 
-                ? 'bg-amber-100 text-amber-900 border-amber-400 font-bold shadow-xs' 
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'
-            }`}
-            title="Toggle 80 Nautical Miles Offshore Approach Sea Gates"
-          >
-            <CircleDot className="w-3.5 h-3.5 text-amber-600" />
-            <span>⭕ 80 NM Geofences</span>
-          </button>
-
           {/* ETA Arrival (2–3 Days Window) Filter Toggle Button */}
           <button
             onClick={() => setShowEta2To3Days(!showEta2To3Days)}
@@ -1342,14 +1337,14 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                   ? 'bg-amber-50 text-amber-900 border-amber-300 animate-pulse' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
               }`}
-              title="Railway Multi-Modal Dispatch & 80 NM Port Geofence Alerts"
+              title="Railway Multi-Modal Dispatch (Triggered at 6-Hour Arrival ETA Threshold)"
             >
               {unreadCount > 0 ? (
                 <BellRing className="w-3.5 h-3.5 text-amber-600 animate-bounce" />
               ) : (
                 <Bell className="w-3.5 h-3.5 text-slate-600" />
               )}
-              <span>Railway Alert</span>
+              <span>Railway Alert (6h ETA)</span>
               {unreadCount > 0 && (
                 <span className="ml-0.5 px-1.5 py-0.2 bg-rose-600 text-white text-[10px] font-extrabold rounded-full">
                   {unreadCount}
@@ -1376,7 +1371,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
                   <div className="flex items-center space-x-1.5">
                     <Bell className="w-3.5 h-3.5 text-maritime-700" />
-                    <span className="font-bold text-slate-900">Railway & 80 NM Geofence Alert Logbook</span>
+                    <span className="font-bold text-slate-900">Railway Multi-Modal Alert Logbook (6h ETA Threshold)</span>
                     <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded border border-emerald-300 uppercase tracking-wide">
                       Fresh Alert
                     </span>
@@ -1405,7 +1400,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                 <div className="max-h-[34rem] overflow-y-auto space-y-2 pr-1">
                   {notifications.length === 0 ? (
                     <div className="py-6 text-center text-slate-400 text-xs">
-                      No recent geofence breaches detected.
+                      No 6-hour railway dispatch alerts active.
                     </div>
                   ) : (
                     notifications.map(notif => {
@@ -1441,10 +1436,10 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                                 <span className="text-[10px] text-slate-500 font-mono">{notif.time}</span>
                               </div>
                               <div className="text-[11px] text-slate-600 font-medium">
-                                Entered 80 NM Ring: <b className="text-maritime-800">{notif.portName}</b>
+                                ⏱️ 6-Hour Arrival ETA: <b className="text-maritime-800">{notif.portName}</b>
                               </div>
                               <div className="text-[10px] text-slate-500 truncate max-w-[210px]">
-                                {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m
+                                {notif.vesselType} • {notif.speedKnots} kts • Draft {notif.currentDraught}m • ~{notif.etaHours || '6.0'}h ETA
                               </div>
                             </div>
 
@@ -1868,72 +1863,36 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
               </Polyline>
             ))}
 
-            {/* Port Geofence: Small Non-Colliding 80 NM Sea Gates in the Bay of Bengal */}
-            {showGeofences && PORT_GEOFENCES.map((geo) => {
+            {/* Coastal Port Location Beacons (Clean port dots, zero geofence circles) */}
+            {PORT_GEOFENCES.map((geo) => {
               const isSelectedPort = geo.id.includes(selectedDestination);
               const circleColor = isSelectedPort ? '#f59e0b' : (geo.color || '#0284c7');
-              const seaCenter = geo.seaGateCoordinates || geo.center;
               const portCenter = geo.portCoordinates;
 
               return (
                 <React.Fragment key={geo.id}>
-                  {/* Seaward Approach Fairway (Dashed Line connecting Port to 80 NM Sea Gate) */}
-                  {portCenter && (
-                    <Polyline
-                      positions={[portCenter, seaCenter]}
-                      pathOptions={{
-                        color: isSelectedPort ? '#f59e0b' : '#64748b',
-                        weight: isSelectedPort ? 2.5 : 1.5,
-                        dashArray: '4 6',
-                        opacity: isSelectedPort ? 0.75 : 0.35
-                      }}
-                    />
-                  )}
-
                   {/* Coastal Port Location Beacon */}
                   {portCenter && (
                     <CircleMarker
                       center={portCenter}
-                      radius={4}
+                      radius={isSelectedPort ? 6 : 4}
                       pathOptions={{
                         color: circleColor,
                         fillColor: circleColor,
-                        fillOpacity: 0.9,
-                        weight: 1.5
+                        fillOpacity: 0.95,
+                        weight: isSelectedPort ? 2.5 : 1.5
                       }}
-                    />
-                  )}
-
-                  {/* Small Non-Colliding 80 NM Sea Gate Circle */}
-                  <Circle
-                    center={seaCenter}
-                    radius={geo.radiusMeters || 18000}
-                    pathOptions={{
-                      color: circleColor,
-                      fillColor: circleColor,
-                      fillOpacity: isSelectedPort ? 0.22 : 0.10,
-                      weight: isSelectedPort ? 3.0 : 2.0,
-                      dashArray: isSelectedPort ? '6 4' : '4 4'
-                    }}
-                  >
-                    <Tooltip 
-                      direction="top" 
-                      permanent={isSelectedPort} 
-                      opacity={0.95}
                     >
-                      <div className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-md border flex items-center space-x-1.5 whitespace-nowrap ${
-                        isSelectedPort 
-                          ? 'bg-amber-950 text-amber-300 border-amber-500 font-extrabold' 
-                          : 'bg-white/95 text-slate-800 border-slate-300'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${isSelectedPort ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
-                        <span>⭕ {geo.name} (80 NM Offshore)</span>
-                        <span className="text-[9px] text-slate-500 font-normal">
-                          • {geo.anchoredCount} Waiting
-                        </span>
-                      </div>
-                    </Tooltip>
-                  </Circle>
+                      <Tooltip direction="top" opacity={0.95}>
+                        <div className="text-[10px] font-bold px-2 py-0.5 rounded shadow-sm bg-white text-slate-800 border border-slate-300">
+                          <span>⚓ {geo.portName || geo.name}</span>
+                          <span className="text-[9px] text-slate-500 font-normal ml-1">
+                            • {geo.anchoredCount} Waiting
+                          </span>
+                        </div>
+                      </Tooltip>
+                    </CircleMarker>
+                  )}
                 </React.Fragment>
               );
             })}
@@ -2174,7 +2133,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
                       isPortFull ? 'text-amber-400' : 'text-emerald-400'
                     }`}>
-                      {isPortFull ? 'Fresh Railway & 80 NM Port Alert' : 'Fresh 80 NM Geofence Alert'}
+                      {isPortFull ? 'Fresh Railway Multi-Modal Alert (6h ETA)' : 'Fresh Railway Alert (6h ETA)'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1.5">
@@ -2200,7 +2159,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-300">
-                    Entered 80 NM Ring: <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
+                    ⏱️ 6-Hour Arrival ETA: <span className="text-emerald-300 font-bold">{activeToast.portName}</span>
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">
                     Speed: {activeToast.speedKnots} kts • Draft: {activeToast.currentDraught}m • {activeToast.cargo}
@@ -2637,7 +2596,7 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
                     <div className="flex items-center justify-between font-bold text-indigo-950">
                       <span className="flex items-center space-x-1">
                         <span>🚂</span>
-                        <span>80 NM Logistics: {evac.cluster} ({evac.distanceKm} km)</span>
+                        <span>6h Evacuation Logistics: {evac.cluster} ({evac.distanceKm} km)</span>
                       </span>
                     </div>
 

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviFreight — Technical Approach (SIH 26006)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --primary-light: #e0f2fe;
+      --blue-accent: #2563eb;
+      --blue-dark: #1e3a8a;
+      --orange: #ea580c;
+      --orange-light: #ffedd5;
+      --emerald: #059669;
+      --emerald-light: #d1fae5;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --docker-blue: #0284c7;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b1329;
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* 16:9 Presentation Slide Canvas */
+    .slide-canvas {
+      width: 1600px;
+      height: 900px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 60px 1fr 30px;
+      padding: 18px 24px 12px;
+      gap: 12px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    .header .team-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0369a1;
+      letter-spacing: -0.5px;
+    }
+    .header .team-badge .pill {
+      border: 2px solid #0284c7;
+      border-radius: 999px;
+      padding: 2px 14px;
+      background: #f0f9ff;
+    }
+    .header .title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #0f172a;
+      text-transform: uppercase;
+    }
+    .header .sih-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .header .sih-badge .dot {
+      width: 14px;
+      height: 14px;
+      background: linear-gradient(135deg, #f97316, #10b981);
+      border-radius: 50%;
+    }
+
+    /* Main Grid: 3 Columns */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr 380px;
+      gap: 14px;
+      height: 100%;
+      min-height: 0;
+    }
+
+    /* Common Card Styles */
+    .panel {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .badge-number {
+      position: absolute;
+      top: -8px;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0f172a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .pill-label {
+      background: #0284c7;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      align-self: flex-start;
+      margin: 8px 12px 4px;
+    }
+
+    /* Column 1: Left (Backend & AI) */
+    .col-left {
+      display: grid;
+      grid-template-rows: 1fr 180px;
+      gap: 12px;
+    }
+
+    .backend-panel {
+      border: 2px solid #0284c7;
+      background: #f8fafc;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .docker-banner {
+      background: #0284c7;
+      color: white;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .backend-dbs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .db-box {
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 6px;
+      font-size: 10px;
+    }
+    .db-box strong { display: block; color: #0284c7; font-size: 11px; margin-bottom: 2px; }
+    
+    .backend-services {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 10.5px;
+      line-height: 1.35;
+    }
+    .backend-services strong { color: #0f172a; }
+
+    .api-gateway-bar {
+      background: linear-gradient(90deg, #0284c7, #2563eb);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    .backend-note {
+      font-size: 9.5px;
+      color: #64748b;
+      line-height: 1.3;
+      font-style: italic;
+      margin-top: auto;
+    }
+
+    /* AI Components */
+    .ai-panel {
+      border: 2px solid #3b82f6;
+      background: #eff6ff;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ai-box {
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .ai-box strong { color: #1e40af; display: block; font-size: 10.5px; margin-bottom: 2px; }
+
+    /* Column 2: Center (Domain, Admin, Ingestion) */
+    .col-center {
+      display: grid;
+      grid-template-rows: 240px 1fr 150px;
+      gap: 12px;
+    }
+
+    .admin-panel {
+      border: 2px solid #059669;
+      background: #f0fdf4;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .admin-panel .pill-label { background: #059669; }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-left: 2px;
+    }
+    .feature-grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .feature-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+    .feature-card strong { color: #047857; display: block; font-size: 10.5px; margin-bottom: 2px; }
+    .badges-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      font-size: 9px;
+      font-weight: 700;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: #334155;
+    }
+
+    /* Domain Section */
+    .domain-panel {
+      border: 2px solid #f59e0b;
+      background: #fffbeb;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .domain-panel strong.domain-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #b45309;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .domain-panel p {
+      font-size: 10.5px;
+      color: #451a03;
+      line-height: 1.4;
+    }
+    .domain-visuals {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .vis-item {
+      background: #ffffff;
+      border: 1px solid #fcd34d;
+      border-radius: 6px;
+      padding: 6px;
+      text-align: center;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #78350f;
+    }
+    .vis-item span { font-size: 18px; display: block; margin-bottom: 2px; }
+
+    /* Ingestion Section */
+    .sensor-panel {
+      border: 2px solid #8b5cf6;
+      background: #faf5ff;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sensor-panel strong.sensor-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #6d28d9;
+      text-transform: uppercase;
+    }
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      font-size: 10px;
+    }
+    .sensor-item {
+      background: #ffffff;
+      border: 1px solid #ddd6fe;
+      border-radius: 5px;
+      padding: 5px 8px;
+    }
+    .sensor-item strong { color: #5b21b6; display: block; }
+
+    /* Column 3: Right (Web App & Mobile App) */
+    .col-right {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .app-panel {
+      border: 2px solid #0f172a;
+      background: #f8fafc;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .app-panel .pill-label { background: #0f172a; }
+    .tech-stack-icons {
+      display: flex;
+      gap: 4px;
+      margin: 0 12px 4px;
+      flex-wrap: wrap;
+    }
+    .tech-pill {
+      font-size: 9px;
+      font-weight: 800;
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .app-features {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 10px;
+    }
+    .app-feat-item {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 4px 8px;
+      line-height: 1.3;
+    }
+    .app-feat-item strong { color: #0f172a; }
+
+    .compliance-strip {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 6px;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-canvas">
+    
+    <!-- Top Header -->
+    <div class="header">
+      <div class="team-badge">
+        <span class="pill">NaviFreight</span>
+        <span>SIH 26006</span>
+      </div>
+      <div class="title">TECHNICAL APPROACH</div>
+      <div class="sih-badge">
+        <div class="dot"></div>
+        <span>Smart India Hackathon 2024 / 2026</span>
+      </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="main-grid">
+
+      <!-- LEFT COLUMN: Backend Architecture & AI Components -->
+      <div class="col-left">
+
+        <!-- 4. Backend Architecture -->
+        <div class="panel backend-panel">
+          <div class="badge-number">4</div>
+          <div class="docker-banner">
+            <span>🐳 DOCKER CONTAINER</span>
+            <span style="font-size: 10px; font-weight: 500;">python:3.11-slim</span>
+          </div>
+
+          <div class="backend-dbs">
+            <div class="db-box">
+              <strong>📈 Time-Series Store</strong>
+              Baltic BDI, VLSFO Bunker & AIS GPS Telemetry
+            </div>
+            <div class="db-box">
+              <strong>🗄️ Relational Store</strong>
+              Port Tariffs, Vessel DWT/Drafts & PSU Tenders
+            </div>
+          </div>
+
+          <div class="backend-services">
+            <strong>⚙️ Core REST Microserver (Python 3.11 + Flask):</strong>
+            High-speed REST API routing, CORS handling & Gunicorn WSGI multi-workers.
+          </div>
+
+          <div class="backend-services">
+            <strong>🔄 Ingestion & Queue (Redis + Celery):</strong>
+            Automated 24-hr Baltic fetch, IMD cyclone sync & 1,000-path Monte Carlo runs.
+          </div>
+
+          <div class="api-gateway-bar">
+            🛡️ API GATEWAY — TLS 1.3 • Rate-Limiting • RBAC
+          </div>
+
+          <div class="backend-note">
+            "Service-Oriented Architecture (SOA) for decoupled, scalable integration, ensuring high reliability during volatile freight market swings. Deployed on Render/AWS."
+          </div>
+        </div>
+
+        <!-- 8. AI Components -->
+        <div class="panel ai-panel">
+          <div class="badge-number">8</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="pill-label" style="background: #2563eb; margin: 0;">AI / ML COMPONENTS</div>
+            <span style="font-size: 9.5px; font-weight: 700; color: #1e40af;">FLASK API SERVER</span>
+          </div>
+
+          <div class="ai-box">
+            <strong>🧠 GBDT Regressor & Classifier (Scikit-Learn)</strong>
+            Forecasts 7, 14, 30-day Baltic Dry Index (BDI) and market trends (Bull/Bear) using 14-day rolling lag vectors & RobustScaler.
+          </div>
+
+          <div class="ai-box">
+            <strong>🎲 Monte Carlo & Admiralty Optimization</strong>
+            Simulates 1,000 stochastic freight paths and calculates hull biofouling fuel degradation penalties (>30 days idle).
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CENTER COLUMN: Admin Portal, Domain & Sensor Ingestion -->
+      <div class="col-center">
+
+        <!-- 3. Logistics Manager Admin Portal -->
+        <div class="panel admin-panel">
+          <div class="badge-number">3</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="pill-label">LOGISTICS MANAGER</div>
+            <span style="font-size: 11px; font-weight: 700; color: #047857;">Central Executive Portal</span>
+          </div>
+          <div class="panel-title">Intelligent Freight & Voyage Control with Web Portal</div>
+
+          <div class="feature-grid-4">
+            <div class="feature-card">
+              <strong>🔗 Seamless PSU Integration</strong>
+              Syncs with SAIL & RINL Steel ERP for inward coking coal requirements.
+            </div>
+            <div class="feature-card">
+              <strong>🚨 Real-Time Critical Alerts</strong>
+              Instant warning triggers when steel plant coal stock drops below 21 days.
+            </div>
+            <div class="feature-card">
+              <strong>🚢 Fleet & Berth Optimization</strong>
+              Dynamic Capesize/Panamax allocation & demurrage minimization.
+            </div>
+            <div class="feature-card">
+              <strong>📑 Statutory Compliance</strong>
+              Automated 48-hr Railway FOIS indenting & 96-hr Customs ICEGATE PANS.
+            </div>
+          </div>
+
+          <div class="badges-row">
+            <span class="chip">PSU ERP Data Mapping</span>
+            <span class="chip">Zero-Trust Data Protection</span>
+            <span class="chip">Charterparty Digitalization</span>
+            <span class="chip">Real-time Port Delay Matrix</span>
+          </div>
+        </div>
+
+        <!-- 1. Maritime Shipping & Bulk Ports Domain -->
+        <div class="panel domain-panel">
+          <div class="badge-number">1</div>
+          <strong class="domain-title">⚓ MARITIME SHIPPING & BULK PORTS</strong>
+          <p>
+            Bulk carriers (Capesize / Panamax / Supramax) transporting imported coking coal from Australia, Indonesia, and South Africa to Indian discharge ports (Paradip, Visakhapatnam, Haldia, Dhamra) for uninterrupted steel production at SAIL & RINL plants.
+          </p>
+
+          <div class="domain-visuals">
+            <div class="vis-item">
+              <span>🚢</span>
+              Bulk Carrier Fleet
+            </div>
+            <div class="vis-item">
+              <span>🏗️</span>
+              Seaport Gantry Cranes
+            </div>
+            <div class="vis-item">
+              <span>⛰️</span>
+              Coal Stockyard Piles
+            </div>
+            <div class="vis-item">
+              <span>🏭</span>
+              SAIL/RINL Blast Furnace
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Satellite & Sensor Ingestion -->
+        <div class="panel sensor-panel">
+          <div class="badge-number">7</div>
+          <strong class="sensor-title">📡 SATELLITE & SENSOR DATA INGESTION</strong>
+          
+          <div class="sensor-grid">
+            <div class="sensor-item">
+              <strong>🛰️ AIS Satellite Telemetry</strong>
+              Continuous vessel GPS position, SOG, COG & heading
+            </div>
+            <div class="sensor-item">
+              <strong>🌊 Ocean Radar (IMD & INCOIS)</strong>
+              Coastal wave heights, swell periods & cyclone alerts
+            </div>
+            <div class="sensor-item">
+              <strong>📈 Baltic Exchange Feeds</strong>
+              Daily BDI, BCI, BPI & VLSFO bunker indices
+            </div>
+            <div class="sensor-item">
+              <strong>⚡ Zero-Downtime Resilience</strong>
+              Direct Cloud Stream with offline cached fallback
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Web Command Center & Mobile App -->
+      <div class="col-right">
+
+        <!-- 5. Maritime Chartering Desk (Web) -->
+        <div class="panel app-panel">
+          <div class="badge-number">5</div>
+          <div class="pill-label">MARITIME CHARTERING DESK</div>
+          <div class="panel-title" style="margin-left: 12px;">Web Command Center — Cross-Platform</div>
+
+          <div class="tech-stack-icons">
+            <span class="tech-pill">React 19</span>
+            <span class="tech-pill">Tailwind v4</span>
+            <span class="tech-pill">Vite</span>
+            <span class="tech-pill">Leaflet GIS</span>
+            <span class="tech-pill">Recharts</span>
+            <span class="tech-pill">Lucide</span>
+          </div>
+
+          <div class="app-features">
+            <div class="app-feat-item">
+              <strong>🗺️ Voyage Route Planning:</strong> Live geospatial radar tracking along Indian Ocean shipping lanes.
+            </div>
+            <div class="app-feat-item">
+              <strong>⚖️ Port Diversion Decisioning:</strong> Demurrage cost vs. rerouting fuel trade-off calculation.
+            </div>
+            <div class="app-feat-item">
+              <strong>📊 AI Freight Forecaster:</strong> 7, 14, 30-day forward BDI trajectory with 80% & 95% corridors.
+            </div>
+            <div class="app-feat-item">
+              <strong>⛽ Bunker Fuel Optimizer:</strong> Speed-consumption curves under IMO 2020 VLSFO rules.
+            </div>
+          </div>
+
+          <div class="compliance-strip">
+            <span>🛡️ DG Shipping & MoPSW Compliance</span>
+            <span>📄 Auto PDF Voyage P&L</span>
+          </div>
+        </div>
+
+        <!-- 6. Jetty & Port Stevedore Agent (Mobile) -->
+        <div class="panel app-panel">
+          <div class="badge-number">6</div>
+          <div class="pill-label" style="background: #334155;">JETTY & STEVEDORE AGENT</div>
+          <div class="panel-title" style="margin-left: 12px;">Mobile Responsive App — Cross-Platform</div>
+
+          <div class="tech-stack-icons">
+            <span class="tech-pill">PWA</span>
+            <span class="tech-pill">iOS</span>
+            <span class="tech-pill">Android</span>
+            <span class="tech-pill">Tailwind</span>
+            <span class="tech-pill">Local Cache</span>
+            <span class="tech-pill">WebSockets</span>
+          </div>
+
+          <div class="app-features">
+            <div class="app-feat-item">
+              <strong>⏱️ Live Berth Status:</strong> Log vessel discharge crane rates (MT/hour) in real-time.
+            </div>
+            <div class="app-feat-item">
+              <strong>📋 Notice of Readiness (NOR):</strong> One-tap timestamp logging of NOR tender & berthing.
+            </div>
+            <div class="app-feat-item">
+              <strong>⚖️ Draft Survey Logging:</strong> Record arrival/departure drafts and jetty coal yard inventory.
+            </div>
+            <div class="app-feat-item">
+              <strong>⚠️ Port Disruption Alerts:</strong> Instant push alerts for tidal delays, swell & cyclone halts.
+            </div>
+          </div>
+
+          <div class="compliance-strip" style="background: #eff6ff; border-color: #bfdbfe; color: #1e40af;">
+            <span>📱 Real-Time Wharf-to-Cloud Sync</span>
+            <span>⚡ Offline-First Mode</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>NaviFreight — AI-Powered Maritime Logistics & Freight Intelligence Platform</span>
+      <span>Problem Statement: SIH 26006 | @SIH Idea Submission — Slide 3</span>
+    </div>
+
+  </div>
+
+</body>
+</html>

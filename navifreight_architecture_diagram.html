@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviFreight — System Architecture & Operational Workflow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #070d18;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation / Tab Bar */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 24px auto 0;
+      padding: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+      border-radius: 999px;
+      max-width: fit-content;
+      backdrop-filter: blur(12px);
+    }
+    .tab-btn {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 20px 10px;
+    }
+    .header h1 {
+      font-size: 34px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-top: 8px;
+      font-weight: 500;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .header-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-cyan  { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+    .badge-rose  { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    /* Canvas Containers */
+    .view-container {
+      max-width: 1420px;
+      margin: 30px auto;
+      padding: 0 24px;
+    }
+    .hidden { display: none !important; }
+
+    /* ========================================================================= */
+    /* WORKFLOW VIEW (4-PHASE PPT PRESENTATION LAYOUT)                            */
+    /* ========================================================================= */
+    .workflow-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+    }
+
+    .workflow-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.65));
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 20px;
+      padding: 24px 28px;
+      position: relative;
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+    }
+    .workflow-card:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateY(-2px);
+    }
+    .workflow-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      border-radius: 20px 20px 0 0;
+    }
+    .phase-1::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+    .phase-2::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .phase-3::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+    .phase-4::before { background: linear-gradient(90deg, #10b981, #34d399); }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+    .phase-tag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .phase-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+    }
+    .p1-num { background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); }
+    .p2-num { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .p3-num { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .p4-num { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    .phase-title-text {
+      font-size: 19px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+    .phase-meta-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .block-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .block-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .block-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .block-box li {
+      font-size: 13px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+    .dot-bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .highlight-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 4px;
+    }
+
+    .callout-bar {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .callout-blue  { background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.3); color: #bae6fd; }
+    .callout-amber { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde68a; }
+    .callout-rose  { background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); color: #fecdd3; }
+    .callout-green { background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0; }
+
+    /* ========================================================================= */
+    /* TECH STACK VIEW                                                           */
+    /* ========================================================================= */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .node {
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .node::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 16px 16px 0 0;
+    }
+    .node-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .node-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .node-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .node-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .node-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .node-items li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: #94a3b8;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .node-items li:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #f1f5f9;
+    }
+
+    /* Colors */
+    .node-frontend { background: rgba(14, 165, 233, 0.06); border: 1px solid rgba(56, 189, 248, 0.2); }
+    .node-frontend::before { background: #38bdf8; }
+    .node-frontend .node-icon { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+    .node-frontend .node-subtitle { color: #38bdf8; }
+
+    .node-backend { background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(52, 211, 153, 0.2); }
+    .node-backend::before { background: #34d399; }
+    .node-backend .node-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .node-backend .node-subtitle { color: #34d399; }
+
+    .node-ml { background: rgba(139, 92, 246, 0.06); border: 1px solid rgba(167, 139, 250, 0.2); }
+    .node-ml::before { background: #a78bfa; }
+    .node-ml .node-icon { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .node-ml .node-subtitle { color: #a78bfa; }
+
+    .node-ai { background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); }
+    .node-ai::before { background: #fbbf24; }
+    .node-ai .node-icon { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .node-ai .node-subtitle { color: #fbbf24; }
+
+    .node-external { background: rgba(6, 182, 212, 0.06); border: 1px solid rgba(34, 211, 238, 0.2); }
+    .node-external::before { background: #22d3ee; }
+    .node-external .node-icon { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+    .node-external .node-subtitle { color: #22d3ee; }
+
+    .node-deploy { background: rgba(244, 63, 94, 0.06); border: 1px solid rgba(251, 113, 133, 0.2); }
+    .node-deploy::before { background: #fb7185; }
+    .node-deploy .node-icon { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .node-deploy .node-subtitle { color: #fb7185; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #64748b;
+      font-size: 12px;
+      border-top: 1px solid rgba(30, 41, 59, 0.5);
+      margin-top: 50px;
+    }
+    .footer a { color: #38bdf8; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- View Switcher -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="btn-workflow" onclick="showView('workflow')">
+      <span>⚡</span>
+      <span>System Operational Workflow (PPT Slide View)</span>
+    </button>
+    <button class="tab-btn" id="btn-techstack" onclick="showView('techstack')">
+      <span>🏛️</span>
+      <span>Full-Stack Tech Architecture</span>
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🚢 NaviFreight — System Architecture</h1>
+    <p>AI-Powered Dry Bulk Freight Procurement, Vessel Optimization & Multimodal Evacuation Engine</p>
+    <div class="header-badges">
+      <span class="badge badge-green">● REDUCE VESSEL IDLING & DEMURRAGE</span>
+      <span class="badge badge-amber">● EMERGENCY COAL PRIORITY DISPATCH</span>
+      <span class="badge badge-cyan">● GLOBAL MARKET VOLATILITY SIGNALS</span>
+      <span class="badge badge-rose">● COASTAL HOP TRIANGULATION (DEADHEAD ELIMINATOR)</span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VIEW 1: SYSTEM OPERATIONAL WORKFLOW (PPT SLIDE PRESENTATION READY)         -->
+  <!-- ========================================================================= -->
+  <div id="view-workflow" class="view-container">
+    <div class="workflow-timeline">
+
+      <!-- PHASE 1 CARD -->
+      <div class="workflow-card phase-1">
+        <div class="card-top">
+          <div class="phase-tag">
+            <div class="phase-num p1-num">1</div>
+            <div>
+              <div class="phase-title-text">Bulk Cargo Ordering & Multi-Source Dataset Ingestion</div>
+              <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+                Initial user configuration synchronized with real-time global & domestic data feeds
+              </div>
+            </div>
+          </div>
+          <span class="phase-meta-badge p1-num">STEP 1 · INGESTION & NORMALIZATION</span>
+        </div>
+
+        <div class="workflow-grid">
+          <!-- User Procurement Inputs -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #38bdf8;">
+              <span>📦</span> User Procurement Order
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Commodity:</strong> Coking Coal, Thermal Coal, Met Coke, Iron Ore Fines.</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Parcel Volume:</strong> 50,000 MT (Supramax) to 180,000 MT (Capesize).</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Origin Ports:</strong> Gladstone/Hay Point (AU), Samarinda (ID), Vostochny (RU), Maputo (MZ).</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Destination Ports:</strong> Paradip (INPRT), Vizag (INVTZ), Gangavaram (INGGV), Dhamra (INDHM), Haldia (INHAL).</li>
+            </ul>
+          </div>
+
+          <!-- Labeled Datasets Ingested -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #38bdf8;">
+              <span>📊</span> Labeled Real-Time Datasets
+            </div>
+            <ul>
+              <li><span class="highlight-pill" style="background: rgba(14,165,233,0.2); color: #38bdf8;">AIS-DATA</span> <strong>Live AIS Telemetry:</strong> 165+ vessels, MMSI, SOG (kn), Draft, Coords.</li>
+              <li><span class="highlight-pill" style="background: rgba(14,165,233,0.2); color: #38bdf8;">BDI-INDEX</span> <strong>Global Freight Indices:</strong> Baltic BDI, BCI, BPI, FFA forward curves.</li>
+              <li><span class="highlight-pill" style="background: rgba(14,165,233,0.2); color: #38bdf8;">CEA-GOV</span> <strong>Domestic Plant Stockpiles:</strong> CEA 24x7 Power Coal Days, Ministry of Steel SAIL/RINL reserves.</li>
+              <li><span class="highlight-pill" style="background: rgba(14,165,233,0.2); color: #38bdf8;">BUNKER-P</span> <strong>Global Fuel Prices:</strong> VLSFO & MGO bunker benchmarks ($/MT).</li>
+              <li><span class="highlight-pill" style="background: rgba(14,165,233,0.2); color: #38bdf8;">PORT-T</span> <strong>Port Constraints:</strong> Max draft, tidal gates, berth demurrage rates ($25k–$35k/day).</li>
+            </ul>
+          </div>
+
+          <!-- Early Global Volatility Engine -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #38bdf8;">
+              <span>🌐</span> Early Global Volatility Radar
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Leading Indicators:</strong> Capesize spot surges detected 14 days before Indian port arrivals.</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Fuel & Geopolitical Shocks:</strong> Bunker price spike and canal transit congestion alerts.</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Weather & Monsoons:</strong> IMD Bay of Bengal cyclonic depression tracking.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-bar callout-blue">
+          <span>💡</span>
+          <div><strong>Ingestion Takeaway:</strong> Consolidates global Baltic indices and local CEA stockpile days into an unified feature matrix, feeding the predictive optimization models.</div>
+        </div>
+      </div>
+
+      <!-- PHASE 2 CARD -->
+      <div class="workflow-card phase-2">
+        <div class="card-top">
+          <div class="phase-tag">
+            <div class="phase-num p2-num">2</div>
+            <div>
+              <div class="phase-title-text">Vessel Bunching Engine & Emergency Coal Priority Dispatching</div>
+              <div style="font-size: 12px; color: #fbbf24; margin-top: 2px;">
+                Explicitly designed to reduce vessel idling, outer anchorage demurrage, and plant shutdown risks
+              </div>
+            </div>
+          </div>
+          <span class="phase-meta-badge p2-num">TIER-1 ALERT · 48H TO 72H (2–3 DAYS OUT)</span>
+        </div>
+
+        <div class="workflow-grid">
+          <!-- Queue & Bunching Prediction -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fbbf24;">
+              <span>⏱️</span> Tier-1 Arrival ETA (2–3 Days Out)
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> Inbound vessels tracked across Bay of Bengal / Malacca / Sri Lanka gateways.</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> Queue simulator predicts simultaneous vessel arrivals at the destination berth.</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Idling Warning:</strong> Triggers when projected waiting time exceeds 24–48 hours ($25,000+ demurrage risk).</li>
+            </ul>
+          </div>
+
+          <!-- Emergency Coal Priority Override -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fbbf24;">
+              <span>🚨</span> Emergency Coal Priority Factor
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Critical Stockpile Condition:</strong> If power/steel plant has critical inventory (&lt;4.2 days / CEA Red Flag).</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Emergency Priority Docking:</strong> That vessel is automatically elevated to Tier-1 priority for immediate berthing.</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Non-Critical Vessels:</strong> Safely slow-steamed or slotted into secondary windows to save fuel and cut anchor idling.</li>
+            </ul>
+          </div>
+
+          <!-- Anti-Idling & Demurrage Shield -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fbbf24;">
+              <span>🛡️</span> Vessel Idling Reduction Impact
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Virtual Arrival Protocol:</strong> Vessels adjust speed (eco-steaming 11 kn) to arrive precisely at berth vacancy.</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>Bunker Fuel Saved:</strong> 3.2 MT VLSFO saved per idle day avoided.</li>
+              <li><span class="dot-bullet" style="background: #fbbf24;"></span> <strong>CAG Audit Protection:</strong> Transparent timestamped demurrage justification log.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-bar callout-amber">
+          <span>⚠️</span>
+          <div><strong>Core Operational Rule:</strong> When plant inventory hits critical emergency, the algorithm dynamically overrides FIFO berthing, preventing costly power blackouts or blast furnace chilling while slashing overall fleet anchorage idling.</div>
+        </div>
+      </div>
+
+      <!-- PHASE 3 CARD -->
+      <div class="workflow-card phase-3">
+        <div class="card-top">
+          <div class="phase-tag">
+            <div class="phase-num p3-num">3</div>
+            <div>
+              <div class="phase-title-text">Critical Decision Gate & Multimodal Port Diversion</div>
+              <div style="font-size: 12px; color: #fb7185; margin-top: 2px;">
+                The 6-Hour Point of No Return: Anchorage Hold Demurrage vs Marine Diversion vs Rail/Truck Evacuation
+              </div>
+            </div>
+          </div>
+          <span class="phase-meta-badge p3-num">CRITICAL THRESHOLD · 6 HOURS ETA</span>
+        </div>
+
+        <div class="workflow-grid">
+          <!-- 6-Hour Milestone -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fb7185;">
+              <span>⏳</span> 6-Hour Point of No Return
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> Vessel approaches outer pilotage board area (80–100 NM off port).</li>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> Final window where course alterations incur minimal extra bunker consumption.</li>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> Real-time port berth availability and waiting queue locks are verified.</li>
+            </ul>
+          </div>
+
+          <!-- 3-Way Optimization Equation -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fb7185;">
+              <span>⚖️</span> 3-Way Cost & Feasibility Solver
+            </div>
+            <ul>
+              <li><span class="highlight-pill" style="background: rgba(244,63,94,0.2); color: #fb7185;">COST A</span> <strong>Hold Demurrage:</strong> ~$1,200/hr ($28,800/day) at outer roads + stockout risk.</li>
+              <li><span class="highlight-pill" style="background: rgba(244,63,94,0.2); color: #fb7185;">COST B</span> <strong>Port Diversion:</strong> Bunker fuel delta to adjacent port (Vizag ➔ Gangavaram, Paradip ➔ Dhamra).</li>
+              <li><span class="highlight-pill" style="background: rgba(244,63,94,0.2); color: #fb7185;">COST C</span> <strong>Multimodal Freight:</strong> Indian Railways FOIS rake tariff vs Road truck evacuation cost to plant.</li>
+            </ul>
+          </div>
+
+          <!-- Actionable Directive Output -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #fb7185;">
+              <span>🚦</span> Automated Actionable Directive
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> <strong>If Diversion Cost &lt; Hold Cost:</strong> Issue immediate Diversion Order to Captain & Port Agent.</li>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> <strong>FOIS Automated Indent:</strong> Pre-books railway rakes or freight trucks at alternate port.</li>
+              <li><span class="dot-bullet" style="background: #fb7185;"></span> <strong>Net Result:</strong> Eliminates 3–5 days of dead vessel idling; saves $45,000–$90,000 per voyage.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-bar callout-rose">
+          <span>🔀</span>
+          <div><strong>Decision Formula:</strong> <code>Net Cost = (Vessel Diversion Fuel + Alternate Port Tariff + Last-Mile Rail/Truck Rake Cost) vs (Anchorage Demurrage + Plant Starvation Penalty)</code>. The system executes diversion only when net savings are guaranteed.</div>
+        </div>
+      </div>
+
+      <!-- PHASE 4 CARD -->
+      <div class="workflow-card phase-4">
+        <div class="card-top">
+          <div class="phase-tag">
+            <div class="phase-num p4-num">4</div>
+            <div>
+              <div class="phase-title-text">Berth Discharge, Cargo Matcher & Coastal Hop Triangulation</div>
+              <div style="font-size: 12px; color: #34d399; margin-top: 2px;">
+                Unloading bulk cargo, matching quality to consumer plants, and eliminating 100% loss return ballast voyages
+              </div>
+            </div>
+          </div>
+          <span class="phase-meta-badge p4-num">STEP 4 · DISCHARGE & BACKHAUL</span>
+        </div>
+
+        <div class="workflow-grid">
+          <!-- Berth Discharge -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #34d399;">
+              <span>🏗️</span> Berth Discharge & Clock Stop
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Vessel alongside wharf; grab unloader discharge operations commence (2,000 MT/hr).</li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Demurrage clock officially stopped; laytime balance calculated.</li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Direct evacuation into railway wagons or wharf conveyor stockpiles.</li>
+            </ul>
+          </div>
+
+          <!-- Cargo-to-Port Matcher -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #34d399;">
+              <span>🎯</span> Cargo-to-Port Matcher
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Evaluates coal chemistry: Ash content (%), Volatile Matter, Moisture, GCV (kcal/kg).</li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Matches parcel directly to plant boiler/blast furnace requirements (RINL Vizag, SAIL Rourkela, TATA Kalinganagar).</li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> Eliminates cross-hauling and wrong-grade penalties.</li>
+            </ul>
+          </div>
+
+          <!-- Coastal Hop Triangulation -->
+          <div class="block-box">
+            <div class="block-box-title" style="color: #34d399;">
+              <span>🔄</span> Coastal Hop Triangulation (Deadhead Eliminator)
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> <strong>Problem:</strong> Empty return ballast back to Australia/Indonesia is 100% unremunerated loss.</li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> <strong>Triangulation Engine (Wetzel &amp; Tierney 2020):</strong> Finds domestic backhaul cargo along the Indian coast:
+                <br>• Coastal Thermal Coal (Paradip ➔ Ennore / Tuticorin)
+                <br>• Iron Ore Pellets / Fines (Vizag/Paradip ➔ Western India or SE Asia export).
+              </li>
+              <li><span class="dot-bullet" style="background: #34d399;"></span> <strong>Commercial Result:</strong> Converts deadhead return voyages into profitable freight legs, lowering net freight $/MT.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout-bar callout-green">
+          <span>🌱</span>
+          <div><strong>Backhaul Optimization:</strong> Eliminating empty ballast steaming slashes voyage carbon intensity (EEXI/CII compliant) and reduces total lifecycle bulk procurement expenditure by up to 18.4%.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VIEW 2: FULL-STACK TECHNICAL ARCHITECTURE (ORIGINAL TECH STACK VIEW)       -->
+  <!-- ========================================================================= -->
+  <div id="view-techstack" class="view-container hidden">
+    <div class="arch-grid">
+
+      <!-- React Frontend -->
+      <div class="node node-frontend">
+        <div class="node-header">
+          <div class="node-icon">⚛️</div>
+          <div>
+            <div class="node-title">React Frontend</div>
+            <div class="node-subtitle">Presentation &amp; UI Layer</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>React 19.2.8 (Concurrent Mode)</li>
+          <li>Vite 8.2.2 (Fast HMR &amp; CDN Build)</li>
+          <li>TailwindCSS v4.3.3</li>
+          <li>Leaflet 1.9.4 + Esri Dark Canvas</li>
+          <li>Recharts 3.10.1 (Quantile Envelopes)</li>
+          <li>Lucide React 1.37 Icons</li>
+        </ul>
+      </div>
+
+      <!-- Flask Backend -->
+      <div class="node node-backend">
+        <div class="node-header">
+          <div class="node-icon">🐍</div>
+          <div>
+            <div class="node-title">Flask Backend API</div>
+            <div class="node-subtitle">REST Microservice</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>Python 3.11.9 WSGI Runtime</li>
+          <li>Flask 3.0 + Gunicorn 21.2</li>
+          <li>8 REST Endpoints (CORS Enabled)</li>
+          <li>Health Check Liveness Probes</li>
+          <li>Indian East Coast Ports DB</li>
+        </ul>
+      </div>
+
+      <!-- ML Engine -->
+      <div class="node node-ml">
+        <div class="node-header">
+          <div class="node-icon">🧠</div>
+          <div>
+            <div class="node-title">ML / Predictive Engine</div>
+            <div class="node-subtitle">Walk-Forward Quantile GBDT</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>Scikit-Learn Quantile Regressors (P10/P50/P90)</li>
+          <li>13 Engineered Maritime Features</li>
+          <li>Baltic 7-Year Model Weights</li>
+          <li>Market Shock Ingestion Engine</li>
+        </ul>
+      </div>
+
+      <!-- Client-Side Engines -->
+      <div class="node node-ai">
+        <div class="node-header">
+          <div class="node-icon">⚡</div>
+          <div>
+            <div class="node-title">Domain Engines</div>
+            <div class="node-subtitle">Maritime Decision Modules</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>Vessel Bunching &amp; Anti-Idling Terminal</li>
+          <li>Port Diversion Engine (Haversine + Rake)</li>
+          <li>Cargo-to-Port Chemistry Matcher</li>
+          <li>Coastal Hop Triangulation (Wetzel &amp; Tierney)</li>
+          <li>CAG Audit &amp; Demurrage Shield</li>
+        </ul>
+      </div>
+
+      <!-- External Data Feeds -->
+      <div class="node node-external">
+        <div class="node-header">
+          <div class="node-icon">🌍</div>
+          <div>
+            <div class="node-title">External Datasets</div>
+            <div class="node-subtitle">Real-Time Ingestion</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>Live Satellite AIS (165+ Ships)</li>
+          <li>Baltic Exchange BDI/BCI/BPI</li>
+          <li>CEA Daily Coal Stockpiles</li>
+          <li>IMD Cyclone Radar &amp; INCOIS Tides</li>
+          <li>VLSFO Bunker Fuel Price Index</li>
+        </ul>
+      </div>
+
+      <!-- Deployment -->
+      <div class="node node-deploy">
+        <div class="node-header">
+          <div class="node-icon">☁️</div>
+          <div>
+            <div class="node-title">Deployment</div>
+            <div class="node-subtitle">Cloud &amp; CI/CD</div>
+          </div>
+        </div>
+        <ul class="node-items">
+          <li>Render Static Site (Instant CDN Frontend)</li>
+          <li>Render Web Service (Python Backend)</li>
+          <li>GitHub Actions CI/CD</li>
+          <li>Docker Containerization</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    NaviFreight • SIH 26006 • <a href="https://github.com/manthanpatil192/navifreight" target="_blank">github.com/manthanpatil192/navifreight</a>
+    <br>Built for Ministry of Ports, Shipping and Waterways &amp; East Coast Bulk Logistics Operations
+  </div>
+
+  <script>
+    function showView(viewName) {
+      document.getElementById('view-workflow').classList.add('hidden');
+      document.getElementById('view-techstack').classList.add('hidden');
+      document.getElementById('btn-workflow').classList.remove('active');
+      document.getElementById('btn-techstack').classList.remove('active');
+
+      if (viewName === 'workflow') {
+        document.getElementById('view-workflow').classList.remove('hidden');
+        document.getElementById('btn-workflow').classList.add('active');
+      } else {
+        document.getElementById('view-techstack').classList.remove('hidden');
+        document.getElementById('btn-techstack').classList.add('active');
+      }
+    }
+  </script>
+
+</body>
+</html>
