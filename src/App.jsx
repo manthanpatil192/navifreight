@@ -257,6 +257,8 @@ export default function App() {
               forecast={forecast}
               currency={currency}
               terminalMetrics={terminalMetrics}
+              selectedVessel={selectedVessel}
+              onSelectVessel={setSelectedVessel}
             />
           </div>
         )}

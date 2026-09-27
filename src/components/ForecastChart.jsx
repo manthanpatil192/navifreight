@@ -11,11 +11,12 @@ import {
   Legend,
   ReferenceLine
 } from 'recharts';
-import { TrendingUp, Award, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { TrendingUp, Award, Sparkles, CheckCircle2, AlertCircle, Ship } from 'lucide-react';
 import { generateDynamicTimeSeries } from '../utils/forecastingEngine';
+import { VESSEL_CLASSES } from '../data/vesselTypes';
 import InsightBulb from './InsightBulb';
 
-export default function ForecastChart({ forecast, currency, terminalMetrics }) {
+export default function ForecastChart({ forecast, currency, terminalMetrics, selectedVessel, onSelectVessel }) {
   const [viewWindow, setViewWindow] = useState('forward'); // 'all', 'forward', 'historical'
   const isINR = currency === 'INR';
   const multiplier = isINR ? 95.0 : 1;
@@ -168,6 +169,54 @@ export default function ForecastChart({ forecast, currency, terminalMetrics }) {
         </div>
       </div>
 
+      {/* Interactive Ship Class Quick Selector Bar */}
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 font-bold text-slate-800">
+            <Ship className="w-4 h-4 text-maritime-800" />
+            <span>Vessel Class & Charter Market:</span>
+          </div>
+          <span className="text-[11px] text-slate-500 hidden md:inline">
+            Click any ship class to re-scale freight rates & forward quantile curves live:
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {[
+            { id: 'capesize', label: 'Capesize', dwt: '175k DWT', tce: '$24.5k/d' },
+            { id: 'baby_cape', label: 'Baby Cape', dwt: '115k DWT', tce: '$19.8k/d' },
+            { id: 'panamax', label: 'Panamax', dwt: '75k DWT', tce: '$15.2k/d' },
+            { id: 'supramax', label: 'Supramax', dwt: '56k DWT', tce: '$13.0k/d' },
+            { id: 'handymax_hdc', label: 'Handymax (HDC)', dwt: '35k DWT', tce: '$11.5k/d' }
+          ].map((v) => {
+            const isSelected = (selectedVessel || 'capesize') === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => onSelectVessel && onSelectVessel(v.id)}
+                className={`px-3 py-1.5 rounded-md font-bold text-xs transition-all flex items-center space-x-1.5 cursor-pointer ${
+                  isSelected
+                    ? 'bg-maritime-900 text-white shadow-sm ring-2 ring-maritime-800/40'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+                }`}
+              >
+                <span>{v.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-normal ${
+                  isSelected ? 'bg-white/20 text-emerald-300' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {v.dwt}
+                </span>
+                <span className={`text-[9px] font-mono hidden sm:inline ${
+                  isSelected ? 'text-slate-300' : 'text-slate-400'
+                }`}>
+                  ({v.tce})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Live Web Terminal ML Coupling Banner with P10, P50, and P90 metric points */}
       <div className="bg-slate-900 text-white rounded-lg p-3 mb-4 border border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
