@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Ship, Activity, Database, Download, ShieldCheck, Clock, 
   ExternalLink, LogIn, LogOut, UserCheck, RefreshCw, TrendingUp,
-  DollarSign, ChevronDown, CheckCircle2, ArrowRight, Zap, Info
+  DollarSign, ChevronDown, CheckCircle2, ArrowRight, Zap, Info, Menu
 } from 'lucide-react';
 import { calculateForwardFxRate } from '../services/liveMarketDataService';
 
@@ -15,7 +15,8 @@ export default function Navbar({
   onSignOut, 
   onOpenLoginPage,
   marketData,
-  onRefreshMarketData
+  onRefreshMarketData,
+  onToggleSidebar
 }) {
   const [showFxDetail, setShowFxDetail] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
