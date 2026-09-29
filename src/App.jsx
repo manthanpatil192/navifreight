@@ -21,7 +21,7 @@ import DeadheadOptimizer from './components/DeadheadOptimizer';
 
 import { 
   TrendingUp, Activity, Compass, RefreshCw, 
-  Train, Ship, X 
+  Train, Ship, X, LogOut, User, LogIn 
 } from 'lucide-react';
 
 const SIDEBAR_NAV_ITEMS = [
@@ -188,6 +188,58 @@ export default function App() {
             })}
           </nav>
 
+        </div>
+
+        {/* Sidebar Footer: User Status & Logout */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/70">
+          {currentUser ? (
+            <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-maritime-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                  {currentUser.roleTitle ? currentUser.roleTitle.charAt(0) : 'U'}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {currentUser.roleTitle || 'Chartering Desk'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 truncate">
+                    {currentUser.organization || 'SAIL / RINL / NTPC'}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                title="Log Out"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0 ml-1"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-slate-500" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 truncate">
+                    Chartering Desk
+                  </div>
+                  <div className="text-[10px] text-slate-400 truncate">
+                    Guest / Demo Session
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLoginPage(true)}
+                title="Sign In / Switch Role"
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold text-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors cursor-pointer shrink-0 ml-1 flex items-center gap-1"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Login</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
