@@ -372,6 +372,10 @@
       <span>⚡</span>
       <span>System Operational Workflow (PPT Slide View)</span>
     </button>
+    <button class="tab-btn" id="btn-slide" onclick="showView('slide')">
+      <span>🖼️</span>
+      <span>Updated Architecture Slide (Preserved Template)</span>
+    </button>
     <button class="tab-btn" id="btn-techstack" onclick="showView('techstack')">
       <span>🏛️</span>
       <span>Full-Stack Tech Architecture</span>
@@ -448,6 +452,18 @@
               <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Leading Indicators:</strong> Capesize spot surges detected 14 days before Indian port arrivals.</li>
               <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Fuel & Geopolitical Shocks:</strong> Bunker price spike and canal transit congestion alerts.</li>
               <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Weather & Monsoons:</strong> IMD Bay of Bengal cyclonic depression tracking.</li>
+            </ul>
+          </div>
+
+          <!-- Tender Preparation & Charter-Party Rolling Analysis -->
+          <div class="block-box" style="border-color: rgba(14, 165, 233, 0.4); background: rgba(14, 165, 233, 0.08);">
+            <div class="block-box-title" style="color: #38bdf8;">
+              <span>📜</span> Tender Preparation & Charter-Party Rolling
+            </div>
+            <ul>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Minimum 21 Days Statutory Tender Notice:</strong> GFR 2017 Rule 161 compliance before cargo laycan.</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>70/30 COA-to-Spot Ratio:</strong> 70% locked in quarterly COA for basestock safety, 30% spot charter to capture market dips.</li>
+              <li><span class="dot-bullet" style="background: #38bdf8;"></span> <strong>Charter-Party Rolling:</strong> Dynamically calculates required vessel tonnage & ship delivery rolling based on steel/power plant minimum stockpile buffers.</li>
             </ul>
           </div>
         </div>
@@ -757,6 +773,25 @@
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- VIEW 3: UPDATED HIGH-LEVEL ARCHITECTURE SLIDE (PRESERVED TEMPLATE)        -->
+  <!-- ========================================================================= -->
+  <div id="view-slide" class="view-container hidden" style="max-width: 1720px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(15, 23, 42, 0.85); padding: 12px 20px; border-radius: 12px; border: 1px solid #334155;">
+      <div>
+        <h3 style="color: #38bdf8; font-size: 16px; font-weight: 800;">Updated High-Level System Architecture & Operational Workflow</h3>
+        <p style="color: #94a3b8; font-size: 13px; margin-top: 2px;">Preserved template with statutory 21-day tender notice & 70/30 COA-to-spot ratio.</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="NaviFreight_Updated_Architecture_Workflow.png" download="NaviFreight_Updated_Architecture_Workflow.png" class="badge badge-green" style="text-decoration: none; padding: 8px 16px; font-size: 12px; cursor: pointer;">⬇️ Download HD PNG</a>
+        <a href="navifreight_architecture_workflow_slide.html" target="_blank" class="badge badge-cyan" style="text-decoration: none; padding: 8px 16px; font-size: 12px; cursor: pointer;">🌐 Open Fullscreen Slide</a>
+      </div>
+    </div>
+    <div style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 2px solid #334155;">
+      <iframe src="navifreight_architecture_workflow_slide.html?clean=1" style="width: 100%; height: 800px; border: none; display: block;" title="Updated Architecture Slide"></iframe>
+    </div>
+  </div>
+
   <!-- Footer -->
   <div class="footer">
     NaviFreight • SIH 26006 • <a href="https://github.com/manthanpatil192/navifreight" target="_blank">github.com/manthanpatil192/navifreight</a>
@@ -767,12 +802,17 @@
     function showView(viewName) {
       document.getElementById('view-workflow').classList.add('hidden');
       document.getElementById('view-techstack').classList.add('hidden');
+      document.getElementById('view-slide').classList.add('hidden');
       document.getElementById('btn-workflow').classList.remove('active');
       document.getElementById('btn-techstack').classList.remove('active');
+      document.getElementById('btn-slide').classList.remove('active');
 
       if (viewName === 'workflow') {
         document.getElementById('view-workflow').classList.remove('hidden');
         document.getElementById('btn-workflow').classList.add('active');
+      } else if (viewName === 'slide') {
+        document.getElementById('view-slide').classList.remove('hidden');
+        document.getElementById('btn-slide').classList.add('active');
       } else {
         document.getElementById('view-techstack').classList.remove('hidden');
         document.getElementById('btn-techstack').classList.add('active');

@@ -124,21 +124,54 @@ def get_dynamic_market_rates():
     Fetches official daily USD/INR reference rate and Global 20-Ports Average VLSFO benchmark.
     Falls back to deterministic daily calendar calibration if network is unreachable.
     """
+    import tempfile
+    import time
+    
     today = datetime.now()
     day = today.day
-    base_fx = 95.12 + (((day * 7) % 31 - 15) * 0.015)
-    base_vlsfo = 852.0 + (((day * 13) % 29 - 14) * 0.40)
+    # Default calibrated reference rate for today's benchmark
+    base_fx = 95.93
+    base_vlsfo = 853.0 + (((day * 13) % 29 - 14) * 0.40)
     
-    try:
-        import urllib.request
-        req = urllib.request.Request('https://open.er-api.com/v6/latest/USD', headers={'User-Agent': 'NaviFreight/4.5'})
-        with urllib.request.urlopen(req, timeout=1.5) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            live_inr = data.get('rates', {}).get('INR')
-            if live_inr:
-                base_fx = round(live_inr * 1.085, 2) if live_inr < 85 else round(live_inr, 2)
-    except Exception:
-        pass
+    cache_path = os.path.join(tempfile.gettempdir(), 'navifreight_py_fx.json')
+    now_ts = time.time()
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, 'r', encoding='utf-8') as f:
+                c = json.load(f)
+                if now_ts - c.get('ts', 0) < 60:
+                    return c.get('base_fx', base_fx), round(base_vlsfo, 2)
+        except Exception:
+            pass
+    
+    endpoints = [
+        'https://open.er-api.com/v6/latest/USD',
+        'https://api.frankfurter.dev/v1/latest?base=USD&symbols=INR',
+        'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json'
+    ]
+    
+    for ep in endpoints:
+        try:
+            import urllib.request
+            req = urllib.request.Request(ep, headers={'User-Agent': 'NaviFreight/4.5'})
+            with urllib.request.urlopen(req, timeout=1.5) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                live_inr = None
+                if isinstance(data, dict):
+                    if 'rates' in data and 'INR' in data['rates']:
+                        live_inr = float(data['rates']['INR'])
+                    elif 'usd' in data and 'inr' in data['usd']:
+                        live_inr = float(data['usd']['inr'])
+                if live_inr and live_inr > 50:
+                    base_fx = round(live_inr, 2)
+                    try:
+                        with open(cache_path, 'w', encoding='utf-8') as f:
+                            json.dump({'ts': now_ts, 'base_fx': base_fx}, f)
+                    except Exception:
+                        pass
+                    break
+        except Exception:
+            continue
         
     return round(base_fx, 2), round(base_vlsfo, 2)
 
@@ -186,34 +219,39 @@ def calculate_solution(origin_key, dest_key, vessel_key, volume_mt, horizon_mont
         spot_dip_window = "Feb 05 - Feb 12, 2024"
         port_subname = "Maasvlakte"
     else:
-        # Load Real Trained Scikit-Learn Model Bundle
-        import joblib
+        loaded_bundle = False
         if os.path.exists(MODEL_PATH):
-            bundle = joblib.load(MODEL_PATH)
-            reg_p10 = bundle['reg_p10']
-            reg_p50 = bundle['reg_p50']
-            reg_p90 = bundle['reg_p90']
-            scaler = bundle['scaler']
-            
-            feat_vec = bundle['latest_feature_vector'].copy()
-            feat_vec[8] *= shock['vol_mult']
-            if shock_key in ['2', '3']:
-                feat_vec[7] = 0.95
-                feat_vec[9] += 0.08
-            elif shock_key == '4':
-                feat_vec[9] += 0.14
+            try:
+                import joblib
+                bundle = joblib.load(MODEL_PATH)
+                reg_p10 = bundle['reg_p10']
+                reg_p50 = bundle['reg_p50']
+                reg_p90 = bundle['reg_p90']
+                scaler = bundle['scaler']
                 
-            feat_scaled = scaler.transform([feat_vec])
-            pred_p50_ret = float(reg_p50.predict(feat_scaled)[0])
-            pred_p10_ret = float(reg_p10.predict(feat_scaled)[0])
-            pred_p90_ret = float(reg_p90.predict(feat_scaled)[0])
-            
-            projected_spot = round(base_rate * (1.0 + pred_p50_ret + (horizon_months * 0.025)), 2)
-            p50 = projected_spot
-            p10 = round(base_rate * (1.0 + pred_p10_ret + (horizon_months * 0.010)), 2)
-            p90 = round(base_rate * (1.0 + pred_p90_ret + (horizon_months * 0.040)), 2)
-            ml_status = f"Trained Scikit-Learn GBDT Bundle ({len(reg_p50.estimators_)} Decision Trees)"
-        else:
+                feat_vec = bundle['latest_feature_vector'].copy()
+                feat_vec[8] *= shock['vol_mult']
+                if shock_key in ['2', '3']:
+                    feat_vec[7] = 0.95
+                    feat_vec[9] += 0.08
+                elif shock_key == '4':
+                    feat_vec[9] += 0.14
+                    
+                feat_scaled = scaler.transform([feat_vec])
+                pred_p50_ret = float(reg_p50.predict(feat_scaled)[0])
+                pred_p10_ret = float(reg_p10.predict(feat_scaled)[0])
+                pred_p90_ret = float(reg_p90.predict(feat_scaled)[0])
+                
+                projected_spot = round(base_rate * (1.0 + pred_p50_ret + (horizon_months * 0.025)), 2)
+                p50 = projected_spot
+                p10 = round(base_rate * (1.0 + pred_p10_ret + (horizon_months * 0.010)), 2)
+                p90 = round(base_rate * (1.0 + pred_p90_ret + (horizon_months * 0.040)), 2)
+                ml_status = f"Trained Scikit-Learn GBDT Bundle ({len(reg_p50.estimators_)} Decision Trees)"
+                loaded_bundle = True
+            except Exception:
+                loaded_bundle = False
+                
+        if not loaded_bundle:
             projected_spot = base_rate + shock['spot_drift'] + (horizon_months * 0.45)
             sigma = (15.49 / 100.0) * shock['vol_mult']
             p10 = round(projected_spot * (1.0 - 1.28 * sigma), 2)

@@ -37,7 +37,8 @@ export function calculateFreightForecast({
   horizonMonths = 3,
   marketVolatilityMultiplier = 1.0,
   activeNewsSignal = null,
-  coaSplitPercent = 70
+  coaSplitPercent = 70,
+  marketData = null
 }) {
   const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
   const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
@@ -49,8 +50,8 @@ export function calculateFreightForecast({
   const sailingDaysOneWay = distanceNM / (speedKnots * 24);
   
   // Fuel and voyage costs (Calibrated to Global 20-Ports Average IMO 2020 Benchmark)
-  const syncMarket = getSyncMarketData();
-  const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 895 : (syncMarket.vlsfoPriceUSD || 852); // $/MT
+  const syncMarket = marketData || getSyncMarketData();
+  const vlsfoPriceUSD = activeNewsSignal?.id === 'bunker_fuel_spike' ? 895 : (syncMarket.vlsfoPriceUSD || 853); // $/MT
   const bunkerDailyCostUSD = vessel.dailyFuelConsumptionMT * vlsfoPriceUSD;
   const portDischargeDays = cargoMT / (dest.handlingRateTPD || 45000);
   const portWaitDays = dest.avgWaitDays || 2.0;
@@ -117,7 +118,7 @@ export function calculateFreightForecast({
   const blendedPortfolioCostUSD = blendedEffectiveRateUSD * cargoMT;
   const coaTotalCostUSD = coaRateUSD * cargoMT;
   const netSavingsUSD = spotTotalCostUSD - blendedPortfolioCostUSD;
-  const inrConversionRate = syncMarket.usdInrSpot || 95.15; // Live Official Daily RBI Reference Rate
+  const inrConversionRate = syncMarket.usdInrSpot || 95.93; // Live Official Daily RBI Reference Rate
   const netSavingsINR = (netSavingsUSD * inrConversionRate) / 10000000; // in ₹ Crores
   const percentageSavings = Number((((spotTotalCostUSD - blendedPortfolioCostUSD) / spotTotalCostUSD) * 100).toFixed(1));
 

@@ -511,6 +511,28 @@ const RECENT_DISCARDED_NOISE = [
   }
 ];
 
+// Dynamic relative time calculator so news never appears statically frozen
+export const computeLiveRelativeTime = (publishedUtc, fallbackStr) => {
+  if (!publishedUtc) return fallbackStr || 'Recently (Live Feed)';
+  try {
+    const pubDate = new Date(publishedUtc);
+    if (isNaN(pubDate.getTime())) return fallbackStr || 'Recently (Live Feed)';
+    const now = new Date();
+    const diffMs = now - pubDate;
+    if (diffMs < 0) return 'Just now (Live RSS)';
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    if (diffMins < 2) return 'Just now (Live RSS)';
+    if (diffMins < 60) return `${diffMins} mins ago (Live RSS)`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago (Live RSS)`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Yesterday (Live RSS)';
+    return `${diffDays} days ago (Live RSS)`;
+  } catch (e) {
+    return fallbackStr || 'Recently (Live Feed)';
+  }
+};
+
 // Dynamic parser mapping live RSS articles from liveMarketNews.json into full calculation cards
 export const parseLiveRssEvents = (articles = []) => {
   return articles.map((art, idx) => {
@@ -544,6 +566,8 @@ export const parseLiveRssEvents = (articles = []) => {
       ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
       : 'bg-blue-100 text-blue-800 border-blue-200';
 
+    const liveRelativeTime = computeLiveRelativeTime(art.publishedUtc, art.timestamp);
+
     return {
       id: art.id || `live_rss_${idx}`,
       portFilterKey: art.portFilterKey || 'paradip',
@@ -554,12 +578,12 @@ export const parseLiveRssEvents = (articles = []) => {
       title: art.title,
       rawSource: art.rawSource,
       sourceUrl: art.sourceUrl,
-      timestamp: art.timestamp || 'Live RSS Feed',
+      timestamp: liveRelativeTime,
       publishedUtc: art.publishedUtc,
       predictionDaysAhead: isPriceUp ? 'In 2 – 4 Days' : isPriceDown ? 'In 7 – 10 Days' : 'Monitoring Horizon',
       predictedDate: isPriceUp ? formatDynamicDateRangeOffset(2, 4) : isPriceDown ? formatDynamicDateRangeOffset(7, 10) : formatDynamicDateRangeOffset(14, 30),
       predictionHorizonLabel: isPriceUp ? 'T+48h to T+96h (Prompt Laycan Squeeze)' : isPriceDown ? 'T+7 to T+10 Days (Tonnage Relief Window)' : 'Macro Infrastructure Trajectory',
-      impactTimeline: `Peak Impact: ${formatDynamicDateOffset(3)} • Live RSS Ingested`,
+      impactTimeline: `Published: ${liveRelativeTime} • Live Ingestion`,
       entities: art.entities || ['Live RSS Ingestion'],
       finbertSentiment: art.finbertSentiment,
       finbertConfidence: art.finbertConfidence,
@@ -645,23 +669,74 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-fetch fresh news on initial component mount
+  useEffect(() => {
+    handleRefreshNewsFeed();
+  }, []);
+
   const handleRefreshNewsFeed = async () => {
     setIsRefreshing(true);
     try {
-      // Dynamic fetch from server / static json
-      const basePrefix = import.meta.env.BASE_URL || '/';
-      const fetchUrl = `${basePrefix.replace(/\/$/, '')}/data/liveMarketNews.json`;
-      const resp = await fetch(fetchUrl).catch(() => fetch('/data/liveMarketNews.json')).catch(() => null);
-      if (resp && resp.ok) {
-        const freshData = await resp.json();
-        if (freshData?.articles?.length > 0) {
-          const freshEvents = parseLiveRssEvents(freshData.articles);
-          setEventsList([...freshEvents, ...LIVE_MARKET_INTELLIGENCE_EVENTS]);
+      let freshArticles = null;
+
+      // Tier 1: Try local or production backend API endpoints
+      const backendEndpoints = [
+        '/api/refresh-news',
+        '/api/news',
+        'http://localhost:5000/api/refresh-news',
+        'http://localhost:5000/api/news'
+      ];
+
+      for (const endpoint of backendEndpoints) {
+        try {
+          const isPost = endpoint.includes('refresh');
+          const resp = await fetch(endpoint, {
+            method: isPost ? 'POST' : 'GET',
+            headers: { 'Accept': 'application/json' },
+            signal: AbortSignal.timeout ? AbortSignal.timeout(4500) : undefined
+          });
+          if (resp && resp.ok) {
+            const data = await resp.json();
+            const arts = data?.articles || (Array.isArray(data) ? data : null);
+            if (arts && arts.length > 0) {
+              freshArticles = arts;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Tier 2: Fetch static JSON with cache-buster parameter
+      if (!freshArticles) {
+        const basePrefix = import.meta.env.BASE_URL || '/';
+        const cacheBuster = `?t=${Date.now()}`;
+        const staticUrls = [
+          `${basePrefix.replace(/\/$/, '')}/data/liveMarketNews.json${cacheBuster}`,
+          `/data/liveMarketNews.json${cacheBuster}`
+        ];
+
+        for (const sUrl of staticUrls) {
+          try {
+            const resp = await fetch(sUrl, { cache: 'no-store' });
+            if (resp && resp.ok) {
+              const staticData = await resp.json();
+              if (staticData?.articles?.length > 0) {
+                freshArticles = staticData.articles;
+                break;
+              }
+            }
+          } catch (_) {}
         }
+      }
+
+      if (freshArticles && freshArticles.length > 0) {
+        const freshEvents = parseLiveRssEvents(freshArticles);
+        setEventsList([...freshEvents, ...LIVE_MARKET_INTELLIGENCE_EVENTS]);
       } else {
+        // Fallback: update relative timestamps on existing events
         const updated = eventsList.map((e, idx) => ({
           ...e,
-          timestamp: idx === 0 ? 'Just now (Live RSS Ingestion)' : idx < 5 ? `${(idx * 15) + 5} mins ago (Live Feed)` : e.timestamp
+          timestamp: computeLiveRelativeTime(e.publishedUtc, idx === 0 ? 'Just now (Live RSS)' : e.timestamp)
         }));
         setEventsList(updated);
       }

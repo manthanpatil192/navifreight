@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "refresh-news": "python scripts/fetch_live_news_rss.py",
     "backend": "python backend/server.py",
     "lint": "oxlint",
     "preview": "vite preview"

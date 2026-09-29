@@ -4,6 +4,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ['main']
+  schedule:
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -24,6 +26,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Ingest Fresh Live Maritime RSS News
+        run: python scripts/fetch_live_news_rss.py
 
       - name: Setup Node
         uses: actions/setup-node@v4

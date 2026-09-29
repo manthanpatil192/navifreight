@@ -59,18 +59,73 @@ def add_cors_headers(response):
 def handle_options(dummy=None):
     return Response(status=204)
 
+import threading
+
 # ---------------------------------------------------------------------------
-# Data Loading Helpers
+# Data Loading & Real-Time Live News Pipeline
 # ---------------------------------------------------------------------------
+def run_live_news_pipeline():
+    """Execute live Google News RSS fetch and NLP processing directly into JSON storage."""
+    try:
+        # Add root project directory to sys.path if not present
+        if BASE_DIR not in sys.path:
+            sys.path.insert(0, BASE_DIR)
+        from scripts.fetch_live_news_rss import build_intelligence_payload
+        print("[Backend Pipeline] Fetching fresh live Google News RSS corridor feeds...", flush=True)
+        payload = build_intelligence_payload()
+        print(f"[Backend Pipeline] Success! Ingested {len(payload.get('articles', []))} fresh corridor articles.", flush=True)
+        return payload
+    except Exception as e:
+        print(f"[Backend Pipeline] Live RSS pipeline execution warning: {e}", file=sys.stderr, flush=True)
+        return None
+
+def background_news_scheduler():
+    """Background worker daemon: refreshes live Google News RSS articles every 20 minutes."""
+    time.sleep(3)  # brief initial delay
+    while True:
+        try:
+            # Check how old the current payload is
+            news_data = load_market_news()
+            last_ts_str = news_data.get('metadata', {}).get('lastIngestionTimestamp', '')
+            needs_update = True
+            if last_ts_str:
+                try:
+                    clean_ts = last_ts_str.replace(' UTC', '').strip()
+                    dt = datetime.strptime(clean_ts, '%Y-%m-%d %H:%M:%S')
+                    age_mins = (datetime.now(timezone.utc).replace(tzinfo=None) - dt).total_seconds() / 60.0
+                    if age_mins < 20.0:
+                        needs_update = False
+                except Exception:
+                    pass
+            if needs_update:
+                run_live_news_pipeline()
+        except Exception as err:
+            print(f"[Backend Pipeline] Scheduler check error: {err}", file=sys.stderr, flush=True)
+        time.sleep(1200)  # poll check every 20 minutes
+
+# Start background news daemon thread
+try:
+    _news_worker = threading.Thread(target=background_news_scheduler, daemon=True, name="NaviFreightNewsDaemon")
+    _news_worker.start()
+except Exception as _e:
+    print(f"[Backend Pipeline] Could not start news background daemon: {_e}", file=sys.stderr, flush=True)
+
 def load_market_news():
     """Load latest news articles from liveMarketNews.json or provide fallback."""
     for path in [SRC_NEWS_PATH, PUB_NEWS_PATH]:
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if data and isinstance(data, dict) and data.get('articles'):
+                        return data
             except Exception:
                 pass
+    # If file not found, try to run pipeline synchronously once
+    fresh_payload = run_live_news_pipeline()
+    if fresh_payload:
+        return fresh_payload
+
     # Built-in fallback
     return {
         "status": "cached",
@@ -420,16 +475,29 @@ def get_market_news():
     news_payload = load_market_news()
     return jsonify(news_payload), 200
 
-@app.route('/api/refresh-news', methods=['POST'])
+@app.route('/api/refresh-news', methods=['POST', 'GET'])
 def refresh_market_news():
-    """Trigger RSS fetch or return fresh payload."""
-    news_payload = load_market_news()
-    return jsonify({
-        "success": True,
-        "message": "Market intelligence radar refreshed successfully",
-        "articlesCount": len(news_payload.get('articles', [])),
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }), 200
+    """Trigger real-time RSS fetch and return fresh payload."""
+    try:
+        fresh_payload = run_live_news_pipeline()
+        if not fresh_payload:
+            fresh_payload = load_market_news()
+        return jsonify({
+            "success": True,
+            "message": "Market intelligence radar refreshed with live Google News RSS",
+            "articlesCount": len(fresh_payload.get('articles', [])),
+            "lastIngestionTimestamp": fresh_payload.get('metadata', {}).get('lastIngestionTimestamp'),
+            "articles": fresh_payload.get('articles', []),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 200
+    except Exception as e:
+        fallback = load_market_news()
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "fallbackPayload": fallback,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
 
 # ---------------------------------------------------------------------------
 # Vessel Bunching Analytics Endpoint (Part C Core Engine)

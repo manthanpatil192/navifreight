@@ -37,7 +37,7 @@ export default function MarketNewsFeed({ selectedOrigin, selectedDestination, cu
         spotDriftMultiplier: 1.15,
         coaDiscountModifier: 0.87,
         volatilityBoost: 1.30,
-        recommendedWindow: 'Sep 1 – Sep 10, 2026 (Live Fixture Surge)',
+        recommendedWindow: `${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} – ${new Date(Date.now() + 9 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} (Live Fixture Surge)`,
         urgencyLevel: 'HIGH',
         strategyHeadline: 'Execute Immediate Multi-Voyage Fix',
         strategyDetails: 'Pacific Capesize spot fixtures are tightening. Lock multi-voyage contract immediately before prompt rates appreciate further.',

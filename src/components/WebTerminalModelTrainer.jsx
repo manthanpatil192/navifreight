@@ -46,7 +46,7 @@ export default function WebTerminalModelTrainer({
 
   const isINR = currency === 'INR';
   const currSym = isINR ? '₹' : '$';
-  const rateMultiplier = isINR ? (marketData.usdInrSpot || 95.15) : 1;
+  const rateMultiplier = isINR ? (marketData.usdInrSpot || 95.93) : 1;
 
   // Logistics Manager Manual Input State (Controls above Terminal)
   const [manualOrigin, setManualOrigin] = useState(selectedOrigin || 'gladstone');
@@ -170,13 +170,13 @@ export default function WebTerminalModelTrainer({
 ======================================================================
   Route:             Hay Point / DBCT (Australia) -> Paradip Port (PPT)
   Vessel & Cargo:    Capesize | 150,000 MT Coking Coal (3-Month Horizon)
-  Freight Rates:     Spot: $15.80/MT (₹1,501/MT) | P50: $17.32/MT (₹1,656/MT) | P10: $14.85/MT (₹1,420/MT)
+  Freight Rates:     Spot: $15.80/MT (₹${Math.round(15.80 * (marketData.usdInrSpot || 95.93)).toLocaleString('en-IN')}/MT) | P50: $17.32/MT (₹${Math.round(17.32 * calculateForwardFxRate(3, marketData.usdInrSpot || 95.93)).toLocaleString('en-IN')}/MT) | P10: $14.85/MT (₹${Math.round(14.85 * calculateForwardFxRate(3, marketData.usdInrSpot || 95.93)).toLocaleString('en-IN')}/MT)
   Sea Feasibility:   🟢 PROPER SEA WEATHER AT BOTH PORTS
   Market State:      ⚖️ BALANCED COMMERCIAL MARKET (Prices Stable Baseline)
-  Fuel Prices VLSFO: $${(marketData.vlsfoPriceUSD || 852).toFixed(0)}/MT (Global 20-Ports Average IMO 2020 Benchmark)
-                     ↳ [Fuel Impact: Determines daily fuel burn (~42 MT/day Capesize = $${Math.round(42 * (marketData.vlsfoPriceUSD || 852)).toLocaleString()}/day / ₹${((Math.round(42 * (marketData.vlsfoPriceUSD || 852)) * (marketData.usdInrSpot || 95.15)) / 100000).toFixed(1)} Lakhs/day) & Bunker Adjustment Factor (BAF) floor.]
+  Fuel Prices VLSFO: $${(marketData.vlsfoPriceUSD || 853).toFixed(0)}/MT (Global 20-Ports Average IMO 2020 Benchmark)
+                     ↳ [Fuel Impact: Determines daily fuel burn (~42 MT/day Capesize = $${Math.round(42 * (marketData.vlsfoPriceUSD || 853)).toLocaleString()}/day / ₹${((Math.round(42 * (marketData.vlsfoPriceUSD || 853)) * (marketData.usdInrSpot || 95.93)) / 100000).toFixed(1)} Lakhs/day) & Bunker Adjustment Factor (BAF) floor.]
   Tariff & Trade:    Active: Yes (5% Coking Coal Duty & Import Quotas Audited)
-  Forex Trend:       1 USD = ₹${(marketData.usdInrSpot || 95.15).toFixed(2)} Spot -> ₹${calculateForwardFxRate(3, marketData.usdInrSpot || 95.15).toFixed(2)} Forward (3-Month RBI Reference Trend)
+  Forex Trend:       1 USD = ₹${(marketData.usdInrSpot || 95.93).toFixed(2)} Spot -> ₹${calculateForwardFxRate(3, marketData.usdInrSpot || 95.93).toFixed(2)} Forward (3-Month RBI Reference Trend)
 ----------------------------------------------------------------------
 [1] AUTOMATIC DUAL-PORT WEATHER & MARITIME SEA STATE AUDIT:
   * SOURCE PORT [Hay Point / DBCT, Australia]:
@@ -562,7 +562,7 @@ export default function WebTerminalModelTrainer({
       const optP10USD = Math.round(blendedP10 * manualVolume);
       const savingsUSD = unhedgedUSD - optUSD;
 
-      const baseFxRate = marketData.usdInrSpot || 95.15; // Dynamic Official Daily RBI Reference Rate
+      const baseFxRate = marketData.usdInrSpot || 95.93; // Dynamic Official Daily RBI Reference Rate
       const fxDriftPct = (manualHorizon / 12) * 0.025;
       const forwardFxRate = Number((baseFxRate * (1 + fxDriftPct)).toFixed(2));
       const blendedFxRate = Number(((coaSplit/100 * baseFxRate) + ((100-coaSplit)/100 * forwardFxRate)).toFixed(2));

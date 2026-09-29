@@ -11,6 +11,7 @@ import DatasetExplorerModal from './components/DatasetExplorerModal';
 import ExecutiveReportModal from './components/ExecutiveReportModal';
 import { calculateFreightForecast } from './utils/forecastingEngine';
 import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
+import { getSyncMarketData, subscribeMarketData, forceRefreshMarketData } from './services/liveMarketDataService';
 import { 
   Ship, FileText, CheckCircle2, Compass, TrendingUp, 
   RefreshCw, ShieldCheck, Layers, ArrowRight, BarChart3, Anchor
@@ -51,6 +52,16 @@ export default function App() {
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
+  // Real-Time Dynamic Market & Forex Telemetry State
+  const [marketData, setMarketData] = useState(getSyncMarketData());
+
+  React.useEffect(() => {
+    const unsub = subscribeMarketData((fresh) => {
+      setMarketData(fresh);
+    });
+    return () => unsub();
+  }, []);
+
   // Authentication Handlers
   const handleLoginSuccess = (userData) => {
     setCurrentUser(userData);
@@ -75,7 +86,8 @@ export default function App() {
     horizonMonths: contractHorizonMonths,
     marketVolatilityMultiplier: volatilityIndex,
     activeNewsSignal: activeNewsSignal,
-    coaSplitPercent: coaSplitPercent
+    coaSplitPercent: coaSplitPercent,
+    marketData: marketData
   }), [
     selectedOrigin,
     selectedDestination,
@@ -84,7 +96,9 @@ export default function App() {
     contractHorizonMonths,
     volatilityIndex,
     activeNewsSignal,
-    coaSplitPercent
+    coaSplitPercent,
+    marketData?.usdInrSpot,
+    marketData?.vlsfoPriceUSD
   ]);
 
   const handleApplyScenario = (config) => {
@@ -122,6 +136,8 @@ export default function App() {
         currentUser={currentUser}
         onSignOut={handleSignOut}
         onOpenLoginPage={() => setShowLoginPage(true)}
+        marketData={marketData}
+        onRefreshMarketData={forceRefreshMarketData}
       />
 
       {/* Main Content Area */}

@@ -58,15 +58,54 @@
         <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Operational Decision Defense & Challenge Cards (Pic 2 Size & Format: 1220×888)</p>
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('solution')">Page 2 Solution Slide (Pic 2)</button>
+        <button class="tab-btn active" onclick="switchTab('arch')">Architecture &amp; Workflow (HD)</button>
+        <button class="tab-btn" onclick="switchTab('solution')">Page 2 Solution Slide (Pic 2)</button>
         <button class="tab-btn" onclick="switchTab('sandbox')">What-If Sandbox Card</button>
-        <button class="tab-btn" onclick="switchTab('card')">Challenges & Mitigations Card</button>
+        <button class="tab-btn" onclick="switchTab('card')">Challenges &amp; Mitigations Card</button>
         <button class="tab-btn" onclick="switchTab('slide')">Full Presentation Slide</button>
       </div>
     </div>
 
+    <!-- TAB -1: UPDATED ARCHITECTURE & OPERATIONAL WORKFLOW (HD) -->
+    <div id="tabArch" class="slide-card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 1.15rem; color: #38bdf8;">NaviFreight — Updated Architecture &amp; Operational Workflow</h2>
+          <p style="color: #94a3b8; font-size: 0.85rem;">Preserved template with statutory 21-day tender notice &amp; 70/30 COA-to-spot ratio. Vector-sharp typography and icons.</p>
+        </div>
+        <div class="actions">
+          <button onclick="copyImage('imgArch')">📋 Copy Image to Clipboard</button>
+          <a href="NaviFreight_Architecture_Workflow_Canva_Editable.pptx" download="NaviFreight_Architecture_Workflow_Canva_Editable.pptx" class="btn" style="background: linear-gradient(135deg, #7c3aed, #9333ea);">🎨 Download Canva PPTX (Best)</a>
+          <a href="NaviFreight_Architecture_Workflow_Canva_Editable.svg" download="NaviFreight_Architecture_Workflow_Canva_Editable.svg" class="btn secondary">🎨 Download Canva SVG</a>
+          <a href="NaviFreight_Architecture_Workflow_Canva_Editable.pdf" download="NaviFreight_Architecture_Workflow_Canva_Editable.pdf" class="btn secondary">📄 Download Canva PDF</a>
+          <a href="NaviFreight_Updated_Architecture_Workflow.png" download="NaviFreight_Updated_Architecture_Workflow.png" class="btn secondary">⬇️ PNG (HD)</a>
+          <a href="navifreight_architecture_workflow_slide.html" target="_blank" class="btn secondary">🌐 Open Live HTML</a>
+        </div>
+      </div>
+
+      <div style="background: #172554; border: 1px solid #1e40af; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; color: #bfdbfe; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div>
+          <strong style="color: #60a5fa;">💡 How to edit in Canva:</strong> 
+          1. Download the <strong>PPTX</strong> or <strong>SVG</strong> file above &nbsp;|&nbsp; 
+          2. Go to <strong>canva.com</strong> &nbsp;|&nbsp; 
+          3. Click <strong>Upload</strong> (or <em>Create a design ➔ Import file</em>) &nbsp;|&nbsp; 
+          4. Every text box, card, and shape opens as fully editable vector elements!
+        </div>
+        <button class="secondary" style="white-space: nowrap; font-size: 0.8rem; padding: 4px 10px;" onclick="window.open('https://www.canva.com', '_blank')">🚀 Open Canva.com</button>
+      </div>
+
+      <div class="file-path">
+        <span><strong>Canva PPTX:</strong> c:\Users\Manthan\OneDrive\Desktop\sih26006\NaviFreight_Architecture_Workflow_Canva_Editable.pptx</span>
+        <button class="secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText('c:\\Users\\Manthan\\OneDrive\\Desktop\\sih26006\\NaviFreight_Architecture_Workflow_Canva_Editable.pptx'); showToast('PPTX Path copied!')">Copy PPTX Path</button>
+      </div>
+
+      <div class="image-wrapper" style="max-height: 650px;">
+        <img id="imgArch" src="NaviFreight_Updated_Architecture_Workflow.png" alt="NaviFreight AI Updated High-Level System Architecture and Operational Workflow">
+      </div>
+    </div>
+
     <!-- TAB 0: PAGE 2 SOLUTION SLIDE (PIC 2 FORMAT) -->
-    <div id="tabSolution" class="slide-card">
+    <div id="tabSolution" class="slide-card" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="font-size: 1.15rem; color: #38bdf8;">NaviFreight — Page 2 Proposed Solution Slide (Pic 2 Format)</h2>
@@ -175,6 +214,7 @@
     }
 
     function switchTab(tab) {
+      const tabArch = document.getElementById('tabArch');
       const tabSolution = document.getElementById('tabSolution');
       const tabSandbox = document.getElementById('tabSandbox');
       const tabCard = document.getElementById('tabCard');
@@ -183,23 +223,27 @@
 
       btns.forEach(b => b.classList.remove('active'));
 
+      tabArch.style.display = 'none';
       tabSolution.style.display = 'none';
       tabSandbox.style.display = 'none';
       tabCard.style.display = 'none';
       tabSlide.style.display = 'none';
 
-      if (tab === 'solution') {
-        tabSolution.style.display = 'flex';
+      if (tab === 'arch') {
+        tabArch.style.display = 'flex';
         btns[0].classList.add('active');
+      } else if (tab === 'solution') {
+        tabSolution.style.display = 'flex';
+        btns[1].classList.add('active');
       } else if (tab === 'sandbox') {
         tabSandbox.style.display = 'flex';
-        btns[1].classList.add('active');
+        btns[2].classList.add('active');
       } else if (tab === 'card') {
         tabCard.style.display = 'flex';
-        btns[2].classList.add('active');
+        btns[3].classList.add('active');
       } else {
         tabSlide.style.display = 'flex';
-        btns[3].classList.add('active');
+        btns[4].classList.add('active');
       }
     }
 

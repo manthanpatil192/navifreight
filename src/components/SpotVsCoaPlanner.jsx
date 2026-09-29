@@ -22,7 +22,7 @@ export default function SpotVsCoaPlanner({
   }, []);
 
   const isINR = currency === 'INR';
-  const baseInrRate = marketData.usdInrSpot || 95.15;
+  const baseInrRate = marketData.usdInrSpot || 95.93;
 
   // 1. Volume Hedging Split State (Controlled or Local State)
   const [internalSplit, setInternalSplit] = useState(70);

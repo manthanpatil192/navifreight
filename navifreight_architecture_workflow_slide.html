@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviFreight AI – Updated High-Level System Architecture & Operational Workflow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0f172a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      color: #0f172a;
+    }
+
+    body.clean-mode {
+      background: #ffffff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      min-height: auto !important;
+      width: 1680px;
+      height: 775px;
+      overflow: hidden;
+    }
+    body.clean-mode .action-bar {
+      display: none !important;
+    }
+    body.clean-mode .master-wrapper {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      border: none !important;
+      width: 1680px !important;
+      height: 775px !important;
+    }
+
+    /* Fixed Aspect Ratio Master Board */
+    .master-wrapper {
+      width: 1680px;
+      height: 775px;
+      background: #ffffff;
+      border: 3px solid #1e293b;
+      border-radius: 16px;
+      padding: 10px 14px 8px 14px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* Top Action Bar (floating for copy / export) */
+    .action-bar {
+      position: fixed;
+      top: 14px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .action-btn {
+      background: #0284c7;
+      color: #ffffff;
+      border: 1px solid #38bdf8;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+      transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+      background: #0369a1;
+      transform: translateY(-2px);
+    }
+    .action-btn.secondary {
+      background: #1e293b;
+      border-color: #475569;
+    }
+    .action-btn.secondary:hover {
+      background: #334155;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+      }
+      .action-bar {
+        display: none !important;
+      }
+      .master-wrapper {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+    }
+
+    /* HEADER BLOCK */
+    .header-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 3px;
+    }
+    .title-pill {
+      background: #243542;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 900;
+      padding: 5px 34px;
+      border-radius: 9px;
+      border: 1.5px solid #111e26;
+      letter-spacing: -0.2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .subtitle-purpose {
+      font-size: 13.8px;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.25;
+    }
+    .subtitle-purpose strong {
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    /* 4-PHASE GRID WORKFLOW */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: 29.5% 22.5% 24.5% 23.5%;
+      gap: 10px;
+      align-items: stretch;
+      flex: 1;
+      margin: 4px 0 5px 0;
+    }
+
+    /* Column Base */
+    .phase-column {
+      border: 2px solid #283747;
+      border-radius: 11px;
+      padding: 7px 7px 7px 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+    }
+
+    .column-header-pill {
+      font-size: 14px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 7px;
+      border: 1.5px solid #283747;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* Cards Inside Columns */
+    .flow-card {
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      background: #ffffff;
+      padding: 5px 6px;
+      position: relative;
+    }
+    .card-title-sm {
+      font-size: 10.8px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1.2;
+    }
+
+    /* =========================================================================
+       PHASE 1 (REVISED) - LIGHT BLUE PALETTE
+       ========================================================================= */
+    .phase-1 {
+      background: #e8f2f8;
+    }
+    .phase-1 .column-header-pill {
+      background: #649bb5;
+      color: #041b29;
+    }
+
+    .p1-subgrid {
+      display: grid;
+      grid-template-columns: 50% 50%;
+      gap: 5px;
+    }
+
+    .p1-input-box {
+      font-size: 9.2px;
+      line-height: 1.32;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+    }
+    .p1-input-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 3px;
+      font-weight: 600;
+    }
+    .p1-bullet {
+      color: #0284c7;
+      font-weight: 900;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .stockpile-sub-banner {
+      background: #f1f5f9;
+      border: 1px dashed #64748b;
+      border-radius: 4px;
+      padding: 2.5px 4px;
+      margin-top: 2px;
+      font-size: 8px;
+      line-height: 1.2;
+      color: #334155;
+    }
+    .stockpile-tag {
+      font-weight: 800;
+      color: #0369a1;
+      text-transform: uppercase;
+      font-size: 7.5px;
+      display: block;
+      margin-bottom: 1px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Ingestion Pipelines Pills */
+    .ingest-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .ingest-pill-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 8.8px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .ingest-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    .badge-bdi    { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+    .badge-bdry   { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+    .badge-yahoo  { background: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+    .badge-bunker { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+    .badge-port   { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+    /* CORE UPDATE: TENDER PREPARATION BOX */
+    .tender-box-card {
+      background: #ffffff;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 6px 8px;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+    }
+    .tender-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
+    }
+    .tender-title {
+      font-size: 10.8px;
+      font-weight: 900;
+      color: #0369a1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .tender-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.2px;
+      font-weight: 800;
+      background: #0284c7;
+      color: #ffffff;
+      padding: 1px 5px;
+      border-radius: 3px;
+      letter-spacing: 0.3px;
+    }
+    .tender-content-grid {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .tender-icon-container {
+      width: 38px;
+      height: 38px;
+      background: #e0f2fe;
+      border: 1.5px solid #0284c7;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tender-rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      font-size: 9.6px;
+      color: #0f172a;
+    }
+    .tender-rule-highlight {
+      background: #eff6ff;
+      border-left: 3px solid #0284c7;
+      padding: 2px 5px;
+      border-radius: 0 4px 4px 0;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .tender-rule-highlight strong {
+      color: #0369a1;
+      font-weight: 900;
+    }
+    .tender-subtext {
+      font-size: 8.6px;
+      color: #475569;
+      line-height: 1.25;
+    }
+
+    /* Radar Box */
+    .radar-box {
+      background: #629bb5;
+      border: 2px solid #283747;
+      border-radius: 7px;
+      padding: 5px 8px;
+      color: #071926;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .radar-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-align: center;
+      color: #031b2c;
+    }
+    .radar-bullets {
+      font-size: 9.2px;
+      font-weight: 700;
+      line-height: 1.32;
+      color: #072133;
+      list-style-type: disc;
+      padding-left: 16px;
+    }
+
+    /* Outbound Arrow Phase 1 to Phase 2 */
+    .p1-outbound-arrow {
+      position: absolute;
+      right: -13px;
+      top: 130px;
+      width: 22px;
+      height: 22px;
+      background: #0284c7;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    /* =========================================================================
+       PHASE 2 (PRESERVED) - WARM AMBER / GOLD PALETTE
+       ========================================================================= */
+    .phase-2 {
+      background: #fbf0d8;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .phase-2 .column-header-pill {
+      background: #e99547;
+      color: #2b1402;
+    }
+
+    .eta-box {
+      background: #fde6c4;
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      padding: 8px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .eta-header-title {
+      font-size: 11px;
+      font-weight: 900;
+      color: #1e293b;
+    }
+    .eta-desc {
+      font-size: 9.2px;
+      color: #475569;
+      line-height: 1.3;
+      font-weight: 600;
+    }
+
+    .alert-box {
+      background: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      padding: 8px 8px;
+      text-align: center;
+      font-size: 10.8px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .alert-box span {
+      color: #ea580c;
+    }
+
+    /* Flow connector arrows */
+    .vert-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      margin: 1px 0;
+    }
+    .vert-arrow-line {
+      width: 2px;
+      height: 9px;
+      background: #283747;
+    }
+    .vert-arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 4.5px solid transparent;
+      border-right: 4.5px solid transparent;
+      border-top: 5.5px solid #283747;
+    }
+    .arrow-label {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #475569;
+    }
+
+    /* Decision Container */
+    .priority-factor-container {
+      background: #fadca6;
+      border: 2px solid #283747;
+      border-radius: 8px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+    .factor-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #0f172a;
+      text-align: center;
+    }
+
+    /* Decision Diamond */
+    .decision-diamond {
+      background: #ef4444;
+      color: #ffffff;
+      border: 2px solid #283747;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 9.6px;
+      font-weight: 800;
+      text-align: center;
+      max-width: 210px;
+      line-height: 1.25;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    .priority-action-box {
+      width: 100%;
+      background: #ea580c;
+      color: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 11.2px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .fifo-action-box {
+      width: 100%;
+      background: #f59e0b;
+      color: #1e1b4b;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 11.2px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+
+    /* Outbound Red Arrow Phase 2 to Phase 3 */
+    .p2-outbound-arrow {
+      position: absolute;
+      right: -13px;
+      bottom: 58px;
+      width: 22px;
+      height: 22px;
+      background: #ea580c;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    /* =========================================================================
+       PHASE 3 (PRESERVED) - CORAL / SALMON PALETTE
+       ========================================================================= */
+    .phase-3 {
+      background: #fbf2ea;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .phase-3 .column-header-pill {
+      background: #e2615a;
+      color: #2b0404;
+      font-size: 11.2px;
+      line-height: 1.25;
+      padding: 4px 5px;
+    }
+
+    .opt-equation-container {
+      background: #fbe69e;
+      border: 2px solid #283747;
+      border-radius: 8px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .opt-header-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #1e293b;
+      text-align: center;
+    }
+    .opt-subrow {
+      display: flex;
+      align-items: stretch;
+      gap: 7px;
+    }
+    .funnel-box {
+      width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 4px;
+    }
+    .cost-b-box {
+      flex: 1;
+      background: #f6c875;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 7px 7px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 9.6px;
+      line-height: 1.3;
+      color: #0f172a;
+    }
+    .cost-b-title {
+      font-weight: 900;
+      font-size: 10.6px;
+      color: #78350f;
+    }
+
+    .cost-c-box {
+      background: #f6c875;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 8px 8px;
+      font-size: 9.2px;
+      line-height: 1.32;
+      color: #0f172a;
+    }
+    .cost-c-title {
+      font-weight: 900;
+      font-size: 10.6px;
+      color: #78350f;
+      margin-bottom: 2px;
+    }
+
+    .verdict-diamond {
+      background: #ffffff;
+      border: 2px solid #283747;
+      border-radius: 6px;
+      padding: 7px 16px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #0f172a;
+      text-align: center;
+      margin: 2px auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
+    /* Decision Split: Diversion vs Anchorage */
+    .split-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.2px;
+      font-weight: 900;
+      color: #475569;
+    }
+
+    .branch-card {
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 7px 5px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .branch-diversion {
+      background: #fde047;
+    }
+    .branch-anchorage {
+      background: #a7f3d0;
+    }
+    .branch-title {
+      font-size: 9.5px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+    .branch-icon {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .branch-sub {
+      font-size: 8.6px;
+      font-weight: 700;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    /* Outbound Green Arrow Phase 3 to Phase 4 */
+    .p3-outbound-arrow {
+      position: absolute;
+      right: -13px;
+      top: 135px;
+      width: 22px;
+      height: 22px;
+      background: #10b981;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    /* =========================================================================
+       PHASE 4 (PRESERVED) - SAGE GREEN PALETTE
+       ========================================================================= */
+    .phase-4 {
+      background: #eef7ee;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .phase-4 .column-header-pill {
+      background: #73b378;
+      color: #08260b;
+    }
+
+    .berth-card {
+      background: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .berth-title {
+      font-size: 10.6px;
+      font-weight: 900;
+      color: #0f172a;
+      text-align: center;
+    }
+    .berth-icon-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 10.8px;
+      font-weight: 800;
+      color: #059669;
+    }
+
+    .matcher-card {
+      background: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .matcher-title {
+      font-size: 10.6px;
+      font-weight: 900;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .matcher-sub {
+      font-size: 8.5px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .matcher-split {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ship-icon-box {
+      width: 44px;
+      height: 44px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .plants-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 9.4px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .plants-list span strong {
+      color: #0f172a;
+    }
+
+    .triangulation-card {
+      background: #ffffff;
+      border: 1.5px solid #283747;
+      border-radius: 7px;
+      padding: 7px 8px;
+      text-align: center;
+      font-size: 10.2px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .triangulation-card .sub-author {
+      font-size: 8.6px;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    .commercial-banner {
+      background: #a3d9a5;
+      border: 1.5px solid #283747;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 10.8px;
+      font-weight: 900;
+      color: #0c3311;
+      text-align: center;
+      letter-spacing: 0.4px;
+    }
+
+    .scaling-box {
+      background: #2b3942;
+      color: #ffffff;
+      border: 2px solid #1a242b;
+      border-radius: 7px;
+      padding: 7px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .scaling-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #7dd3fc;
+      line-height: 1.25;
+    }
+    .server-rack-icon-container {
+      display: flex;
+      justify-content: center;
+      margin: 2px 0;
+    }
+    .scaling-tagline {
+      font-size: 8.6px;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-align: center;
+    }
+
+    /* =========================================================================
+       BOTTOM DARK BAR
+       ========================================================================= */
+    .bottom-bar {
+      background: #243542;
+      border: 2px solid #16222b;
+      border-radius: 9px;
+      padding: 5px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      font-size: 11.8px;
+      font-weight: 700;
+    }
+    .bottom-left-notes {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .bottom-pill-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.2px;
+      font-weight: 700;
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2.5px 7px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .bottom-right-motto {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.2px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 99999;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Action Buttons -->
+  <div class="action-bar">
+    <a href="NaviFreight_Architecture_Workflow_Canva_Editable.pptx" download="NaviFreight_Architecture_Workflow_Canva_Editable.pptx" class="action-btn" style="background: linear-gradient(135deg, #7c3aed, #9333ea); text-decoration: none;">
+      🎨 Edit in Canva (PPTX)
+    </a>
+    <a href="NaviFreight_Architecture_Workflow_Canva_Editable.svg" download="NaviFreight_Architecture_Workflow_Canva_Editable.svg" class="action-btn secondary" style="text-decoration: none;">
+      🎨 Canva SVG
+    </a>
+    <button class="action-btn" onclick="copyImageCanvas()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      Copy HD Diagram
+    </button>
+    <button class="action-btn secondary" onclick="downloadDirect()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+      Download PNG
+    </button>
+    <button class="action-btn secondary" onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+      Print / PDF
+    </button>
+  </div>
+
+  <div class="toast" id="toast">Copied to Clipboard!</div>
+
+  <!-- MASTER WORKFLOW BOARD (1680px High-Fidelity Canvas) -->
+  <div class="master-wrapper" id="captureBoard">
+
+    <!-- TOP HEADER -->
+    <div class="header-container">
+      <div class="title-pill">
+        NaviFreight AI – Updated High-Level System Architecture &amp; Operational Workflow
+      </div>
+      <div class="subtitle-purpose">
+        <strong>Purpose:</strong> To clearly show how updated data flows and user inputs enable optimized dry-bulk freight forecasting &amp; vessel routing on the Indian East Coast
+      </div>
+    </div>
+
+    <!-- MAIN 4-PHASE GRID -->
+    <div class="workflow-grid">
+
+      <!-- =====================================================================
+           COLUMN 1: PHASE 1 (REVISED)
+           ===================================================================== -->
+      <div class="phase-column phase-1">
+        <div class="column-header-pill">PHASE 1 (Revised)</div>
+
+        <!-- Upper 2 Sub-cards: User Inputs + Ingestion Pipeline -->
+        <div class="p1-subgrid">
+          
+          <!-- Logistics Manager (Website User Input) -->
+          <div class="flow-card">
+            <div class="card-title-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Logistics Manager<br><span style="font-size: 8.2px; color: #64748b; font-weight: 600;">(Website User Input)</span></span>
+            </div>
+            <div class="p1-input-box">
+              <div class="p1-input-item">
+                <span class="p1-bullet">•</span>
+                <span><strong>Global Source Port</strong><br><span style="color: #64748b;">(e.g., Australia / Gladstone)</span></span>
+              </div>
+              <div class="p1-input-item">
+                <span class="p1-bullet">•</span>
+                <span><strong>Indian Destination Port</strong><br><span style="color: #64748b;">(e.g., Paradip, Vizag, Haldia)</span></span>
+              </div>
+              <div class="p1-input-item">
+                <span class="p1-bullet">•</span>
+                <span><strong>Total Quantity to Order</strong> (MT)</span>
+              </div>
+              <div class="p1-input-item">
+                <span class="p1-bullet">•</span>
+                <span><strong>Contract Term</strong> (1, 3, 6 Months)</span>
+              </div>
+            </div>
+
+            <!-- Simplified Domestic Stockpiles -->
+            <div class="stockpile-sub-banner">
+              <span class="stockpile-tag">[SIMPLIFIED DOMESTIC STOCKPILES]</span>
+              Target inventory based on steel plant (e.g., SAIL) sheet rolling &amp; production schedule.
+            </div>
+          </div>
+
+          <!-- Simplified Data Ingestion Pipeline -->
+          <div class="flow-card">
+            <div class="card-title-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+              <span>Simplified Data<br><span style="font-size: 8.2px; color: #64748b; font-weight: 600;">Ingestion Pipeline</span></span>
+            </div>
+            <div class="ingest-list">
+              <div class="ingest-pill-row">
+                <span class="ingest-badge badge-bdi">[BDI-INDEX]</span>
+                <span>(Baltic Dry Index)</span>
+              </div>
+              <div class="ingest-pill-row">
+                <span class="ingest-badge badge-bdry">[BDRY-INDEX]</span>
+                <span>(Baltic Dry Bulk Index)</span>
+              </div>
+              <div class="ingest-pill-row">
+                <span class="ingest-badge badge-yahoo">[YAHOO-MARKET]</span>
+                <span>(Yahoo Finance Data)</span>
+              </div>
+              <div class="ingest-pill-row">
+                <span class="ingest-badge badge-bunker">[BUNKER-P]</span>
+                <span>Global Fuel Price Indices</span>
+              </div>
+              <div class="ingest-pill-row">
+                <span class="ingest-badge badge-port">[PORT-T]</span>
+                <span>Port Physical &amp; Tariff Limits</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Connector Arrow -->
+        <div class="vert-arrow">
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- TENDER PREPARATION & CHARTER-PARTY ROLLING ANALYSIS (USER REQUEST UPDATE) -->
+        <div class="tender-box-card">
+          <div class="tender-header-row">
+            <div class="tender-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Tender Preparation &amp; Charter-Party Rolling Analysis</span>
+            </div>
+            <span class="tender-tag">PSU / GFR COMPLIANT</span>
+          </div>
+
+          <div class="tender-content-grid">
+            <!-- Calendar & Document SVG Icon -->
+            <div class="tender-icon-container">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <circle cx="12" cy="16" r="2" fill="#0284c7" stroke="none"/>
+              </svg>
+            </div>
+
+            <!-- Mandatory Project Tender Parameters -->
+            <div class="tender-rules-list">
+              <div class="tender-rule-highlight">
+                <span>🗓️ <strong>Minimum 21 Days Statutory Tender Notice:</strong> GFR 2017 Rule 161 compliance before cargo laycan.</span>
+              </div>
+              <div class="tender-rule-highlight" style="border-color: #10b981; background: #ecfdf5;">
+                <span>⚖️ <strong>70/30 COA-to-Spot Ratio:</strong> 70% locked in quarterly COA for basestock safety, 30% spot charter to capture market dips.</span>
+              </div>
+              <div class="tender-subtext">
+                • <strong>Charter-Party Rolling:</strong> Dynamically calculates required vessel tonnage &amp; ship delivery rolling based on steel/power plant minimum stockpile buffers.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector Arrow -->
+        <div class="vert-arrow">
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- Early Global Volatility Radar -->
+        <div class="radar-box">
+          <div class="radar-title">Early Global Volatility Radar</div>
+          <ul class="radar-bullets">
+            <li>Captures Capesize surges 14 days early</li>
+            <li>Tracks cyclones, weather depressions &amp; canal choke points</li>
+          </ul>
+        </div>
+
+        <!-- Outbound connection node -->
+        <div class="p1-outbound-arrow" title="Proceed to Phase 2">➔</div>
+      </div>
+
+
+      <!-- =====================================================================
+           COLUMN 2: PHASE 2 (PRESERVED)
+           ===================================================================== -->
+      <div class="phase-column phase-2">
+        <div class="column-header-pill">PHASE 2 (Preserved)</div>
+
+        <!-- Tier-1 Arrival ETA -->
+        <div class="eta-box">
+          <div class="eta-header-title">Tier-1 Arrival ETA (48h–72h / 2–3 Days Out)</div>
+          <div class="eta-desc">
+            Simulate long-range arrival bunching to queue inbound coal vessels reliably at outer anchorage
+          </div>
+        </div>
+
+        <!-- Connector Arrow -->
+        <div class="vert-arrow">
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- Tier-1 Congestion Alert -->
+        <div class="alert-box">
+          Tier-1 Congestion Alert<br>
+          <span>(Anchorage wait &gt; 24–48 hours)</span>
+        </div>
+
+        <!-- Connector Arrow labeled No -->
+        <div class="vert-arrow">
+          <span class="arrow-label">No</span>
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- Emergency Coal Priority Factor -->
+        <div class="priority-factor-container">
+          <div class="factor-title">Emergency Coal Priority Factor</div>
+
+          <!-- Decision Diamond -->
+          <div class="decision-diamond">
+            Critical Stockpile<br>
+            <strong>&lt; 4.2 days / CEA Red Flag</strong>
+          </div>
+
+          <!-- Branch Yes -->
+          <div class="vert-arrow">
+            <span class="arrow-label" style="color: #ea580c;">Yes</span>
+            <div class="vert-arrow-line" style="background: #ea580c;"></div>
+            <div class="vert-arrow-head" style="border-top-color: #ea580c;"></div>
+          </div>
+
+          <div class="priority-action-box">
+            🚨 Emergency Coal Priority
+          </div>
+
+          <!-- Branch No -->
+          <div class="vert-arrow">
+            <span class="arrow-label">No</span>
+            <div class="vert-arrow-line"></div>
+            <div class="vert-arrow-head"></div>
+          </div>
+
+          <div class="fifo-action-box">
+            Maintain FIFO Berthing
+          </div>
+        </div>
+
+        <!-- Outbound connection node -->
+        <div class="p2-outbound-arrow" title="Proceed to Phase 3">➔</div>
+      </div>
+
+
+      <!-- =====================================================================
+           COLUMN 3: PHASE 3 (PRESERVED)
+           ===================================================================== -->
+      <div class="phase-column phase-3">
+        <div class="column-header-pill">
+          PHASE 3. (Preserved)<br>
+          CRITICAL DECISION GATE &amp; MULTIMODAL PORT DIVERSION<br>
+          <span style="font-size: 9.8px; font-weight: 800; color: #ffe4e6;">(6h ETA Threshold)</span>
+        </div>
+
+        <!-- 3-Way Optimization Equation -->
+        <div class="opt-equation-container">
+          <div class="opt-header-title">3-Way Optimization Equation</div>
+
+          <div class="opt-subrow">
+            <!-- Funnel & Calculator Graphic -->
+            <div class="funnel-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2" style="margin-top: -2px;">
+                <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
+              </svg>
+            </div>
+
+            <!-- Cost B -->
+            <div class="cost-b-box">
+              <div class="cost-b-title">Cost B</div>
+              <div>(Port Diversion Bunker Fuel)</div>
+            </div>
+          </div>
+
+          <!-- Cost C -->
+          <div class="cost-c-box">
+            <div class="cost-c-title">Cost C</div>
+            <div>(Multimodal Inland Evacuation – Indian Railways FOIS 48 hr rake indent freight tariff vs Emergency Road Trucking freight)</div>
+          </div>
+        </div>
+
+        <!-- Connector Arrow -->
+        <div class="vert-arrow">
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- Optimization Verdict Diamond -->
+        <div class="verdict-diamond">
+          ⚖️ Optimization Verdict
+        </div>
+
+        <!-- Connector Arrow -->
+        <div class="vert-arrow">
+          <div class="vert-arrow-line"></div>
+          <div class="vert-arrow-head"></div>
+        </div>
+
+        <!-- Diversion Decision Split -->
+        <div class="split-row">
+          
+          <!-- Execute Diversion -->
+          <div class="branch-card branch-diversion">
+            <div class="branch-title">EXECUTE MULTIMODAL DIVERSION</div>
+            <div class="branch-icon">
+              <!-- Train Icon -->
+              <svg width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2">
+                <rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>
+              </svg>
+            </div>
+            <div class="branch-sub">Maintain Verdict</div>
+          </div>
+
+          <div class="or-divider">OR</div>
+
+          <!-- Proceed to Anchorage -->
+          <div class="branch-card branch-anchorage">
+            <div class="branch-title">PROCEED TO CURRENT ANCHORAGE</div>
+            <div class="branch-icon">
+              <!-- Speedometer / Gauge Icon -->
+              <svg width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2">
+                <path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>
+              </svg>
+            </div>
+            <div class="branch-sub">Virtual arrival speed optimization</div>
+          </div>
+
+        </div>
+
+        <!-- Outbound connection node -->
+        <div class="p3-outbound-arrow" title="Proceed to Phase 4">➔</div>
+      </div>
+
+
+      <!-- =====================================================================
+           COLUMN 4: PHASE 4 (PRESERVED)
+           ===================================================================== -->
+      <div class="phase-column phase-4">
+        <div class="column-header-pill">PHASE 4 (Preserved)</div>
+
+        <!-- Berth Discharge & Demurrage Clock Stop -->
+        <div class="berth-card">
+          <div class="berth-title">Berth Discharge &amp; Demurrage Clock Stop</div>
+          <div class="berth-icon-row">
+            <!-- Crane Icon -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+              <path d="M20 7H4v13h16V7Z"/><path d="M8 7V3h8v4"/><path d="M12 7v13"/><path d="M9 14h6"/>
+            </svg>
+            <span>2,000 MT/hr speed</span>
+          </div>
+        </div>
+
+        <!-- Cargo-to-Port Matcher -->
+        <div class="matcher-card">
+          <div class="matcher-title">
+            <span>Cargo-to-Port Matcher</span>
+            <span class="matcher-sub">(coal details to plant)</span>
+          </div>
+          <div class="matcher-split">
+            <!-- Cargo Ship Icon -->
+            <div class="ship-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="1.8">
+                <path d="M2 17l20 0l-3 4l-14 0z"/><path d="M5 17l1 -7l12 0l1 7"/><line x1="12" y1="5" x2="12" y2="10"/>
+              </svg>
+            </div>
+            <!-- Destination Plants -->
+            <div class="plants-list">
+              <span>➔ <strong>RINL</strong> Vizag</span>
+              <span>➔ <strong>SAIL</strong> Rourkela</span>
+              <span>➔ <strong>TATA</strong> Kalinganagar</span>
+              <span>➔ <strong>NTPC</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coastal Hop Triangulation Engine -->
+        <div class="triangulation-card">
+          <div>Coastal Hop Triangulation Engine</div>
+          <div class="sub-author">(Wetzel &amp; Tierney 2020)</div>
+        </div>
+
+        <!-- Commercial Impact Header -->
+        <div class="commercial-banner">
+          COMMERCIAL IMPACT
+        </div>
+
+        <!-- Production Scaling / Edge Deployment -->
+        <div class="scaling-box">
+          <div class="scaling-title">
+            Production Scaling:<br>
+            Jetson Nano ➔ AGX ➔ DGX
+          </div>
+
+          <div class="server-rack-icon-container">
+            <!-- Server Cluster SVG Illustration -->
+            <svg width="130" height="30" viewBox="0 0 160 44" fill="none">
+              <rect x="5" y="4" width="44" height="36" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+              <line x1="10" y1="12" x2="43" y2="12" stroke="#38bdf8" stroke-width="2"/>
+              <line x1="10" y1="20" x2="43" y2="20" stroke="#38bdf8" stroke-width="2"/>
+              <line x1="10" y1="28" x2="43" y2="28" stroke="#38bdf8" stroke-width="2"/>
+              <circle cx="40" cy="34" r="1.5" fill="#10b981"/>
+
+              <rect x="58" y="4" width="44" height="36" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+              <line x1="63" y1="12" x2="96" y2="12" stroke="#818cf8" stroke-width="2"/>
+              <line x1="63" y1="20" x2="96" y2="20" stroke="#818cf8" stroke-width="2"/>
+              <line x1="63" y1="28" x2="96" y2="28" stroke="#818cf8" stroke-width="2"/>
+              <circle cx="93" cy="34" r="1.5" fill="#10b981"/>
+
+              <rect x="111" y="4" width="44" height="36" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+              <line x1="116" y1="12" x2="149" y2="12" stroke="#34d399" stroke-width="2"/>
+              <line x1="116" y1="20" x2="149" y2="20" stroke="#34d399" stroke-width="2"/>
+              <line x1="116" y1="28" x2="149" y2="28" stroke="#34d399" stroke-width="2"/>
+              <circle cx="146" cy="34" r="1.5" fill="#10b981"/>
+            </svg>
+          </div>
+
+          <div class="scaling-tagline">
+            (Same code, scalable hardware)
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- BOTTOM DARK SUMMARY BAR -->
+    <div class="bottom-bar">
+      <div class="bottom-left-notes">
+        <div class="bottom-pill-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Optional Deployment Note</span>
+        </div>
+        <div class="bottom-pill-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="12" x="3" y="4" rx="2" ry="2"/><line x1="2" x2="22" y1="20" y2="20"/></svg>
+          <span>Edge Demo Device</span>
+        </div>
+      </div>
+
+      <div class="bottom-right-motto">
+        Optimized Tender, Predictive Routing, &amp; 360° Profitability across the entire logistics chain.
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    // Auto-enable clean mode if requested via URL
+    if (window.location.search.includes('clean') || window.location.hash.includes('clean')) {
+      document.body.classList.add('clean-mode');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    async function copyImageCanvas() {
+      try {
+        const board = document.getElementById('captureBoard');
+        showToast('Rendering HD canvas...');
+        const canvas = await html2canvas(board, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]).then(() => {
+            showToast('✅ High-Def Diagram copied to clipboard!');
+          }).catch(err => {
+            console.error(err);
+            showToast('Fallback: downloading image...');
+            downloadImage(canvas);
+          });
+        }, 'image/png');
+      } catch (err) {
+        console.error(err);
+        showToast('Error capturing canvas');
+      }
+    }
+
+    async function downloadDirect() {
+      try {
+        const board = document.getElementById('captureBoard');
+        showToast('Generating PNG...');
+        const canvas = await html2canvas(board, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+        downloadImage(canvas);
+        showToast('✅ Download started!');
+      } catch (err) {
+        console.error(err);
+        const a = document.createElement('a');
+        a.href = 'NaviFreight_Updated_Architecture_Workflow.png';
+        a.download = 'NaviFreight_Updated_Architecture_Workflow.png';
+        a.click();
+      }
+    }
+
+    function downloadImage(canvas) {
+      const a = document.createElement('a');
+      a.download = 'NaviFreight_Updated_Architecture_Workflow.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+  </script>
+</body>
+</html>
