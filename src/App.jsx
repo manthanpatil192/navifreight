@@ -34,9 +34,9 @@ const SIDEBAR_NAV_ITEMS = [
 ];
 
 export default function App() {
-  // Authentication & View State (Default to false so visitors land directly on Page 1)
+  // Authentication & View State (Default to true so visitors land on the Main Landing Page initially)
   const [currentUser, setCurrentUser] = useState(null);
-  const [showLoginPage, setShowLoginPage] = useState(false);
+  const [showLoginPage, setShowLoginPage] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Application Page State (Defaults to 'forecasts' as requested)
