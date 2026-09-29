@@ -1,43 +1,88 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import ForecastChart from './components/ForecastChart';
-import VesselOptimization from './components/VesselOptimization';
-import SpotVsCoaPlanner from './components/SpotVsCoaPlanner';
-import DeadheadOptimizer from './components/DeadheadOptimizer';
-import MarketNewsFeed from './components/InteractiveRouteMap';
-import LiveShipTrackerMap from './components/LiveShipTrackerMap';
-import MarketIntelligenceRadar from './components/MarketIntelligenceRadar';
 import DatasetExplorerModal from './components/DatasetExplorerModal';
 import ExecutiveReportModal from './components/ExecutiveReportModal';
+import LoginPage from './components/LoginPage';
 import { calculateFreightForecast } from './utils/forecastingEngine';
 import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
 import { getSyncMarketData, subscribeMarketData, forceRefreshMarketData } from './services/liveMarketDataService';
+
+// Dedicated Pages (Matching the User's Exact 6-Stage Process Sequence + Master Dashboard)
+import DashboardLandingPage from './pages/DashboardLandingPage';
+import FreightForecastsPage from './pages/FreightForecastsPage';
+import MarketVolatilityPage from './pages/MarketVolatilityPage';
+import VesselPortFitPage from './pages/VesselPortFitPage';
+import VesselBunchingPage from './pages/VesselBunchingPage';
+import MultimodalRailwayMapPage from './pages/MultimodalRailwayMapPage';
+import CargoMatchingPage from './pages/CargoMatchingPage';
+
 import { 
-  Ship, FileText, CheckCircle2, Compass, TrendingUp, 
-  RefreshCw, ShieldCheck, Layers, ArrowRight, BarChart3, Anchor
+  LayoutGrid, TrendingUp, Activity, Compass, RefreshCw, 
+  Train, Ship, FileText, Database, ShieldCheck, X, ChevronRight 
 } from 'lucide-react';
 
-import ActionableBookingDirective from './components/ActionableBookingDirective';
-import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
-import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
-import DetailedRouteScenarioAnalysis from './components/DetailedRouteScenarioAnalysis';
-import LoginPage from './components/LoginPage';
-
-const PS_TABS = [
-  { id: 'part_a', label: 'Part A: Market Timing', sublabel: 'Freight Forecasting & Entry', badge: 'Section (a)', icon: TrendingUp },
-  { id: 'part_b', label: 'Part B: Vessel & Port Fit', sublabel: 'Draft & TPD Optimization', badge: 'Section (b)', icon: Ship },
-  { id: 'part_c', label: 'Part C: Idle & Vessel Bunching', sublabel: 'Tramp Routing & Anti-Congestion', badge: 'Section (c)', icon: RefreshCw },
-  { id: 'part_d', label: 'Part D: Risk & Congestion', sublabel: 'NLP Radar & AIS Tracking', badge: 'Section (d)', icon: ShieldCheck },
-  { id: 'all', label: 'Complete Pipeline', sublabel: 'Full Continuous Flow', badge: 'All Phases', icon: Layers },
+const SIDEBAR_NAV_ITEMS = [
+  { 
+    id: 'dashboard', 
+    label: 'Dashboard', 
+    icon: LayoutGrid, 
+    badge: '4-Phase Flow',
+    description: 'Executive Overview of 4-Phase Pipeline'
+  },
+  { 
+    id: 'forecasts', 
+    label: 'Freight Forecasts & Chartering', 
+    icon: TrendingUp, 
+    badge: 'Step 1',
+    description: 'Part A: Web Terminal & Quantile Modeling'
+  },
+  { 
+    id: 'volatility', 
+    label: 'Market Volatility Radar', 
+    icon: Activity, 
+    badge: 'Step 2',
+    description: '4-Stage AI Disruption & News Stream'
+  },
+  { 
+    id: 'port_fit', 
+    label: 'Vessel & Port Fit', 
+    icon: Compass, 
+    badge: 'Step 3',
+    description: 'Part B: Draft, LOA & TPD Engineering'
+  },
+  { 
+    id: 'bunching', 
+    label: 'Vessel Bunching Engine', 
+    icon: RefreshCw, 
+    badge: 'Step 4',
+    description: 'Tier-1 ETA & Emergency Coal Priority'
+  },
+  { 
+    id: 'multimodal', 
+    label: 'Multimodal Railway & Map', 
+    icon: Train, 
+    badge: 'Step 5',
+    description: '3-Way Cost Gate & Live AIS Tracker'
+  },
+  { 
+    id: 'cargo_matching', 
+    label: 'Cargo Matching & Coastal Hop', 
+    icon: Ship, 
+    badge: 'Step 6',
+    description: '2,000 MT/hr Berth & Tramp Triangulation'
+  },
 ];
 
 export default function App() {
-  // Authentication & View State (Default to true to display the Figma-grade Login Page initially)
+  // Authentication & View State (Default to false so visitors land directly on Dashboard)
   const [currentUser, setCurrentUser] = useState(null);
-  const [showLoginPage, setShowLoginPage] = useState(true);
+  const [showLoginPage, setShowLoginPage] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Application State
-  const [activeTab, setActiveTab] = useState('part_a');
+  // Application Page State (Defaults to 'dashboard' 4-phase overview)
+  const [activePage, setActivePage] = useState('dashboard');
+
+  // Shared Domain State
   const [selectedOrigin, setSelectedOrigin] = useState('hay_point');
   const [selectedDestination, setSelectedDestination] = useState('paradip');
   const [selectedVessel, setSelectedVessel] = useState('capesize');
@@ -55,7 +100,7 @@ export default function App() {
   // Real-Time Dynamic Market & Forex Telemetry State
   const [marketData, setMarketData] = useState(getSyncMarketData());
 
-  React.useEffect(() => {
+  useEffect(() => {
     const unsub = subscribeMarketData((fresh) => {
       setMarketData(fresh);
     });
@@ -101,20 +146,11 @@ export default function App() {
     marketData?.vlsfoPriceUSD
   ]);
 
-  const handleApplyScenario = (config) => {
-    setSelectedOrigin(config.origin);
-    setSelectedDestination(config.destination);
-    setSelectedVessel(config.vessel);
-    setCargoVolumeMT(config.cargoVolumeMT);
-    setContractHorizonMonths(config.horizon);
-    if (config.cargoType) setCargoType(config.cargoType);
-  };
-
   const handleExportReport = () => {
     setIsReportModalOpen(true);
   };
 
-  // If user is on the Login view, render the high-end Figma-inspired Login Page
+  // If user opened the Login view, render the Figma-grade LoginPage
   if (showLoginPage) {
     return (
       <LoginPage
@@ -125,285 +161,359 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans selection:bg-maritime-100 selection:text-maritime-900">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex font-sans selection:bg-sky-100 selection:text-sky-900">
       
-      {/* 1. Header & Navigation */}
-      <Navbar
-        onOpenDatasets={() => setIsDatasetModalOpen(true)}
-        currency={currency}
-        setCurrency={setCurrency}
-        onExportReport={handleExportReport}
-        currentUser={currentUser}
-        onSignOut={handleSignOut}
-        onOpenLoginPage={() => setShowLoginPage(true)}
-        marketData={marketData}
-        onRefreshMarketData={forceRefreshMarketData}
-      />
+      {/* Mobile Drawer Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden"
+        />
+      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        {/* Active Authenticated Session Banner */}
-        {currentUser && (
-          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 mb-4 shadow-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-bold text-slate-900">Active Terminal Session:</span>
-              <span className="font-semibold text-slate-700">{currentUser.roleTitle}</span>
-              <span className="text-slate-400">· {currentUser.organization}</span>
+      {/* ========================================================================= */}
+      {/* LEFT SIDEBAR NAVIGATION (MATCHING USER SCREENSHOT)                       */}
+      {/* ========================================================================= */}
+      <aside className={`
+        fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-sm
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="flex flex-col flex-1 overflow-y-auto">
+          
+          {/* Logo Brand Header */}
+          <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-xs">
+                <Ship className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex items-baseline space-x-1">
+                <span className="text-xl font-black text-slate-900 tracking-tight">
+                  NaviFreight<span className="text-sky-600">.AI</span>
+                </span>
+              </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <span className="text-[11px] font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                LICENSE: {currentUser.code}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer"
-              >
-                Sign Out / Switch Role
-              </button>
-            </div>
+
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1 rounded-md text-slate-400 hover:text-slate-600 md:hidden cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        )}
-        
-        {/* Executive Summary Banner */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 mb-6 shadow-subtle flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <h1 className="text-base font-bold text-slate-900">
-                East Coast India Bulk Procurement & Predictive Chartering Decision Engine
-              </h1>
+
+          {/* Navigation Links (Exact Match of Screenshot Layout) */}
+          <nav className="p-3 space-y-1">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
+              Decision Workflow
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Transitioning from reactive daily spot chartering to optimized <span className="font-semibold text-slate-700">3-Month / 6-Month Multiple Voyage Contracts (COAs)</span> using AI freight forecasts, port draft feasibility checks, and return tramp backhaul routing.
-            </p>
-          </div>
-        </div>
 
-
-        {/* Problem Statement Part Navigation Tab Bar */}
-        <div className="bg-white border border-slate-200 rounded-xl p-1.5 mb-6 shadow-subtle">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1">
-            {PS_TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+            {SIDEBAR_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activePage === item.id;
               return (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-start text-left p-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-maritime-900 text-white shadow-sm' 
+                  key={item.id}
+                  onClick={() => {
+                    setActivePage(item.id);
+                    setIsSidebarOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-xs transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-sky-50 text-sky-700 shadow-2xs border border-sky-100 font-bold'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
+                  title={item.description}
                 >
-                  <div className="flex items-center justify-between w-full mb-1">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}>
-                      {tab.badge}
-                    </span>
+                  <div className="flex items-center space-x-2.5 truncate">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                    <span className="truncate">{item.label}</span>
                   </div>
-                  <span className="text-xs font-bold truncate w-full">{tab.label}</span>
-                  <span className={`text-[10px] truncate w-full ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
-                    {tab.sublabel}
+                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded shrink-0 ml-1 ${
+                    isActive ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {item.badge}
                   </span>
                 </button>
               );
             })}
-          </div>
+
+            {/* Sovereign Data & CAG Brief Actions */}
+            <div className="pt-4 mt-2 border-t border-slate-100">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
+                Executive & Datasets
+              </div>
+
+              <button
+                onClick={() => setIsDatasetModalOpen(true)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Database className="w-4 h-4 text-slate-400" />
+                  <span>Sovereign Feeds</span>
+                </div>
+                <span className="text-[9px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded border border-emerald-200">
+                  8 Feeds
+                </span>
+              </button>
+
+              <button
+                onClick={handleExportReport}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <FileText className="w-4 h-4 text-slate-400" />
+                  <span>CAG Brief & Audit</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              </button>
+            </div>
+          </nav>
+
         </div>
 
-        {/* ================= PART A: MARKET TIMING & FORECASTING ================= */}
-        {(activeTab === 'part_a' || activeTab === 'all') && (
-          <div className="space-y-6 mt-6 animate-in fade-in duration-200">
+        {/* Sidebar Footer with Model Status & User Info */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+          <div className="bg-white border border-slate-200 rounded-lg p-2.5 text-[11px] shadow-2xs">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                GBDT Quantile v2.0
+              </span>
+              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded font-bold">
+                ACTIVE
+              </span>
+            </div>
+            <div className="text-[10px] text-slate-500">
+              FastAPI Server: Connected (200 OK)
+            </div>
+          </div>
 
-            {/* 1. FIRST (TOP): IN-BUILT WEB TERMINAL & LIVE MODEL TRAINING CONSOLE */}
-            <WebTerminalModelTrainer
-              onRunScenario={(params) => {
-                if (params.origin) setSelectedOrigin(params.origin);
-                if (params.destination) setSelectedDestination(params.destination);
-                if (params.vessel) setSelectedVessel(params.vessel);
-                if (params.volume) setCargoVolumeMT(params.volume);
-                if (params.horizon) setContractHorizonMonths(params.horizon);
-                if (params.volatility) setVolatilityIndex(params.volatility);
-                if (params.newsSignal !== undefined) setActiveNewsSignal(params.newsSignal);
-                if (params.coaSplit) setCoaSplitPercent(params.coaSplit);
-                if (params.terminalMetrics) setTerminalMetrics(params.terminalMetrics);
+          <div className="flex items-center justify-between px-1">
+            <div className="text-[11px]">
+              <span className="font-bold text-slate-800 block">
+                {currentUser ? currentUser.roleTitle : 'Chartering Desk'}
+              </span>
+              <span className="text-[9.5px] text-slate-400">
+                {currentUser ? currentUser.organization : 'SAIL / RINL / NTPC'}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowLoginPage(true)}
+              className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
+            >
+              {currentUser ? 'Switch' : 'Sign In'}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* ========================================================================= */}
+      {/* MAIN CONTENT CANVAS (OFFSET FOR FIXED DESKTOP SIDEBAR)                    */}
+      {/* ========================================================================= */}
+      <div className="md:pl-64 flex-1 flex flex-col min-w-0">
+        
+        {/* Top Header Navbar */}
+        <Navbar
+          onOpenDatasets={() => setIsDatasetModalOpen(true)}
+          currency={currency}
+          setCurrency={setCurrency}
+          onExportReport={handleExportReport}
+          currentUser={currentUser}
+          onSignOut={handleSignOut}
+          onOpenLoginPage={() => setShowLoginPage(true)}
+          marketData={marketData}
+          onRefreshMarketData={forceRefreshMarketData}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+
+        {/* Content Body */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          
+          {/* Active Authenticated Session Banner */}
+          {currentUser && (
+            <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 mb-5 shadow-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="font-bold text-slate-900">Active Terminal Session:</span>
+                <span className="font-semibold text-slate-700">{currentUser.roleTitle}</span>
+                <span className="text-slate-400">· {currentUser.organization}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-[11px] font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                  LICENSE: {currentUser.code}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer"
+                >
+                  Sign Out / Switch Role
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* DEDICATED PAGE RENDERING                                                 */}
+          {/* ========================================================================= */}
+
+          {/* PAGE 0: DASHBOARD (Landing Page with End-to-End 4-Phase Architecture Flow) */}
+          {activePage === 'dashboard' && (
+            <DashboardLandingPage
+              selectedOrigin={selectedOrigin}
+              setSelectedOrigin={setSelectedOrigin}
+              selectedDestination={selectedDestination}
+              setSelectedDestination={setSelectedDestination}
+              selectedVessel={selectedVessel}
+              setSelectedVessel={setSelectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              setCargoVolumeMT={setCargoVolumeMT}
+              contractHorizonMonths={contractHorizonMonths}
+              setContractHorizonMonths={setContractHorizonMonths}
+              volatilityIndex={volatilityIndex}
+              setVolatilityIndex={setVolatilityIndex}
+              currency={currency}
+              forecast={forecast}
+              terminalMetrics={terminalMetrics}
+              setTerminalMetrics={setTerminalMetrics}
+              activeNewsSignal={activeNewsSignal}
+              setActiveNewsSignal={setActiveNewsSignal}
+              coaSplitPercent={coaSplitPercent}
+              setCoaSplitPercent={setCoaSplitPercent}
+              marketData={marketData}
+              onNavigateToPage={(pageId) => {
+                setActivePage(pageId);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              currency={currency}
-              currentForecast={forecast}
+              onOpenDatasets={() => setIsDatasetModalOpen(true)}
+              onExportReport={handleExportReport}
+            />
+          )}
+
+          {/* PAGE 1: FREIGHT FORECASTS & CHARTERING (Part A: Web Terminal first + Model + Curves) */}
+          {activePage === 'forecasts' && (
+            <FreightForecastsPage
               selectedOrigin={selectedOrigin}
+              setSelectedOrigin={setSelectedOrigin}
               selectedDestination={selectedDestination}
+              setSelectedDestination={setSelectedDestination}
               selectedVessel={selectedVessel}
+              setSelectedVessel={setSelectedVessel}
               cargoVolumeMT={cargoVolumeMT}
+              setCargoVolumeMT={setCargoVolumeMT}
               contractHorizonMonths={contractHorizonMonths}
+              setContractHorizonMonths={setContractHorizonMonths}
+              volatilityIndex={volatilityIndex}
+              setVolatilityIndex={setVolatilityIndex}
+              currency={currency}
+              forecast={forecast}
+              terminalMetrics={terminalMetrics}
+              setTerminalMetrics={setTerminalMetrics}
+              activeNewsSignal={activeNewsSignal}
+              setActiveNewsSignal={setActiveNewsSignal}
               coaSplitPercent={coaSplitPercent}
+              setCoaSplitPercent={setCoaSplitPercent}
+              marketData={marketData}
             />
+          )}
 
-            {/* 2. SECOND: OPTIMAL MARKET ENTRY TIMING, PSU TENDER & CONTRACT HORIZON MATRIX */}
-            <CharterTimingDecisionMatrix
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              selectedVessel={selectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
+          {/* PAGE 2: MARKET VOLATILITY RADAR (Early Market Volatility + News + Sovereign Feeds) */}
+          {activePage === 'volatility' && (
+            <MarketVolatilityPage
+              activeNewsSignal={activeNewsSignal}
+              setActiveNewsSignal={setActiveNewsSignal}
               currency={currency}
-              terminalMetrics={terminalMetrics}
-              forecast={forecast}
+              onOpenDatasets={() => setIsDatasetModalOpen(true)}
             />
+          )}
 
-            {/* 3. LATER PART OF PART A: DETAILED ROUTE SCENARIO ANALYSIS (IN RUPEES, JOINED WITH WEB TERMINAL) */}
-            <DetailedRouteScenarioAnalysis
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              selectedVessel={selectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              terminalMetrics={terminalMetrics}
-              contractHorizonMonths={contractHorizonMonths}
-              forecast={forecast}
-              coaSplitPercent={coaSplitPercent}
-            />
-
-            {/* 4. FOURTH (LAST / BOTTOM): FREIGHT FORECASTING GRAPHS */}
-            <ForecastChart
-              forecast={forecast}
-              currency={currency}
-              terminalMetrics={terminalMetrics}
-              selectedVessel={selectedVessel}
-              onSelectVessel={setSelectedVessel}
-            />
-          </div>
-        )}
-
-        {/* ================= PAGE 3: PART B - VESSEL & PORT INFRASTRUCTURE FIT ================= */}
-        {(activeTab === 'part_b' || activeTab === 'all') && (
-          <div className="space-y-6 mt-6 animate-in fade-in duration-200">
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Ship className="w-4 h-4 text-emerald-700" />
-                <span className="text-xs font-bold text-emerald-900">
-                  PS Part (b): Vessel Type Optimization & East Coast Indian Port Engineering Constraints
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                Draft, LOA, Beam & TPD Limits
-              </span>
-            </div>
-
-            {/* Vessel Suitability & Real-Time Port Match Optimizer (PS Part B) */}
-            <VesselOptimization
+          {/* PAGE 3: VESSEL & PORT FIT (Part B: Vessel Suitability & East Coast Port Limits) */}
+          {activePage === 'port_fit' && (
+            <VesselPortFitPage
               selectedOrigin={selectedOrigin}
               selectedDestination={selectedDestination}
               cargoVolumeMT={cargoVolumeMT}
               currency={currency}
-              onSelectVessel={setSelectedVessel}
-              currentVesselId={selectedVessel}
-              onSelectPort={(portId) => setSelectedDestination(portId)}
+              selectedVessel={selectedVessel}
+              setSelectedVessel={setSelectedVessel}
+              setSelectedDestination={setSelectedDestination}
             />
-          </div>
-        )}
+          )}
 
-        {/* ================= PAGE 4: PART C - IDLE SCENARIO, DEADHEADING & VESSEL BUNCHING ================= */}
-        {(activeTab === 'part_c' || activeTab === 'all') && (
-          <div className="space-y-6 mt-6 animate-in fade-in duration-200">
-            <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <RefreshCw className="w-4 h-4 text-purple-700" />
-                <span className="text-xs font-bold text-purple-900">
-                  PS Part (c): Idle Scenario Management, Tramp Deadheading & Vessel Bunching Anti-Congestion
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
-                Rebate Credit: $3.50–$5.20/MT • Zero Congestion Collisions
-              </span>
-            </div>
-
-            {/* Deadheading, Tramp Return & Vessel Bunching Anti-Congestion Optimizer */}
-            <DeadheadOptimizer
+          {/* PAGE 4: VESSEL BUNCHING ENGINE (Tier-1 ETA + Congestion + Emergency Coal Priority) */}
+          {activePage === 'bunching' && (
+            <VesselBunchingPage
               selectedDestination={selectedDestination}
+              setSelectedDestination={setSelectedDestination}
+              currency={currency}
+            />
+          )}
+
+          {/* PAGE 5: MULTIMODAL RAILWAY & MAP (3-Way Decision Equation + FOIS Rail + Live Map) */}
+          {activePage === 'multimodal' && (
+            <MultimodalRailwayMapPage
+              selectedDestination={selectedDestination}
+              setSelectedDestination={setSelectedDestination}
+              selectedVessel={selectedVessel}
+              cargoVolumeMT={cargoVolumeMT}
+              currency={currency}
+              marketData={marketData}
+            />
+          )}
+
+          {/* PAGE 6: CARGO MATCHING & COASTAL HOP (2,000 MT/hr Berth + Plant Matching + Backhaul) */}
+          {activePage === 'cargo_matching' && (
+            <CargoMatchingPage
+              selectedDestination={selectedDestination}
+              setSelectedDestination={setSelectedDestination}
               currency={currency}
               forecast={forecast}
               terminalMetrics={terminalMetrics}
               activeNewsSignal={activeNewsSignal}
-              onSelectPort={(portId) => setSelectedDestination(portId)}
             />
-          </div>
-        )}
+          )}
 
-        {/* ================= PAGE 5: PART D - RISK MITIGATION & PORT CONGESTION ================= */}
-        {(activeTab === 'part_d' || activeTab === 'all') && (
-          <div className="space-y-6 mt-6 animate-in fade-in duration-200">
-            <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-4 h-4 text-amber-700" />
-                <span className="text-xs font-bold text-amber-900">
-                  PS Part (d): Risk Mitigation, AI Market Intelligence & Real-Time AIS Port Radar
-                </span>
+        </main>
+
+        {/* Dataset Explorer Modal */}
+        <DatasetExplorerModal
+          isOpen={isDatasetModalOpen}
+          onClose={() => setIsDatasetModalOpen(false)}
+        />
+
+        {/* Executive Chartering Brief & Audit Report Modal */}
+        <ExecutiveReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          forecast={forecast}
+          selectedOrigin={selectedOrigin}
+          selectedDestination={selectedDestination}
+          selectedVessel={selectedVessel}
+          cargoVolumeMT={cargoVolumeMT}
+          contractHorizonMonths={contractHorizonMonths}
+          currency={currency}
+        />
+
+        {/* Platform Footer */}
+        <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-5 h-5 rounded bg-sky-600 flex items-center justify-center text-white text-[10px] font-bold">
+                NF
               </div>
-              <span className="text-[10px] font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
-                Early Disruption Warning
-              </span>
+              <span className="font-bold text-slate-800">NaviFreight AI Decision Terminal</span>
+              <span>• Smart India Hackathon Prototype (SIH26006)</span>
             </div>
 
-            {/* 4-Stage AI Market Intelligence & Disruption Radar (GDELT + Zero-Shot + FinBERT + LexRank) */}
-            <MarketIntelligenceRadar
-              activeNewsSignal={activeNewsSignal}
-              onSelectNewsSignal={(signal) => setActiveNewsSignal(signal)}
-              currency={currency}
-            />
-
-            {/* Live AIS Ship Tracking Map & Geofencing Radar */}
-            <LiveShipTrackerMap
-              selectedDestination={selectedDestination}
-              onSelectPort={(portId) => setSelectedDestination(portId)}
-              selectedVessel={selectedVessel}
-            />
-          </div>
-        )}
-
-      </main>
-
-      {/* Dataset & ML Auditing Modal */}
-      <DatasetExplorerModal
-        isOpen={isDatasetModalOpen}
-        onClose={() => setIsDatasetModalOpen(false)}
-      />
-
-      {/* Executive Chartering Brief & Audit Report Modal */}
-      <ExecutiveReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        forecast={forecast}
-        selectedOrigin={selectedOrigin}
-        selectedDestination={selectedDestination}
-        selectedVessel={selectedVessel}
-        cargoVolumeMT={cargoVolumeMT}
-        contractHorizonMonths={contractHorizonMonths}
-        currency={currency}
-      />
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-5 h-5 rounded bg-maritime-900 flex items-center justify-center text-white text-[10px] font-bold">
-              NF
+            <div className="flex items-center space-x-4 text-[11px]">
+              <span>Feeds: SSE • NOAA • ICE • FreightFox • FOIS • DGCIS</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-emerald-700 font-semibold">100% Free Sovereign Open Feeds</span>
             </div>
-            <span className="font-semibold text-slate-800">NaviFreight AI Engine</span>
-            <span>• Smart India Hackathon Prototype (SIH26006)</span>
           </div>
+        </footer>
 
-          <div className="flex items-center space-x-4 text-[11px]">
-            <span>Sources: SSE • World Bank • DGCIS • AISStream • IMD • PortWatch</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-emerald-700 font-semibold">100% Free Public Datasets</span>
-          </div>
-        </div>
-      </footer>
+      </div>
 
     </div>
   );
