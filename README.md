@@ -2,10 +2,16 @@
 
 AI-Powered Dry Bulk Freight Procurement, Vessel Optimization & Anti-Congestion Dispatch Platform for Indian Steel Mills and Power Utilities.
 
+### 🌐 Live Production Application (Instant CDN • Zero Sleep Delay):
+👉 **[https://manthanpatil192.github.io/navifreight/](https://manthanpatil192.github.io/navifreight/)**
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/manthanpatil192/navifreight)
 
 **Official Git Repository:**  
 `https://github.com/manthanpatil192/navifreight.git`
+
+**Live REST API Backend:**  
+`https://navifreight.onrender.com`
 
 ---
 
