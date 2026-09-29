@@ -7,80 +7,40 @@ import { calculateFreightForecast } from './utils/forecastingEngine';
 import { MARKET_NEWS_SIGNALS } from './data/marketNewsData';
 import { getSyncMarketData, subscribeMarketData, forceRefreshMarketData } from './services/liveMarketDataService';
 
-// Dedicated Pages (Matching the User's Exact 6-Stage Process Sequence + Master Dashboard)
-import DashboardLandingPage from './pages/DashboardLandingPage';
-import FreightForecastsPage from './pages/FreightForecastsPage';
-import MarketVolatilityPage from './pages/MarketVolatilityPage';
-import VesselPortFitPage from './pages/VesselPortFitPage';
-import VesselBunchingPage from './pages/VesselBunchingPage';
-import MultimodalRailwayMapPage from './pages/MultimodalRailwayMapPage';
-import CargoMatchingPage from './pages/CargoMatchingPage';
+// Authentic Original Core Components (NO synthetic wrapper cards)
+import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
+import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
+import DetailedRouteScenarioAnalysis from './components/DetailedRouteScenarioAnalysis';
+import ForecastChart from './components/ForecastChart';
+import MarketIntelligenceRadar from './components/MarketIntelligenceRadar';
+import VesselOptimization from './components/VesselOptimization';
+import VesselBunchingTerminal from './components/VesselBunchingTerminal';
+import LiveShipTrackerMap from './components/LiveShipTrackerMap';
+import CargoToHoldMatcher from './components/CargoToHoldMatcher';
+import DeadheadOptimizer from './components/DeadheadOptimizer';
 
 import { 
-  LayoutGrid, TrendingUp, Activity, Compass, RefreshCw, 
-  Train, Ship, FileText, Database, ShieldCheck, X, ChevronRight 
+  TrendingUp, Activity, Compass, RefreshCw, 
+  Train, Ship, X 
 } from 'lucide-react';
 
 const SIDEBAR_NAV_ITEMS = [
-  { 
-    id: 'dashboard', 
-    label: 'Dashboard', 
-    icon: LayoutGrid, 
-    badge: '4-Phase Flow',
-    description: 'Executive Overview of 4-Phase Pipeline'
-  },
-  { 
-    id: 'forecasts', 
-    label: 'Freight Forecasts & Chartering', 
-    icon: TrendingUp, 
-    badge: 'Step 1',
-    description: 'Part A: Web Terminal & Quantile Modeling'
-  },
-  { 
-    id: 'volatility', 
-    label: 'Market Volatility Radar', 
-    icon: Activity, 
-    badge: 'Step 2',
-    description: '4-Stage AI Disruption & News Stream'
-  },
-  { 
-    id: 'port_fit', 
-    label: 'Vessel & Port Fit', 
-    icon: Compass, 
-    badge: 'Step 3',
-    description: 'Part B: Draft, LOA & TPD Engineering'
-  },
-  { 
-    id: 'bunching', 
-    label: 'Vessel Bunching Engine', 
-    icon: RefreshCw, 
-    badge: 'Step 4',
-    description: 'Tier-1 ETA & Emergency Coal Priority'
-  },
-  { 
-    id: 'multimodal', 
-    label: 'Multimodal Railway & Map', 
-    icon: Train, 
-    badge: 'Step 5',
-    description: '3-Way Cost Gate & Live AIS Tracker'
-  },
-  { 
-    id: 'cargo_matching', 
-    label: 'Cargo Matching & Coastal Hop', 
-    icon: Ship, 
-    badge: 'Step 6',
-    description: '2,000 MT/hr Berth & Tramp Triangulation'
-  },
+  { id: 'forecasts', label: 'Freight Forecasts & Chartering', icon: TrendingUp },
+  { id: 'volatility', label: 'Early Market Volatility', icon: Activity },
+  { id: 'port_fit', label: 'Vessel & Port Fit', icon: Compass },
+  { id: 'bunching', label: 'Vessel Bunching', icon: RefreshCw },
+  { id: 'railway_map', label: 'Railway & Map', icon: Train },
+  { id: 'cargo_port', label: 'Cargo to Port', icon: Ship },
 ];
 
 export default function App() {
-  // Authentication & View State (Default to false so visitors land directly on Dashboard)
+  // Authentication & View State (Default to false so visitors land directly on Page 1)
   const [currentUser, setCurrentUser] = useState(null);
   const [showLoginPage, setShowLoginPage] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Application Page State (Defaults to 'dashboard' 4-phase overview)
-  const [activePage, setActivePage] = useState('dashboard');
+  // Application Page State (Defaults to 'forecasts' as requested)
+  const [activePage, setActivePage] = useState('forecasts');
 
   // Shared Domain State
   const [selectedOrigin, setSelectedOrigin] = useState('hay_point');
@@ -150,7 +110,7 @@ export default function App() {
     setIsReportModalOpen(true);
   };
 
-  // If user opened the Login view, render the Figma-grade LoginPage
+  // If user opened the Login view, render the LoginPage
   if (showLoginPage) {
     return (
       <LoginPage
@@ -172,7 +132,7 @@ export default function App() {
       )}
 
       {/* ========================================================================= */}
-      {/* LEFT SIDEBAR NAVIGATION (MATCHING USER SCREENSHOT)                       */}
+      {/* 1. LEFT SIDEBAR NAVIGATION (CLEAN MINIMAL DESIGN, NO EXTRA CARDS)          */}
       {/* ========================================================================= */}
       <aside className={`
         fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-300 ease-in-out shadow-sm
@@ -180,15 +140,16 @@ export default function App() {
       `}>
         <div className="flex flex-col flex-1 overflow-y-auto">
           
-          {/* Logo Brand Header */}
+          {/* Single Unified Official NaviFreight Logo Header */}
           <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-xs">
-                <Ship className="w-4 h-4 text-white" />
+              <div className="w-9 h-9 rounded-lg bg-maritime-900 flex items-center justify-center text-white shadow-sm shrink-0">
+                <Ship className="w-5 h-5 text-emerald-400" />
               </div>
-              <div className="flex items-baseline space-x-1">
-                <span className="text-xl font-black text-slate-900 tracking-tight">
-                  NaviFreight<span className="text-sky-600">.AI</span>
+              <div className="flex items-center space-x-1.5">
+                <span className="text-xl font-bold tracking-tight text-slate-900">NaviFreight</span>
+                <span className="bg-maritime-50 text-maritime-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-maritime-200">
+                  AI TERMINAL
                 </span>
               </div>
             </div>
@@ -201,12 +162,8 @@ export default function App() {
             </button>
           </div>
 
-          {/* Navigation Links (Exact Match of Screenshot Layout) */}
+          {/* Clean Navigation Links Only */}
           <nav className="p-3 space-y-1">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
-              Decision Workflow
-            </div>
-
             {SIDEBAR_NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = activePage === item.id;
@@ -218,98 +175,24 @@ export default function App() {
                     setIsSidebarOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold text-xs transition-all cursor-pointer ${
+                  className={`w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl font-semibold text-xs transition-all cursor-pointer ${
                     isActive
                       ? 'bg-sky-50 text-sky-700 shadow-2xs border border-sky-100 font-bold'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
-                  title={item.description}
                 >
-                  <div className="flex items-center space-x-2.5 truncate">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
-                    <span className="truncate">{item.label}</span>
-                  </div>
-                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded shrink-0 ml-1 ${
-                    isActive ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {item.badge}
-                  </span>
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                  <span className="truncate">{item.label}</span>
                 </button>
               );
             })}
-
-            {/* Sovereign Data & CAG Brief Actions */}
-            <div className="pt-4 mt-2 border-t border-slate-100">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
-                Executive & Datasets
-              </div>
-
-              <button
-                onClick={() => setIsDatasetModalOpen(true)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <Database className="w-4 h-4 text-slate-400" />
-                  <span>Sovereign Feeds</span>
-                </div>
-                <span className="text-[9px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded border border-emerald-200">
-                  8 Feeds
-                </span>
-              </button>
-
-              <button
-                onClick={handleExportReport}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  <span>CAG Brief & Audit</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-              </button>
-            </div>
           </nav>
 
-        </div>
-
-        {/* Sidebar Footer with Model Status & User Info */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
-          <div className="bg-white border border-slate-200 rounded-lg p-2.5 text-[11px] shadow-2xs">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                GBDT Quantile v2.0
-              </span>
-              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded font-bold">
-                ACTIVE
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-500">
-              FastAPI Server: Connected (200 OK)
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between px-1">
-            <div className="text-[11px]">
-              <span className="font-bold text-slate-800 block">
-                {currentUser ? currentUser.roleTitle : 'Chartering Desk'}
-              </span>
-              <span className="text-[9.5px] text-slate-400">
-                {currentUser ? currentUser.organization : 'SAIL / RINL / NTPC'}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowLoginPage(true)}
-              className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 cursor-pointer"
-            >
-              {currentUser ? 'Switch' : 'Sign In'}
-            </button>
-          </div>
         </div>
       </aside>
 
       {/* ========================================================================= */}
-      {/* MAIN CONTENT CANVAS (OFFSET FOR FIXED DESKTOP SIDEBAR)                    */}
+      {/* 2. MAIN CONTENT AREA (OFFSET FOR DESKTOP SIDEBAR)                         */}
       {/* ========================================================================= */}
       <div className="md:pl-64 flex-1 flex flex-col min-w-0">
         
@@ -330,7 +213,7 @@ export default function App() {
         {/* Content Body */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
           
-          {/* Active Authenticated Session Banner */}
+          {/* Active Authenticated Session Banner (if logged in) */}
           {currentUser && (
             <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 mb-5 shadow-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center space-x-2">
@@ -354,123 +237,144 @@ export default function App() {
           )}
 
           {/* ========================================================================= */}
-          {/* DEDICATED PAGE RENDERING                                                 */}
+          {/* 1. FREIGHT FORECASTS & CHARTERING (ENTIRE PART A CONTENT)                 */}
           {/* ========================================================================= */}
-
-          {/* PAGE 0: DASHBOARD (Landing Page with End-to-End 4-Phase Architecture Flow) */}
-          {activePage === 'dashboard' && (
-            <DashboardLandingPage
-              selectedOrigin={selectedOrigin}
-              setSelectedOrigin={setSelectedOrigin}
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              selectedVessel={selectedVessel}
-              setSelectedVessel={setSelectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              setCargoVolumeMT={setCargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              setContractHorizonMonths={setContractHorizonMonths}
-              volatilityIndex={volatilityIndex}
-              setVolatilityIndex={setVolatilityIndex}
-              currency={currency}
-              forecast={forecast}
-              terminalMetrics={terminalMetrics}
-              setTerminalMetrics={setTerminalMetrics}
-              activeNewsSignal={activeNewsSignal}
-              setActiveNewsSignal={setActiveNewsSignal}
-              coaSplitPercent={coaSplitPercent}
-              setCoaSplitPercent={setCoaSplitPercent}
-              marketData={marketData}
-              onNavigateToPage={(pageId) => {
-                setActivePage(pageId);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onOpenDatasets={() => setIsDatasetModalOpen(true)}
-              onExportReport={handleExportReport}
-            />
-          )}
-
-          {/* PAGE 1: FREIGHT FORECASTS & CHARTERING (Part A: Web Terminal first + Model + Curves) */}
           {activePage === 'forecasts' && (
-            <FreightForecastsPage
-              selectedOrigin={selectedOrigin}
-              setSelectedOrigin={setSelectedOrigin}
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              selectedVessel={selectedVessel}
-              setSelectedVessel={setSelectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              setCargoVolumeMT={setCargoVolumeMT}
-              contractHorizonMonths={contractHorizonMonths}
-              setContractHorizonMonths={setContractHorizonMonths}
-              volatilityIndex={volatilityIndex}
-              setVolatilityIndex={setVolatilityIndex}
-              currency={currency}
-              forecast={forecast}
-              terminalMetrics={terminalMetrics}
-              setTerminalMetrics={setTerminalMetrics}
-              activeNewsSignal={activeNewsSignal}
-              setActiveNewsSignal={setActiveNewsSignal}
-              coaSplitPercent={coaSplitPercent}
-              setCoaSplitPercent={setCoaSplitPercent}
-              marketData={marketData}
-            />
+            <div className="space-y-6 animate-in fade-in duration-150">
+              
+              {/* 1. First: Web Terminal & Model Trainer Console */}
+              <WebTerminalModelTrainer
+                onRunScenario={(params) => {
+                  if (params.origin) setSelectedOrigin(params.origin);
+                  if (params.destination) setSelectedDestination(params.destination);
+                  if (params.vessel) setSelectedVessel(params.vessel);
+                  if (params.volume) setCargoVolumeMT(params.volume);
+                  if (params.horizon) setContractHorizonMonths(params.horizon);
+                  if (params.volatility) setVolatilityIndex(params.volatility);
+                  if (params.newsSignal !== undefined) setActiveNewsSignal(params.newsSignal);
+                  if (params.coaSplit) setCoaSplitPercent(params.coaSplit);
+                  if (params.terminalMetrics) setTerminalMetrics(params.terminalMetrics);
+                }}
+                currency={currency}
+                currentForecast={forecast}
+                selectedOrigin={selectedOrigin}
+                selectedDestination={selectedDestination}
+                selectedVessel={selectedVessel}
+                cargoVolumeMT={cargoVolumeMT}
+                contractHorizonMonths={contractHorizonMonths}
+                coaSplitPercent={coaSplitPercent}
+              />
+
+              {/* 2. Second: Charter Timing Decision Matrix */}
+              <CharterTimingDecisionMatrix
+                selectedOrigin={selectedOrigin}
+                selectedDestination={selectedDestination}
+                selectedVessel={selectedVessel}
+                cargoVolumeMT={cargoVolumeMT}
+                contractHorizonMonths={contractHorizonMonths}
+                onSelectHorizon={(horizon) => setContractHorizonMonths(horizon)}
+                currency={currency}
+                terminalMetrics={terminalMetrics}
+                forecast={forecast}
+              />
+
+              {/* 3. Third: Detailed Route Scenario Analysis */}
+              <DetailedRouteScenarioAnalysis
+                selectedOrigin={selectedOrigin}
+                selectedDestination={selectedDestination}
+                selectedVessel={selectedVessel}
+                cargoVolumeMT={cargoVolumeMT}
+                terminalMetrics={terminalMetrics}
+                contractHorizonMonths={contractHorizonMonths}
+                forecast={forecast}
+                coaSplitPercent={coaSplitPercent}
+              />
+
+              {/* 4. Fourth: Freight Forecasting Graphs */}
+              <ForecastChart
+                forecast={forecast}
+                currency={currency}
+                terminalMetrics={terminalMetrics}
+                selectedVessel={selectedVessel}
+                onSelectVessel={setSelectedVessel}
+              />
+
+            </div>
           )}
 
-          {/* PAGE 2: MARKET VOLATILITY RADAR (Early Market Volatility + News + Sovereign Feeds) */}
+          {/* ========================================================================= */}
+          {/* 2. EARLY MARKET VOLATILITY                                               */}
+          {/* ========================================================================= */}
           {activePage === 'volatility' && (
-            <MarketVolatilityPage
-              activeNewsSignal={activeNewsSignal}
-              setActiveNewsSignal={setActiveNewsSignal}
-              currency={currency}
-              onOpenDatasets={() => setIsDatasetModalOpen(true)}
-            />
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <MarketIntelligenceRadar
+                activeNewsSignal={activeNewsSignal}
+                onSelectNewsSignal={(signal) => setActiveNewsSignal(signal)}
+                currency={currency}
+              />
+            </div>
           )}
 
-          {/* PAGE 3: VESSEL & PORT FIT (Part B: Vessel Suitability & East Coast Port Limits) */}
+          {/* ========================================================================= */}
+          {/* 3. ENTIRE PART B: VESSEL & PORT FIT                                       */}
+          {/* ========================================================================= */}
           {activePage === 'port_fit' && (
-            <VesselPortFitPage
-              selectedOrigin={selectedOrigin}
-              selectedDestination={selectedDestination}
-              cargoVolumeMT={cargoVolumeMT}
-              currency={currency}
-              selectedVessel={selectedVessel}
-              setSelectedVessel={setSelectedVessel}
-              setSelectedDestination={setSelectedDestination}
-            />
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <VesselOptimization
+                selectedOrigin={selectedOrigin}
+                selectedDestination={selectedDestination}
+                cargoVolumeMT={cargoVolumeMT}
+                currency={currency}
+                onSelectVessel={setSelectedVessel}
+                currentVesselId={selectedVessel}
+                onSelectPort={(portId) => setSelectedDestination(portId)}
+              />
+            </div>
           )}
 
-          {/* PAGE 4: VESSEL BUNCHING ENGINE (Tier-1 ETA + Congestion + Emergency Coal Priority) */}
+          {/* ========================================================================= */}
+          {/* 4. VESSEL BUNCHING PART                                                  */}
+          {/* ========================================================================= */}
           {activePage === 'bunching' && (
-            <VesselBunchingPage
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              currency={currency}
-            />
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <VesselBunchingTerminal
+                selectedDestination={selectedDestination}
+                onSelectPort={(portId) => setSelectedDestination(portId)}
+              />
+            </div>
           )}
 
-          {/* PAGE 5: MULTIMODAL RAILWAY & MAP (3-Way Decision Equation + FOIS Rail + Live Map) */}
-          {activePage === 'multimodal' && (
-            <MultimodalRailwayMapPage
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              selectedVessel={selectedVessel}
-              cargoVolumeMT={cargoVolumeMT}
-              currency={currency}
-              marketData={marketData}
-            />
+          {/* ========================================================================= */}
+          {/* 5. RAILWAY PART AND MAP                                                  */}
+          {/* ========================================================================= */}
+          {activePage === 'railway_map' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <LiveShipTrackerMap
+                selectedDestination={selectedDestination}
+                onSelectPort={(portId) => setSelectedDestination(portId)}
+                selectedVessel={selectedVessel}
+              />
+            </div>
           )}
 
-          {/* PAGE 6: CARGO MATCHING & COASTAL HOP (2,000 MT/hr Berth + Plant Matching + Backhaul) */}
-          {activePage === 'cargo_matching' && (
-            <CargoMatchingPage
-              selectedDestination={selectedDestination}
-              setSelectedDestination={setSelectedDestination}
-              currency={currency}
-              forecast={forecast}
-              terminalMetrics={terminalMetrics}
-              activeNewsSignal={activeNewsSignal}
-            />
+          {/* ========================================================================= */}
+          {/* 6. CARGO TO PORT PART                                                    */}
+          {/* ========================================================================= */}
+          {activePage === 'cargo_port' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <CargoToHoldMatcher
+                currency={currency}
+                onSelectShip={(ship) => console.log('Selected ship:', ship)}
+              />
+              <DeadheadOptimizer
+                selectedDestination={selectedDestination}
+                currency={currency}
+                forecast={forecast}
+                terminalMetrics={terminalMetrics}
+                activeNewsSignal={activeNewsSignal}
+                onSelectPort={(portId) => setSelectedDestination(portId)}
+              />
+            </div>
           )}
 
         </main>
@@ -498,10 +402,10 @@ export default function App() {
         <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 rounded bg-sky-600 flex items-center justify-center text-white text-[10px] font-bold">
+              <div className="w-5 h-5 rounded bg-maritime-900 flex items-center justify-center text-white text-[10px] font-bold">
                 NF
               </div>
-              <span className="font-bold text-slate-800">NaviFreight AI Decision Terminal</span>
+              <span className="font-bold text-slate-800">NaviFreight AI Engine</span>
               <span>• Smart India Hackathon Prototype (SIH26006)</span>
             </div>
 

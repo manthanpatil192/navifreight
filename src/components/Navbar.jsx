@@ -54,21 +54,32 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Logo & Platform Name */}
+          {/* Left Title / Mobile Toggle & Logo (Prevents duplicate logo on desktop) */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-maritime-900 flex items-center justify-center text-white shadow-sm">
-              <Ship className="w-6 h-6 text-emerald-400" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold tracking-tight text-maritime-900">NaviFreight</span>
-                <span className="bg-maritime-50 text-maritime-800 text-xs font-semibold px-2 py-0.5 rounded border border-maritime-200">
-                  AI TERMINAL
-                </span>
+            {onToggleSidebar && (
+              <button
+                onClick={onToggleSidebar}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 md:hidden cursor-pointer"
+                title="Toggle Sidebar"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Mobile-Only Logo */}
+            <div className="flex items-center space-x-2 md:hidden">
+              <div className="w-8 h-8 rounded-lg bg-maritime-900 flex items-center justify-center text-white shadow-sm shrink-0">
+                <Ship className="w-4 h-4 text-emerald-400" />
               </div>
-              <p className="text-xs text-slate-500 font-medium hidden sm:block">
+              <span className="text-lg font-bold tracking-tight text-maritime-900">NaviFreight</span>
+            </div>
+
+            {/* Desktop: Platform Subtitle & Scope */}
+            <div className="hidden md:flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-bold text-slate-800 tracking-tight">
                 East Coast India Bulk Freight Forecasting & Multi-Voyage Chartering Optimizer
-              </p>
+              </span>
             </div>
           </div>
 
