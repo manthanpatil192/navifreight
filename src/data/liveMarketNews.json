@@ -1,14 +1,90 @@
 {
   "metadata": {
-    "lastIngestionTimestamp": "2026-09-29 13:53:02 UTC",
-    "totalIngested": 41,
+    "lastIngestionTimestamp": "2026-09-29 18:34:07 UTC",
+    "totalIngested": 42,
     "totalAccepted": 28,
     "activeConflictsDetected": 5,
     "status": "LIVE_FEED_ONLINE_STRICT_48H"
   },
   "articles": [
     {
-      "id": "live_rss_26_1790689982",
+      "id": "live_rss_27_1790706847",
+      "portFilterKey": "australia",
+      "category": "Macro Demand Softening & Import Slump",
+      "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
+      "title": "Baltic dry bulk index drops to near one-month low on softer rates",
+      "rawSource": "Baird Maritime / Google News RSS",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMivwFBVV95cUxOSGo2Y1FPTVR2REh2WHNoN0tSU2xxemttcnZteXQ4Y0dVdk1EQmp0WUlVUS0xMzQwdEJPYUNqUWE1cy1YRlFXZm5nN3Jrd0c2WTVDamhMWVVpYUZyUGxaMVZXU2FaUklaQmZLWWlKMWdud3o4NUxzWncxRWJKZHZ6ZzF4ZS04MHhlNnZNWUR2Wm5DaTBOZUJ6OTFDRHExRTExNEFQbW91UHFiaVdZbWNpbUF2cUNnampnTG1sTm9OMNIBzAFBVV95cUxNSVA5MW0xdm5BMzE0NFFaNF9GLVBmdFpRTnNpc2JqRWt6SkREQ0JueXEyLWdQNkdUNnYzNllIVGVfeU50VE8wd004MjlUWDNmQTJyV0k4bUZfeTVpdWFHY3BPVGNSdksxODFwTzFDY253STNqWWpPWmlQTTZybVVURW5zOE9CZ2lIbTdSbUJtOXF4VzJPSHF1cE5fZVQtcUt2Nk5LSXJpczg0UjFNajRhci1feTQzOUh3YjdWTHd4dWhacWRfODlUWTQ5T3o?oc=5",
+      "timestamp": "1 hour ago (Live RSS)",
+      "publishedUtc": "Tue, 29 Sep 2026 17:23:18 GMT",
+      "entities": [
+        "dry bulk"
+      ],
+      "finbertSentiment": "BEARISH (Demand Contraction / Buyer Advantage)",
+      "finbertConfidence": 0.92,
+      "volatilityBoost": 0.88,
+      "spotDriftMultiplier": 0.905,
+      "spotDriftPct": "-9.5%",
+      "priceDirection": "DOWN",
+      "urgencyLevel": "OPPORTUNITY",
+      "isConflictOrDisruption": false,
+      "oneLiner": "Baltic dry bulk index drops to near one-month low on softer rates... Demand contraction indicator: freight pressure softening (-9.5%).",
+      "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
+    },
+    {
+      "id": "live_rss_1_1790706847",
+      "portFilterKey": "australia",
+      "category": "Macro Demand Softening & Import Slump",
+      "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
+      "title": "India's port coal stocks fall to 18.35 mnt as coking coal inventories decrease",
+      "rawSource": "BigMint / Google News RSS",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxOZHZVYzV1T0xic0FXS1pBVExKbTJMY1JCSWw1RzI4OHdERmNvdEpHNkNiTG9fcndsWk91cWVUSFFRSkdWR3g4NUZlWGprT19vZlZkUF9lOE5YNk81TzNwT2pPTTNYcUtTVUZnZ0RKT0ttNG5RSm5XZ2xpWmRMTHBVM1Mtb3R3d0ZpT0U1a1RiOTlkLUY1bkFHZ0t3S2NZOWgtVWlQVENxLXl2ZG4tcUJSUUZITTNJalpqUXpqcHQ4Skc?oc=5",
+      "timestamp": "3 hours ago (Live RSS)",
+      "publishedUtc": "Tue, 29 Sep 2026 15:08:31 GMT",
+      "entities": [
+        "india",
+        "coking coal"
+      ],
+      "finbertSentiment": "BEARISH (Demand Contraction / Buyer Advantage)",
+      "finbertConfidence": 0.92,
+      "volatilityBoost": 0.88,
+      "spotDriftMultiplier": 0.905,
+      "spotDriftPct": "-9.5%",
+      "priceDirection": "DOWN",
+      "urgencyLevel": "OPPORTUNITY",
+      "isConflictOrDisruption": false,
+      "oneLiner": "India's port coal stocks fall to 18.35 mnt as coking coal inventories decrease... Demand contraction indicator: freight pressure softening (-9.5%).",
+      "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
+    },
+    {
+      "id": "live_rss_19_1790706847",
+      "portFilterKey": "geopolitical",
+      "category": "Geopolitical Conflict & Chokepoint Detour",
+      "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
+      "portLocation": "PS Corridor Ingestion (GEOPOLITICAL)",
+      "title": "Mapping seven months of Iran war, from Hormuz to the Red Sea | HT Immersive",
+      "rawSource": "Hindustan Times / Google News RSS",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNZk50Q3pFUVluRmZ5OVNib0NSbHQycmtVS0FYWG5ibUJxQ2JUb25ORnhaWnBLOVVqSFAzbjlfd1VOemdFSGVKdmJ5WjR4Qlg1RjJEUFFjZnB5U1lOUV83UTFkUko2czZzU2lneVVPeUd0amNSNVZWYldZRkF2X0N2T25XelhqclVyVlZMV3duUzByYkRVakpqbFdERU9PZjRkVElmSlhLMURXSzBmQXo2N2tiaEhlVFgtNmNsUUgtUW14eDhQZlpJVEVHam04ZnVPckhnRDJ1aS1Rdw?oc=5",
+      "timestamp": "4 hours ago (Live RSS)",
+      "publishedUtc": "Tue, 29 Sep 2026 14:51:09 GMT",
+      "entities": [
+        "red sea"
+      ],
+      "finbertSentiment": "NEGATIVE (War Risk & Detour Shock)",
+      "finbertConfidence": 0.96,
+      "volatilityBoost": 1.5,
+      "spotDriftMultiplier": 1.225,
+      "spotDriftPct": "+22.5%",
+      "priceDirection": "UP",
+      "urgencyLevel": "CRITICAL",
+      "isConflictOrDisruption": true,
+      "oneLiner": "Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at +22.5% (Activate Part C Alternative Routings).",
+      "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
+    },
+    {
+      "id": "live_rss_30_1790706847",
       "portFilterKey": "australia",
       "category": "Dry Bulk Freight Volatility",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -16,7 +92,7 @@
       "title": "Baltic Dry Index Slips As Capesize Rates Cool Off",
       "rawSource": "Finimize / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPMk83VVBGSUhNVUZkMzRjRkxCRGFhNFRkVGdkcm94SGQtSEFZZFl3azYtN3hPdXNZNWZSWFRtR3Z0WU1GY3dpWjM0UkllV0JwLUtleW9rbE9sOUd3NkNxYXpOLUlKcDBUcld2ZjZ1MnJzOURsc1B2aTBRQ2FyTEgyd2M4LU5aMzA?oc=5",
-      "timestamp": "48 mins ago (Live RSS)",
+      "timestamp": "5 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 13:04:33 GMT",
       "entities": [
         "capesize"
@@ -33,7 +109,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_18_1790689982",
+      "id": "live_rss_20_1790706847",
       "portFilterKey": "geopolitical",
       "category": "Geopolitical Conflict & Chokepoint Detour",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -41,7 +117,7 @@
       "title": "Oil flows through Strait of Hormuz rise on Saudi pivot as Red Sea traffic plunges",
       "rawSource": "thenationalnews.com / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQUFI2VTA4VDZPV1VlbE5YT2tBandOY2t6bzAzaDBtdmcwNUJoN0FGWGFBR0FCRWRia0lOV2M0QTN1UHVZM1NzZTFGRWtIckNqdmpiR1FBWFRZOXRqeks2Q3ExeG9WdVJwZkNQVHJ2THhjdHNPQXQzTG13d0lFb0MzSHVCQmhOb25PNVpNeGZrLV9uS1JJanM1Q0Rua0tJY3VHTjU5VTV2bGswMWVrTEdSeVFsUDN5SkNBTFRCZkJpaEZ0RWt6bmNULVctMkdYYTZPZGtpbGF2eHA?oc=5",
-      "timestamp": "54 mins ago (Live RSS)",
+      "timestamp": "6 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 12:58:09 GMT",
       "entities": [
         "strait of hormuz",
@@ -59,7 +135,7 @@
       "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
     },
     {
-      "id": "live_rss_19_1790689982",
+      "id": "live_rss_21_1790706847",
       "portFilterKey": "geopolitical",
       "category": "Geopolitical Conflict & Chokepoint Detour",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -67,7 +143,7 @@
       "title": "EU Seeks More Warships For Red Sea As Hormuz Mission Remains On Hold",
       "rawSource": "Marine Insight / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPNWFNR3Q5RXdLcTBSLXJ0M2xGV2VYR0l6UWYtOUNjaTdwdlJNbmRaLV9RVlVzblNMaV9PR3ZKRkQ1aUUwOWl2VUo3aU1CNlpjaU4tOFp4eWg4TTUxampKV0R2MTdkOWNFX2pLbmNQZjVlbEJBaWg5M196c0Zpd2R3NGV4Y3N5RVc5ZjgzbVJiX0s4YndrYjFPOVdFMXRVZ2lL?oc=5",
-      "timestamp": "55 mins ago (Live RSS)",
+      "timestamp": "6 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 12:57:10 GMT",
       "entities": [
         "red sea"
@@ -84,7 +160,33 @@
       "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
     },
     {
-      "id": "live_rss_33_1790689982",
+      "id": "live_rss_0_1790706847",
+      "portFilterKey": "australia",
+      "category": "Commodity & Coal Supply",
+      "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
+      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
+      "title": "India's coking coal push needs a methane plan [Commentary]",
+      "rawSource": "Mongabay India / Google News RSS",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUENsbXRDZ045WWNRUkdEOEQ2Vm5QMDg4VG8tWTFaMkh5Zk05N2c3QUJsNzdueWUtci03NkFrUXZpZi1sRmVMX0pENkxrNGRoWUNKRTYwaFZjM3hqN0RmTXdHZWR2eW5pSkxIcHo1WEZ6UkhEOXJ6RXI5WGd3ME8wTGJqTlpqazJxRzR1Y0dleDBXWlNpNmc?oc=5",
+      "timestamp": "6 hours ago (Live RSS)",
+      "publishedUtc": "Tue, 29 Sep 2026 12:09:35 GMT",
+      "entities": [
+        "india",
+        "coking coal"
+      ],
+      "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
+      "finbertConfidence": 0.85,
+      "volatilityBoost": 1.0,
+      "spotDriftMultiplier": 1.0,
+      "spotDriftPct": "0.0%",
+      "priceDirection": "NEUTRAL",
+      "urgencyLevel": "MONITOR",
+      "isConflictOrDisruption": false,
+      "oneLiner": "India's coking coal push needs a methane plan [Commentary]... Macro infrastructure update; neutral immediate spot rate drift (0.0%).",
+      "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
+    },
+    {
+      "id": "live_rss_35_1790706847",
       "portFilterKey": "geopolitical",
       "category": "Bunker Fuel & Energy Shock",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -92,7 +194,7 @@
       "title": "East of Suez Market Update 29 Sep",
       "rawSource": "engine.online / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9jRVhGdE42MUlhdFdPYmJSU2NhRW85bHRxeHBZS3ZXeHRqNlhVZzdjRHYxeXNkTEE4RzRBVGw4VWVadnItNGpNUy15VjlMa1BCc3kxUExsYVhhQ1prUHBCcnN2YVdURGJCMnlqNTVaeHowc1d0d0NpRg?oc=5",
-      "timestamp": "3 hours ago (Live RSS)",
+      "timestamp": "7 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 11:10:37 GMT",
       "entities": [
         "suez"
@@ -109,33 +211,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_0_1790689982",
-      "portFilterKey": "australia",
-      "category": "Commodity & Coal Supply",
-      "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
-      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
-      "title": "India's coking coal push needs a methane plan [Commentary]",
-      "rawSource": "Mongabay India / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOUENsbXRDZ045WWNRUkdEOEQ2Vm5QMDg4VG8tWTFaMkh5Zk05N2c3QUJsNzdueWUtci03NkFrUXZpZi1sRmVMX0pENkxrNGRoWUNKRTYwaFZjM3hqN0RmTXdHZWR2eW5pSkxIcHo1WEZ6UkhEOXJ6RXI5WGd3ME8wTGJqTlpqazJxRzR1Y0dleDBXWlNpNmc?oc=5",
-      "timestamp": "3 hours ago (Live RSS)",
-      "publishedUtc": "Tue, 29 Sep 2026 10:30:00 GMT",
-      "entities": [
-        "coking coal",
-        "india"
-      ],
-      "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
-      "finbertConfidence": 0.85,
-      "volatilityBoost": 1.0,
-      "spotDriftMultiplier": 1.0,
-      "spotDriftPct": "0.0%",
-      "priceDirection": "NEUTRAL",
-      "urgencyLevel": "MONITOR",
-      "isConflictOrDisruption": false,
-      "oneLiner": "India's coking coal push needs a methane plan [Commentary]... Macro infrastructure update; neutral immediate spot rate drift (0.0%).",
-      "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
-    },
-    {
-      "id": "live_rss_37_1790689982",
+      "id": "live_rss_39_1790706847",
       "portFilterKey": "bunker_fuel",
       "category": "Macro Demand Softening & Import Slump",
       "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -143,7 +219,7 @@
       "title": "LNG Bunker Snapshot: Prices fall amid hopes of de-escalation in Middle East conflict",
       "rawSource": "engine.online / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNckMzYjQ3ZzhZLUgyLUNYU3Fadk5WUkZaUjU2QWdmNkdhcUI0S1Z0RDRFZWxFeDhfZkQ3Ympsdk9pakNuLTduR29naUstRGhrY0hxRUlYMENqeUVCd21TRjhidGtjZjJDMGE2TjJjWDZmQUFvc2RZR0k0UWRjUmV3REVrNTdySTdHTEFNRkVwMnlfN05tSkpzSXlRMUZqN0t0NzRsUld2T3R2aXpVTUswSEp1UWtjaTE5c1Zz?oc=5",
-      "timestamp": "5 hours ago (Live RSS)",
+      "timestamp": "9 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 09:20:16 GMT",
       "entities": [
         "bunker"
@@ -160,7 +236,32 @@
       "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
     },
     {
-      "id": "live_rss_14_1790689982",
+      "id": "live_rss_23_1790706847",
+      "portFilterKey": "geopolitical",
+      "category": "Geopolitical Conflict & Chokepoint Detour",
+      "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
+      "portLocation": "PS Corridor Ingestion (GEOPOLITICAL)",
+      "title": "EU seeks more warships as Houthi threats disrupt Red Sea shipping",
+      "rawSource": "safety4sea / Google News RSS",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQZnRBNGh0M1I0NllZT3BNeGVtTGQ4ZUJtbGVmZk5nNEo4blhXOVVuYk41REdxa2FreVY4dXhxc2RraXRIMmp0UkxucUNOWTZ0dEJzYkZLVjRKeUxoN3dZbG9tOWRWTHNNenhSZ0ZWZ1piNWNoUm5xWFp3MkFpemNRRlBiY25ocGhHZGp3YWlEcjVGajA?oc=5",
+      "timestamp": "10 hours ago (Live RSS)",
+      "publishedUtc": "Tue, 29 Sep 2026 08:50:16 GMT",
+      "entities": [
+        "red sea"
+      ],
+      "finbertSentiment": "NEGATIVE (War Risk & Detour Shock)",
+      "finbertConfidence": 0.96,
+      "volatilityBoost": 1.5,
+      "spotDriftMultiplier": 1.225,
+      "spotDriftPct": "+22.5%",
+      "priceDirection": "UP",
+      "urgencyLevel": "CRITICAL",
+      "isConflictOrDisruption": true,
+      "oneLiner": "Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at +22.5% (Activate Part C Alternative Routings).",
+      "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
+    },
+    {
+      "id": "live_rss_16_1790706847",
       "portFilterKey": "paradip",
       "category": "Indian East Coast Port Congestion",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -168,7 +269,7 @@
       "title": "Sea Gull 9 Stabilized After Ballast Tank Flooding Off Paradip",
       "rawSource": "Data Portuaria / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMivAFBVV95cUxQQnBRN3pybVdwOWRkQVJXQUtjT2w4dlZGc0xHZUdzZkNPbVFBSDFEYWZxVnR1MTdTTmtHVlpWN0U2dDB3TkJLVllweVZfcHZtOEd0eDRkUUR2NERkb3h1UnFydV9hMVNtblQ0NkhIMWo5aXlvQmRIRjBRbXluY3lNMWlwOUI1N0ljNWdta2NnWVBqbEtiOHVJcXhLYURLcEkyTVVMOFlBZ3ZSLUxfMVBtR3ktZnhIT3Baemk3cw?oc=5",
-      "timestamp": "6 hours ago (Live RSS)",
+      "timestamp": "11 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 08:00:41 GMT",
       "entities": [
         "paradip"
@@ -185,45 +286,19 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_1_1790689982",
-      "portFilterKey": "australia",
-      "category": "Macro Demand Softening & Import Slump",
-      "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
-      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
-      "title": "India's port coal stocks fall to 18.35 mnt as coking coal inventories decrease",
-      "rawSource": "BigMint / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOOHBkX01sSWlhWEhBQUJLMGppaUtKTHBmWlczWFYyb3RVTjV6dWZLcjlTbEZzb0xyYi03Rm5oYWQ3NGVhNE42czVPYkN4OHZmM0t3QU91TDh4OTJRLVZaUXNkWFhkdTdpc0VXVFBHRmtlLW5vejljOG1POWpvN1VXUjdPcnFVUWgtODFWUkhQMWhoanZyWTJCOGEwb1lDWF9lN1hLVjV6UVo0RE1rcmRGbU9uVlRwTlhtTWtVRHpNeHZRUQ?oc=5",
-      "timestamp": "6 hours ago (Live RSS)",
-      "publishedUtc": "Tue, 29 Sep 2026 07:49:15 GMT",
-      "entities": [
-        "coking coal",
-        "india"
-      ],
-      "finbertSentiment": "BEARISH (Demand Contraction / Buyer Advantage)",
-      "finbertConfidence": 0.92,
-      "volatilityBoost": 0.88,
-      "spotDriftMultiplier": 0.905,
-      "spotDriftPct": "-9.5%",
-      "priceDirection": "DOWN",
-      "urgencyLevel": "OPPORTUNITY",
-      "isConflictOrDisruption": false,
-      "oneLiner": "India's port coal stocks fall to 18.35 mnt as coking coal inventories decrease... Demand contraction indicator: freight pressure softening (-9.5%).",
-      "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
-    },
-    {
-      "id": "live_rss_3_1790689982",
+      "id": "live_rss_2_1790706847",
       "portFilterKey": "australia",
       "category": "Commodity & Coal Supply",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
       "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
       "title": "India targets 600 MT steel capacity by 2047 under new policy",
       "rawSource": "ET Infra / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNTzRLYmpRTGQ4Mjd2djFpdjB2MWhYZUtfdjFTVkU1WkpURndEcXUzbVJqSWFQckFBc3lMOWJRMzlfNV8tV3A1ZVFRSGExS0FoNjhVUWs2WmhhYTBPTGczLWsxX0RkRlYwQTVrbkV2bG8zaHdWSGNIQmtlZWVqb2t4bkZMOWtEQWRVaXVkdEdNR2dYbUttMnQxVTAtcTJva290ekNhUW9zNWUwY3RxZ0t5alF5WDhKZDJMdzdQUTlNZ3BBS1R3d2RYNE8zaHZ5UHFz0gHQAUFVX3lxTE1PNEtialFMZDgyN3Z2MWl2MHYxaFhlS192MVNWRTVaSlRGd0RxdTNtUmpJYVByQUFzeUw5YlEzOV81Xy1XcDVlUVFIYTFLQWg2OFVRazZaaGFhME9MZzMtazFfRGRGVjBBNWtuRXZsbzNod1ZIY0hCa2VlZWpva3huRkw5a0RBZFVpdWR0R01HZ1htS20ydDFVMC1xMm9rb3R6Q2FRb3M1ZTBjdHFnS3lqUXlYOEpkMkx3N1BROU1ncEFLVHd3ZFg0TzNodnlQcXM?oc=5",
-      "timestamp": "6 hours ago (Live RSS)",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNQ1k1cFAwWVBlTE1hOHhvYTNSYzFZWXdsZWRoLU9NZG96ZTVIbHdfeFpuWnY1bjZILUpjaE90N3ZFaVJnUWc3NjB4MXZOemZKZkJ0NTB1cFpnMmJxcXFCNlduZ2hqRkp4LS1Tc2R5SjVCRXVhMG1iWVN4VnJ6T2t0ZUVNU2hzN2xkVnRHSUhsMVdRQ0Z1WXFDend4UkJrT2JMUTItMjdQNzQzc3UtXzFTakQtLWJ6X196bDliUEpZUUVLZl9ic01pUFJpTdIB0AFBVV95cUxNTzRLYmpRTGQ4Mjd2djFpdjB2MWhYZUtfdjFTVkU1WkpURndEcXUzbVJqSWFQckFBc3lMOWJRMzlfNV8tV3A1ZVFRSGExS0FoNjhVUWs2WmhhYTBPTGczLWsxX0RkRlYwQTVrbkV2bG8zaHdWSGNIQmtlZWVqb2t4bkZMOWtEQWRVaXVkdEdNR2dYbUttMnQxVTAtcTJva290ekNhUW9zNWUwY3RxZ0t5alF5WDhKZDJMdzdQUTlNZ3BBS1R3d2RYNE8zaHZ5UHFz?oc=5",
+      "timestamp": "11 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 07:45:20 GMT",
       "entities": [
-        "steel",
-        "india"
+        "india",
+        "steel"
       ],
       "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
       "finbertConfidence": 0.85,
@@ -237,7 +312,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_11_1790689982",
+      "id": "live_rss_12_1790706847",
       "portFilterKey": "paradip",
       "category": "Indian East Coast Port Congestion",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -245,7 +320,7 @@
       "title": "ICG, Paradip Port Authority Save Chemical Tanker From Capsizing Off Coast After Engine Failure; All 23 Crew Members Safe",
       "rawSource": "ETV Bharat / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMijAJBVV95cUxOWUt4YTFDNEI1UWVyaEJDWllQNmdxenc4dG80QWp0U1RlVXR1cHlrSWY1aHhXVURKUE1SbFQtTG1ZNERaT24zS1ZubDdWNWxRbTQ0eFBKc2NVY0JUaXFnSi1KNHdZdU9MWFdPamdhbDliUnhCVExNcXgtTkxsTjB5ZElfYmEtUldMazZaZ2IwZTZzU19KY1lUVmt2UEFqZTE0dW9PQm13bElPRHRzNEF3MG9HaUFjU3dsQldsb1FoLWxwUHMyWjlYYU9IVXMySUdNamV1Rnd2VXN2MzVDZ1ZHSV9FcWNlMVc4bnJrd25Qdzc1WUtQNnhvYW9oUlVKZGQ1MlBiOTQwaDBWX1Jl0gGSAkFVX3lxTE1LU2t5UU5CUzZaeEcwMVFwd3JsQVhCby1Sa3RlVnNwZzUwY2w0cWtxZGpVdEJCUkluVjNiLWZCVU1Td21MLUt5RmhUOWo0dzFCdWMzajhvUWs1ZWFJcTF4VGN1QzZ4NWRfVEVWUDBiZ0lUSXJVNkV6Z0FSa0lOQ2Y2aGpUZlBmRFltY0dFcUtYWkNtT0xtekVHZ1FScmc2Z2otREZCUEw1SGNPaHE5TE94YTRyejY3eC1LT3NnUUhFN2V0ZkxkVk9pc0FCcXV2c2lUc3Q5a1BqODNuSTRqdWZ2cDd0MDdkbGZIN043d04wTEUxdXpMaGFBaU52b2l3ZFl4UWtxQ3hQc1d4UHNjX0RVUHc?oc=5",
-      "timestamp": "8 hours ago (Live RSS)",
+      "timestamp": "12 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 06:12:58 GMT",
       "entities": [
         "paradip"
@@ -262,7 +337,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_13_1790689982",
+      "id": "live_rss_14_1790706847",
       "portFilterKey": "paradip",
       "category": "Indian East Coast Port Congestion",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -270,7 +345,7 @@
       "title": "Indian Coast Guard helps stabilise flooded tanker off Paradip",
       "rawSource": "Baird Maritime / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOLWVHZ3ZTZTk4UXZ1bUpndmphYU9vallfQ3NjN2YyLUN2UWdRSHViSXJfZ3ZWUkZnQ2dDUGJPUGRZX0NNaWVYOHByZ2ZwWnpMWmFfTHF4UDI0bWIza1JrX0tpSTBHeG5oRXh1TTkzYzBuNHNNbUp6LXZIaHdZM1NLT0dXVW1vRjR4LWZXSE9nWGFiaXZJaUdCNnd6bU1TNXPSAawBQVVfeXFMTVBjOFFQYW5iZnYwS0RhUGpxV0dkZXpaYkstYUxrbUg0TGVyTVBYTkR0RG9waTBQNmhpVnhVYXYyZUswMlBVV2JDbGhMUkwwOWxVMnJsYWJ4N0hmR0xJVUJEdHhrc1hpeEpBRF9USVdaUzNnU3h6SlY1aVpJeEZqUWwwZ3BHMTFBUHlHaGI0dm1MQVp0Vkp1QjV2V0k0OVpRY3dwMnN1cXk0TGRmaA?oc=5",
-      "timestamp": "8 hours ago (Live RSS)",
+      "timestamp": "12 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 06:05:09 GMT",
       "entities": [
         "paradip"
@@ -287,7 +362,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_34_1790689982",
+      "id": "live_rss_34_1790706847",
       "portFilterKey": "bunker_fuel",
       "category": "Bunker Fuel & Energy Shock",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -295,11 +370,11 @@
       "title": "India's first port-based e-methanol plant to produce green bunker fuel for ships",
       "rawSource": "Manifold Times / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPZEQwenYxOVcyWkJPMmdWZ1hlUnZBZ0xud3dlS3h2TDJQRVp5NmpZZEVrUVVwNWxLVi1oS0Z1YjJFdzFaNEhGYldxc3BCT2xQdUNIM2V5alkyRmJqZ1NtY25WNGRYOUZFN3BtczdUOUlLVzBmejhXVjhlcG05VEJ2TnZnemhETDNidHN5RHZPQ3pRWUZmbnczTVpnUEQ5UEVmS0tiUmFNOTh4NGxLemtvd3RxV29DQQ?oc=5",
-      "timestamp": "8 hours ago (Live RSS)",
+      "timestamp": "13 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 05:52:59 GMT",
       "entities": [
-        "bunker",
-        "india"
+        "india",
+        "bunker"
       ],
       "finbertSentiment": "NEGATIVE (Fuel Opex Shock)",
       "finbertConfidence": 0.91,
@@ -313,7 +388,7 @@
       "actionRecommendation": "Enforce Eco-Speed (11.5 kts) charter parties or fix fuel-inclusive multi-voyage COAs with capped BAF."
     },
     {
-      "id": "live_rss_36_1790689982",
+      "id": "live_rss_38_1790706847",
       "portFilterKey": "bunker_fuel",
       "category": "Bunker Fuel & Energy Shock",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -321,7 +396,7 @@
       "title": "CMT: Bunker price surge puts marine engine performance in focus",
       "rawSource": "Manifold Times / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNUjdIdlYyWl9hOUNrdHBFazZlNjk4OEJiVS1HcFlpeXpxaTdKcHROSGdRZnJXdWhZSVdWMjkta3FlLWh6RG41NmJmeTRXZXBuaThZbkZMNjRseGJrb2dHVUtDeHFTejlYM0gxZi1UNUc2aHNtMnVndndFZnFnLUxyT3lCeHdyTmtNZ29yNVZkT3gteEpfaWZ3enFqanlZelk?oc=5",
-      "timestamp": "8 hours ago (Live RSS)",
+      "timestamp": "13 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 05:38:14 GMT",
       "entities": [
         "bunker"
@@ -338,7 +413,7 @@
       "actionRecommendation": "Enforce Eco-Speed (11.5 kts) charter parties or fix fuel-inclusive multi-voyage COAs with capped BAF."
     },
     {
-      "id": "live_rss_15_1790689982",
+      "id": "live_rss_15_1790706847",
       "portFilterKey": "paradip",
       "category": "Indian East Coast Port Congestion",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -346,7 +421,7 @@
       "title": "Indian Coast Guard (ICG) responds to maritime distress off Paradip",
       "rawSource": "indiashippingnews.com / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPbHl1dVp0dHVGajl4Y0ZQTUlHS0Fpa0RNZVF0WEEtdV94M3dyVUY0UmJfTy01VDVLcFdnM0Y2RnlPeFpreVFnQXR3ejhLZUtyOWpQRF9WZkJ5V1JXMmZpRVktQ25KeURsaWR2OUhsMm5ZOTRFNHJGMnNFdTNTejVMUUhBLXdxXzFrVFVQUzJSMF9jSmVKTEl3Y19qTkNpZTNoNXhpT21zOA?oc=5",
-      "timestamp": "10 hours ago (Live RSS)",
+      "timestamp": "15 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 03:32:28 GMT",
       "entities": [
         "paradip"
@@ -363,15 +438,15 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_4_1790689982",
+      "id": "live_rss_4_1790706847",
       "portFilterKey": "australia",
       "category": "Commodity & Coal Supply",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
       "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
       "title": "India's coal shortage is increasingly a logistics problem | Policy Circle",
       "rawSource": "Policy Circle / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMidkFVX3lxTE5wQ1d4Sk9ySEsyLWhFck9sRmwtVU9odGhCQ3AxT2RQNGtlbVAtR0ZHLWRBRkhXN1hvMGNYcU83YTl5MXZaMVVkbGZMZHJsWkxKeUltM0JyT0I2a2FhbWFwZHByS2pUNTI4ZkxPY3kyb0xibUZDYkHSAXZBVV95cUxOcENXeEpPckhLMi1oRXJPbEZsLVVPaHRoQkNwMU9kUDRrZW1QLUdGRy1kQUZIVzdYbzBjWHFPN2E5eTF2WjFVZGxmTGRybFpMSnlJbTNCck9CNmthYW1hcGRwcktqVDUyOGZMT2N5Mm9MYm1GQ2JB?oc=5",
-      "timestamp": "12 hours ago (Live RSS)",
+      "sourceUrl": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5BOTFZaXhUZ3FRSHo0MjRYUjh2VEZEZ2xjT3JNZFZLbXY2emFhXzZ3b2FmZkRyRnNJQy0wMXNGcFQtSzBFcHNMWnRQRHA2TVRobEk1d2QxMG9zSG5JNy1ZeEhmbWdOcnpUWUdKd0VpcXXSAXZBVV95cUxOcENXeEpPckhLMi1oRXJPbEZsLVVPaHRoQkNwMU9kUDRrZW1QLUdGRy1kQUZIVzdYbzBjWHFPN2E5eTF2WjFVZGxmTGRybFpMSnlJbTNCck9CNmthYW1hcGRwcktqVDUyOGZMT2N5Mm9MYm1GQ2JB?oc=5",
+      "timestamp": "17 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 01:35:02 GMT",
       "entities": [
         "india"
@@ -388,7 +463,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_35_1790689982",
+      "id": "live_rss_36_1790706847",
       "portFilterKey": "bunker_fuel",
       "category": "Bunker Fuel & Energy Shock",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -396,11 +471,11 @@
       "title": "CM Technologies: Rising Bunker Prices and Ageing Fleet Drive Engine Performance Monitoring",
       "rawSource": "IndexBox / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOWE5oZEUtSVF5OFJmbGU4LVkzZ0s5Y1pBQURaWXJIQko2aTRlOHNVZDVFVUw5UThfTjAxcWliQ2lHUTFUTG5va2RKZlhZbG9UdmRSQlgxX1dGSHd2c1BXbTAtclptWkZuQ2V2cUtYSGFXX21NSnYxeTVRSVRVZ3hoVkRSSjYzeFRLNVZFTHl1cmdSVUNUWlE0ZVdaZDRUSzhoQjdMV2tqSHNVRFRaTGJ5cTBfZzRtTW5UODBF?oc=5",
-      "timestamp": "14 hours ago (Live RSS)",
+      "timestamp": "18 hours ago (Live RSS)",
       "publishedUtc": "Tue, 29 Sep 2026 00:21:02 GMT",
       "entities": [
-        "fleet",
-        "bunker"
+        "bunker",
+        "fleet"
       ],
       "finbertSentiment": "NEGATIVE (Fuel Opex Shock)",
       "finbertConfidence": 0.91,
@@ -414,7 +489,7 @@
       "actionRecommendation": "Enforce Eco-Speed (11.5 kts) charter parties or fix fuel-inclusive multi-voyage COAs with capped BAF."
     },
     {
-      "id": "live_rss_30_1790689982",
+      "id": "live_rss_33_1790706847",
       "portFilterKey": "australia",
       "category": "Dry Bulk Freight Volatility",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -422,7 +497,7 @@
       "title": "Dalian iron ore futures slip",
       "rawSource": "Business Recorder / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE5jQkxVVVFSNUU0YkZPOVBuTDFWMnR2ZjRjcnJSQXZDSWcwZDJ5WWcxclo3WE9wNG5PUGVsLXhGWkg2WWNaZHZUZEJqM01iWlVfTUVndGxR0gFWQVVfeXFMTmNCTFVVUVI1RTRiRk85UG5MMVYydHZmNGNyclJBdkNJZzBkMnlZZzFyWjdYT3A0bk9QZWwteEZaSDZZY1pkdlRkQmozTWJaVV9NRWd0bFE?oc=5",
-      "timestamp": "14 hours ago (Live RSS)",
+      "timestamp": "19 hours ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 23:48:11 GMT",
       "entities": [
         "iron ore"
@@ -439,7 +514,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_39_1790689982",
+      "id": "live_rss_40_1790706847",
       "portFilterKey": "bunker_fuel",
       "category": "Bunker Fuel & Energy Shock",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -447,7 +522,7 @@
       "title": "Green fuels, autonomous ships, new skills: How Singapore is future-proofing its shipping industry",
       "rawSource": "The Business Times / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMizwFBVV95cUxPYVpQNzVrUVV4RTJwc3hEakZHV0REdC01cWYzV1JvV0RPeW80d2JmMWtsa040MDZfTDA0UWROUjRmaXlNTzhuNW9PSDdEQmdUNGZQSmZVS3BlREZkQVNfVjd3NjJ6Y3Fsb2ZlMmdxeDJSNUNKcXVOTTRva3NxNTVnM2h4UVJOemNEdWxqbW5VR3R6cS1haXZuR0VSOE92WFNGRjV3MFpSbTA0a2UxMFVpc2J0c2thS0x6THp0dDg5UE9kNUxxZEVZZEhpalctcWM?oc=5",
-      "timestamp": "16 hours ago (Live RSS)",
+      "timestamp": "21 hours ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 21:50:00 GMT",
       "entities": [
         "singapore"
@@ -464,7 +539,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_8_1790689982",
+      "id": "live_rss_8_1790706847",
       "portFilterKey": "australia",
       "category": "Iron Ore & Steel Belt Demand",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -472,11 +547,11 @@
       "title": "Could the Central African Republic  -  Kribi iron ore corridor become the next major source of Capesize demand?",
       "rawSource": "Hellenic Shipping News / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPS0NLOGpSRlNNaWVlbXFEVkxCQ3NCbUZrWVhIaFBmdzZFMTZPQUtSY0ozbWRzSG9IdXRENzVabk5kbjh6UVN1bTJlTUlEN3RYVHdyUC0xc2x6M3Z2b1c0dE5vX09xT2dnUDRYeEMyUHdqcUNzNFdwUFdqQWtHd1VuQmFqS2lQQzRSeXpxbVdZNG1zQ0x1MHp6a0tXMGJ1ZW9JMTFocHNsOVNBcmFTSi1MTzN5NG9EVFRBaGI0cnR6S3lXUHdoNVpsVkFsX2xDMEx5bEFoMVNiN09IMXBu?oc=5",
-      "timestamp": "17 hours ago (Live RSS)",
+      "timestamp": "22 hours ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 21:03:27 GMT",
       "entities": [
-        "iron ore",
-        "capesize"
+        "capesize",
+        "iron ore"
       ],
       "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
       "finbertConfidence": 0.85,
@@ -490,7 +565,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_28_1790689982",
+      "id": "live_rss_32_1790706847",
       "portFilterKey": "australia",
       "category": "Macro Demand Softening & Import Slump",
       "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -498,7 +573,7 @@
       "title": "Baltic dry bulk index drops to near four-week low",
       "rawSource": "Baird Maritime / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNQ1lXM3ZUZUhlMENuWHg5TEpqRFJuYWxMcW9GblBhRXlzNTJ0RU5TWGdVNFVaMWlRQ0JzUHJWcDhDUFRvUS11R19qRjhid2dJYW9tcHZQTVdjQzlaLU5oc3Z6LVlLbndmd0hFVzVqbkIzTWFiZlVHUmF4TmlZNUh2YnpWWWNtUHNxV2JBWklVay1GUlFNMUtEQ0VGYnF4cVBzRmpid0hleVRWQdIBtwFBVV95cUxOSEtiWk9Lek1Gd2dyakcxd1VScHNvNF90YUM1d0lvYUNWTE9TbzZCQlB1UWFkb1Rud2tNdXctSkZYdE9kd3ZSMHg4ZjY3RldScEVDblZYVzZfWk9LTHE3TzdFY0h2QWwwUmh6M3FEMFI0blJwVk9ZcklBbDc0M3ZxQ0EtWW5fUkFJc21KOFd3M0R0d1h0MjFzZjVyZmx0Y2ZpWG4wUjVQZFVscl9ZcTNUdlhwRXVmZUk?oc=5",
-      "timestamp": "19 hours ago (Live RSS)",
+      "timestamp": "24 hours ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 18:57:35 GMT",
       "entities": [
         "dry bulk"
@@ -515,57 +590,7 @@
       "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
     },
     {
-      "id": "live_rss_22_1790689982",
-      "portFilterKey": "geopolitical",
-      "category": "Geopolitical Conflict & Chokepoint Detour",
-      "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
-      "portLocation": "PS Corridor Ingestion (GEOPOLITICAL)",
-      "title": "Saudi Arabia Resumes Red Sea Oil Exports in Blow to Iran",
-      "rawSource": "WSJ / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOOFhDR243cDJLOUU1T1hPa3QxaEw3Tlpkang3T2pXMnQ5WkgzRjFnUmNOeU93alItNjZYQ0xMOXFoT19NUFJsQktkZWdhMTlUMXlHOU9MeDVlb2oyQUtwR00tei1yTW5DLTY4eWlqSm15TlNFQnNDeFpuakljZjRQM2FwT2hpZkFTSko4bE53S0RxUFBoLUIxQ3llUC1sSXJHc3BVMk85UmhxZU5LTXVQREhaWkVpTkp0QWRDUW9MNk9jX0hSamVJ?oc=5",
-      "timestamp": "19 hours ago (Live RSS)",
-      "publishedUtc": "Mon, 28 Sep 2026 18:45:00 GMT",
-      "entities": [
-        "red sea"
-      ],
-      "finbertSentiment": "NEGATIVE (War Risk & Detour Shock)",
-      "finbertConfidence": 0.96,
-      "volatilityBoost": 1.5,
-      "spotDriftMultiplier": 1.225,
-      "spotDriftPct": "+22.5%",
-      "priceDirection": "UP",
-      "urgencyLevel": "CRITICAL",
-      "isConflictOrDisruption": true,
-      "oneLiner": "Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at +22.5% (Activate Part C Alternative Routings).",
-      "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
-    },
-    {
-      "id": "live_rss_24_1790689982",
-      "portFilterKey": "geopolitical",
-      "category": "Geopolitical Conflict & Chokepoint Detour",
-      "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
-      "portLocation": "PS Corridor Ingestion (GEOPOLITICAL)",
-      "title": "\"Iran War Spreads to the Red Sea\": U.S. Faces Dilemma Over Ending or Widening Conflict as Burdens Mount on Neighboring Countries",
-      "rawSource": "economy.ac / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMiV0FVX3lxTFBEM0lGanpMb3cwS3dqVHNmUzQxblVscTdKWGhnWnUzVmFRdV9wODBiWjg5VXRXSzlXXzhidUctSHFDcVJRRG5fdWVxQzRtaWNKMGNiVXdRSQ?oc=5",
-      "timestamp": "19 hours ago (Live RSS)",
-      "publishedUtc": "Mon, 28 Sep 2026 18:44:41 GMT",
-      "entities": [
-        "red sea"
-      ],
-      "finbertSentiment": "NEGATIVE (War Risk & Detour Shock)",
-      "finbertConfidence": 0.96,
-      "volatilityBoost": 1.5,
-      "spotDriftMultiplier": 1.225,
-      "spotDriftPct": "+22.5%",
-      "priceDirection": "UP",
-      "urgencyLevel": "CRITICAL",
-      "isConflictOrDisruption": true,
-      "oneLiner": "Geopolitical conflict risks naval chokepoint detours; forward spot drift calibrated at +22.5% (Activate Part C Alternative Routings).",
-      "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
-    },
-    {
-      "id": "live_rss_20_1790689982",
+      "id": "live_rss_24_1790706847",
       "portFilterKey": "geopolitical",
       "category": "Geopolitical Conflict & Chokepoint Detour",
       "categoryBadgeColor": "bg-rose-100 text-rose-800 border-rose-200",
@@ -573,7 +598,7 @@
       "title": "The US-Iran war is now squeezing two major shipping routes from Strait of Hormuz to the Red Sea  -  here's w",
       "rawSource": "The Economic Times / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMiywJBVV95cUxPYzVfMzlCNVFLcUl0aEsyem9iZkx4UnRqVm96cjA2V2xsY2dJWmJ4OVVPZDFJd0RhUmdiOGRTNWh3VmdqS2FqMVhDOHhxNDVsazJvV3VtYV9DRkFha1RhbjBoeV9iLU5GRFZzWkpDcXBqTnZiUVdFZDBaR19RSl92Tk5YVnQwdFRmVmo3ZTM4RW14Smd5TnlobzctYVQ0bjBlcmtJdzN1eG5hcTVhZThkZW1jSmxYX1hkQ3M0MXR3RG94eXc0NnZMUjBRM3BIRUh6UlUtdHltREt0Q3F5RkJaWXJVTlFyajJqY2cydEFxekdaT1pwb2ZBU0N0SFFIbTRQYWRZdWpnV3pTenRpdXVnWWFpSlQ4TDZ2ZmVvV2F4dUJBYmpGcXpIQTFKVFVJblhSdEtqYzFJV2JiNjhIUkJhOXo0V1luTklWSWJz0gHQAkFVX3lxTE5NYnJTS1pVQ0JZZGRnOFBwSjRSbjBHYmIyMUI4RDY4YkYzWnpuaFNPSVN0dElIRUY5WDQxNndKYmduR1UzSDYzcTVYeXdzX1JLangwTjFySmEyckRsMDVKZVRmZzZ2RDB0Mkc4TTJwcWx5WVZ3cFRPZnBKeHp5SnZpbFAtd0xXZ2UyS3ExUkFHZWVNM3N2OWxheDNfaUpzQWxQN18tOHNKUG1nNW9fNnowRDFYWlFtNW5yNkFWV29mX2l6SFpYWWZGcDBuZXF1RGw1TUJWQUdpN1V1c204S2tETXBEN1pWaFB6OHZkTmpqaEtDcFQyYmNtYnctWDdvZEZaOWhjbXhUaU1rdzY2bnpnUWFYZ2JrZGh1dVlsTVdfVW5xUFBPR1Btc1l0Y3M2cWYzUERRUEZGRGJndVJkaFAyWjhLM2QwblFYSTYtTXRJMA?oc=5",
-      "timestamp": "23 hours ago (Live RSS)",
+      "timestamp": "1 day ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 15:12:30 GMT",
       "entities": [
         "strait of hormuz",
@@ -591,7 +616,7 @@
       "actionRecommendation": "🚨 ACTIVE CONFLICT ALERT: Divert from vulnerable chokepoints and activate Part C Hop-and-Load / Domestic Rail Buffering."
     },
     {
-      "id": "live_rss_29_1790689982",
+      "id": "live_rss_29_1790706847",
       "portFilterKey": "australia",
       "category": "Macro Demand Softening & Import Slump",
       "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -602,9 +627,9 @@
       "timestamp": "1 day ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 13:42:05 GMT",
       "entities": [
-        "freight",
         "dry bulk",
-        "india"
+        "india",
+        "freight"
       ],
       "finbertSentiment": "BEARISH (Demand Contraction / Buyer Advantage)",
       "finbertConfidence": 0.92,
@@ -618,33 +643,7 @@
       "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
     },
     {
-      "id": "live_rss_31_1790689982",
-      "portFilterKey": "australia",
-      "category": "Macro Demand Softening & Import Slump",
-      "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
-      "portLocation": "PS Corridor Ingestion (AUSTRALIA)",
-      "title": "Baltic dry bulk freight index drops to near four-week low By Investing.com",
-      "rawSource": "Investing.com South Africa / Google News RSS",
-      "sourceUrl": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOSnUzZTdhdmFOcVhFMk9VeS13SXZJWkg5WnRvVHdqMXd0NmM1aVlEZ25EZTlSMkRfWkMwd1dyWThVLTQyNF94VWN1WUluQ2VGSC15eEJ2b3JHRmxMemFYby1IdEJlcU0tT0M3UWRWOExsYU02RlBsRkxycmxBTy1QZXhPNFBwSlhQb2kwUjZVcWJ3WklDRnJ1dlB0R20zWXZJUGxack5jNEdhZGdxU1habVlvaDE5WEdz?oc=5",
-      "timestamp": "1 day ago (Live RSS)",
-      "publishedUtc": "Mon, 28 Sep 2026 13:04:03 GMT",
-      "entities": [
-        "freight",
-        "dry bulk"
-      ],
-      "finbertSentiment": "BEARISH (Demand Contraction / Buyer Advantage)",
-      "finbertConfidence": 0.92,
-      "volatilityBoost": 0.88,
-      "spotDriftMultiplier": 0.905,
-      "spotDriftPct": "-9.5%",
-      "priceDirection": "DOWN",
-      "urgencyLevel": "OPPORTUNITY",
-      "isConflictOrDisruption": false,
-      "oneLiner": "Baltic dry bulk freight index drops to near four-week low By Investing.com... Demand contraction indicator: freight pressure softening (-9.5%).",
-      "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
-    },
-    {
-      "id": "live_rss_9_1790689982",
+      "id": "live_rss_9_1790706847",
       "portFilterKey": "australia",
       "category": "Macro Demand Softening & Import Slump",
       "categoryBadgeColor": "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -669,7 +668,7 @@
       "actionRecommendation": "Buyer Advantage: Import demand softening lowers prompt charter rates. Delay spot fixtures or negotiate discounted index terms."
     },
     {
-      "id": "live_rss_7_1790689982",
+      "id": "live_rss_7_1790706847",
       "portFilterKey": "australia",
       "category": "Commodity & Coal Supply",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -680,8 +679,8 @@
       "timestamp": "1 day ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 06:55:00 GMT",
       "entities": [
-        "coking coal",
-        "india"
+        "india",
+        "coking coal"
       ],
       "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
       "finbertConfidence": 0.85,
@@ -695,7 +694,7 @@
       "actionRecommendation": "Informational Macro Benchmark: Port capacity & terminal expansion; monitor long-term draft clearance."
     },
     {
-      "id": "live_rss_12_1790689982",
+      "id": "live_rss_13_1790706847",
       "portFilterKey": "paradip",
       "category": "Indian East Coast Port Congestion",
       "categoryBadgeColor": "bg-blue-100 text-blue-800 border-blue-200",
@@ -703,11 +702,11 @@
       "title": "What the 'mega port' label means for Paradip's prowess on India's eastern coast",
       "rawSource": "theweek.in / Google News RSS",
       "sourceUrl": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPbzNrTzdqblJXS0cyZ1N3cl83TjZTOXVFdzRnbGo3dVhRZGtfd1VLT0V6ZGtaZDJHWFNsbUM0UWN5azBRalN0a1ZYSzFTaDBmRDU1Sk5XaVlHOHFhYk5EM1pNY0pVSjRmd3RQYlQxRkVpbFQta3VyWk9meDdKdFEzRFVVMXpJb0FfNjdweNIBkgFBVV95cUxNRHhDeDd5VmZjN0tibXhjTW1rMFFHMXh5YjFVRDFkRUcyem5YYjNTdElMYkJRTFdOMjB1TEZ4RW9IVGZudHdsM2F4THMyNTlkX2ZibUNrdDZWZWpmTmRISms3RjhHNzRNMC1FNnFfRGhjS2xwZHhsWEFNeEV4WFpZQzhXS1hTYXpFY3N0WGpiWVlyQQ?oc=5",
-      "timestamp": "1 day ago (Live RSS)",
+      "timestamp": "2 days ago (Live RSS)",
       "publishedUtc": "Mon, 28 Sep 2026 05:18:29 GMT",
       "entities": [
-        "paradip",
-        "india"
+        "india",
+        "paradip"
       ],
       "finbertSentiment": "NEUTRAL / MACRO BENCHMARK",
       "finbertConfidence": 0.85,

@@ -16,7 +16,7 @@ export default function Navbar({
   onOpenLoginPage,
   marketData,
   onRefreshMarketData,
-  onToggleSidebar
+  onToggleSidebar = () => {}
 }) {
   const [showFxDetail, setShowFxDetail] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

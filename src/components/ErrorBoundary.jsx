@@ -17,9 +17,19 @@ export class ErrorBoundary extends React.Component {
   }
 
   handleReload = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          names.forEach((name) => caches.delete(name));
+        });
+      }
+    } catch (e) {
+      console.warn('Cache clear error:', e);
+    }
+    // Hard redirect with cache-busting timestamp
+    window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now();
   };
 
   render() {
