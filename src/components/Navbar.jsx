@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Ship, Activity, Database, Download, ShieldCheck, Clock, 
   ExternalLink, LogIn, LogOut, UserCheck, RefreshCw, TrendingUp,
-  DollarSign, ChevronDown, CheckCircle2, ArrowRight, Zap, Info, Menu
+  DollarSign, ChevronDown, CheckCircle2, ArrowRight, Zap, Info
 } from 'lucide-react';
 import { calculateForwardFxRate } from '../services/liveMarketDataService';
 
@@ -15,8 +15,7 @@ export default function Navbar({
   onSignOut, 
   onOpenLoginPage,
   marketData,
-  onRefreshMarketData,
-  onToggleSidebar
+  onRefreshMarketData
 }) {
   const [showFxDetail, setShowFxDetail] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -57,25 +56,14 @@ export default function Navbar({
           
           {/* Logo & Platform Name */}
           <div className="flex items-center space-x-3">
-            {onToggleSidebar && (
-              <button
-                onClick={onToggleSidebar}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 md:hidden cursor-pointer"
-                title="Toggle Sidebar"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            )}
-            <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-xs">
-              <Ship className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-maritime-900 flex items-center justify-center text-white shadow-sm">
+              <Ship className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xl font-black tracking-tight text-slate-900">
-                  Naut<span className="text-sky-600">IQ</span>
-                </span>
-                <span className="bg-sky-50 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-200">
-                  NAVIPLATFORM v2.0
+                <span className="text-xl font-bold tracking-tight text-maritime-900">NaviFreight</span>
+                <span className="bg-maritime-50 text-maritime-800 text-xs font-semibold px-2 py-0.5 rounded border border-maritime-200">
+                  AI TERMINAL
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium hidden sm:block">
