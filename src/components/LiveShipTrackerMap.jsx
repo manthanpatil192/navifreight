@@ -566,29 +566,72 @@ function MapCameraController({ focusTarget }) {
   return null;
 }
 
-const getInitialFreshNotification = () => [
-  {
-    id: 'rail_alert_fresh_' + Date.now(),
-    vesselName: 'MV MAHA JACQUELINE',
-    vesselType: 'Capesize',
-    mmsi: '419001280',
-    imo: '9482109',
-    portName: 'Paradip Port Approach (ETA 6h)',
-    portId: 'paradip',
+export const generatePortRailAlert = (portId, currentVessels = []) => {
+  const normPort = (portId || 'paradip').toLowerCase();
+  const portInfo = INDIAN_EAST_COAST_PORTS[normPort] || INDIAN_EAST_COAST_PORTS.paradip;
+  const portCoords = PORT_APPROACH_COORDINATES[normPort] || portInfo.coordinates || [20.2450, 86.7150];
+
+  // Look for an underway vessel destined for this port
+  let matchedVessel = currentVessels.find(v => {
+    const vDest = (v.destinationId || '').toLowerCase();
+    const vDestName = (v.destinationPort || '').toLowerCase();
+    const matchesPort = vDest === normPort || vDestName.includes(normPort);
+    const isUnderway = !v.status?.toLowerCase().includes('berth') && !v.status?.toLowerCase().includes('moored');
+    return matchesPort && isUnderway;
+  });
+
+  // Fallback to any vessel matching port or default representative
+  if (!matchedVessel) {
+    matchedVessel = currentVessels.find(v => {
+      const vDest = (v.destinationId || '').toLowerCase();
+      return vDest === normPort;
+    }) || {
+      name: normPort === 'vizag' ? 'MV ANDHRA PIONEER' :
+            normPort === 'dhamra' ? 'MV DHAMRA GLORY' :
+            normPort === 'gangavaram' ? 'MV GANGA JEWEL' :
+            normPort === 'haldia' ? 'MV BENGAL COURAGE' :
+            normPort === 'gopalpur' ? 'MV GOPALPUR PRIDE' : 'MV MAHA JACQUELINE',
+      vesselType: normPort === 'gangavaram' || normPort === 'dhamra' || normPort === 'paradip' ? 'Capesize' : 'Panamax',
+      mmsi: normPort === 'vizag' ? '538009120' : '419001280',
+      imo: '9482109',
+      speedKnots: 12.4,
+      currentDraughtMeters: normPort === 'gangavaram' ? 18.8 : 14.2,
+      cargo: `${Math.round((portInfo.maxDWT || 120000) * 0.9).toLocaleString()} MT Coking Coal`,
+      dwt: portInfo.maxDWT || 150000,
+      coordinates: [portCoords[0] - 0.75, portCoords[1] + 0.65]
+    };
+  }
+
+  const vCoords = matchedVessel.coordinates || [portCoords[0] - 0.8, portCoords[1] + 0.7];
+  const distKm = getHaversineDistanceKm(vCoords[0], vCoords[1], portCoords[0], portCoords[1]);
+  const distNM = Number((distKm / 1.852).toFixed(1));
+  const speed = (matchedVessel.speedKnots && matchedVessel.speedKnots > 2.0) ? matchedVessel.speedKnots : 12.5;
+  const etaHours = Number(Math.max(1.2, Math.min(6.0, distNM / speed)).toFixed(1));
+
+  return {
+    id: `rail_alert_${normPort}_${Date.now()}`,
+    vesselName: matchedVessel.name,
+    vesselType: matchedVessel.vesselType,
+    mmsi: String(matchedVessel.mmsi || '419001280'),
+    imo: String(matchedVessel.imo || '9482109'),
+    portName: `${portInfo.name} Approach (ETA ${etaHours}h)`,
+    portId: normPort,
     time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
-    speedKnots: 12.5,
-    currentDraught: 18.2,
-    cargo: '160,000 MT Semi-Soft Coking Coal',
-    dwt: 178000,
-    coordinates: [19.1800, 87.4500],
-    etaHours: 6.0,
-    distNM: 75.0,
+    speedKnots: matchedVessel.speedKnots || 12.4,
+    currentDraught: matchedVessel.currentDraughtMeters || matchedVessel.currentDraught || 16.5,
+    cargo: matchedVessel.cargo || `${Math.round((portInfo.maxDWT || 120000) * 0.9).toLocaleString()} MT Coking Coal`,
+    dwt: matchedVessel.dwt || portInfo.maxDWT || 150000,
+    coordinates: vCoords,
+    etaHours,
+    distNM: distNM > 0 ? distNM : 72.0,
     alertType: 'Railway Multi-Modal Dispatch (6h ETA)',
     isFresh: true,
     isLiveAisStream: true,
     timestamp: new Date()
-  }
-];
+  };
+};
+
+const getInitialFreshNotification = (initialPort = 'paradip') => [generatePortRailAlert(initialPort)];
 
 export default function LiveShipTrackerMap({ 
   selectedDestination, 
@@ -650,7 +693,7 @@ export default function LiveShipTrackerMap({
   }, [selectedDestination, charterVesselClass]);
 
   // Geofence Notification & Alert State - Fresh Railway Alert Only
-  const [notifications, setNotifications] = useState(getInitialFreshNotification);
+  const [notifications, setNotifications] = useState(() => getInitialFreshNotification(selectedDestination || 'paradip'));
   const [unreadCount, setUnreadCount] = useState(1);
   const [activeToast, setActiveToast] = useState(null);
   const [showNotificationDrawer, setShowNotificationDrawer] = useState(false);
@@ -661,6 +704,23 @@ export default function LiveShipTrackerMap({
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
+
+  // Synchronize railway dispatch alert whenever selected destination port changes
+  useEffect(() => {
+    if (selectedDestination) {
+      const portAlert = generatePortRailAlert(selectedDestination, vessels);
+      setNotifications([portAlert]);
+      setUnreadCount(1);
+      setActiveToast(portAlert);
+      if (soundEnabledRef.current) {
+        playRadarChime();
+      }
+      const portCoords = PORT_APPROACH_COORDINATES[selectedDestination.toLowerCase()];
+      if (portCoords) {
+        setMapFocusTarget({ coords: portCoords, zoom: 8.5 });
+      }
+    }
+  }, [selectedDestination]);
 
   const vesselGeofenceStateRef = useRef(new Map());
   const isInitialRef = useRef(true);
@@ -984,16 +1044,18 @@ export default function LiveShipTrackerMap({
     }));
   };
 
-  // Background fleet persistence and liveness check (low-frequency to maintain 60 FPS smooth rendering)
+  // Background fleet persistence and liveness check (advances fleet along corridors smoothly)
   useEffect(() => {
     const heartbeat = setInterval(() => {
       setVessels(prevList => {
+        const advanced = advanceFleetByHours(prevList, 0.05); // Advance ~3 minutes
         try {
-          localStorage.setItem('navifreight_fleet_state_v9', JSON.stringify(prevList));
+          localStorage.setItem('navifreight_fleet_state_v9', JSON.stringify(advanced));
           localStorage.setItem('navifreight_fleet_timestamp_v9', String(Date.now()));
         } catch (e) {}
-        return prevList;
+        return advanced;
       });
+      setLastTelemetryUpdate(new Date());
     }, 45000); // 45s maintains low overhead and preserves 60 FPS UI interaction
 
     return () => clearInterval(heartbeat);
@@ -1034,7 +1096,6 @@ export default function LiveShipTrackerMap({
           const speed = (v.speedKnots && v.speedKnots > 2.0) ? v.speedKnots : 12.5;
           const etaHours = Number((distNM / speed).toFixed(1));
           
-          // Initial state: mark as already inside if within 6.0 hours
           stateMap.set(`${v.mmsi}_${geo.id}`, etaHours <= 6.0);
         });
       });
@@ -1070,7 +1131,7 @@ export default function LiveShipTrackerMap({
         const key = `${v.mmsi}_${geo.id}`;
         const wasInside = stateMap.get(key);
 
-        if (isInsideSixHours && wasInside === false) {
+        if (isInsideSixHours && (wasInside === false || wasInside === undefined)) {
           const alertObj = {
             id: `${v.mmsi}_${geo.id}_${Date.now()}`,
             vesselName: v.name,
@@ -1112,12 +1173,12 @@ export default function LiveShipTrackerMap({
     }
   };
 
-  // Run crossing check whenever vessels move
+  // Run crossing check whenever vessels move or destination changes
   useEffect(() => {
     if (vessels && vessels.length > 0) {
       checkGeofenceCrossings(vessels);
     }
-  }, [vessels]);
+  }, [vessels, selectedDestination]);
 
   const handleFocusVessel = (alertOrVessel) => {
     if (!alertOrVessel) return;
@@ -1740,20 +1801,43 @@ export default function LiveShipTrackerMap({
               vesselType: charterVesselClass
             });
             const isFull = portAdv && portAdv.isPortFull && portAdv.suggestedPort;
+            const isCurrentSelected = (selectedDestination || 'paradip').toLowerCase() === portKey.toLowerCase();
 
             return (
               <div 
                 key={geo.id}
                 onClick={() => {
                   if (onSelectPort) onSelectPort(portKey);
+                  const portCoords = PORT_APPROACH_COORDINATES[portKey];
+                  if (portCoords) {
+                    setMapFocusTarget({ coords: portCoords, zoom: 8.5 });
+                  }
+                  const freshAlert = generatePortRailAlert(portKey, vessels);
+                  setNotifications([freshAlert]);
+                  setUnreadCount(1);
+                  setActiveToast(freshAlert);
+                  if (soundEnabledRef.current) {
+                    playRadarChime();
+                  }
                 }}
-                className={`p-2 rounded border cursor-pointer transition-all hover:shadow-xs ${
-                  isFull ? 'bg-amber-50/50 border-amber-300 hover:border-amber-400' : 'bg-white border-slate-200 hover:border-maritime-400'
+                className={`p-2 rounded border cursor-pointer transition-all hover:shadow-xs relative ${
+                  isCurrentSelected 
+                    ? 'bg-indigo-50/90 border-2 border-indigo-600 ring-2 ring-indigo-300 shadow-sm' 
+                    : isFull 
+                    ? 'bg-amber-50/50 border-amber-300 hover:border-amber-400' 
+                    : 'bg-white border-slate-200 hover:border-maritime-400'
                 }`}
               >
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
-                  <span className="truncate">{geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]}</span>
-                  <span className={`w-2 h-2 rounded-full ${
+                  <div className="flex items-center space-x-1 truncate">
+                    <span className="truncate">{geo.name.includes('Sagar') ? 'Sandheads' : geo.name.split(' ')[0]}</span>
+                    {isCurrentSelected && (
+                      <span className="text-[8px] bg-indigo-600 text-white font-extrabold px-1 py-0.2 rounded uppercase">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${
                     isFull ? 'bg-amber-500 animate-pulse' :
                     geo.status === 'TRANSSHIPMENT_ACTIVE' ? 'bg-blue-500' :
                     geo.status === 'RIVER_PILOTAGE_ACTIVE' ? 'bg-purple-500' : 'bg-emerald-500'
@@ -1850,107 +1934,6 @@ export default function LiveShipTrackerMap({
               );
             })}
         </div>
-
-        {/* Connected Right Vessel Suggestion Terminal */}
-        {rightVesselRecommendation && (
-          <div className="mt-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-lg p-3 border border-indigo-500/40 shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-              
-              {/* Left: Vessel Recommendation & Fit Score */}
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="bg-indigo-600 text-white text-[9.5px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-300" /> Connected Terminal • Right Vessel Suggestion
-                  </span>
-                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9.5px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                    <Award className="w-3 h-3 text-emerald-400" /> Fit Score: {rightVesselRecommendation.recommendedVessel.score}/100
-                  </span>
-                  <span className="text-[10px] text-slate-300 font-mono">
-                    Route: {rightVesselRecommendation.origin.name} ➔ {rightVesselRecommendation.dest.name}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <span>Optimal Vessel:</span>
-                    <span className="text-amber-400 underline decoration-amber-400/50 underline-offset-2">
-                      {rightVesselRecommendation.recommendedVessel.name} ({rightVesselRecommendation.recommendedVessel.dwt?.toLocaleString()} DWT)
-                    </span>
-                  </h4>
-                  <span className="text-[10.5px] bg-slate-800 text-slate-200 border border-slate-700 px-2 py-0.2 rounded font-medium">
-                    Draft: {rightVesselRecommendation.recommendedVessel.vessel.ladenDraft}m • LOA: {rightVesselRecommendation.recommendedVessel.vessel.loa}m
-                  </span>
-                </div>
-
-                {/* Physics & Port Congestion Clearances */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 text-[10.5px]">
-                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
-                    <span className="text-slate-400 block text-[9.5px] uppercase">Origin Loading Clear:</span>
-                    <span className="font-semibold text-emerald-300">
-                      Draft ≤ {rightVesselRecommendation.origin.maxDraftLaden || rightVesselRecommendation.origin.maxDraft}m • Load {((rightVesselRecommendation.origin.handlingRateTPD || 75000) / 1000).toFixed(0)}k TPD
-                    </span>
-                  </div>
-                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
-                    <span className="text-slate-400 block text-[9.5px] uppercase">Discharge Port Fit:</span>
-                    <span className="font-semibold text-emerald-300">
-                      {rightVesselRecommendation.dest.name.split('(')[0]}: Direct Berth Clearance
-                    </span>
-                  </div>
-                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
-                    <span className="text-slate-400 block text-[9.5px] uppercase">JIT Empty Berth ETA:</span>
-                    <span className="font-semibold text-amber-300">
-                      {GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.nextEmptyBerthSlotETA || 'Immediate'} @ {GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.recommendedSpeedKnots || 11.6} kts
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Operational Savings & 1-Click Terminal Connection */}
-              <div className="flex sm:flex-row lg:flex-col items-end justify-between sm:justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0 border-indigo-900/60">
-                <div className="text-right">
-                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block">
-                    Demurrage Exposure Avoided
-                  </span>
-                  <div className="text-base font-extrabold text-emerald-400 font-mono">
-                    ₹{rightVesselRecommendation.demurrageSavedINR_Lakhs} Lakhs <span className="text-xs text-slate-300 font-normal">(${rightVesselRecommendation.demurrageSavedUSD?.toLocaleString()})</span>
-                  </div>
-                  <span className="text-[9.5px] text-amber-300 font-semibold block">
-                    ⚡ {rightVesselRecommendation.idleDaysSaved} Days Idle Saved vs Suboptimal
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onSelectVessel) {
-                      onSelectVessel(rightVesselRecommendation.recommendedVesselId);
-                    }
-                    setAppliedVesselSuccess(true);
-                    setTimeout(() => setAppliedVesselSuccess(false), 3000);
-                  }}
-                  className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
-                    appliedVesselSuccess
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-indigo-500/25'
-                  }`}
-                >
-                  {appliedVesselSuccess ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                      <span>Applied to Terminal!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Apply {rightVesselRecommendation.recommendedVessel.name} to Terminal</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Search Bar & Advanced Category Filters */}

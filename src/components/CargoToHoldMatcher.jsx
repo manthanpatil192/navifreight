@@ -10,6 +10,16 @@ import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import { GLOBAL_ORIGIN_PORT_CONGESTION } from '../data/weatherCongestionData';
 import { ORIGIN_LOADING_PORTS } from '../data/portsData';
 
+// Comprehensive East Coast Inter-Port Nautical Distance Matrix (Ground-Truth Sea Fairway NM)
+const COASTAL_INTERPORT_DISTANCES = {
+  paradip: { paradip: 0, dhamra: 92, gopalpur: 140, vizag: 210, gangavaram: 225, haldia: 155 },
+  dhamra: { paradip: 92, dhamra: 0, haldia: 115, gopalpur: 215, vizag: 285, gangavaram: 300 },
+  vizag: { vizag: 0, gangavaram: 15, gopalpur: 110, paradip: 210, dhamra: 285, haldia: 360 },
+  gangavaram: { gangavaram: 0, vizag: 15, gopalpur: 125, paradip: 225, dhamra: 300, haldia: 375 },
+  gopalpur: { gopalpur: 0, paradip: 140, vizag: 110, gangavaram: 125, dhamra: 215, haldia: 295 },
+  haldia: { haldia: 0, dhamra: 115, paradip: 155, gopalpur: 295, vizag: 360, gangavaram: 375 }
+};
+
 export default function CargoToHoldMatcher({ 
   currency = 'INR', 
   selectedMmsi: controlledMmsi, 
@@ -64,6 +74,25 @@ export default function CargoToHoldMatcher({
     return 'paradip';
   }, [activeShip]);
 
+  // Dynamic Ballast Deadhead Metrics
+  const ballastMetrics = useMemo(() => {
+    const dwt = activeShip.dwt || 100000;
+    let defaultLossUSD = 385000;
+    let draftStr = '8.5m';
+    if (dwt >= 140000) {
+      defaultLossUSD = 385000;
+      draftStr = '8.5m';
+    } else if (dwt >= 70000) {
+      defaultLossUSD = 245000;
+      draftStr = '6.8m';
+    } else {
+      defaultLossUSD = 175000;
+      draftStr = '5.6m';
+    }
+    const defaultLossCr = Number(((defaultLossUSD * fxRate) / 10000000).toFixed(2));
+    return { defaultLossUSD, defaultLossCr, draftStr };
+  }, [activeShip, fxRate]);
+
   // AI Matching Algorithm: Rank all Backhaul Opportunities for this specific ship
   const matchedOpportunities = useMemo(() => {
     return BACKHAUL_OPPORTUNITIES.map(route => {
@@ -72,38 +101,33 @@ export default function CargoToHoldMatcher({
         activeShip.vesselType?.toLowerCase().includes(type.toLowerCase())
       );
 
-      // 2. Proximity Score (Same port = 100, neighboring port = 80, distant = 50)
-      let proximityScore = 50;
+      // 2. Coastal Hopping Distance & Proximity Score (Real East Coast Fairway Matrix)
+      const targetPort = (route.dischargePort || 'paradip').toLowerCase();
       let hopDistanceNM = 0;
-      if (route.dischargePort === shipPortKey) {
-        proximityScore = 100;
+      if (targetPort === shipPortKey) {
         hopDistanceNM = 0;
-      } else if (
-        (shipPortKey === 'paradip' && route.dischargePort === 'dhamra') ||
-        (shipPortKey === 'dhamra' && route.dischargePort === 'paradip')
-      ) {
-        proximityScore = 85;
-        hopDistanceNM = 92;
-      } else if (
-        (shipPortKey === 'vizag' && route.dischargePort === 'gangavaram') ||
-        (shipPortKey === 'gangavaram' && route.dischargePort === 'vizag')
-      ) {
-        proximityScore = 95;
-        hopDistanceNM = 15;
-      } else if (
-        (shipPortKey === 'paradip' && route.dischargePort === 'gopalpur') ||
-        (shipPortKey === 'gopalpur' && route.dischargePort === 'paradip')
-      ) {
-        proximityScore = 75;
-        hopDistanceNM = 140;
+      } else {
+        hopDistanceNM = (COASTAL_INTERPORT_DISTANCES[shipPortKey] && COASTAL_INTERPORT_DISTANCES[shipPortKey][targetPort]) ||
+                        (COASTAL_INTERPORT_DISTANCES[targetPort] && COASTAL_INTERPORT_DISTANCES[targetPort][shipPortKey]) ||
+                        120;
       }
+
+      let proximityScore = 50;
+      if (hopDistanceNM === 0) proximityScore = 100;
+      else if (hopDistanceNM <= 50) proximityScore = 95;
+      else if (hopDistanceNM <= 100) proximityScore = 88;
+      else if (hopDistanceNM <= 160) proximityScore = 78;
+      else if (hopDistanceNM <= 250) proximityScore = 65;
+      else proximityScore = 50;
 
       // 3. Financial Arbitrage Calculation
       const intakeMT = Math.min(route.cargoParcelSizeMT, Math.round((activeShip.dwt || 100000) * 0.92));
       const grossRevenueUSD = Math.round(intakeMT * route.revenueUSDPerMT);
-      const hopFuelCostUSD = Math.round(hopDistanceNM * 65); // ~$65/NM bunker consumption at eco-speed
+      const fuelPerNM = activeShip.dwt > 140000 ? 75 : activeShip.dwt > 70000 ? 60 : 45;
+      const hopFuelCostUSD = Math.round(hopDistanceNM * fuelPerNM);
       const netArbitrageUSD = grossRevenueUSD - hopFuelCostUSD;
       const netArbitrageINR_Cr = Number(((netArbitrageUSD * fxRate) / 10000000).toFixed(2));
+      const steamingHours = hopDistanceNM > 0 ? `${(hopDistanceNM / 12.5).toFixed(1)}h Underway @ 12.5 kts` : '0h (At Discharging Berth)';
 
       // Match Score (0 - 100)
       const matchScore = Math.min(99, Math.round(
@@ -121,7 +145,8 @@ export default function CargoToHoldMatcher({
         netArbitrageUSD,
         netArbitrageINR_Cr,
         matchScore,
-        vesselClassMatch
+        vesselClassMatch,
+        steamingHours
       };
     }).sort((a, b) => b.matchScore - a.matchScore);
   }, [activeShip, shipPortKey, fxRate]);
@@ -289,7 +314,7 @@ export default function CargoToHoldMatcher({
               </span>
             </div>
             <p className="text-[11px] text-slate-300 mt-0.5">
-              Current Port: <strong>{activeShip.destinationPort}</strong> • Class: <strong>{activeShip.vesselType}</strong> ({activeShip.dwt?.toLocaleString()} DWT) • Ballast Draft: <strong>8.5m</strong>
+              Current Port: <strong>{activeShip.destinationPort}</strong> • Class: <strong>{activeShip.vesselType}</strong> ({activeShip.dwt?.toLocaleString()} DWT) • Ballast Draft: <strong>{ballastMetrics.draftStr}</strong>
             </p>
           </div>
         </div>
@@ -300,7 +325,7 @@ export default function CargoToHoldMatcher({
             Default Ballast Loss (Deadheading)
           </span>
           <span className="text-xs font-mono font-bold text-red-400">
-            -$385,000 (~₹3.66 Cr wasted fuel)
+            -${ballastMetrics.defaultLossUSD.toLocaleString()} (~₹{ballastMetrics.defaultLossCr} Cr wasted fuel)
           </span>
         </div>
       </div>
@@ -526,10 +551,10 @@ export default function CargoToHoldMatcher({
                                 <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 font-semibold">Discharging</span>
                               </div>
                               <div className="font-bold text-slate-900 truncate">
-                                {activeShip.destinationPort?.split('(')[0] || 'Paradip Port'}
+                                {activeShip.name} @ {activeShip.destinationPort?.split('(')[0] || 'Discharge Port'}
                               </div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">
-                                150k MT Coking Coal • Fast Unload (45k TPD)
+                              <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                                {activeShip.cargo ? activeShip.cargo.split('@')[0].trim() : `${((activeShip.dwt || 120000) * 0.9).toLocaleString()} MT Coking Coal`}
                               </div>
                               <div className="text-[9.5px] font-semibold text-emerald-700 mt-1">
                                 ✓ Hold Wash & Grain Inspection Ready

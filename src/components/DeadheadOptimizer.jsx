@@ -42,16 +42,6 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       LIVE_AIS_VESSELS[0];
   }, [selectedBerthedShipMmsi, portVessels]);
 
-  // When selected port changes, sync selected ship if current ship is not at this port
-  useEffect(() => {
-    if (portVessels.length > 0) {
-      const isCurrentAtPort = portVessels.some(v => v.mmsi === selectedBerthedShipMmsi);
-      if (!isCurrentAtPort) {
-        setSelectedBerthedShipMmsi(portVessels[0].mmsi);
-      }
-    }
-  }, [selectedLivePort, portVessels]);
-
 
 
   return (
@@ -94,6 +84,7 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
           setSelectedBerthedShipMmsi(ship.mmsi);
           if (ship.destinationId) {
             setSelectedLivePort(ship.destinationId);
+            if (onSelectPort) onSelectPort(ship.destinationId);
           }
         }}
       />
