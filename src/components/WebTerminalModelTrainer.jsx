@@ -218,12 +218,6 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $14.85 /MT  (₹1,411 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
-
-----------------------------------------------------------------------
-[4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
-  * Active Allocation: 35% COA / 65% Spot (Prices Stable Regime)
-  * Recommended COA:  35% (Base Contract Volume & Stability)
-  * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
       }
@@ -792,12 +786,6 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $${coaFixed.toFixed(2)} /MT  (₹${coaFixedINR.toLocaleString()} /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
-
-----------------------------------------------------------------------
-[4] DYNAMIC RISK-BASED CARGO ALLOCATION MATRIX:
-  * Active Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot (${allocationRegimeLabel})
-  * Recommended COA:  ${coaSplit}% (${coaActionNote})
-  * Recommended Spot: ${100-coaSplit}% (${spotActionNote})
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`
         }
