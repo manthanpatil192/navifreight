@@ -951,47 +951,47 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
       {/* FREE SOVEREIGN DATASETS REGISTRY DRAWER (Strictly Open Access, Zero-Cost Sovereign Feeds) */}
       {isDatasetsDrawerOpen && (
-        <div className="mb-5 p-4 rounded-xl bg-slate-900 text-white border border-cyan-800/80 shadow-lg animate-in fade-in duration-150">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2 mb-3">
+        <div className="mb-5 p-4 rounded-xl bg-white text-slate-900 border border-slate-200 shadow-md animate-in fade-in duration-150">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2 mb-3">
             <div className="flex items-center space-x-2">
-              <Database className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 font-mono">
+              <Database className="w-4 h-4 text-cyan-600" />
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-800 font-mono">
                 Sovereign Open Telemetry Feeds (6 Curated Free Datasets • 100% Free Open Access)
               </span>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200">
               Zero Token Cost • USGS Sentinel & War-Risk Excluded
             </span>
           </div>
 
-          <p className="text-[11px] text-slate-300 mb-3 leading-relaxed font-sans">
+          <p className="text-[11px] text-slate-600 mb-3 leading-relaxed font-sans font-medium">
             These 6 official sovereign and intergovernmental open-data endpoints directly monitor export quotas, fleet elasticity, cyclone tracking, port turnaround, rail washouts, and bunker pricing across all SAIL corridors without subscription fees.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
             {FREE_SOVEREIGN_DATASETS.map((ds, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-slate-950 border border-slate-800 flex flex-col justify-between hover:border-cyan-700 transition-colors">
+              <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between hover:border-cyan-400 transition-colors">
                 <div>
                   <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                    <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 font-bold border border-cyan-800">
+                    <span className="px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-900 font-bold border border-cyan-200">
                       {ds.rank} • {ds.category}
                     </span>
                     <a
                       href={ds.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-0.5 underline text-[9px]"
+                      className="text-cyan-700 hover:text-cyan-900 flex items-center gap-0.5 underline text-[9px] font-medium"
                     >
                       <span>Verify Source</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>
-                  <h4 className="font-bold text-white text-[11px] mt-1 leading-snug">{ds.title}</h4>
-                  <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{ds.provider}</div>
-                  <div className="text-[10px] text-cyan-200 mt-1 font-mono font-medium">Corridor: {ds.corridor}</div>
-                  <p className="text-[10px] text-slate-300 mt-1 leading-tight">{ds.features}</p>
+                  <h4 className="font-bold text-slate-900 text-[11px] mt-1 leading-snug">{ds.title}</h4>
+                  <div className="text-[10px] text-slate-500 mt-0.5 font-mono">{ds.provider}</div>
+                  <div className="text-[10px] text-cyan-800 mt-1 font-mono font-bold">Corridor: {ds.corridor}</div>
+                  <p className="text-[10px] text-slate-600 mt-1 leading-tight">{ds.features}</p>
                 </div>
-                <div className="mt-2 pt-2 border-t border-slate-800/80 text-[10px] text-emerald-300 font-mono">
+                <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-emerald-700 font-mono font-bold">
                   ⚡ Impact: {ds.impact}
                 </div>
               </div>
@@ -1002,33 +1002,33 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
       {/* INGESTED PORTS REGISTRY DRAWER (Displays all ports mentioned in the PS) */}
       {isPortRegistryOpen && (
-        <div className="mb-5 p-4 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-md animate-in fade-in duration-150">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div className="mb-5 p-4 rounded-xl bg-white text-slate-900 border border-slate-200 shadow-md animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
             <div className="flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 font-mono">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 font-mono">
                 Problem Statement Port Ingestion Registry (7 Indian Ports + 8 Global Origins)
               </span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">100% PS Corridor Whitelist Grounding</span>
+            <span className="text-[10px] text-slate-500 font-mono font-medium">100% PS Corridor Whitelist Grounding</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-sans">
             
             {/* Left Box: 7 Indian East Coast Discharge Ports */}
             <div className="space-y-2">
-              <div className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider flex items-center justify-between pb-1 border-b border-slate-800">
+              <div className="text-[11px] font-bold text-cyan-800 uppercase tracking-wider flex items-center justify-between pb-1 border-b border-slate-200">
                 <span>🇮🇳 7 Indian East Coast Discharge Ports</span>
-                <span className="text-[9px] text-slate-400 font-mono">Discharge Gateways</span>
+                <span className="text-[9px] text-slate-500 font-mono">Discharge Gateways</span>
               </div>
               <div className="space-y-1.5 font-mono text-[10px]">
                 {INGESTED_PS_PORTS.filter(p => p.type.includes('Indian')).map((p) => (
-                  <div key={p.id} className="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div key={p.id} className="p-2 rounded bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="font-bold text-white block">{p.name} ({p.state})</span>
-                      <span className="text-slate-400 text-[9px]">{p.plant} • Draft: {p.draft}</span>
+                      <span className="font-bold text-slate-900 block">{p.name} ({p.state})</span>
+                      <span className="text-slate-500 text-[9px]">{p.plant} • Draft: {p.draft}</span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                    <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       LIVE INGESTION
                     </span>
                   </div>
@@ -1038,18 +1038,18 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
             {/* Right Box: 8 Global Origin Loading Ports */}
             <div className="space-y-2">
-              <div className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center justify-between pb-1 border-b border-slate-800">
+              <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center justify-between pb-1 border-b border-slate-200">
                 <span>🌏 8 Global Origin Loading Hubs</span>
-                <span className="text-[9px] text-slate-400 font-mono">Export Origins</span>
+                <span className="text-[9px] text-slate-500 font-mono">Export Origins</span>
               </div>
               <div className="space-y-1.5 font-mono text-[10px]">
                 {INGESTED_PS_PORTS.filter(p => p.type.includes('Global')).map((p) => (
-                  <div key={p.id} className="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div key={p.id} className="p-2 rounded bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="font-bold text-white block">{p.name} • {p.country}</span>
-                      <span className="text-slate-400 text-[9px]">{p.cargo} • Draft: {p.draft}</span>
+                      <span className="font-bold text-slate-900 block">{p.name} • {p.country}</span>
+                      <span className="text-slate-500 text-[9px]">{p.cargo} • Draft: {p.draft}</span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-950 text-indigo-400 border border-indigo-800">
+                    <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                       GDELT 2.0 FEED
                     </span>
                   </div>
@@ -1062,41 +1062,41 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
       )}
 
       {/* Active News Signal Injected Banner */}
-      <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-800/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="mb-4 p-3 rounded-xl bg-white text-slate-900 border-2 border-indigo-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 shrink-0">
-            <Radio className="w-4 h-4 text-indigo-400 animate-pulse" />
+          <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 shrink-0">
+            <Radio className="w-4 h-4 text-indigo-600 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300 font-bold">Active Signal Injected into Forecast</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-900 font-bold">Active Signal Injected into Forecast</span>
               <span className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded ${
-                activeEvent.priceDirection === 'UP' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
-                activeEvent.priceDirection === 'DOWN' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                activeEvent.priceDirection === 'UP' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                activeEvent.priceDirection === 'DOWN' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                'bg-blue-50 text-blue-700 border border-blue-200'
               }`}>
                 {activeEvent.priceDirection === 'UP' ? 'SPOT INFLATION' : activeEvent.priceDirection === 'DOWN' ? 'SPOT SOFTENING' : 'MACRO NEUTRAL'}
               </span>
             </div>
-            <div className="text-xs font-bold text-white truncate max-w-xl mt-0.5">
+            <div className="text-xs font-bold text-slate-900 truncate max-w-xl mt-0.5">
               {activeEvent.title}
             </div>
           </div>
         </div>
         <div className="flex items-center space-x-3 shrink-0">
           <div className="text-right font-mono">
-            <span className="text-[9px] text-slate-400 block uppercase">Spot Drift</span>
+            <span className="text-[9px] text-slate-500 block uppercase font-medium">Spot Drift</span>
             <span className={`text-xs font-bold ${
-              activeEvent.priceDirection === 'UP' ? 'text-rose-400' :
-              activeEvent.priceDirection === 'DOWN' ? 'text-emerald-400' :
-              'text-blue-400'
+              activeEvent.priceDirection === 'UP' ? 'text-rose-600' :
+              activeEvent.priceDirection === 'DOWN' ? 'text-emerald-600' :
+              'text-blue-600'
             }`}>
               {activeEvent.spotDriftPct} {activeEvent.priceDirection !== 'NEUTRAL' && `(${activeEvent.priceDirection === 'UP' ? '+' : '-'}$${Math.abs(parseFloat(activeEvent.calculation?.netChangeUSD || 1.5))}/MT)`}
             </span>
           </div>
           <button
             onClick={() => handleApplyToLiveForecast(activeEvent)}
-            className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs font-mono transition-all cursor-pointer shadow-xs flex items-center gap-1"
+            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs font-mono transition-all cursor-pointer shadow-xs flex items-center gap-1"
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Active in Model</span>
@@ -1111,7 +1111,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('all')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'all'
-              ? 'bg-indigo-900 text-white shadow-xs font-bold'
+              ? 'bg-indigo-700 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1143,7 +1143,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('paradip')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'paradip'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1153,7 +1153,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('vizag')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'vizag'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1163,7 +1163,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('haldia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'haldia'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1173,7 +1173,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('australia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'australia'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1183,7 +1183,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('indonesia')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'indonesia'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1193,7 +1193,7 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
           onClick={() => handleFilterChange('africa')}
           className={`px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
             activePortFilter === 'africa'
-              ? 'bg-slate-900 text-white shadow-xs font-bold'
+              ? 'bg-slate-800 text-white shadow-xs font-bold'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
@@ -1207,24 +1207,24 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
         {/* Left Column: Corridor-Relevant Alerts Feed (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
           {/* Live GDELT Stream Bar with auto-countdown & refresh button */}
-          <div className="p-2.5 rounded-lg bg-slate-900 text-white border border-slate-800 flex items-center justify-between text-xs">
+          <div className="p-2.5 rounded-lg bg-white text-slate-900 border border-slate-200 flex items-center justify-between text-xs shadow-2xs">
             <div className="flex items-center space-x-2">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
               </span>
-              <span className="font-mono font-bold text-emerald-400 text-[11px]">LIVE GDELT 2.0 STREAM</span>
-              <span className="text-[10px] text-slate-400 hidden sm:inline font-mono">({lastRefreshedTime})</span>
+              <span className="font-mono font-bold text-emerald-700 text-[11px]">LIVE GDELT 2.0 STREAM</span>
+              <span className="text-[10px] text-slate-500 hidden sm:inline font-mono font-medium">({lastRefreshedTime})</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] text-slate-400 font-mono">Sync in {countdownSec}s</span>
+              <span className="text-[10px] text-slate-500 font-mono font-medium">Sync in {countdownSec}s</span>
               <button
                 onClick={handleRefreshNewsFeed}
                 disabled={isRefreshing}
-                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[10px] font-bold transition-all border border-slate-700 cursor-pointer disabled:opacity-50"
+                className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-800 text-[10px] font-bold transition-all border border-slate-200 cursor-pointer disabled:opacity-50"
                 title="Fetch latest GDELT articles"
               >
-                <RefreshCw className={`w-3 h-3 text-cyan-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3 h-3 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
                 <span>{isRefreshing ? 'Syncing...' : 'Fetch Live'}</span>
               </button>
             </div>
@@ -1245,18 +1245,18 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
           {/* Filtered Noise Modal Drawer */}
           {isNoiseDrawerOpen && (
-            <div className="p-3 rounded-lg bg-slate-900 text-slate-300 text-xs border border-slate-700 animate-in fade-in duration-150 space-y-2">
-              <div className="font-bold text-amber-400 text-[11px] flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-white text-slate-700 text-xs border border-slate-200 animate-in fade-in duration-150 space-y-2 shadow-sm">
+              <div className="font-bold text-amber-700 text-[11px] flex items-center justify-between">
                 <span>95% Noise Rejection Audit (TF-IDF Masking)</span>
-                <span className="text-[9px] font-mono bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">STAGE 2 AUDIT</span>
+                <span className="text-[9px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">STAGE 2 AUDIT</span>
               </div>
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-slate-500">
                 Non-corridor articles discarded in &lt;1ms to prevent cluttering the chartering desk:
               </p>
               <div className="space-y-1.5 font-mono text-[10px]">
                 {RECENT_DISCARDED_NOISE.map((n, idx) => (
-                  <div key={idx} className="p-1.5 bg-slate-950 rounded border border-slate-800">
-                    <div className="text-rose-400 font-bold truncate">✖ {n.title}</div>
+                  <div key={idx} className="p-1.5 bg-slate-50 rounded border border-slate-200">
+                    <div className="text-rose-600 font-bold truncate">✖ {n.title}</div>
                     <div className="text-slate-500 text-[9px] mt-0.5">Rejected: {n.reason}</div>
                   </div>
                 ))}
@@ -1348,44 +1348,44 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
         {/* Right Column: Selected Disruption Deep Dive with Hero Price Verdict & Mathematical Calculations (7 cols) */}
         <div className="lg:col-span-7">
-          <div className="bg-slate-900 text-white rounded-xl p-4 border border-slate-800 shadow-md h-full flex flex-col justify-between">
+          <div className="bg-white text-slate-900 rounded-xl p-4 border border-slate-200 shadow-sm h-full flex flex-col justify-between">
             
             <div>
               {/* Header Badges */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
                 <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${activeEvent.categoryBadgeColor || 'bg-indigo-900 text-indigo-300'}`}>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${activeEvent.categoryBadgeColor || 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
                     {activeEvent.category}
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-rose-950 text-rose-300 border border-rose-800">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200">
                     {activeEvent.urgencyLevel}
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-mono">{activeEvent.timestamp}</span>
+                <span className="text-[10px] text-slate-500 font-mono">{activeEvent.timestamp}</span>
               </div>
 
               {/* Port Location Tag */}
-              <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-cyan-300 font-mono">
-                <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <div className="mt-2.5 flex items-center gap-1.5 text-xs font-bold text-indigo-700 font-mono">
+                <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 <span>{activeEvent.portLocation}</span>
               </div>
 
               {/* Full Ingested Headline */}
-              <h3 className="text-sm font-bold text-white mt-1.5 leading-snug">
+              <h3 className="text-sm font-bold text-slate-900 mt-1.5 leading-snug">
                 {activeEvent.title}
               </h3>
 
               {/* Verified Source Attribution Banner */}
-              <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pb-2.5 border-b border-slate-800">
+              <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 pb-2.5 border-b border-slate-200">
                 <span className="flex items-center gap-1 font-mono">
-                  <Rss className="w-3 h-3 text-emerald-400" />
+                  <Rss className="w-3 h-3 text-emerald-600" />
                   <span>Telemetry Feed: <strong>{activeEvent.rawSource}</strong></span>
                 </span>
                 <a
                   href={activeEvent.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline font-mono"
+                  className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 underline font-mono font-medium"
                 >
                   <span>Verify Source</span>
                   <ExternalLink className="w-3 h-3" />
@@ -1394,93 +1394,93 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
               {/* HERO PRICE VERDICT: "PRICE WILL GO UP" OR "PRICE WILL GO DOWN" */}
               {activeEvent.priceDirection === 'UP' ? (
-                <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900 border-2 border-rose-500/80 shadow-lg">
+                <div className="mt-3 p-3.5 rounded-xl bg-rose-50/70 border-2 border-rose-300 shadow-xs text-slate-900">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center space-x-2.5">
-                      <div className="p-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-400 shrink-0">
+                      <div className="p-2 rounded-lg bg-rose-100 border border-rose-300 text-rose-700 shrink-0">
                         <TrendingUp className="w-6 h-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-rose-300 font-bold">Corridor Forecast Verdict</span>
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold font-mono bg-rose-500 text-white animate-pulse">SPOT INFLATION</span>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-rose-800 font-bold">Corridor Forecast Verdict</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold font-mono bg-rose-600 text-white animate-pulse">SPOT INFLATION</span>
                         </div>
-                        <h4 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+                        <h4 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
                           <span>PRICE WILL GO UP</span>
-                          <span className="text-rose-400 font-mono text-sm sm:text-base font-bold">({activeEvent.calculation?.netChangeUSD || activeEvent.spotDriftPct} / MT)</span>
+                          <span className="text-rose-700 font-mono text-sm sm:text-base font-bold">({activeEvent.calculation?.netChangeUSD || activeEvent.spotDriftPct} / MT)</span>
                         </h4>
                       </div>
                     </div>
-                    <div className="sm:text-right bg-slate-950/60 p-2.5 rounded-lg border border-rose-500/30">
-                      <span className="text-[9px] font-mono text-slate-400 block uppercase">150k MT Capesize Risk</span>
-                      <span className="text-sm font-black font-mono text-rose-400">
+                    <div className="sm:text-right bg-white p-2.5 rounded-lg border border-rose-200 shadow-2xs">
+                      <span className="text-[9px] font-mono text-slate-500 block uppercase">150k MT Capesize Risk</span>
+                      <span className="text-sm font-black font-mono text-rose-700">
                         +{activeEvent.calculation?.varianceCr ? `₹${activeEvent.calculation.varianceCr} Cr` : '+₹2.50 Cr'}
                       </span>
-                      <span className="text-[9px] text-rose-300 block font-mono">
+                      <span className="text-[9px] text-rose-600 block font-mono font-semibold">
                         +{activeEvent.calculation?.varianceLakhs ? `₹${activeEvent.calculation.varianceLakhs} Lakhs Extra` : '+₹250 Lakhs'}
                       </span>
                     </div>
                   </div>
 
                   {/* PREDICTION LEAD TIME & TARGET IMPACT DATE RIBBON */}
-                  <div className="mt-3 pt-2.5 border-t border-rose-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                  <div className="mt-3 pt-2.5 border-t border-rose-200 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-rose-500/50 text-rose-300 font-bold flex items-center gap-1.5 shadow-xs">
-                        <Clock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                        <span>Predicted Lead Time: <strong className="text-white">{activeEvent.predictionDaysAhead || 'In 2–3 Days'}</strong></span>
+                      <div className="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-800 font-bold flex items-center gap-1.5 shadow-2xs">
+                        <Clock className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Predicted Lead Time: <strong className="text-slate-900">{activeEvent.predictionDaysAhead || 'In 2–3 Days'}</strong></span>
                       </div>
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-amber-500/50 text-amber-300 font-bold flex items-center gap-1.5 shadow-xs">
-                        <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span>Expected Rate Peak Date: <strong className="text-white">{activeEvent.predictedDate || formatDynamicDateRangeOffset(3, 5)}</strong></span>
+                      <div className="px-2.5 py-1 rounded-lg bg-white border border-amber-200 text-amber-800 font-bold flex items-center gap-1.5 shadow-2xs">
+                        <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>Expected Rate Peak Date: <strong className="text-slate-900">{activeEvent.predictedDate || formatDynamicDateRangeOffset(3, 5)}</strong></span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-rose-200/90 font-mono bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/60">
+                    <span className="text-[10px] text-rose-800 font-mono bg-rose-100 px-2 py-0.5 rounded border border-rose-200 font-bold">
                       {activeEvent.predictionHorizonLabel || 'T+48h to T+72h Pre-Berthing Window'}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 border-2 border-emerald-500/80 shadow-lg">
+                <div className="mt-3 p-3.5 rounded-xl bg-emerald-50/70 border-2 border-emerald-300 shadow-xs text-slate-900">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center space-x-2.5">
-                      <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shrink-0">
+                      <div className="p-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-700 shrink-0">
                         <TrendingDown className="w-6 h-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-300 font-bold">Corridor Forecast Verdict</span>
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold font-mono bg-emerald-500 text-slate-950">SPOT SOFTENING</span>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-800 font-bold">Corridor Forecast Verdict</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold font-mono bg-emerald-600 text-white">SPOT SOFTENING</span>
                         </div>
-                        <h4 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+                        <h4 className="text-base sm:text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
                           <span>PRICE WILL GO DOWN</span>
-                          <span className="text-emerald-400 font-mono text-sm sm:text-base font-bold">({activeEvent.calculation?.netChangeUSD || activeEvent.spotDriftPct} / MT)</span>
+                          <span className="text-emerald-700 font-mono text-sm sm:text-base font-bold">({activeEvent.calculation?.netChangeUSD || activeEvent.spotDriftPct} / MT)</span>
                         </h4>
                       </div>
                     </div>
-                    <div className="sm:text-right bg-slate-950/60 p-2.5 rounded-lg border border-emerald-500/30">
-                      <span className="text-[9px] font-mono text-slate-400 block uppercase">150k MT Capesize Savings</span>
-                      <span className="text-sm font-black font-mono text-emerald-400">
+                    <div className="sm:text-right bg-white p-2.5 rounded-lg border border-emerald-200 shadow-2xs">
+                      <span className="text-[9px] font-mono text-slate-500 block uppercase">150k MT Capesize Savings</span>
+                      <span className="text-sm font-black font-mono text-emerald-700">
                         {activeEvent.calculation?.varianceCr ? `-₹${Math.abs(parseFloat(activeEvent.calculation.varianceCr))} Cr` : '-₹1.80 Cr'}
                       </span>
-                      <span className="text-[9px] text-emerald-300 block font-mono">
+                      <span className="text-[9px] text-emerald-700 block font-mono font-semibold">
                         {activeEvent.calculation?.varianceLakhs ? `Save ₹${Math.abs(parseFloat(activeEvent.calculation.varianceLakhs))} Lakhs` : 'Save ₹180 Lakhs'}
                       </span>
                     </div>
                   </div>
 
                   {/* PREDICTION LEAD TIME & TARGET SOFTENING DATE RIBBON */}
-                  <div className="mt-3 pt-2.5 border-t border-emerald-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                  <div className="mt-3 pt-2.5 border-t border-emerald-200 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-emerald-500/50 text-emerald-300 font-bold flex items-center gap-1.5 shadow-xs">
-                        <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>Predicted Lead Time: <strong className="text-white">{activeEvent.predictionDaysAhead || 'In 14–21 Days'}</strong></span>
+                      <div className="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-emerald-800 font-bold flex items-center gap-1.5 shadow-2xs">
+                        <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Predicted Lead Time: <strong className="text-slate-900">{activeEvent.predictionDaysAhead || 'In 14–21 Days'}</strong></span>
                       </div>
-                      <div className="px-2.5 py-1 rounded-lg bg-slate-950 border border-cyan-500/50 text-cyan-300 font-bold flex items-center gap-1.5 shadow-xs">
-                        <Calendar className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span>Expected Softening Date: <strong className="text-white">{activeEvent.predictedDate || formatDynamicDateRangeOffset(14, 21)}</strong></span>
+                      <div className="px-2.5 py-1 rounded-lg bg-white border border-cyan-200 text-cyan-800 font-bold flex items-center gap-1.5 shadow-2xs">
+                        <Calendar className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                        <span>Expected Softening Date: <strong className="text-slate-900">{activeEvent.predictedDate || formatDynamicDateRangeOffset(14, 21)}</strong></span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-emerald-200/90 font-mono bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                    <span className="text-[10px] text-emerald-800 font-mono bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 font-bold">
                       {activeEvent.predictionHorizonLabel || 'Tonnage Delivery Window'}
                     </span>
                   </div>
@@ -1488,80 +1488,80 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
               )}
 
               {/* QUANTITATIVE CORRIDOR FACTOR BREAKDOWN & CALCULATIONS */}
-              <div className="mt-3.5 p-3.5 rounded-xl bg-slate-950 border border-slate-800 shadow-inner">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2.5">
+              <div className="mt-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2.5">
                   <div className="flex items-center space-x-2">
-                    <Calculator className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 font-mono">
+                    <Calculator className="w-4 h-4 text-indigo-600" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 font-mono">
                       📐 Mathematical Factors & Calculations
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">150,000 MT Capesize Parcel</span>
+                  <span className="text-[10px] font-mono text-slate-500">150,000 MT Capesize Parcel</span>
                 </div>
 
                 {/* Timeline & Benchmark Date Reference */}
-                <div className="mb-2.5 p-2 rounded-lg bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[10px] font-mono">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <span className="text-slate-400">Baseline Assessment: <strong>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} (Today)</strong></span>
-                    <span className="text-slate-600">──►</span>
-                    <span className="text-cyan-300 font-bold">Predicted Date: <strong>{activeEvent.predictedDate}</strong> ({activeEvent.predictionDaysAhead})</span>
+                <div className="mb-2.5 p-2 rounded-lg bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[10px] font-mono shadow-2xs">
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <span className="text-slate-500">Baseline Assessment: <strong>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} (Today)</strong></span>
+                    <span className="text-slate-400">──►</span>
+                    <span className="text-indigo-700 font-bold">Predicted Date: <strong>{activeEvent.predictedDate}</strong> ({activeEvent.predictionDaysAhead})</span>
                   </div>
-                  <div className="flex items-center gap-1 text-amber-300 font-semibold">
-                    <Timer className="w-3 h-3 text-amber-400 shrink-0" />
+                  <div className="flex items-center gap-1 text-amber-700 font-semibold">
+                    <Timer className="w-3 h-3 text-amber-600 shrink-0" />
                     <span>{activeEvent.impactTimeline}</span>
                   </div>
                 </div>
 
                 {/* Formula Bar */}
-                <div className="p-2 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] text-slate-200 mb-3 flex items-center gap-2 overflow-x-auto">
-                  <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 text-[9px] font-bold uppercase shrink-0">Formula</span>
-                  <span className="text-cyan-200 font-semibold">{activeEvent.calculation?.formula || 'Projected Freight = Base Rate + Dynamic Disruption Adjustments'}</span>
+                <div className="p-2 rounded bg-white border border-slate-200 font-mono text-[11px] text-slate-800 mb-3 flex items-center gap-2 overflow-x-auto shadow-2xs">
+                  <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[9px] font-bold uppercase shrink-0">Formula</span>
+                  <span className="text-slate-800 font-semibold">{activeEvent.calculation?.formula || 'Projected Freight = Base Rate + Dynamic Disruption Adjustments'}</span>
                 </div>
 
                 {/* Factors Breakdown Table / 4 Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-sans mb-3">
                   {activeEvent.calculation?.factors?.map((f, i) => (
-                    <div key={i} className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-colors">
+                    <div key={i} className="p-2.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition-colors shadow-2xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-slate-200">{f.label}</span>
-                        <span className={`font-mono font-bold text-xs ${f.value.startsWith('+') ? 'text-rose-400' : f.value.startsWith('-') ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        <span className="text-[11px] font-bold text-slate-800">{f.label}</span>
+                        <span className={`font-mono font-bold text-xs ${f.value.startsWith('+') ? 'text-rose-600' : f.value.startsWith('-') ? 'text-emerald-600' : 'text-slate-700'}`}>
                           {f.value}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
                         <span className="truncate pr-1">{f.desc}</span>
-                        <span className="text-slate-500 font-medium shrink-0 ml-1">{f.inr}</span>
+                        <span className="text-slate-600 font-medium shrink-0 ml-1">{f.inr}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Financial Totals Comparison Grid */}
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 font-mono text-center">
-                  <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-                    <span className="text-[9px] text-slate-400 uppercase block">Base Cargo Total</span>
-                    <span className="text-xs font-bold text-slate-200">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 font-mono text-center">
+                  <div className="p-2 rounded bg-white border border-slate-200 shadow-2xs">
+                    <span className="text-[9px] text-slate-500 uppercase block font-medium">Base Cargo Total</span>
+                    <span className="text-xs font-bold text-slate-900">
                       ₹{activeEvent.calculation?.cargoTotalBaseCr || '17.24'} Cr
                     </span>
                     <span className="text-[9px] text-slate-500 block">${activeEvent.calculation?.baseFreightUSD || '13.85'}/MT</span>
                   </div>
 
-                  <div className="p-2 rounded bg-slate-900/60 border border-slate-800">
-                    <span className="text-[9px] text-slate-400 uppercase block">Projected Total</span>
-                    <span className={`text-xs font-bold ${activeEvent.priceDirection === 'UP' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  <div className="p-2 rounded bg-white border border-slate-200 shadow-2xs">
+                    <span className="text-[9px] text-slate-500 uppercase block font-medium">Projected Total</span>
+                    <span className={`text-xs font-bold ${activeEvent.priceDirection === 'UP' ? 'text-rose-600' : 'text-emerald-600'}`}>
                       ₹{activeEvent.calculation?.cargoTotalNewCr || '20.34'} Cr
                     </span>
                     <span className="text-[9px] text-slate-500 block">${activeEvent.calculation?.finalFreightUSD || '16.34'}/MT</span>
                   </div>
 
-                  <div className={`p-2 rounded border ${activeEvent.priceDirection === 'UP' ? 'bg-rose-950/40 border-rose-800/60 text-rose-300' : 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300'}`}>
-                    <span className="text-[9px] uppercase block">
+                  <div className={`p-2 rounded border ${activeEvent.priceDirection === 'UP' ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+                    <span className="text-[9px] uppercase block font-bold">
                       {activeEvent.priceDirection === 'UP' ? 'Cost Variance' : 'Net Savings'}
                     </span>
                     <span className="text-xs font-bold">
                       {activeEvent.priceDirection === 'UP' ? `+₹${activeEvent.calculation?.varianceCr} Cr` : `-₹${Math.abs(parseFloat(activeEvent.calculation?.varianceCr || '1.89'))} Cr`}
                     </span>
-                    <span className="text-[9px] block">
+                    <span className="text-[9px] block font-semibold">
                       {activeEvent.priceDirection === 'UP' ? `+₹${activeEvent.calculation?.varianceLakhs}L` : `Save ₹${Math.abs(parseFloat(activeEvent.calculation?.varianceLakhs || '189.3'))}L`}
                     </span>
                   </div>
@@ -1570,47 +1570,47 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
               </div>
 
               {/* EXECUTIVE ONE-LINE BRIEF */}
-              <div className="mt-3.5 p-3 rounded-lg bg-slate-950 border border-slate-800">
-                <div className="flex items-center justify-between text-[10px] font-mono text-amber-400 font-bold mb-1">
+              <div className="mt-3.5 p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-slate-900 shadow-2xs">
+                <div className="flex items-center justify-between text-[10px] font-mono text-amber-800 font-bold mb-1">
                   <span className="flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                     <span>EXECUTIVE ONE-LINE TAKEAWAY (LEXRANK EXTRACTIVE)</span>
                   </span>
                   <span className="text-slate-500 font-normal">Zero Hallucination</span>
                 </div>
-                <p className="text-xs text-slate-200 font-sans leading-relaxed font-medium">
+                <p className="text-xs text-slate-800 font-sans leading-relaxed font-medium">
                   "{activeEvent.oneLiner}"
                 </p>
               </div>
 
               {/* FinBERT Severity & Quantified Disruption Meters */}
               <div className="grid grid-cols-3 gap-2 mt-3">
-                <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                  <span className="text-[9px] font-mono text-slate-400 block uppercase">FinBERT Sentiment</span>
-                  <div className={`text-xs font-bold mt-0.5 truncate ${activeEvent.priceDirection === 'UP' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[9px] font-mono text-slate-500 block uppercase font-medium">FinBERT Sentiment</span>
+                  <div className={`text-xs font-bold mt-0.5 truncate ${activeEvent.priceDirection === 'UP' ? 'text-rose-600' : 'text-emerald-600'}`}>
                     {activeEvent.finbertSentiment.split(' ')[0]}
                   </div>
-                  <span className="text-[9px] text-slate-400 font-mono">
+                  <span className="text-[9px] text-slate-500 font-mono">
                     Conf: {Math.round((activeEvent.finbertConfidence || 0.92) * 100)}%
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                  <span className="text-[9px] font-mono text-slate-400 block uppercase">Volatility Multiplier</span>
-                  <div className="text-xs font-bold text-amber-400 mt-0.5 font-mono">
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[9px] font-mono text-slate-500 block uppercase font-medium">Volatility Multiplier</span>
+                  <div className="text-xs font-bold text-amber-700 mt-0.5 font-mono">
                     {activeEvent.volatilityBoost}x
                   </div>
-                  <span className="text-[9px] text-slate-400 font-mono">
+                  <span className="text-[9px] text-slate-500 font-mono">
                     Quantile Boost
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700">
-                  <span className="text-[9px] font-mono text-slate-400 block uppercase">Spot Drift Impact</span>
-                  <div className={`text-xs font-bold mt-0.5 font-mono ${activeEvent.priceDirection === 'UP' ? 'text-cyan-400' : 'text-emerald-400'}`}>
+                <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[9px] font-mono text-slate-500 block uppercase font-medium">Spot Drift Impact</span>
+                  <div className={`text-xs font-bold mt-0.5 font-mono ${activeEvent.priceDirection === 'UP' ? 'text-indigo-700' : 'text-emerald-600'}`}>
                     {activeEvent.spotDriftPct}
                   </div>
-                  <span className="text-[9px] text-slate-400 font-mono">
+                  <span className="text-[9px] text-slate-500 font-mono">
                     Forward Estimate
                   </span>
                 </div>
@@ -1618,9 +1618,9 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
 
               {/* Matched Corridor Entities Chips */}
               <div className="mt-2.5 flex flex-wrap items-center gap-1">
-                <span className="text-[10px] text-slate-400 font-mono mr-1">Matched Entities:</span>
+                <span className="text-[10px] text-slate-500 font-mono mr-1">Matched Entities:</span>
                 {activeEvent.entities.map((entity, i) => (
-                  <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                     ✓ {entity}
                   </span>
                 ))}
@@ -1628,15 +1628,15 @@ export default function MarketIntelligenceRadar({ activeNewsSignal, onSelectNews
             </div>
 
             {/* Tactical Booking Directive & Live Injector Button */}
-            <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="text-[11px] text-slate-300">
-                <span className="font-bold text-emerald-400 block">Recommended Tactical Directive:</span>
-                <span className="text-slate-400 text-[10px]">{activeEvent.actionRecommendation}</span>
+            <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-[11px] text-slate-700">
+                <span className="font-bold text-emerald-700 block">Recommended Tactical Directive:</span>
+                <span className="text-slate-600 text-[10px]">{activeEvent.actionRecommendation}</span>
               </div>
 
               <button
                 onClick={() => handleApplyToLiveForecast(activeEvent)}
-                className="shrink-0 flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs transition-all shadow-sm cursor-pointer"
+                className="shrink-0 flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 <span>Inject Shock into Forecast</span>

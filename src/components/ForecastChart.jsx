@@ -169,91 +169,42 @@ export default function ForecastChart({ forecast, currency, terminalMetrics, sel
         </div>
       </div>
 
-      {/* Interactive Ship Class Quick Selector Bar */}
-      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1.5 font-bold text-slate-800">
-            <Ship className="w-4 h-4 text-maritime-800" />
-            <span>Vessel Class & Charter Market:</span>
-          </div>
-          <span className="text-[11px] text-slate-500 hidden md:inline">
-            Click any ship class to re-scale freight rates & forward quantile curves live:
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {[
-            { id: 'capesize', label: 'Capesize', dwt: '175k DWT', tce: '$24.5k/d' },
-            { id: 'baby_cape', label: 'Baby Cape', dwt: '115k DWT', tce: '$19.8k/d' },
-            { id: 'panamax', label: 'Panamax', dwt: '75k DWT', tce: '$15.2k/d' },
-            { id: 'supramax', label: 'Supramax', dwt: '56k DWT', tce: '$13.0k/d' },
-            { id: 'handymax_hdc', label: 'Handymax (HDC)', dwt: '35k DWT', tce: '$11.5k/d' }
-          ].map((v) => {
-            const isSelected = (selectedVessel || 'capesize') === v.id;
-            return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => onSelectVessel && onSelectVessel(v.id)}
-                className={`px-3 py-1.5 rounded-md font-bold text-xs transition-all flex items-center space-x-1.5 cursor-pointer ${
-                  isSelected
-                    ? 'bg-maritime-900 text-white shadow-sm ring-2 ring-maritime-800/40'
-                    : 'bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
-                }`}
-              >
-                <span>{v.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-normal ${
-                  isSelected ? 'bg-white/20 text-emerald-300' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {v.dwt}
-                </span>
-                <span className={`text-[9px] font-mono hidden sm:inline ${
-                  isSelected ? 'text-slate-300' : 'text-slate-400'
-                }`}>
-                  ({v.tce})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Live Web Terminal ML Coupling Banner with P10, P50, and P90 metric points */}
-      <div className="bg-slate-900 text-white rounded-lg p-3 mb-4 border border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div className="bg-slate-50 text-slate-800 rounded-lg p-3 mb-4 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div className="flex items-center space-x-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
                 Connected to Web Terminal ML Quantile Engine
               </span>
-              <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-700/60 px-2 py-0.5 rounded font-mono">
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono font-semibold">
                 P10 / P50 / P90 Live Sync
               </span>
             </div>
-            <p className="text-[11px] text-slate-300 mt-0.5">
-              Trajectory and quantile envelopes reflect terminal directives for {forecast.origin.name} → {forecast.destination.name}.
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Trajectory and quantile envelopes reflect terminal directives for <strong>{forecast.origin.name}</strong> → <strong>{forecast.destination.name}</strong> ({forecast.vessel.name}).
             </p>
           </div>
         </div>
 
         {/* Dynamic P10, P50, P90 Metric Badges */}
         <div className="flex items-center space-x-2 shrink-0">
-          <div className="bg-slate-800/90 border border-emerald-500/50 rounded-lg px-2.5 py-1 text-center shadow-xs">
-            <span className="text-[9px] text-emerald-400 font-black uppercase block">🟢 P10 (Dip Floor)</span>
-            <span className="text-xs font-mono font-black text-emerald-300">
+          <div className="bg-white border border-emerald-300 rounded-lg px-2.5 py-1 text-center shadow-2xs">
+            <span className="text-[9px] text-emerald-700 font-bold uppercase block">🟢 P10 (Dip Floor)</span>
+            <span className="text-xs font-mono font-bold text-slate-900">
               {currSym}{displayP10.toLocaleString()} {unit}
             </span>
           </div>
-          <div className="bg-slate-800/90 border border-blue-500/50 rounded-lg px-2.5 py-1 text-center shadow-xs">
-            <span className="text-[9px] text-blue-400 font-black uppercase block">🔵 P50 (Expected Median)</span>
-            <span className="text-xs font-mono font-black text-blue-300">
+          <div className="bg-white border border-blue-300 rounded-lg px-2.5 py-1 text-center shadow-2xs">
+            <span className="text-[9px] text-blue-700 font-bold uppercase block">🔵 P50 (Expected Median)</span>
+            <span className="text-xs font-mono font-bold text-slate-900">
               {currSym}{displayP50.toLocaleString()} {unit}
             </span>
           </div>
-          <div className="bg-slate-800/90 border border-rose-500/50 rounded-lg px-2.5 py-1 text-center shadow-xs">
-            <span className="text-[9px] text-rose-400 font-black uppercase block">🔴 P90 (Stress Ceiling)</span>
-            <span className="text-xs font-mono font-black text-rose-300">
+          <div className="bg-white border border-rose-300 rounded-lg px-2.5 py-1 text-center shadow-2xs">
+            <span className="text-[9px] text-rose-700 font-bold uppercase block">🔴 P90 (Stress Ceiling)</span>
+            <span className="text-xs font-mono font-bold text-slate-900">
               {currSym}{displayP90.toLocaleString()} {unit}
             </span>
           </div>

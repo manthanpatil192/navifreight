@@ -56,15 +56,15 @@ export default function ScenarioPresetsBar({
   onApplyScenario
 }) {
   return (
-    <div className="bg-slate-900 text-white rounded-lg p-4 mb-6 shadow-md border border-slate-800">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-3">
+    <div className="bg-white text-slate-900 rounded-xl p-4 mb-6 shadow-sm border border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 border-b border-slate-200 mb-3">
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
             One-Click Problem Study Scenarios (Directly from SIH26006 Research)
           </h3>
         </div>
-        <span className="text-[11px] text-slate-400 font-medium">
+        <span className="text-[11px] text-slate-500 font-medium">
           Click any preset to simulate live freight swings, port bottlenecks, and COA arbitrage
         </span>
       </div>
@@ -80,10 +80,10 @@ export default function ScenarioPresetsBar({
             <div
               key={scenario.id}
               onClick={() => onApplyScenario(scenario.config)}
-              className={`rounded-lg p-3.5 cursor-pointer transition-all border text-left flex flex-col justify-between ${
+              className={`rounded-xl p-3.5 cursor-pointer transition-all border text-left flex flex-col justify-between ${
                 isCurrent 
-                  ? 'bg-slate-800/90 border-emerald-400 shadow-md ring-1 ring-emerald-400/40'
-                  : 'bg-slate-800/40 border-slate-700/80 hover:bg-slate-800/70 hover:border-slate-600'
+                  ? 'bg-emerald-50/60 border-2 border-emerald-500 shadow-sm ring-1 ring-emerald-500/30'
+                  : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
               }`}
             >
               <div>
@@ -92,20 +92,20 @@ export default function ScenarioPresetsBar({
                     {scenario.badge}
                   </span>
                   {isCurrent && (
-                    <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                    <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300 font-mono">
                       ACTIVE
                     </span>
                   )}
                 </div>
-                <h4 className="text-xs font-bold text-slate-100 leading-snug">
+                <h4 className="text-xs font-bold text-slate-900 leading-snug">
                   {scenario.title}
                 </h4>
-                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
                   {scenario.description}
                 </p>
               </div>
 
-              <div className="mt-3 pt-2 border-t border-slate-700/50 flex items-center justify-between text-[10px] text-emerald-400 font-bold">
+              <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-emerald-700 font-bold">
                 <span>Simulate Scenario</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>

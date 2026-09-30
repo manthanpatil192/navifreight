@@ -379,24 +379,24 @@ export default function VesselBunchingTerminal({
   };
 
   return (
-    <div className="mt-4 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden text-slate-200">
+    <div className="mt-4 bg-white border border-slate-200 rounded-xl shadow-card overflow-hidden text-slate-800">
       
       {/* Top Banner & Header */}
-      <div className="bg-slate-950/90 border-b border-slate-800 px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 animate-pulse">
+          <div className="p-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-600 animate-pulse">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="text-sm font-bold tracking-wide text-white flex items-center gap-1.5">
+              <h3 className="text-sm font-bold tracking-wide text-slate-900 flex items-center gap-1.5">
                 <span>Vessel Bunching & Anti-Congestion Dispatch Terminal</span>
-                <span className="text-[10px] font-mono font-semibold bg-rose-950 text-rose-300 border border-rose-800/80 px-2 py-0.5 rounded-full uppercase">
+                <span className="text-[10px] font-mono font-bold bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full uppercase">
                   ETA Collision Alert
                 </span>
               </h3>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500">
               Detects multi-vessel ETA overlap • Same-Day ETA Collision Radar • Express Berthing & Multi-Port Diversion
             </p>
           </div>
@@ -404,22 +404,22 @@ export default function VesselBunchingTerminal({
 
         {/* Live Monitored Port Status Badge */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-slate-400 text-[11px]">Monitored Gateway:</span>
-          <span className="font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-800/60 px-2.5 py-1 rounded flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span className="text-slate-500 text-[11px]">Monitored Gateway:</span>
+          <span className="font-bold text-sky-900 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded flex items-center space-x-1.5 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
             <span>{targetPort.name}</span>
-            <span className="text-[10px] text-cyan-400 font-mono font-normal">(Wait: {targetPort.avgWaitDays}d)</span>
+            <span className="text-[10px] text-sky-700 font-mono font-normal">(Wait: {targetPort.avgWaitDays}d)</span>
           </span>
-          <span className="text-[10px] text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2 py-1 rounded font-mono">
+          <span className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded font-mono font-bold shadow-2xs">
             {targetPort.handlingRateTPD.toLocaleString()} TPD Rate
           </span>
         </div>
       </div>
 
       {/* ALL PORTS SELECTOR BAR */}
-      <div className="bg-slate-950/70 border-b border-slate-800 px-4 py-2 flex items-center space-x-2 overflow-x-auto text-xs">
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center space-x-1 mr-1">
-          <Anchor className="w-3.5 h-3.5 text-cyan-400" />
+      <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center space-x-2 overflow-x-auto text-xs">
+        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0 flex items-center space-x-1 mr-1">
+          <Anchor className="w-3.5 h-3.5 text-sky-600" />
           <span>Select Port:</span>
         </span>
         <div className="flex items-center space-x-1.5 overflow-x-auto py-0.5">
@@ -434,20 +434,20 @@ export default function VesselBunchingTerminal({
                 onClick={() => handleSelectPort(key)}
                 className={`px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
                   isSelected
-                    ? 'bg-cyan-500 text-slate-950 font-extrabold shadow-md scale-[1.02]'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60'
+                    ? 'bg-sky-600 text-white font-extrabold shadow-sm scale-[1.02]'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
                 }`}
                 title={`${p.name} • Wait: ${p.avgWaitDays}d • Draft: ${p.maxDraftLaden}m • Rate: ${p.handlingRateTPD.toLocaleString()} TPD`}
               >
                 <span>{p.name.split(' ')[0]}</span>
                 <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
                   isSelected 
-                    ? 'bg-slate-950 text-cyan-300 font-bold' 
+                    ? 'bg-white text-sky-800 font-bold' 
                     : isHighWait 
-                    ? 'bg-rose-950 text-rose-300 border border-rose-800' 
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200' 
                     : isMedWait 
-                    ? 'bg-amber-950 text-amber-300 border border-amber-800' 
-                    : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 }`}>
                   {p.avgWaitDays}d
                 </span>
@@ -458,14 +458,14 @@ export default function VesselBunchingTerminal({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-slate-950/50 border-b border-slate-800 px-4 flex space-x-2 text-xs overflow-x-auto">
+      <div className="bg-slate-50 border-b border-slate-200 px-4 flex space-x-2 text-xs overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('radar')}
           className={`py-2.5 px-4 font-bold border-b-2 flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'radar'
-              ? 'border-cyan-400 text-cyan-300 bg-cyan-950/20'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-sky-600 text-sky-800 bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Compass className="w-3.5 h-3.5" />
@@ -477,8 +477,8 @@ export default function VesselBunchingTerminal({
           onClick={() => setActiveTab('actions')}
           className={`py-2.5 px-4 font-bold border-b-2 flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'actions'
-              ? 'border-emerald-400 text-emerald-300 bg-emerald-950/20'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-emerald-600 text-emerald-800 bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -487,28 +487,28 @@ export default function VesselBunchingTerminal({
       </div>
 
       {/* Tab Body */}
-      <div className="p-4">
+      <div className="p-4 bg-white">
         
         {/* PART 1: FLEET COLLISION RADAR */}
         {activeTab === 'radar' && (
           <div className="space-y-4 animate-in fade-in duration-150">
             {/* Surge Overlap Alert Banner */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs bg-rose-950/30 border border-rose-900/40 p-3 rounded-lg text-rose-200 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs bg-rose-50/80 border border-rose-200 p-3 rounded-lg text-rose-950 gap-2 shadow-2xs">
               <span className="flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>
                   <b>CRITICAL ARRIVAL OVERLAP:</b> Multiple bulk carriers are converging on <b>{targetPort.name}</b> within an 18-hour window, against a nominal handling capacity of {targetPort.handlingRateTPD.toLocaleString()} TPD ({targetPort.maxDraftLaden}m draft).
                 </span>
               </span>
-              <span className="font-mono text-rose-300 font-bold whitespace-nowrap bg-rose-950/80 px-2 py-1 rounded border border-rose-800">
+              <span className="font-mono text-rose-800 font-bold whitespace-nowrap bg-rose-100 px-2 py-1 rounded border border-rose-300">
                 Demurrage Risk: ₹{(targetPort.demurragePerDayINR / 100000).toFixed(0)}L/day
               </span>
             </div>
 
             {/* Table of Converging Vessels for Selected Port */}
-            <div className="overflow-x-auto rounded-lg border border-slate-800">
+            <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-2xs">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="p-2.5">Vessel & MMSI</th>
                     <th className="p-2.5">Type & DWT</th>
@@ -520,44 +520,44 @@ export default function VesselBunchingTerminal({
                     <th className="p-2.5 text-right">Triage Assignment</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {bunchedVessels.map((v, i) => (
-                    <tr key={v.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-2.5 font-bold text-white flex items-center space-x-1.5">
-                        <Ship className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-2.5 font-bold text-slate-900 flex items-center space-x-1.5">
+                        <Ship className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                         <div>
                           <div>{v.name}</div>
                           <div className="text-[9px] text-slate-500 font-normal">{v.mmsi} • {v.flag}</div>
                         </div>
                       </td>
-                      <td className="p-2.5 text-slate-300">
-                        <div>{v.vesselClass}</div>
+                      <td className="p-2.5 text-slate-600">
+                        <div className="font-bold text-slate-800">{v.vesselClass}</div>
                         <div className="text-[9px] text-slate-500 font-normal">{v.dwt.toLocaleString()} DWT</div>
                       </td>
-                      <td className="p-2.5 text-slate-300 font-sans">
-                        <div className="font-semibold text-slate-200">{v.cargo}</div>
-                        <div className="text-[10px] text-amber-300/90 font-medium">🏭 {v.consignee}</div>
+                      <td className="p-2.5 text-slate-700 font-sans">
+                        <div className="font-semibold text-slate-900">{v.cargo}</div>
+                        <div className="text-[10px] text-amber-800 font-medium">🏭 {v.consignee}</div>
                       </td>
-                      <td className="p-2.5 text-cyan-300 font-bold">
+                      <td className="p-2.5 text-sky-700 font-bold">
                         {v.distNM} NM
                       </td>
-                      <td className="p-2.5 text-slate-300">
+                      <td className="p-2.5 text-slate-600">
                         {v.speedKnots} kts
                       </td>
                       <td className="p-2.5">
-                        <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/80 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">
                           +{v.etaHours}h
                         </span>
                       </td>
-                      <td className="p-2.5 text-slate-300 font-sans">
-                        <span className={`text-[10px] font-semibold ${v.fuelStatus.includes('Low') ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      <td className="p-2.5 text-slate-700 font-sans">
+                        <span className={`text-[10px] font-semibold ${v.fuelStatus.includes('Low') ? 'text-rose-600' : 'text-emerald-700'}`}>
                           {v.fuelStatus}
                         </span>
                       </td>
                       <td className="p-2.5 text-right font-sans">
                         <span className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold ${
-                          i === 0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
-                          'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                          i === 0 ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' :
+                          'bg-sky-50 text-sky-800 border border-sky-300'
                         }`}>
                           {v.role}
                         </span>
@@ -571,18 +571,18 @@ export default function VesselBunchingTerminal({
             {/* ALL INDIAN EAST COAST PORTS CONGESTION MATRIX */}
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Gauge className="w-3.5 h-3.5 text-sky-600" />
                   <span>All Indian East Coast Ports — Congestion & Anchorage Gateways</span>
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500">
                   Click any port row to inspect & monitor
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-2xs">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/90 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
                     <tr>
                       <th className="p-2.5">Port Gateway</th>
                       <th className="p-2.5">State</th>
@@ -594,7 +594,7 @@ export default function VesselBunchingTerminal({
                       <th className="p-2.5 text-right">Switch Monitor</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-[11px]">
+                  <tbody className="divide-y divide-slate-100 text-[11px]">
                     {Object.entries(INDIAN_EAST_COAST_PORTS).map(([pKey, p]) => {
                       const isCurrent = pKey === activePortKey;
                       const isHigh = p.avgWaitDays >= 3.5;
@@ -605,36 +605,36 @@ export default function VesselBunchingTerminal({
                           onClick={() => handleSelectPort(pKey)}
                           className={`cursor-pointer transition-colors ${
                             isCurrent
-                              ? 'bg-cyan-950/40 font-bold border-l-4 border-l-cyan-400'
-                              : 'hover:bg-slate-800/50'
+                              ? 'bg-sky-50/70 font-bold border-l-4 border-l-sky-500'
+                              : 'hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className="p-2.5 text-white flex items-center space-x-2">
-                            <Anchor className={`w-3.5 h-3.5 ${isCurrent ? 'text-cyan-400' : 'text-slate-500'}`} />
-                            <span className={isCurrent ? 'text-cyan-300 font-bold' : 'text-slate-200'}>
+                          <td className="p-2.5 text-slate-900 flex items-center space-x-2">
+                            <Anchor className={`w-3.5 h-3.5 ${isCurrent ? 'text-sky-600' : 'text-slate-400'}`} />
+                            <span className={isCurrent ? 'text-sky-900 font-bold' : 'text-slate-800'}>
                               {p.name}
                             </span>
                           </td>
-                          <td className="p-2.5 text-slate-400">{p.state}</td>
+                          <td className="p-2.5 text-slate-500">{p.state}</td>
                           <td className="p-2.5 font-mono font-bold">
                             <span className={`px-2 py-0.5 rounded text-[10px] ${
                               isHigh
-                                ? 'bg-rose-950 text-rose-300 border border-rose-800'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                 : isMed
-                                ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             }`}>
                               {p.avgWaitDays} Days
                             </span>
                           </td>
                           <td className="p-2.5 font-semibold">
-                            <span className={isHigh ? 'text-rose-400' : isMed ? 'text-amber-400' : 'text-emerald-400'}>
+                            <span className={isHigh ? 'text-rose-600' : isMed ? 'text-amber-700' : 'text-emerald-700'}>
                               {p.congestionLevel}
                             </span>
                           </td>
-                          <td className="p-2.5 font-mono text-slate-300">{p.maxDraftLaden}m</td>
-                          <td className="p-2.5 font-mono text-slate-300">{p.handlingRateTPD.toLocaleString()} TPD</td>
-                          <td className="p-2.5 text-slate-300 text-[10px]">
+                          <td className="p-2.5 font-mono text-slate-700">{p.maxDraftLaden}m</td>
+                          <td className="p-2.5 font-mono text-slate-700">{p.handlingRateTPD.toLocaleString()} TPD</td>
+                          <td className="p-2.5 text-slate-600 text-[10px]">
                             {p.hinterlandEvacuation?.primaryCluster?.split('(')[0] || 'SAIL Plant'}
                           </td>
                           <td className="p-2.5 text-right">
@@ -646,8 +646,8 @@ export default function VesselBunchingTerminal({
                               }}
                               className={`px-2.5 py-1 rounded text-[10px] font-bold cursor-pointer transition-colors ${
                                 isCurrent
-                                  ? 'bg-cyan-500 text-slate-950'
-                                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                                  ? 'bg-sky-600 text-white shadow-2xs'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
                               }`}
                             >
                               {isCurrent ? 'Monitoring' : 'Monitor Port'}
@@ -661,12 +661,12 @@ export default function VesselBunchingTerminal({
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
               <span>* Data synchronized with Indian East Coast Port Authorities & FOIS Rail Evacuation schedules.</span>
               <button
                 type="button"
                 onClick={() => setActiveTab('actions')}
-                className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center space-x-1 cursor-pointer"
+                className="text-sky-700 hover:text-sky-900 font-bold flex items-center space-x-1 cursor-pointer"
               >
                 <span>Proceed to Anti-Bunching Action Plan</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -679,12 +679,12 @@ export default function VesselBunchingTerminal({
         {/* PART 2: ANTI-BUNCHING ACTION PLAN (Express Berthing & Smart Diversion) */}
         {activeTab === 'actions' && (
           <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="text-xs text-slate-300 bg-slate-950/70 p-3 rounded-lg border border-slate-800 flex items-center justify-between">
+            <div className="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between shadow-2xs">
               <div>
-                <span className="font-bold text-white">Active Anti-Bunching Directive for {targetPort.name}:</span>
-                <span className="text-slate-400 ml-1.5">Express Berthing for Critical Consignee • Smart Congestion Diversion for Overlap Vessel</span>
+                <span className="font-bold text-slate-900">Active Anti-Bunching Directive for {targetPort.name}:</span>
+                <span className="text-slate-500 ml-1.5">Express Berthing for Critical Consignee • Smart Congestion Diversion for Overlap Vessel</span>
               </div>
-              <span className="text-[10px] font-mono bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800 font-bold">
+              <span className="text-[10px] font-mono bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 font-bold">
                 2-Stage Optimization Active
               </span>
             </div>
@@ -692,59 +692,59 @@ export default function VesselBunchingTerminal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               {/* Part 1 (Tier 1): Express Berthing Priority Slot */}
-              <div className="bg-slate-950/80 border border-emerald-500/40 rounded-lg p-4 space-y-3 flex flex-col justify-between shadow-lg">
+              <div className="bg-white border-2 border-emerald-300 rounded-lg p-4 space-y-3 flex flex-col justify-between shadow-2xs">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300">
                       Part 1 (Tier 1) • Express Berthing
                     </span>
-                    <span className="text-xs font-mono text-emerald-400 font-bold">{portConfig.waitWindow}</span>
+                    <span className="text-xs font-mono text-emerald-700 font-bold">{portConfig.waitWindow}</span>
                   </div>
 
-                  <h4 className="font-bold text-white text-base mt-2 flex items-center space-x-1.5">
+                  <h4 className="font-bold text-slate-900 text-base mt-2 flex items-center space-x-1.5">
                     <span>{bunchedVessels[0]?.name || 'MV OLYMPIC GLORY'}</span>
                   </h4>
-                  <div className="text-xs text-slate-400">{bunchedVessels[0]?.vesselClass} • {bunchedVessels[0]?.cargo}</div>
+                  <div className="text-xs text-slate-500">{bunchedVessels[0]?.vesselClass} • {bunchedVessels[0]?.cargo}</div>
 
-                  <div className="mt-3 text-xs text-slate-300 space-y-1.5 bg-slate-900/90 p-3 rounded border border-slate-800">
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Consignee Plant:</span>
-                      <span className="font-bold text-amber-300">{portConfig.consignee1}</span>
+                  <div className="mt-3 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Consignee Plant:</span>
+                      <span className="font-bold text-amber-800">{portConfig.consignee1}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Live Inventory Status:</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Live Inventory Status:</span>
                       <span className={`font-bold ${
                         portConfig.inventoryDays1 < 7.0 
-                          ? 'text-rose-400 animate-pulse' 
+                          ? 'text-rose-600 animate-pulse' 
                           : portConfig.inventoryDays1 < 15.0 
-                          ? 'text-amber-400' 
-                          : 'text-emerald-400'
+                          ? 'text-amber-700' 
+                          : 'text-emerald-700'
                       }`}>
                         {portConfig.inventoryDays1} Days ({portConfig.alertLevel1})
                       </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Plant Stockpile:</span>
-                      <span className="font-mono text-slate-200">{portConfig.stockpile1}</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Plant Stockpile:</span>
+                      <span className="font-mono text-slate-800 font-bold">{portConfig.stockpile1}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Target Gateway:</span>
-                      <span className="text-cyan-300 font-bold">{targetPort.name}</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Target Gateway:</span>
+                      <span className="text-sky-700 font-bold">{targetPort.name}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Berth Assigned:</span>
-                      <span className="text-white font-mono font-bold">{portConfig.berthName}</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Berth Assigned:</span>
+                      <span className="text-slate-900 font-mono font-bold">{portConfig.berthName}</span>
                     </div>
                     <div className="flex justify-between pb-0.5">
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <Database className="w-2.5 h-2.5 text-emerald-400" />
+                      <span className="text-slate-500 flex items-center gap-1">
+                        <Database className="w-2.5 h-2.5 text-emerald-600" />
                         <span>Live Dataset Source:</span>
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-mono font-bold">{portConfig.liveDatasetBadge}</span>
+                      <span className="text-[10px] text-emerald-700 font-mono font-bold">{portConfig.liveDatasetBadge}</span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-emerald-300/90 bg-emerald-950/30 p-2.5 rounded border border-emerald-900/50 mt-3 leading-relaxed">
+                  <p className="text-xs text-emerald-900 bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200 mt-3 leading-relaxed">
                     Direct entry to berth upon reaching 6-Hour Arrival Window. Coal unloaded directly to daily FOIS rake trains for blast furnaces at <b>{portConfig.consignee1}</b>, addressing its critical <b>{portConfig.inventoryDays1}-day</b> inventory deficit.
                   </p>
                 </div>
@@ -757,7 +757,7 @@ export default function VesselBunchingTerminal({
                       onUpdateVesselSpeed(bunchedVessels[0]?.mmsi, bunchedVessels[0]?.speedKnots, `Underway - Priority Berthing ${portConfig.berthName}`);
                     }
                   }}
-                  className="w-full mt-3 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-xs"
+                  className="w-full mt-3 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
                 >
                   {copiedIndex === 1 ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedIndex === 1 ? 'Priority Berth Dispatched!' : `Issue Berthing Order (${targetPort.name.split(' ')[0]})`}</span>
@@ -765,61 +765,61 @@ export default function VesselBunchingTerminal({
               </div>
 
               {/* Part 3 (Tier 3): Smart Congestion Diversion */}
-              <div className="bg-slate-950/80 border border-cyan-500/40 rounded-lg p-4 space-y-3 flex flex-col justify-between shadow-lg">
+              <div className="bg-white border-2 border-sky-300 rounded-lg p-4 space-y-3 flex flex-col justify-between shadow-2xs">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950 px-2.5 py-0.5 rounded border border-cyan-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded border border-sky-300">
                       Part 3 (Tier 3) • Smart Congestion Diversion
                     </span>
-                    <span className="text-xs font-mono text-cyan-400 font-bold">Save ₹{portConfig.savedAmtCr} Cr</span>
+                    <span className="text-xs font-mono text-sky-700 font-bold">Save ₹{portConfig.savedAmtCr} Cr</span>
                   </div>
 
-                  <h4 className="font-bold text-white text-base mt-2 flex items-center space-x-1.5">
+                  <h4 className="font-bold text-slate-900 text-base mt-2 flex items-center space-x-1.5">
                     <span>{bunchedVessels[1]?.name || 'MV CAPE ASIA'}</span>
                   </h4>
-                  <div className="text-xs text-slate-400">{bunchedVessels[1]?.vesselClass} • {bunchedVessels[1]?.cargo}</div>
+                  <div className="text-xs text-slate-500">{bunchedVessels[1]?.vesselClass} • {bunchedVessels[1]?.cargo}</div>
 
-                  <div className="mt-3 text-xs text-slate-300 space-y-1.5 bg-slate-900/90 p-3 rounded border border-slate-800">
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Alternate Gateway:</span>
-                      <span className="font-bold text-cyan-300">{portConfig.candidatePort}</span>
+                  <div className="mt-3 text-xs text-slate-700 space-y-1.5 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Alternate Gateway:</span>
+                      <span className="font-bold text-sky-800">{portConfig.candidatePort}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Sea Deviation:</span>
-                      <span className="font-mono text-white">{portConfig.deviationNM} NM (~{portConfig.deviationHours} hrs)</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Sea Deviation:</span>
+                      <span className="font-mono text-slate-900 font-bold">{portConfig.deviationNM} NM (~{portConfig.deviationHours} hrs)</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Consignee 2 Plant:</span>
-                      <span className="text-amber-300 font-bold">{portConfig.consignee2}</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Consignee 2 Plant:</span>
+                      <span className="text-amber-800 font-bold">{portConfig.consignee2}</span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Consignee 2 Inventory:</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Consignee 2 Inventory:</span>
                       <span className={`font-bold ${
                         portConfig.inventoryDays2 < 7.0 
-                          ? 'text-rose-400' 
+                          ? 'text-rose-600' 
                           : portConfig.inventoryDays2 < 15.0 
-                          ? 'text-amber-400' 
-                          : 'text-emerald-400'
+                          ? 'text-amber-700' 
+                          : 'text-emerald-700'
                       }`}>
                         {portConfig.inventoryDays2} Days ({portConfig.alertLevel2})
                       </span>
                     </div>
-                    <div className="flex justify-between border-b border-slate-800/80 pb-1">
-                      <span className="text-slate-400">Net Logistics Arbitrage:</span>
-                      <span className="text-emerald-400 font-bold font-mono">+₹{portConfig.savedAmtCr} Cr Saved</span>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Net Logistics Arbitrage:</span>
+                      <span className="text-emerald-700 font-bold font-mono">+₹{portConfig.savedAmtCr} Cr Saved</span>
                     </div>
                     <div className="flex justify-between pb-0.5">
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <Database className="w-2.5 h-2.5 text-cyan-400" />
+                      <span className="text-slate-500 flex items-center gap-1">
+                        <Database className="w-2.5 h-2.5 text-sky-600" />
                         <span>Dataset Provenance:</span>
                       </span>
-                      <span className="text-[10px] text-cyan-300 font-mono font-bold truncate max-w-[200px]" title={portConfig.datasetProvenance}>
+                      <span className="text-[10px] text-sky-800 font-mono font-bold truncate max-w-[200px]" title={portConfig.datasetProvenance}>
                         {portConfig.datasetProvenance}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-cyan-300/90 bg-cyan-950/30 p-2.5 rounded border border-cyan-900/50 mt-3 leading-relaxed">
+                  <p className="text-xs text-sky-900 bg-sky-50/70 p-2.5 rounded-lg border border-sky-200 mt-3 leading-relaxed">
                     Pre-booking <b>{portConfig.candidatePort}</b> clears cargo directly via dedicated FOIS rail trains, completely bypassing the {targetPort.avgWaitDays}-day anchorage queue at {targetPort.name.split(' ')[0]}.
                   </p>
                 </div>
@@ -833,7 +833,7 @@ export default function VesselBunchingTerminal({
                       onUpdateVesselSpeed(bunchedVessels[1]?.mmsi, bunchedVessels[1]?.speedKnots, `Underway - Diverted to ${portConfig.candidatePort.split(' ')[0]}`);
                     }
                   }}
-                  className="w-full mt-3 py-2 px-3 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-xs"
+                  className="w-full mt-3 py-2 px-3 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
                 >
                   {copiedIndex === 3 ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedIndex === 3 ? 'Pre-Book Dispatched!' : `Pre-Book Alternate Port ${portConfig.candidatePort.split(' ')[0]} (PCS)`}</span>

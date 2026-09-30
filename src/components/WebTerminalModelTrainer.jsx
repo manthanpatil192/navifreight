@@ -1946,22 +1946,22 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
   };
 
   return (
-    <div className="bg-slate-900 rounded-xl border border-slate-700/80 shadow-2xl overflow-hidden mb-6 text-white font-sans">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden mb-6 text-slate-800 font-sans">
       
       {/* Top Header Bar */}
-      <div className="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center space-x-2.5">
           <div className="flex space-x-1.5 mr-2">
-            <div className="w-3 h-3 rounded-full bg-rose-500/80 border border-rose-600/40"></div>
-            <div className="w-3 h-3 rounded-full bg-amber-500/80 border border-amber-600/40"></div>
-            <div className="w-3 h-3 rounded-full bg-emerald-500/80 border border-emerald-600/40"></div>
+            <div className="w-3 h-3 rounded-full bg-rose-500 border border-rose-600/40"></div>
+            <div className="w-3 h-3 rounded-full bg-amber-500 border border-amber-600/40"></div>
+            <div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600/40"></div>
           </div>
           <div className="flex items-center space-x-2">
-            <Terminal className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-bold tracking-wider uppercase text-slate-200">
+            <Terminal className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-bold tracking-wider uppercase text-slate-800">
               NaviFreight Quantitative Procurement Terminal
             </span>
-            <span className="bg-emerald-950 text-emerald-400 border border-emerald-700/60 text-[10px] font-mono px-2 py-0.5 rounded">
+            <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-mono px-2 py-0.5 rounded font-semibold">
               models/navifreight_gbdt_bundle.joblib
             </span>
           </div>
@@ -1971,16 +1971,16 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
           {isExecuting && (
             <button
               onClick={() => setIsExecuting(false)}
-              className="text-amber-300 hover:text-amber-100 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 rounded border border-amber-600/70 transition-colors animate-pulse cursor-pointer"
+              className="text-amber-800 hover:text-amber-900 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 rounded border border-amber-300 transition-colors animate-pulse cursor-pointer shadow-2xs"
               title="Click to force-unlock terminal"
             >
-              <RefreshCw className="w-3 h-3 text-amber-400" />
+              <RefreshCw className="w-3 h-3 text-amber-600" />
               <span>Force Unlock</span>
             </button>
           )}
           <button
             onClick={() => setTerminalHistory([{ type: 'system', text: 'Terminal cleared. Type "help" for commands.' }])}
-            className="text-slate-400 hover:text-slate-200 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 transition-colors cursor-pointer"
+            className="text-slate-600 hover:text-slate-900 text-xs font-mono flex items-center space-x-1.5 px-2.5 py-1 bg-white hover:bg-slate-100 rounded border border-slate-200 shadow-2xs transition-colors cursor-pointer"
             title="Clear Terminal Output"
           >
             <RefreshCw className="w-3 h-3" />
@@ -1990,50 +1990,50 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       </div>
 
       {/* ================= LOGISTICS MANAGER MANUAL CONSIGNMENT & ROUTING PANEL ================= */}
-      <div className="bg-slate-950 border-b border-slate-800">
+      <div className="bg-white border-b border-slate-200">
         <div 
           onClick={() => setShowManualControls(!showManualControls)}
-          className="px-4 py-2.5 bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 flex items-center justify-between cursor-pointer select-none hover:bg-slate-900/90 transition-all border-b border-slate-800/60"
+          className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100/70 flex items-center justify-between cursor-pointer select-none transition-all border-b border-slate-200"
         >
           <div className="flex items-center space-x-2.5">
-            <div className="w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-6 h-6 rounded-md bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
               <Sliders className="w-3.5 h-3.5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold text-slate-100 tracking-wide uppercase">
+                <span className="text-xs font-bold text-slate-900 tracking-wide uppercase">
                   Logistics Manager Consignment & Routing Control
                 </span>
-                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700/50 px-2 py-0.2 rounded font-mono font-semibold">
+                <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono font-semibold">
                   Interactive Inputs
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-tight">
+              <p className="text-[11px] text-slate-500 leading-tight">
                 Select Origin, Destination, Vessel Class, Consignment Size, Shock Scenario & Tide status to generate live ML directives.
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="text-[11px] text-slate-400 hidden sm:inline">
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
               {showManualControls ? 'Minimize Inputs' : 'Expand Inputs'}
             </span>
             {showManualControls ? (
-              <ChevronUp className="w-4 h-4 text-slate-400" />
+              <ChevronUp className="w-4 h-4 text-slate-500" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-slate-500" />
             )}
           </div>
         </div>
 
         {showManualControls && (
-          <div className="p-4 bg-slate-950/95 space-y-3.5">
+          <div className="p-4 bg-white space-y-3.5 border-b border-slate-200">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               
               {/* 1. Origin Port Selector */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
-                  <Navigation className="w-3 h-3 text-cyan-400" />
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center space-x-1">
+                  <Navigation className="w-3 h-3 text-sky-600" />
                   <span>Loading Port (Origin)</span>
                 </label>
                 <select
@@ -2043,7 +2043,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     setManualOrigin(val);
                     handleManualDispatch({ origin: val });
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
+                  className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-medium text-xs cursor-pointer shadow-2xs"
                 >
                   <optgroup label="Australia (Major Coking Coal)">
                     <option value="gladstone">Gladstone R.G. Tanna (17.8m Draft)</option>
@@ -2068,8 +2068,8 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 
               {/* 2. Destination Port Selector */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
-                  <Anchor className="w-3 h-3 text-emerald-400" />
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center space-x-1">
+                  <Anchor className="w-3 h-3 text-emerald-600" />
                   <span>Discharge Port (East Coast India)</span>
                 </label>
                 <select
@@ -2079,7 +2079,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     setManualDest(val);
                     handleManualDispatch({ dest: val });
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
+                  className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-medium text-xs cursor-pointer shadow-2xs"
                 >
                   <optgroup label="Deepwater Ports (Capesize Capable)">
                     <option value="dhamra">Dhamra Port (DPCL - 18.0m / SAIL Bokaro)</option>
@@ -2098,11 +2098,11 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               {/* 3. Consignment Volume & Commodity */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[11px] font-semibold text-slate-300 flex items-center space-x-1">
-                    <Layers className="w-3 h-3 text-amber-400" />
+                  <label className="text-[11px] font-semibold text-slate-700 flex items-center space-x-1">
+                    <Layers className="w-3 h-3 text-amber-600" />
                     <span>Consignment Volume (MT)</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-500 font-mono font-medium">
                     {Number(manualVolume).toLocaleString()} MT
                   </span>
                 </div>
@@ -2123,7 +2123,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     onBlur={(e) => {
                       handleManualDispatch({ volume: Number(e.target.value) });
                     }}
-                    className="w-2/3 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                    className="w-2/3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono text-xs shadow-2xs"
                   />
                   <select
                     value={manualCargo}
@@ -2132,7 +2132,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                       setManualCargo(val);
                       handleManualDispatch({ cargo: val });
                     }}
-                    className="w-1/3 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
+                    className="w-1/3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-medium text-xs cursor-pointer shadow-2xs"
                   >
                     <option value="Coking Coal">Coking</option>
                     <option value="Thermal Coal">Thermal</option>
@@ -2144,26 +2144,26 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
 
               {/* 4. AI-Recommended Dual Vessels for Both Tranches (PS Part B Port Fit) */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
                   <span className="flex items-center space-x-1">
-                    <Ship className="w-3 h-3 text-emerald-400" />
+                    <Ship className="w-3 h-3 text-emerald-600" />
                     <span>Tranche Vessels (Part B Port Fit)</span>
                   </span>
-                  <span className="text-[9px] text-slate-400">COA & Spot Split</span>
+                  <span className="text-[9px] text-slate-500 font-medium">COA & Spot Split</span>
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {/* Tranche 1 (COA) Vessel */}
-                  <div className="bg-slate-900 border border-emerald-500/50 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-inner">
-                    <div className="flex items-center justify-between text-[10px] text-emerald-400 font-bold mb-0.5">
+                  <div className="bg-emerald-50/60 border border-emerald-200 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-2xs">
+                    <div className="flex items-center justify-between text-[10px] text-emerald-800 font-bold mb-0.5">
                       <span>T1: {currentDualVesselOptimization.tranche1.allocationPct}% COA</span>
-                      <span className="text-[9px] text-slate-400">({Math.round(currentDualVesselOptimization.tranche1.volumeMT / 1000)}k MT)</span>
+                      <span className="text-[9px] text-slate-500">({Math.round(currentDualVesselOptimization.tranche1.volumeMT / 1000)}k MT)</span>
                     </div>
-                    <div className="font-bold text-emerald-200 truncate text-[11px]">
+                    <div className="font-bold text-slate-900 truncate text-[11px]">
                       {currentDualVesselOptimization.tranche1.vessel.name}
                     </div>
-                    <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                    <div className="flex items-center justify-between text-[9px] text-slate-600 mt-0.5">
                       <span>{Math.round(currentDualVesselOptimization.tranche1.vessel.dwt / 1000)}k DWT</span>
-                      <span className="font-mono text-emerald-300 font-bold">
+                      <span className="font-mono text-emerald-700 font-bold">
                         {currentDualVesselOptimization.tranche1.vessel.draftMargin >= 0 
                           ? `+${currentDualVesselOptimization.tranche1.vessel.draftMargin}m` 
                           : 'Lighterage'}
@@ -2172,17 +2172,17 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   </div>
 
                   {/* Tranche 2 (Spot) Vessel */}
-                  <div className="bg-slate-900 border border-blue-500/50 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-inner">
-                    <div className="flex items-center justify-between text-[10px] text-blue-400 font-bold mb-0.5">
+                  <div className="bg-sky-50/60 border border-sky-200 rounded-lg p-1.5 flex flex-col justify-between text-xs shadow-2xs">
+                    <div className="flex items-center justify-between text-[10px] text-sky-800 font-bold mb-0.5">
                       <span>T2: {currentDualVesselOptimization.tranche2.allocationPct}% Spot</span>
-                      <span className="text-[9px] text-slate-400">({Math.round(currentDualVesselOptimization.tranche2.volumeMT / 1000)}k MT)</span>
+                      <span className="text-[9px] text-slate-500">({Math.round(currentDualVesselOptimization.tranche2.volumeMT / 1000)}k MT)</span>
                     </div>
-                    <div className="font-bold text-blue-200 truncate text-[11px]">
+                    <div className="font-bold text-slate-900 truncate text-[11px]">
                       {currentDualVesselOptimization.tranche2.vessel.name}
                     </div>
-                    <div className="flex items-center justify-between text-[9px] text-slate-400 mt-0.5">
+                    <div className="flex items-center justify-between text-[9px] text-slate-600 mt-0.5">
                       <span>{Math.round(currentDualVesselOptimization.tranche2.vessel.dwt / 1000)}k DWT</span>
-                      <span className="font-mono text-blue-300 font-bold">
+                      <span className="font-mono text-sky-700 font-bold">
                         {currentDualVesselOptimization.tranche2.vessel.draftMargin >= 0 
                           ? `+${currentDualVesselOptimization.tranche2.vessel.draftMargin}m` 
                           : 'Lighterage'}
@@ -2199,8 +2199,8 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               
               {/* Contract Horizon */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1 flex items-center space-x-1">
-                  <Compass className="w-3 h-3 text-blue-400" />
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center space-x-1">
+                  <Compass className="w-3 h-3 text-blue-600" />
                   <span>Contract Horizon</span>
                 </label>
                 <select
@@ -2210,7 +2210,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     setManualHorizon(val);
                     handleManualDispatch({ horizon: val });
                   }}
-                  className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 font-medium text-xs cursor-pointer"
+                  className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 text-slate-900 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-medium text-xs cursor-pointer shadow-2xs"
                 >
                   <option value={1}>1-Month (Spot & Prompt Booking)</option>
                   <option value={3}>3-Month (Quarterly COA Program)</option>
@@ -2219,50 +2219,50 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               </div>
 
               {/* Live Bay of Bengal IMD Telemetry Feed (Direct API Ingestion - Auto-Factored) */}
-              <div className="col-span-1 sm:col-span-2 bg-slate-900/90 border border-cyan-500/40 rounded-lg p-2.5 flex flex-col justify-between shadow-inner">
+              <div className="col-span-1 sm:col-span-2 bg-sky-50/50 border border-sky-200 rounded-lg p-2.5 flex flex-col justify-between shadow-2xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
                     </span>
-                    <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-wide flex items-center gap-1.5">
-                      <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                    <span className="text-[11px] font-bold text-sky-900 uppercase tracking-wide flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-sky-600" />
                       Live IMD Bay of Bengal API Feed (Direct Ingestion)
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] font-mono bg-sky-100 text-sky-800 border border-sky-300 px-1.5 py-0.5 rounded font-semibold">
                     {liveBobWeather?.sectorName?.split('(')[0] || 'East Coast Approaches'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 mt-1.5 text-center">
-                  <div className="bg-slate-950/70 rounded px-1.5 py-1 border border-slate-800">
-                    <div className="text-[9px] text-slate-400">Wind Speed</div>
-                    <div className="text-xs font-mono font-bold text-white">{liveBobWeather?.windSpeedKnots || 24.5} kts</div>
+                  <div className="bg-white rounded px-1.5 py-1 border border-sky-200/80 shadow-2xs">
+                    <div className="text-[9px] text-slate-500">Wind Speed</div>
+                    <div className="text-xs font-mono font-bold text-slate-900">{liveBobWeather?.windSpeedKnots || 24.5} kts</div>
                   </div>
-                  <div className="bg-slate-950/70 rounded px-1.5 py-1 border border-slate-800">
-                    <div className="text-[9px] text-slate-400">Sig. Wave</div>
-                    <div className="text-xs font-mono font-bold text-amber-300">{liveBobWeather?.waveHeightMeters || 2.2} m</div>
+                  <div className="bg-white rounded px-1.5 py-1 border border-sky-200/80 shadow-2xs">
+                    <div className="text-[9px] text-slate-500">Sig. Wave</div>
+                    <div className="text-xs font-mono font-bold text-amber-700">{liveBobWeather?.waveHeightMeters || 2.2} m</div>
                   </div>
-                  <div className="bg-slate-950/70 rounded px-1.5 py-1 border border-slate-800">
-                    <div className="text-[9px] text-slate-400">Baro Press</div>
-                    <div className="text-xs font-mono font-bold text-slate-200">{liveBobWeather?.surfacePressureHpa || 1006.8} hPa</div>
+                  <div className="bg-white rounded px-1.5 py-1 border border-sky-200/80 shadow-2xs">
+                    <div className="text-[9px] text-slate-500">Baro Press</div>
+                    <div className="text-xs font-mono font-bold text-slate-800">{liveBobWeather?.surfacePressureHpa || 1006.8} hPa</div>
                   </div>
-                  <div className="bg-slate-950/70 rounded px-1.5 py-1 border border-slate-800">
-                    <div className="text-[9px] text-slate-400">IMD Signal</div>
-                    <div className="text-[10px] font-bold text-emerald-400 truncate" title={liveBobWeather?.stage || 'Normal Synoptic'}>
+                  <div className="bg-white rounded px-1.5 py-1 border border-sky-200/80 shadow-2xs">
+                    <div className="text-[9px] text-slate-500">IMD Signal</div>
+                    <div className="text-[10px] font-bold text-emerald-700 truncate" title={liveBobWeather?.stage || 'Normal Synoptic'}>
                       {liveBobWeather?.stage ? liveBobWeather.stage.split('(')[0] : 'Normal Synoptic'}
                     </div>
                   </div>
                 </div>
 
-                <div className="text-[10px] text-slate-400 mt-1.5 flex items-center justify-between pt-1 border-t border-slate-800/60">
-                  <span className="flex items-center gap-1 text-slate-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-                    Weather Cushion: <strong className="text-cyan-300">+{liveBobWeather?.laycanBufferHours || 12}h Buffer</strong>
+                <div className="text-[10px] text-slate-600 mt-1.5 flex items-center justify-between pt-1 border-t border-sky-100">
+                  <span className="flex items-center gap-1 text-slate-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                    Weather Cushion: <strong className="text-sky-800 font-bold">+{liveBobWeather?.laycanBufferHours || 12}h Buffer</strong>
                   </span>
-                  <span className="text-emerald-400 font-semibold text-[10px] bg-emerald-950/70 border border-emerald-800/50 px-1.5 py-0.2 rounded">
+                  <span className="text-emerald-800 font-semibold text-[10px] bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded">
                     Directly Factored in Result
                   </span>
                 </div>
@@ -2272,7 +2272,7 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
               <div className="flex items-end">
                 <button
                   onClick={() => handleManualDispatch()}
-                  className="w-full h-[58px] inline-flex flex-col items-center justify-center px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-98 text-white font-bold rounded-lg shadow-md transition-all text-xs cursor-pointer"
+                  className="w-full h-[58px] inline-flex flex-col items-center justify-center px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold rounded-lg shadow-sm transition-all text-xs cursor-pointer"
                 >
                   <div className="flex items-center space-x-1.5">
                     {isExecuting ? (
@@ -2282,25 +2282,25 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                     )}
                     <span className="text-sm font-bold">{isExecuting ? 'Calculating...' : 'Run Quantitative Directive'}</span>
                   </div>
-                  <span className="text-[10px] font-normal text-emerald-200 font-mono mt-0.5">Auto-Calculates Live IMD & FX</span>
+                  <span className="text-[10px] font-normal text-emerald-100 font-mono mt-0.5">Auto-Calculates Live IMD & FX</span>
                 </button>
               </div>
 
             </div>
 
             {/* Quick Presets & Status Indicator */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 text-[11px] text-slate-600">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-slate-300">Quick Consignments:</span>
+                <span className="font-semibold text-slate-700">Quick Consignments:</span>
                 <button 
                   onClick={() => applyPreset({ origin: 'hay_point', dest: 'paradip', vessel: 'capesize', volume: 90000, horizon: 6 })}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded border border-emerald-700/60 transition-colors font-medium cursor-pointer"
+                  className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded border border-emerald-300 transition-colors font-semibold cursor-pointer shadow-2xs"
                 >
                   Hay Point → Paradip (90k MT, 6-Mo)
                 </button>
                 <button 
                   onClick={() => { setIsExecuting(false); }}
-                  className="px-2 py-0.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 rounded border border-rose-700/60 transition-colors font-medium text-[10px] flex items-center gap-1 cursor-pointer"
+                  className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded border border-rose-300 transition-colors font-semibold text-[10px] flex items-center gap-1 cursor-pointer shadow-2xs"
                   title="Force unlock terminal if unresponsive"
                 >
                   <RefreshCw className="w-2.5 h-2.5" />
@@ -2308,26 +2308,26 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                 </button>
                 <button 
                   onClick={() => applyPreset({ origin: 'gladstone', dest: 'dhamra', vessel: 'capesize', volume: 150000, horizon: 6 })}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition-colors cursor-pointer shadow-2xs font-medium"
                 >
                   Gladstone → Dhamra (150k Capesize)
                 </button>
                 <button 
                   onClick={() => applyPreset({ origin: 'hampton_roads', dest: 'paradip', vessel: 'baby_cape', volume: 110000, horizon: 3 })}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition-colors cursor-pointer shadow-2xs font-medium"
                 >
                   US Hampton Roads → Paradip (110k)
                 </button>
                 <button 
                   onClick={() => applyPreset({ origin: 'taboneo', dest: 'vizag', vessel: 'panamax', volume: 75000, horizon: 1 })}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-700 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition-colors cursor-pointer shadow-2xs font-medium"
                 >
                   Indonesia → Vizag (75k Panamax)
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-0.5 rounded">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+              <div className="flex items-center space-x-2 text-[10px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded font-semibold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                 <span>Dual Currency Output: USD ($) + INR (₹) Active</span>
               </div>
             </div>
@@ -2337,45 +2337,45 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       </div>
 
       {/* Main Terminal Screen Area */}
-      <div className="p-4 bg-[#080c14] font-mono text-xs select-text">
-        <div ref={terminalContainerRef} className="h-72 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+      <div className="p-4 bg-slate-50 font-mono text-xs select-text border-t border-slate-200">
+        <div ref={terminalContainerRef} className="min-h-[520px] max-h-[750px] h-[600px] overflow-y-auto space-y-2.5 pr-2 custom-scrollbar">
           {terminalHistory.map((item, idx) => {
             if (item.type === 'system') {
               return <div key={idx} className="text-slate-500 leading-relaxed">{item.text}</div>;
             }
             if (item.type === 'prompt') {
               return (
-                <div key={idx} className="text-cyan-400 font-bold flex items-center space-x-1 pt-1">
-                  <ChevronRight className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div key={idx} className="text-slate-800 font-bold flex items-center space-x-1 pt-1">
+                  <ChevronRight className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>{item.text}</span>
                 </div>
               );
             }
             if (item.type === 'info') {
-              return <div key={idx} className="text-blue-300/90 pl-4">{item.text}</div>;
+              return <div key={idx} className="text-sky-800 pl-4 font-medium">{item.text}</div>;
             }
             if (item.type === 'progress') {
-              return <div key={idx} className="text-amber-300/90 pl-4">{item.text}</div>;
+              return <div key={idx} className="text-amber-800 pl-4 font-medium">{item.text}</div>;
             }
             if (item.type === 'warning') {
               return (
-                <pre key={idx} className="text-amber-200 bg-amber-950/30 p-3 rounded border border-amber-800/40 overflow-x-auto whitespace-pre-wrap leading-tight">
+                <pre key={idx} className="text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-200 overflow-x-auto whitespace-pre-wrap leading-tight shadow-2xs">
                   {item.text}
                 </pre>
               );
             }
             if (item.type === 'success') {
               return (
-                <pre key={idx} className="text-emerald-300 bg-emerald-950/30 p-3 rounded border border-emerald-800/40 overflow-x-auto whitespace-pre-wrap leading-tight">
+                <pre key={idx} className="text-emerald-950 bg-white p-3.5 rounded-lg border border-emerald-300 overflow-x-auto whitespace-pre-wrap leading-tight shadow-2xs">
                   {item.text}
                 </pre>
               );
             }
             if (item.type === 'error') {
-              return <div key={idx} className="text-rose-400 pl-4">{item.text}</div>;
+              return <div key={idx} className="text-rose-700 bg-rose-50 p-2.5 rounded-lg border border-rose-200 pl-4 font-medium">{item.text}</div>;
             }
             return (
-              <pre key={idx} className="text-slate-200 bg-slate-950/70 p-3 rounded border border-slate-800 overflow-x-auto whitespace-pre-wrap leading-tight">
+              <pre key={idx} className="text-slate-800 bg-white p-3 rounded-lg border border-slate-200 overflow-x-auto whitespace-pre-wrap leading-tight shadow-2xs">
                 {item.text}
               </pre>
             );
@@ -2383,18 +2383,18 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
         </div>
 
         {/* Interactive Command Input Form */}
-        <form onSubmit={handleCommandSubmit} className="mt-3 pt-3 border-t border-slate-800/80 flex items-center space-x-2">
-          <span className="text-emerald-400 font-bold shrink-0">PS C:\navifreight&gt;</span>
+        <form onSubmit={handleCommandSubmit} className="mt-3 pt-3 border-t border-slate-200 flex items-center space-x-2">
+          <span className="text-emerald-700 font-bold shrink-0">PS C:\navifreight&gt;</span>
           <input
             type="text"
             value={commandInput}
             onChange={(e) => setCommandInput(e.target.value)}
             placeholder="Type 'train', 'eval', 'weather', or enter any global news / shipment query..."
-            className="flex-1 bg-slate-950 text-white px-3 py-1.5 rounded border border-slate-800 focus:outline-none focus:border-emerald-500 font-mono text-xs placeholder:text-slate-600"
+            className="flex-1 bg-white text-slate-900 px-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono text-xs placeholder:text-slate-400 shadow-2xs"
           />
           <button
             type="submit"
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-semibold text-xs transition-colors"
+            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition-colors cursor-pointer shadow-2xs"
           >
             Run
           </button>
@@ -2402,9 +2402,9 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
       </div>
 
       {/* Bottom Live Feedback Bar */}
-      <div className="bg-slate-950 px-4 py-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="bg-slate-50 px-4 py-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
         <div className="flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Chart Coupling: <strong>ACTIVE</strong> (Forecast Graph moves dynamically when test scenarios are executed above)</span>
         </div>
         <span className="font-mono text-slate-500">Fast Execution: ~0.1s Inference</span>

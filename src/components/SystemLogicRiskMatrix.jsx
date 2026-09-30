@@ -194,86 +194,86 @@ export default function SystemLogicRiskMatrix({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* Paper 1: Wetzel & Tierney (TRE 2020) */}
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 flex flex-col justify-between space-y-4 shadow-md">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 text-slate-800 flex flex-col justify-between space-y-4 shadow-sm">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                     TRE 2020 • VOL. 143
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">Article 102101</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Article 102101</span>
                 </div>
-                <h4 className="text-sm font-bold text-white mt-2.5">
+                <h4 className="text-sm font-bold text-slate-900 mt-2.5">
                   Integrating Fleet Deployment into Liner Shipping Vessel Repositioning (LSFDRP)
                 </h4>
-                <p className="text-[11px] text-slate-400 font-medium">Daniel Wetzel & Kevin Tierney • <em>Transportation Research Part E</em></p>
+                <p className="text-[11px] text-slate-500 font-medium">Daniel Wetzel & Kevin Tierney • <em>Transportation Research Part E</em></p>
 
-                <div className="mt-3 p-2.5 rounded bg-slate-950 border border-slate-800 font-mono text-[10px] text-emerald-300 space-y-1">
-                  <div className="font-bold text-slate-400 uppercase">Core Mathematical Contribution:</div>
-                  <div>min (Charter & Operating Costs + Fuel & Ballast Transition Costs)</div>
+                <div className="mt-3 p-2.5 rounded bg-slate-50 border border-slate-200 font-mono text-[10px] text-emerald-800 space-y-1">
+                  <div className="font-bold text-slate-500 uppercase">Core Mathematical Contribution:</div>
+                  <div className="font-bold">min (Charter & Operating Costs + Fuel & Ballast Transition Costs)</div>
                   <div className="text-slate-500 text-[9px]">// Simultaneously solves deployment + deadhead repositioning</div>
                 </div>
 
-                <ul className="mt-3 space-y-2 text-[11px] text-slate-300">
+                <ul className="mt-3 space-y-2 text-[11px] text-slate-700">
                   <li className="flex items-start space-x-2">
-                    <span className="text-amber-400 font-bold">•</span>
+                    <span className="text-amber-600 font-bold">•</span>
                     <span><strong>The Fallacy of Decoupling:</strong> Decoupling vessel selection from post-discharge repositioning creates uncompensated empty ballast voyages ("deadheading").</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-amber-400 font-bold">•</span>
+                    <span className="text-amber-600 font-bold">•</span>
                     <span><strong>NaviFreight Tramp Backhaul:</strong> Sequences inbound coal (Samarinda/Hay Point $\rightarrow$ Paradip/Vizag) with return iron ore pellet exports to China, reducing ballast legs by up to <strong>64%</strong>.</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-amber-400 font-bold">•</span>
+                    <span className="text-amber-600 font-bold">•</span>
                     <span><strong>Browser Matheuristic:</strong> Implements a sub-second heuristic in <code>forecastingEngine.js</code> to evaluate berth draft compatibility and routing costs instantly.</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>NaviFreight File:</span>
-                <span className="text-cyan-400 font-bold">DeadheadOptimizer.jsx</span>
+                <span className="text-indigo-600 font-bold">DeadheadOptimizer.jsx</span>
               </div>
             </div>
 
             {/* Paper 2: Xiang et al. (TRB 2024) */}
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 flex flex-col justify-between space-y-4 shadow-md">
+            <div className="p-4 rounded-xl bg-white border border-slate-200 text-slate-800 flex flex-col justify-between space-y-4 shadow-sm">
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950 text-purple-300 border border-purple-800">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                     TRB 2024 • VOL. 190
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">Article 103088</span>
+                  <span className="text-[10px] text-slate-500 font-mono">Article 103088</span>
                 </div>
-                <h4 className="text-sm font-bold text-white mt-2.5">
+                <h4 className="text-sm font-bold text-slate-900 mt-2.5">
                   Liner Fleet Deployment & Empty Repositioning Under Demand Uncertainty: Robust Approach
                 </h4>
-                <p className="text-[11px] text-slate-400 font-medium">Xi Xiang, Xiaowei Xu, Changchun Liu, Shuai Jia • <em>Transportation Research Part B</em></p>
+                <p className="text-[11px] text-slate-500 font-medium">Xi Xiang, Xiaowei Xu, Changchun Liu, Shuai Jia • <em>Transportation Research Part B</em></p>
 
-                <div className="mt-3 p-2.5 rounded bg-slate-950 border border-slate-800 font-mono text-[10px] text-purple-300 space-y-1">
-                  <div className="font-bold text-slate-400 uppercase">Two-Stage Robust Formulation:</div>
-                  <div>min w ( COA_Cost ) + E[ Recourse_Cost(w, ξ) ] + λ · CVaR_90</div>
+                <div className="mt-3 p-2.5 rounded bg-slate-50 border border-slate-200 font-mono text-[10px] text-purple-800 space-y-1">
+                  <div className="font-bold text-slate-500 uppercase">Two-Stage Robust Formulation:</div>
+                  <div className="font-bold">min w ( COA_Cost ) + E[ Recourse_Cost(w, ξ) ] + λ · CVaR_90</div>
                   <div className="text-slate-500 text-[9px]">// Budgeted uncertainty set Γ avoids over-conservatism</div>
                 </div>
 
-                <ul className="mt-3 space-y-2 text-[11px] text-slate-300">
+                <ul className="mt-3 space-y-2 text-[11px] text-slate-700">
                   <li className="flex items-start space-x-2">
-                    <span className="text-purple-400 font-bold">•</span>
+                    <span className="text-purple-600 font-bold">•</span>
                     <span><strong>Stage 1 ("Here-and-Now"):</strong> Decides period COA allocation ratio ($w$) and committed vessel classes to guarantee steel plant minimum fuel basestock.</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-purple-400 font-bold">•</span>
+                    <span className="text-purple-600 font-bold">•</span>
                     <span><strong>Stage 2 ("Wait-and-See Recourse"):</strong> Executes tactical spot fixtures, laycan adjustments, and lightering at Sagar/Sandheads as market shocks resolve.</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <span className="text-purple-400 font-bold">•</span>
+                    <span className="text-purple-600 font-bold">•</span>
                     <span><strong>Budgeted Uncertainty ($\Gamma$):</strong> Parameterizes market volatility so the system does not paralyze decisions by assuming all 5 trade origins fail concurrently.</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>NaviFreight File:</span>
-                <span className="text-purple-400 font-bold">SpotVsCoaPlanner.jsx</span>
+                <span className="text-purple-700 font-bold">SpotVsCoaPlanner.jsx</span>
               </div>
             </div>
 
@@ -464,28 +464,28 @@ export default function SystemLogicRiskMatrix({
       </div>
 
       {/* Final Compiled Decision Banner (Part C Output) */}
-      <div className="bg-slate-900 text-white rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white text-slate-900 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 mb-1">
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
               Part C Final Output Decision Indicator
             </span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${finalAlertColor}`}>
               {finalAlertBadge.split(' ')[0]} {finalAlertBadge.split(' ')[1]}
             </span>
           </div>
-          <div className="text-sm font-bold text-white">
+          <div className="text-sm font-bold text-slate-900">
             {finalAlertBadge}
           </div>
-          <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+          <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed font-medium">
             {finalRecommendationText}
           </p>
         </div>
 
         <div className="shrink-0 flex items-center space-x-2">
-          <div className="bg-maritime-800 px-3 py-2 rounded border border-maritime-700 text-right">
-            <span className="text-[10px] text-slate-400 block">Composite Risk Index</span>
-            <span className="text-lg font-bold text-amber-400 tabular-nums">{compositeRiskScore}/100</span>
+          <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 text-right shadow-2xs">
+            <span className="text-[10px] text-slate-500 block font-medium">Composite Risk Index</span>
+            <span className="text-lg font-bold text-amber-600 tabular-nums">{compositeRiskScore}/100</span>
           </div>
         </div>
       </div>

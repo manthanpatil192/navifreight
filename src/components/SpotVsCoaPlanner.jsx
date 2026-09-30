@@ -312,42 +312,42 @@ export default function SpotVsCoaPlanner({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           
           {/* TRACK 1: BASELINE COA AUTOPILOT */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-lg p-3 relative">
+          <div className="bg-white border border-slate-200 rounded-xl p-3.5 relative shadow-xs">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-emerald-400 flex items-center">
-                <Lock className="w-3.5 h-3.5 mr-1" />
+              <span className="text-xs font-bold text-emerald-800 flex items-center">
+                <Lock className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                 Track 1: {coaSplitPercent}% Base Cargo (Autopilot)
               </span>
-              <span className="text-[10px] font-extrabold uppercase bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-700">
+              <span className="text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded border border-emerald-200">
                 Scheduled Supply
               </span>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed mb-2">
-              <strong>{coaVolumeMT.toLocaleString()} MT</strong> books in <strong className="text-white">{forecast?.bookingSchedule?.coaBookingWindow || 'Prompt Window'}</strong> and ships on fixed laycan cycles at guaranteed <strong className="text-white">${coaRateUSD.toFixed(2)}/MT</strong>.
+            <p className="text-xs text-slate-700 leading-relaxed mb-2 font-medium">
+              <strong className="text-slate-900">{coaVolumeMT.toLocaleString()} MT</strong> books in <strong className="text-emerald-700">{forecast?.bookingSchedule?.coaBookingWindow || 'Prompt Window'}</strong> and ships on fixed laycan cycles at guaranteed <strong className="text-slate-900">${coaRateUSD.toFixed(2)}/MT</strong>.
             </p>
-            <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
+            <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between font-mono">
               <span>Transit Time:</span>
-              <span className="text-emerald-400 font-bold">{forecast?.bookingSchedule?.sailingDays || 13.4}d sea transit ({forecast?.bookingSchedule?.distanceNM || 4120} NM)</span>
+              <span className="text-emerald-700 font-bold">{forecast?.bookingSchedule?.sailingDays || 13.4}d sea transit ({forecast?.bookingSchedule?.distanceNM || 4120} NM)</span>
             </div>
           </div>
 
           {/* TRACK 2: OPPORTUNISTIC SPOT SNIPING */}
-          <div className="bg-slate-900/90 border border-amber-700/60 rounded-lg p-3 relative">
+          <div className="bg-white border border-amber-300 rounded-xl p-3.5 relative shadow-xs">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-amber-400 flex items-center">
-                <Target className="w-3.5 h-3.5 mr-1" />
+              <span className="text-xs font-bold text-amber-800 flex items-center">
+                <Target className="w-3.5 h-3.5 mr-1 text-amber-600" />
                 Track 2: {spotSplitPercent}% Opportunistic Buffer (AI Timed)
               </span>
-              <span className="text-[10px] font-extrabold uppercase bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded border border-amber-700 animate-pulse">
+              <span className="text-[10px] font-extrabold uppercase bg-amber-50 text-amber-700 px-1.5 py-0.2 rounded border border-amber-200 animate-pulse">
                 ⚡ Dip Sniping Window
               </span>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed mb-2">
-              <strong>{spotVolumeMT.toLocaleString()} MT</strong> is held in reserve. Forecast predicts spot valley on <strong className="text-amber-300">{forecast?.bookingSchedule?.spotDipWindow || 'Forward Valley'}</strong> ($${forecast?.bookingSchedule?.spotDipRateUSD || '12.50'}/MT) $\rightarrow$ AI triggers spot fixture!
+            <p className="text-xs text-slate-700 leading-relaxed mb-2 font-medium">
+              <strong className="text-slate-900">{spotVolumeMT.toLocaleString()} MT</strong> is held in reserve. Forecast predicts spot valley on <strong className="text-amber-700">{forecast?.bookingSchedule?.spotDipWindow || 'Forward Valley'}</strong> (${forecast?.bookingSchedule?.spotDipRateUSD || '12.50'}/MT) ➔ AI triggers spot fixture!
             </p>
-            <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800 flex items-center justify-between">
+            <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex items-center justify-between font-mono">
               <span>Opportunistic Gain:</span>
-              <span className="text-amber-400 font-bold">+₹{forecast?.bookingSchedule?.spotDipSavingsINR || 1.42} Crores Extra Discount</span>
+              <span className="text-amber-700 font-bold">+₹{forecast?.bookingSchedule?.spotDipSavingsINR || 1.42} Crores Extra Discount</span>
             </div>
           </div>
 

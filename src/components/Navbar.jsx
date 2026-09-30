@@ -188,7 +188,7 @@ export default function Navbar({
             {/* Authenticated User Role Badge / Sign In Trigger */}
             {currentUser ? (
               <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
-                <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
+                <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
                   {currentUser.roleName ? currentUser.roleName.charAt(0) : 'L'}
                 </div>
                 <div className="text-left hidden md:block">
@@ -210,9 +210,9 @@ export default function Navbar({
             ) : (
               <button
                 onClick={onOpenLoginPage}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Login Portal</span>
               </button>
             )}

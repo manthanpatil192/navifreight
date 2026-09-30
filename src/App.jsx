@@ -317,7 +317,16 @@ export default function App() {
                 coaSplitPercent={coaSplitPercent}
               />
 
-              {/* 2. Second: Charter Timing Decision Matrix */}
+              {/* 2. Directly Connected: Freight Forecasting Graphs & Quantile Cones */}
+              <ForecastChart
+                forecast={forecast}
+                currency={currency}
+                terminalMetrics={terminalMetrics}
+                selectedVessel={selectedVessel}
+                onSelectVessel={setSelectedVessel}
+              />
+
+              {/* 3. Third: Charter Timing Decision Matrix */}
               <CharterTimingDecisionMatrix
                 selectedOrigin={selectedOrigin}
                 selectedDestination={selectedDestination}
@@ -330,7 +339,7 @@ export default function App() {
                 forecast={forecast}
               />
 
-              {/* 3. Third: Detailed Route Scenario Analysis */}
+              {/* 4. Fourth: Detailed Route Scenario Analysis */}
               <DetailedRouteScenarioAnalysis
                 selectedOrigin={selectedOrigin}
                 selectedDestination={selectedDestination}
@@ -340,15 +349,6 @@ export default function App() {
                 contractHorizonMonths={contractHorizonMonths}
                 forecast={forecast}
                 coaSplitPercent={coaSplitPercent}
-              />
-
-              {/* 4. Fourth: Freight Forecasting Graphs */}
-              <ForecastChart
-                forecast={forecast}
-                currency={currency}
-                terminalMetrics={terminalMetrics}
-                selectedVessel={selectedVessel}
-                onSelectVessel={setSelectedVessel}
               />
 
             </div>

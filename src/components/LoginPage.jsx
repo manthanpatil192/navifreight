@@ -117,8 +117,8 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
             
             {/* Logo & Identity (NaviFreight) */}
             <div className="flex items-center space-x-3.5">
-              <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-sm border border-slate-800">
-                <Ship className="w-6 h-6 text-emerald-400" />
+              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm border border-slate-200">
+                <Ship className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
                 <span className="text-2xl font-extrabold tracking-tight text-slate-900">
@@ -146,11 +146,11 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
               {onGuestAccess && (
                 <button
                   onClick={onGuestAccess}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                   title="Direct preview into decision engine"
                 >
                   <span>Guest Access</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
+                  <ArrowRight className="w-3.5 h-3.5 text-emerald-600" />
                 </button>
               )}
 
@@ -230,17 +230,17 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                 <div className="lg:col-span-7 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-5 sm:p-6 border border-white/80 text-slate-900">
                   
                   {/* Logistics Manager Target Profile Banner */}
-                  <div className="mb-4 p-3.5 rounded-xl bg-slate-900 text-white shadow-sm border border-slate-800">
-                    <h3 className="text-xs sm:text-sm font-bold text-white mb-0.5">
+                  <div className="mb-4 p-3.5 rounded-xl bg-white text-slate-900 shadow-sm border-2 border-slate-200">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-0.5">
                       Logistics Manager
                     </h3>
-                    <p className="text-[11px] text-slate-300 mb-2.5 leading-snug">
+                    <p className="text-[11px] text-slate-600 mb-2.5 leading-snug font-medium">
                       Bulk logistics dispatch, multi-voyage contract scheduling & East Coast port clearance.
                     </p>
                     <button
                       type="button"
                       onClick={() => handleQuickDemo('logistics_manager')}
-                      className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                      className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                     >
                       <span>Access as Logistics Manager</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -263,7 +263,7 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                   {/* Active Terminal Profile Card (Replaces redundant role tabs) */}
                   <div className="mb-3.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-emerald-400 shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                         <UserCheck className="w-4 h-4" />
                       </div>
                       <div>
@@ -389,17 +389,17 @@ export default function LoginPage({ onLogin, onGuestAccess }) {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
+                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 border-2 border-slate-900 active:scale-[0.99] text-slate-950 font-black text-xs sm:text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-75 cursor-pointer"
                     >
                       {isSubmitting ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-slate-400 border-t-slate-900 rounded-full animate-spin" />
                           <span>AUTHORIZING...</span>
                         </>
                       ) : (
                         <>
                           <span>SIGN IN AS LOGISTICS MANAGER</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-4 h-4 text-emerald-600" />
                         </>
                       )}
                     </button>

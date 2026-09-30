@@ -836,29 +836,29 @@ export default function VesselOptimization({
 
       {/* === CAPESIZE & LARGE CONSIGNMENT OPERATIONAL PLAYBOOK (SOLVING PARADIP / DRAFT RESTRICTIONS) === */}
       {activeTab === 'optimizer' && (
-        <div className="bg-gradient-to-br from-slate-900 via-maritime-950 to-slate-900 border border-slate-700/60 rounded-xl p-5 mb-6 text-white shadow-md">
-          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-slate-700/60 gap-3">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6 text-slate-900 shadow-card">
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3.5 border-b border-slate-200 gap-3">
             <div className="flex items-start space-x-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                <Anchor className="w-5 h-5 text-amber-400" />
+              <div className="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+                <Anchor className="w-5 h-5 text-amber-600" />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-extrabold tracking-wide uppercase text-white">
+                  <h3 className="text-sm font-extrabold tracking-wide uppercase text-slate-900">
                     Operational Playbook: Fulfilling Large Orders (150k–180k MT) at {currentPort.name}
                   </h3>
-                  <span className="text-[10px] bg-amber-400/20 text-amber-300 font-black px-2 py-0.5 rounded border border-amber-400/30 uppercase">
+                  <span className="text-[10px] bg-amber-50 text-amber-800 font-black px-2 py-0.5 rounded border border-amber-200 uppercase">
                     Maritime Workaround Matrix
                   </span>
                 </div>
-                <p className="text-xs text-slate-300 mt-0.5">
+                <p className="text-xs text-slate-600 mt-0.5">
                   Direct Capesize berthing draws 18.2m vs {currentPort.name} standard draft ({currentPort.maxDraftLaden}m). Here is how real-world charterers fulfill the volume:
                 </p>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <span className="text-[11px] font-mono text-slate-400 block">Current Cargo: {activeCargoVolume.toLocaleString()} MT</span>
-              <span className="text-xs font-bold text-amber-400">3 Verified Industry Strategies</span>
+              <span className="text-[11px] font-mono text-slate-500 block">Current Cargo: {activeCargoVolume.toLocaleString()} MT</span>
+              <span className="text-xs font-bold text-amber-700">3 Verified Industry Strategies</span>
             </div>
           </div>
 
@@ -866,39 +866,39 @@ export default function VesselOptimization({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
             
             {/* Strategy 1: Anchorage Lighterage */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col justify-between hover:border-slate-300 transition-all shadow-2xs">
               <div>
                 <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded border border-slate-600">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-white text-slate-700 px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
                     Strategy 1: Offshore Lighterage
                   </span>
-                  <span className="text-[10px] font-bold text-amber-400 shrink-0 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-500/40">Paradip Standard</span>
+                  <span className="text-[10px] font-bold text-amber-800 shrink-0 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">Paradip Standard</span>
                 </div>
-                <h4 className="text-xs font-bold text-white mb-1">Anchorage Transshipment (Lightening)</h4>
-                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                <h4 className="text-xs font-bold text-slate-900 mb-1">Anchorage Transshipment (Lightening)</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
                   Capesize anchors at <strong>Paradip Outer Anchorage</strong>. Floating crane barges offload <strong>~25,000–35,000 MT</strong> into daughter barges, reducing draft from <strong>18.2m &rarr; 15.8m</strong>. Vessel then berths directly at KICT Berth 03 on the spring high tide.
                 </p>
-                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                <div className="space-y-1.5 text-[11px] bg-white p-2.5 rounded-lg border border-slate-200 mb-3 shadow-2xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Draft Reduction:</span>
-                    <span className="font-bold text-emerald-400">18.2m &rarr; 15.8m (Enters Port)</span>
+                    <span className="text-slate-500">Draft Reduction:</span>
+                    <span className="font-bold text-emerald-700">18.2m &rarr; 15.8m (Enters Port)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Lighterage Cost:</span>
-                    <span className="font-bold text-amber-300">+$3.80/MT (~₹3.2 Cr)</span>
+                    <span className="text-slate-500">Lighterage Cost:</span>
+                    <span className="font-bold text-amber-700">+$3.80/MT (~₹3.2 Cr)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Turnaround Delay:</span>
-                    <span className="font-bold text-slate-300">+2.5 Days Anchorage Wait</span>
+                    <span className="text-slate-500">Turnaround Delay:</span>
+                    <span className="font-bold text-slate-700">+2.5 Days Anchorage Wait</span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-700/60">
-                <span className="text-[10px] text-slate-400 block mb-1.5">Best when: Coal MUST be unloaded at Paradip berths.</span>
+              <div className="pt-2 border-t border-slate-200">
+                <span className="text-[10px] text-slate-500 block mb-1.5">Best when: Coal MUST be unloaded at Paradip berths.</span>
                 <button
                   type="button"
                   onClick={() => onSelectVessel && onSelectVessel('capesize')}
-                  className="w-full py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                  className="w-full py-1.5 px-2 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                 >
                   <span>Select Capesize + Lighterage Model</span>
                   <ArrowRight className="w-3 h-3" />
@@ -907,40 +907,40 @@ export default function VesselOptimization({
             </div>
 
             {/* Strategy 2: Port Diversion (Dhamra / Gangavaram) */}
-            <div className="bg-emerald-950/40 border-2 border-emerald-500/60 rounded-lg p-4 flex flex-col justify-between hover:border-emerald-400 transition-all shadow-sm">
+            <div className="bg-emerald-50/50 border-2 border-emerald-300 rounded-lg p-4 flex flex-col justify-between hover:border-emerald-400 transition-all shadow-2xs">
               <div>
                 <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-400/40">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">
                     Strategy 2: Port Diversion (Best ROI)
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-300 shrink-0 bg-emerald-900/60 px-1.5 py-0.5 rounded border border-emerald-500/40">⚡ ₹3–4 Cr Saved</span>
+                  <span className="text-[10px] font-bold text-emerald-800 shrink-0 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300">⚡ ₹3–4 Cr Saved</span>
                 </div>
-                <h4 className="text-xs font-bold text-white mb-1">Divert to Dhamra (18m) or Gangavaram (19.5m)</h4>
-                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                <h4 className="text-xs font-bold text-slate-900 mb-1">Divert to Dhamra (18m) or Gangavaram (19.5m)</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
                   Instead of lightering at Paradip, divert 60 NM to <strong>Dhamra Port (18.0m draft)</strong> or <strong>Gangavaram (19.5m draft)</strong>. Capesize berths <strong>100% directly with ZERO lighterage</strong> and 65k–70k TPD fast unloaders, railed directly via ECoR to steel plants.
                 </p>
-                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                <div className="space-y-1.5 text-[11px] bg-white p-2.5 rounded-lg border border-emerald-200 mb-3 shadow-2xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Direct Berth Draft:</span>
-                    <span className="font-bold text-emerald-400">18.0m (Dhamra) / 19.5m (GPL)</span>
+                    <span className="text-slate-500">Direct Berth Draft:</span>
+                    <span className="font-bold text-emerald-700">18.0m (Dhamra) / 19.5m (GPL)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Demurrage/Lighterage Saved:</span>
-                    <span className="font-bold text-emerald-300">₹2.80 – ₹4.20 Crore Saved!</span>
+                    <span className="text-slate-500">Demurrage/Lighterage Saved:</span>
+                    <span className="font-bold text-emerald-700 font-mono">₹2.80 – ₹4.20 Crore Saved!</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Discharge Speed:</span>
-                    <span className="font-bold text-emerald-400">65,000–70,000 TPD (Fast)</span>
+                    <span className="text-slate-500">Discharge Speed:</span>
+                    <span className="font-bold text-emerald-700">65,000–70,000 TPD (Fast)</span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-emerald-500/30">
-                <span className="text-[10px] text-emerald-300/80 block mb-1.5">Best when: Charterer wants maximum cost savings & zero delays.</span>
+              <div className="pt-2 border-t border-emerald-200">
+                <span className="text-[10px] text-emerald-800 font-medium block mb-1.5">Best when: Charterer wants maximum cost savings & zero delays.</span>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => onSelectPort && onSelectPort('dhamra')}
-                    className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                   >
                     <span>Divert to Dhamra</span>
                     <ArrowRight className="w-3 h-3" />
@@ -948,7 +948,7 @@ export default function VesselOptimization({
                   <button
                     type="button"
                     onClick={() => onSelectPort && onSelectPort('gangavaram')}
-                    className="flex-1 py-1.5 px-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 px-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                   >
                     <span>Divert to GPL</span>
                     <ArrowRight className="w-3 h-3" />
@@ -958,40 +958,40 @@ export default function VesselOptimization({
             </div>
 
             {/* Strategy 3: Vessel Substitution (Baby Cape or 2x Kamsarmax) */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-4 flex flex-col justify-between hover:border-slate-600 transition-all">
+            <div className="bg-sky-50/50 border border-sky-200 rounded-lg p-4 flex flex-col justify-between hover:border-sky-300 transition-all shadow-2xs">
               <div>
                 <div className="flex items-center justify-between mb-2 gap-1 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded border border-cyan-400/30">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-800 px-2 py-0.5 rounded border border-sky-300">
                     Strategy 3: Vessel Substitution
                   </span>
-                  <span className="text-[10px] font-bold text-cyan-400 shrink-0 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/40">Direct Berth</span>
+                  <span className="text-[10px] font-bold text-sky-800 shrink-0 bg-sky-100 px-1.5 py-0.5 rounded border border-sky-300">Direct Berth</span>
                 </div>
-                <h4 className="text-xs font-bold text-white mb-1">Charter Baby Cape (115k) or 2 × Kamsarmax (82k)</h4>
-                <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+                <h4 className="text-xs font-bold text-slate-900 mb-1">Charter Baby Cape (115k) or 2 × Kamsarmax (82k)</h4>
+                <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
                   Replace 1 Capesize with either <strong>Baby Cape (115,000 DWT, 15.1m draft)</strong> for direct high-tide berthing, or contract <strong>2 × Kamsarmax (82,000 DWT, 14.4m draft)</strong>. Both options grant 100% direct berth access at Paradip with ZERO offshore lighterage.
                 </p>
-                <div className="space-y-1.5 text-[11px] bg-slate-900/60 p-2.5 rounded border border-slate-700/50 mb-3">
+                <div className="space-y-1.5 text-[11px] bg-white p-2.5 rounded-lg border border-sky-100 mb-3 shadow-2xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Baby Cape Berth Fit:</span>
-                    <span className="font-bold text-cyan-300">15.1m Draft (Fits High Tide)</span>
+                    <span className="text-slate-500">Baby Cape Berth Fit:</span>
+                    <span className="font-bold text-sky-700">15.1m Draft (Fits High Tide)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">2 × Kamsarmax Volume:</span>
-                    <span className="font-bold text-emerald-400">160,000 MT (100% Fits 14.5m)</span>
+                    <span className="text-slate-500">2 × Kamsarmax Volume:</span>
+                    <span className="font-bold text-emerald-700">160,000 MT (100% Fits 14.5m)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Offshore Lighterage Fee:</span>
-                    <span className="font-bold text-emerald-400">₹0 (Zero Lighterage Needed)</span>
+                    <span className="text-slate-500">Offshore Lighterage Fee:</span>
+                    <span className="font-bold text-emerald-700 font-mono">₹0 (Zero Lighterage Needed)</span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-700/60">
-                <span className="text-[10px] text-slate-400 block mb-1.5">Best when: Strictly dedicated to Paradip Port infrastructure.</span>
+              <div className="pt-2 border-t border-sky-200">
+                <span className="text-[10px] text-slate-500 block mb-1.5">Best when: Strictly dedicated to Paradip Port infrastructure.</span>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => onSelectVessel && onSelectVessel('kamsarmax')}
-                    className="flex-1 py-1.5 px-2 bg-cyan-700 hover:bg-cyan-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 px-2 bg-sky-700 hover:bg-sky-800 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                   >
                     <span>Use Kamsarmax</span>
                     <ArrowRight className="w-3 h-3" />
@@ -999,7 +999,7 @@ export default function VesselOptimization({
                   <button
                     type="button"
                     onClick={() => onSelectVessel && onSelectVessel('baby_cape')}
-                    className="flex-1 py-1.5 px-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-bold transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                   >
                     <span>Use Baby Cape</span>
                     <ArrowRight className="w-3 h-3" />
@@ -1559,45 +1559,45 @@ export default function VesselOptimization({
             </div>
 
             {/* Vessel Card */}
-            <div className="bg-gradient-to-b from-maritime-900 to-slate-900 text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+            <div className="bg-white border-2 border-emerald-400/80 rounded-xl p-4 flex flex-col justify-between shadow-2xs text-slate-800">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-400/40">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">
                     Vessel In-Transit
                   </span>
-                  <span className="text-xs font-mono font-bold text-emerald-300">{activeVesselEval.score}/100 Fit</span>
+                  <span className="text-xs font-mono font-bold text-emerald-700">{activeVesselEval.score}/100 Fit</span>
                 </div>
-                <h4 className="text-sm font-bold text-white">{activeVesselEval.vessel.name}</h4>
-                <p className="text-[11px] text-slate-300 mt-0.5">{activeVesselEval.vessel.dwtRange}</p>
+                <h4 className="text-sm font-bold text-slate-900">{activeVesselEval.vessel.name}</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">{activeVesselEval.vessel.dwtRange}</p>
 
                 <div className="mt-3 space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">LOA:</span>
-                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.loaM} meters</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">LOA:</span>
+                    <span className="font-mono font-bold text-slate-800">{activeVesselEval.vessel.loaM} meters</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">Beam:</span>
-                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.beamM} meters</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Beam:</span>
+                    <span className="font-mono font-bold text-slate-800">{activeVesselEval.vessel.beamM} meters</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">Laden Draft:</span>
-                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.ladenDraft} meters</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Laden Draft:</span>
+                    <span className="font-mono font-bold text-slate-800">{activeVesselEval.vessel.ladenDraft} meters</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">Typical Parcel:</span>
-                    <span className="font-mono font-bold text-emerald-400">{activeVesselEval.vessel.typicalParcel.toLocaleString()} MT</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Typical Parcel:</span>
+                    <span className="font-mono font-bold text-emerald-700">{activeVesselEval.vessel.typicalParcel.toLocaleString()} MT</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">Origin Loading Days:</span>
-                    <span className="font-mono font-bold text-cyan-300">{activeVesselEval.loadingDays} days</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Origin Loading Days:</span>
+                    <span className="font-mono font-bold text-sky-700">{activeVesselEval.loadingDays} days</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-700">
-                    <span className="text-slate-300">Dest Discharge Days:</span>
-                    <span className="font-mono font-bold text-cyan-300">{activeVesselEval.dischargeDays} days</span>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Dest Discharge Days:</span>
+                    <span className="font-mono font-bold text-sky-700">{activeVesselEval.dischargeDays} days</span>
                   </div>
                 </div>
               </div>
-              <div className="mt-3 pt-2 text-[10px] text-slate-300">
+              <div className="mt-3 pt-2 text-[10px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 font-semibold">
                 {activeVesselEval.verdictBadge.text}
               </div>
             </div>
@@ -1865,23 +1865,23 @@ export default function VesselOptimization({
           </div>
 
           {/* Legal Gazette Citations Banner */}
-          <div className="bg-slate-900 text-white rounded-xl p-4 text-xs space-y-2 border border-slate-700/80">
-            <div className="flex items-center space-x-2 font-bold uppercase tracking-wider text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
+          <div className="bg-white text-slate-900 rounded-xl p-4 text-xs space-y-2 border border-slate-200 shadow-sm">
+            <div className="flex items-center space-x-2 font-bold uppercase tracking-wider text-emerald-700">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Official Regulatory & Gazette Authority Citations</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px] text-slate-300">
-              <div className="p-2.5 rounded bg-slate-800/80 border border-slate-700">
-                <span className="font-bold text-white block mb-0.5">Loading Origin Gazette:</span>
-                <p className="italic text-slate-300">{currentOrigin.officialSource}</p>
-                <div className="mt-1 text-[10px] text-slate-400">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px] text-slate-700">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="font-bold text-slate-900 block mb-0.5">Loading Origin Gazette:</span>
+                <p className="italic text-slate-600">{currentOrigin.officialSource}</p>
+                <div className="mt-1 text-[10px] text-slate-500 font-mono">
                   Berth Pocket: {currentOrigin.berthDetails}
                 </div>
               </div>
-              <div className="p-2.5 rounded bg-slate-800/80 border border-slate-700">
-                <span className="font-bold text-white block mb-0.5">Discharge Destination Gazette:</span>
-                <p className="italic text-slate-300">{currentPort.officialSource}</p>
-                <div className="mt-1 text-[10px] text-slate-400">
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="font-bold text-slate-900 block mb-0.5">Discharge Destination Gazette:</span>
+                <p className="italic text-slate-600">{currentPort.officialSource}</p>
+                <div className="mt-1 text-[10px] text-slate-500 font-mono">
                   Infrastructure: Standard draft {currentPort.maxDraftLaden}m, Spring tide {currentPort.maxDraftHighTide}m, LOA {currentPort.maxLOA}m, Beam {currentPort.maxBeam}m.
                 </div>
               </div>

@@ -270,32 +270,32 @@ export default function GlobalBenchmarkPanel({ currency }) {
       </div>
 
       {/* REGIONAL STRATEGIC DIRECTIVE BANNER (PLAIN ENGLISH FEEDBACK) */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 border border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div className="bg-white text-slate-900 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div className="flex items-start space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 mt-0.5">
-            <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+            <Zap className="w-4 h-4 text-emerald-600 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800">
                 {currentRegion.regionName} Market Signal
               </span>
-              <span className="text-[10px] bg-rose-900/60 text-rose-300 border border-rose-700 px-1.5 py-0.2 rounded font-bold">
+              <span className="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.2 rounded font-bold">
                 {currentRegion.executiveTakeaway.urgency}
               </span>
             </div>
-            <h3 className="text-xs font-black text-white mt-1">
+            <h3 className="text-xs font-black text-slate-900 mt-1">
               {currentRegion.executiveTakeaway.headline}
             </h3>
-            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-600 mt-1 leading-relaxed font-medium">
               {currentRegion.executiveTakeaway.detail}
             </p>
           </div>
         </div>
 
-        <div className="shrink-0 bg-slate-800/90 border border-slate-700 rounded-lg p-3 text-right max-w-xs">
-          <div className="text-[10px] text-slate-400 font-bold uppercase">Decision Directive</div>
-          <div className="text-xs font-bold text-emerald-300 mt-0.5">
+        <div className="shrink-0 bg-slate-50 border border-slate-200 rounded-lg p-3 text-right max-w-xs shadow-2xs">
+          <div className="text-[10px] text-slate-500 font-bold uppercase">Decision Directive</div>
+          <div className="text-xs font-bold text-emerald-700 mt-0.5">
             {currentRegion.executiveTakeaway.actionDirective}
           </div>
         </div>
