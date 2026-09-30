@@ -380,6 +380,7 @@ export default function App() {
                 onSelectVessel={setSelectedVessel}
                 currentVesselId={selectedVessel}
                 onSelectPort={(portId) => setSelectedDestination(portId)}
+                onSelectOrigin={(originId) => setSelectedOrigin(originId)}
               />
             </div>
           )}
@@ -405,26 +406,29 @@ export default function App() {
                 selectedDestination={selectedDestination}
                 onSelectPort={(portId) => setSelectedDestination(portId)}
                 selectedVessel={selectedVessel}
+                onSelectVessel={(vId) => setSelectedVessel(vId)}
+                selectedOrigin={selectedOrigin}
+                onSelectOrigin={(origId) => setSelectedOrigin(origId)}
               />
             </div>
           )}
 
           {/* ========================================================================= */}
-          {/* 6. CARGO TO PORT PART                                                    */}
+          {/* 6. CARGO TO PORT PART (DEADHEAD OPTIMIZER & COASTAL TRIANGULATION)       */}
           {/* ========================================================================= */}
           {activePage === 'cargo_port' && (
             <div className="space-y-6 animate-in fade-in duration-150">
-              <CargoToHoldMatcher
-                currency={currency}
-                onSelectShip={(ship) => console.log('Selected ship:', ship)}
-              />
               <DeadheadOptimizer
                 selectedDestination={selectedDestination}
+                selectedOrigin={selectedOrigin}
+                selectedVessel={selectedVessel}
                 currency={currency}
                 forecast={forecast}
                 terminalMetrics={terminalMetrics}
                 activeNewsSignal={activeNewsSignal}
                 onSelectPort={(portId) => setSelectedDestination(portId)}
+                onSelectOrigin={(origId) => setSelectedOrigin(origId)}
+                onSelectVessel={(vId) => setSelectedVessel(vId)}
               />
             </div>
           )}

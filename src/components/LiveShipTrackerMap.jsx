@@ -6,10 +6,13 @@ import {
   Ship, Radio, Compass, Anchor, Wind, ShieldAlert, CheckCircle2, 
   Play, Pause, RefreshCw, Filter, Layers, Navigation, ArrowUpRight, 
   Clock, FileText, Search, Wifi, WifiOff, Key, X, Activity, Gauge, MapPin,
-  Bell, BellRing, Volume2, VolumeX, Crosshair, AlertTriangle, CircleDot
+  Bell, BellRing, Volume2, VolumeX, Crosshair, AlertTriangle, CircleDot,
+  Award, Sparkles, TrendingUp, Check, Zap, Globe, ArrowRight
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS, PORT_GEOFENCES, SHIPPING_CORRIDORS } from '../data/liveAisVessels';
-import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
+import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData';
+import { GLOBAL_ORIGIN_PORT_CONGESTION } from '../data/weatherCongestionData';
+import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 import { evaluatePortDiversion, evaluateVesselPortCongestionDiversion } from '../utils/portDiversionEngine';
 import InsightBulb from './InsightBulb';
 
@@ -587,9 +590,34 @@ const getInitialFreshNotification = () => [
   }
 ];
 
-export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, selectedVessel: charterVesselClass = 'capesize' }) {
+export default function LiveShipTrackerMap({ 
+  selectedDestination, 
+  onSelectPort, 
+  selectedVessel: charterVesselClass = 'capesize',
+  onSelectVessel,
+  selectedOrigin = 'hay_point',
+  onSelectOrigin
+}) {
   const [vessels, setVessels] = useState(getInitialFleetWithTimeSync);
   const [selectedVesselMmsi, setSelectedVesselMmsi] = useState('563112000'); // MV OLYMPIC GLORY default
+  const [activeOriginPortKey, setActiveOriginPortKey] = useState(selectedOrigin || 'hay_point');
+  const [appliedVesselSuccess, setAppliedVesselSuccess] = useState(false);
+
+  useEffect(() => {
+    if (selectedOrigin) {
+      setActiveOriginPortKey(selectedOrigin);
+    }
+  }, [selectedOrigin]);
+
+  // Dynamic Right Vessel Recommendation using dual-port physics and official limits
+  const rightVesselRecommendation = useMemo(() => {
+    return optimizeVesselType({
+      originId: activeOriginPortKey,
+      destinationId: selectedDestination || 'paradip',
+      cargoVolumeMT: 150000,
+      cargoType: 'Coking Coal'
+    });
+  }, [activeOriginPortKey, selectedDestination]);
   
   // Reactive selected vessel pointer: Always syncs live coordinates, ETA, speed, and heading as vessel moves!
   const selectedVessel = useMemo(() => {
@@ -1755,6 +1783,174 @@ export default function LiveShipTrackerMap({ selectedDestination, onSelectPort, 
             );
           })}
         </div>
+      </div>
+
+      {/* Real-time Global Source / Origin Port Congestion & Anchorage Queues */}
+      <div className="mb-4 bg-slate-50 border border-slate-200 rounded-lg p-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-200 mb-2.5 gap-2">
+          <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <Globe className="w-3.5 h-3.5 text-blue-600" />
+            <span>Global Source / Loading Port Congestion (Australia • USA • Indonesia • Mozambique)</span>
+          </div>
+          <div className="flex items-center space-x-2 text-[11px] text-slate-500">
+            <span>Aligned Loading Origin:</span>
+            <span className="font-bold text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              {GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.name || 'Hay Point'} ({GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.country})
+            </span>
+          </div>
+        </div>
+
+        {/* Origin Ports Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-2">
+          {Object.entries(GLOBAL_ORIGIN_PORT_CONGESTION)
+            .filter(([k]) => k !== 'qingdao' && k !== 'zhoushan') // Show origin loading ports
+            .map(([portKey, port]) => {
+              const isSelected = activeOriginPortKey === portKey;
+              return (
+                <div
+                  key={portKey}
+                  onClick={() => {
+                    setActiveOriginPortKey(portKey);
+                    if (onSelectOrigin) onSelectOrigin(portKey);
+                  }}
+                  className={`p-2 rounded border cursor-pointer transition-all hover:shadow-xs ${
+                    isSelected 
+                      ? 'bg-blue-50/90 border-blue-500 ring-2 ring-blue-300 shadow-xs' 
+                      : 'bg-white border-slate-200 hover:border-blue-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
+                    <span className="truncate flex items-center gap-1">
+                      <span>{port.flag}</span>
+                      <span className="truncate">{port.name.split('/')[0].trim()}</span>
+                    </span>
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${
+                      port.congestionStatus === 'LOW' ? 'bg-emerald-500' :
+                      port.congestionStatus === 'MODERATE' ? 'bg-amber-500' : 'bg-rose-500'
+                    }`} />
+                  </div>
+                  <div className="text-[10px] text-slate-500 space-y-0.5">
+                    <div className="flex justify-between">
+                      <span>Queue:</span>
+                      <span className="font-bold text-rose-600">{port.anchoredQueueShips} ships</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Berthed:</span>
+                      <span className="font-semibold text-emerald-700">{port.berthedWorkingShips} ships</span>
+                    </div>
+                    <div className="flex justify-between border-t border-slate-100 pt-0.5 mt-0.5">
+                      <span>Avg Wait:</span>
+                      <span className="font-bold text-slate-800">{port.avgWaitHours}h</span>
+                    </div>
+                    <div className="pt-0.5 text-[9px] font-semibold text-blue-900 truncate">
+                      ⚡ Rate: {(port.handlingRateTPD / 1000).toFixed(0)}k TPD
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+
+        {/* Connected Right Vessel Suggestion Terminal */}
+        {rightVesselRecommendation && (
+          <div className="mt-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-lg p-3 border border-indigo-500/40 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              
+              {/* Left: Vessel Recommendation & Fit Score */}
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="bg-indigo-600 text-white text-[9.5px] font-extrabold uppercase px-2 py-0.5 rounded flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-300" /> Connected Terminal • Right Vessel Suggestion
+                  </span>
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9.5px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                    <Award className="w-3 h-3 text-emerald-400" /> Fit Score: {rightVesselRecommendation.recommendedVessel.score}/100
+                  </span>
+                  <span className="text-[10px] text-slate-300 font-mono">
+                    Route: {rightVesselRecommendation.origin.name} ➔ {rightVesselRecommendation.dest.name}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <span>Optimal Vessel:</span>
+                    <span className="text-amber-400 underline decoration-amber-400/50 underline-offset-2">
+                      {rightVesselRecommendation.recommendedVessel.name} ({rightVesselRecommendation.recommendedVessel.dwt?.toLocaleString()} DWT)
+                    </span>
+                  </h4>
+                  <span className="text-[10.5px] bg-slate-800 text-slate-200 border border-slate-700 px-2 py-0.2 rounded font-medium">
+                    Draft: {rightVesselRecommendation.recommendedVessel.vessel.ladenDraft}m • LOA: {rightVesselRecommendation.recommendedVessel.vessel.loa}m
+                  </span>
+                </div>
+
+                {/* Physics & Port Congestion Clearances */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2 text-[10.5px]">
+                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
+                    <span className="text-slate-400 block text-[9.5px] uppercase">Origin Loading Clear:</span>
+                    <span className="font-semibold text-emerald-300">
+                      Draft ≤ {rightVesselRecommendation.origin.maxDraftLaden || rightVesselRecommendation.origin.maxDraft}m • Load {((rightVesselRecommendation.origin.handlingRateTPD || 75000) / 1000).toFixed(0)}k TPD
+                    </span>
+                  </div>
+                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
+                    <span className="text-slate-400 block text-[9.5px] uppercase">Discharge Port Fit:</span>
+                    <span className="font-semibold text-emerald-300">
+                      {rightVesselRecommendation.dest.name.split('(')[0]}: Direct Berth Clearance
+                    </span>
+                  </div>
+                  <div className="bg-slate-800/80 rounded p-1.5 border border-slate-700/60">
+                    <span className="text-slate-400 block text-[9.5px] uppercase">JIT Empty Berth ETA:</span>
+                    <span className="font-semibold text-amber-300">
+                      {GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.nextEmptyBerthSlotETA || 'Immediate'} @ {GLOBAL_ORIGIN_PORT_CONGESTION[activeOriginPortKey]?.recommendedSpeedKnots || 11.6} kts
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Operational Savings & 1-Click Terminal Connection */}
+              <div className="flex sm:flex-row lg:flex-col items-end justify-between sm:justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0 border-indigo-900/60">
+                <div className="text-right">
+                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block">
+                    Demurrage Exposure Avoided
+                  </span>
+                  <div className="text-base font-extrabold text-emerald-400 font-mono">
+                    ₹{rightVesselRecommendation.demurrageSavedINR_Lakhs} Lakhs <span className="text-xs text-slate-300 font-normal">(${rightVesselRecommendation.demurrageSavedUSD?.toLocaleString()})</span>
+                  </div>
+                  <span className="text-[9.5px] text-amber-300 font-semibold block">
+                    ⚡ {rightVesselRecommendation.idleDaysSaved} Days Idle Saved vs Suboptimal
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectVessel) {
+                      onSelectVessel(rightVesselRecommendation.recommendedVesselId);
+                    }
+                    setAppliedVesselSuccess(true);
+                    setTimeout(() => setAppliedVesselSuccess(false), 3000);
+                  }}
+                  className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                    appliedVesselSuccess
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-indigo-500/25'
+                  }`}
+                >
+                  {appliedVesselSuccess ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-white" />
+                      <span>Applied to Terminal!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Apply {rightVesselRecommendation.recommendedVessel.name} to Terminal</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Search Bar & Advanced Category Filters */}

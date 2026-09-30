@@ -159,80 +159,538 @@ def load_market_news():
     }
 
 # ---------------------------------------------------------------------------
-# East Coast Ports Database
+# East Coast Discharge Ports Database (Official Gazette Limits)
 # ---------------------------------------------------------------------------
 PORTS_DATA = {
     "paradip": {
         "id": "paradip",
         "name": "Paradip Port (Odisha)",
         "code": "INPRT",
-        "draftLimitM": 16.0,
-        "maxDwt": 180000,
-        "berthNote": "14.5m MCHP / 16.0m KICT High-Tide (16.0m Official Max)",
+        "maxLOA": 300,
+        "maxBeam": 46.0,
+        "draftLimitM": 14.5,
+        "maxDraftLaden": 14.5,
+        "maxDraftHighTide": 16.0,
+        "maxDwt": 125000,
+        "handlingRateTPD": 45000,
+        "berthNote": "14.5m MCHP Berths 5-7 / 16.0m KICT High-Tide Berth 03",
         "demurrageUSDPerDay": 25000,
         "demurrageINRPerDay": 2125000,
         "avgAnchorageWaitDays": 3.2,
-        "linkedSteelPlants": ["SAIL Rourkela (RSP)", "SAIL Bokaro (BSL)"]
+        "linkedSteelPlants": ["SAIL Rourkela (RSP)", "SAIL Bokaro (BSL)"],
+        "officialSource": "Paradip Port Authority Official Gazette Berth Particulars 2024-2026"
     },
     "vizag": {
         "id": "vizag",
         "name": "Visakhapatnam Port (Andhra Pradesh)",
         "code": "INVTZ",
+        "maxLOA": 300,
+        "maxBeam": 50.0,
         "draftLimitM": 14.0,
-        "maxDwt": 150000,
-        "berthNote": "14.0m Inner Harbour (2025 Trade Circular) / 16.5m Outer VGCB",
+        "maxDraftLaden": 14.0,
+        "maxDraftHighTide": 14.5,
+        "outerHarbourDraft": 18.1,
+        "maxDwt": 200000,
+        "handlingRateTPD": 60000,
+        "berthNote": "14.0m Inner Harbour (2025 Trade Circular) / 18.1m Outer VGCB Capesize",
         "demurrageUSDPerDay": 22000,
         "demurrageINRPerDay": 1870000,
         "avgAnchorageWaitDays": 2.1,
-        "linkedSteelPlants": ["SAIL Bhilai (BSP)", "RINL Vizag"]
+        "linkedSteelPlants": ["SAIL Bhilai (BSP)", "RINL Vizag"],
+        "officialSource": "Visakhapatnam Port Authority Trade Circular No. 168 (2025) & Outer Harbour Gazette"
     },
     "gangavaram": {
         "id": "gangavaram",
         "name": "Gangavaram Port (Andhra Pradesh)",
         "code": "INGGV",
+        "maxLOA": 320,
+        "maxBeam": 52.0,
         "draftLimitM": 19.5,
-        "maxDwt": 200000,
-        "berthNote": "19.5m Super-Capesize Deep Draft / Conveyor to RINL",
+        "maxDraftLaden": 19.5,
+        "maxDraftHighTide": 20.2,
+        "maxDwt": 220000,
+        "handlingRateTPD": 70000,
+        "berthNote": "19.5m Super-Capesize Deep Draft / High-Speed Mechanized Unloaders",
         "demurrageUSDPerDay": 26000,
         "demurrageINRPerDay": 2210000,
         "avgAnchorageWaitDays": 1.4,
-        "linkedSteelPlants": ["SAIL Bhilai (BSP)", "SAIL Rourkela (RSP)"]
+        "linkedSteelPlants": ["SAIL Bhilai (BSP)", "SAIL Rourkela (RSP)"],
+        "officialSource": "Adani Gangavaram Port Ltd Deep-Draft Technical Operations Manual 2025"
     },
     "dhamra": {
         "id": "dhamra",
         "name": "Dhamra Port (Odisha)",
         "code": "INDHM",
+        "maxLOA": 310,
+        "maxBeam": 50.0,
         "draftLimitM": 18.0,
+        "maxDraftLaden": 18.0,
+        "maxDraftHighTide": 18.5,
         "maxDwt": 180000,
-        "berthNote": "18.0m All-Weather Berth / 18.5m High Tide",
+        "handlingRateTPD": 65000,
+        "berthNote": "18.0m All-Weather Capesize Berth 1 & 2 / 18.5m High Tide",
         "demurrageUSDPerDay": 26000,
         "demurrageINRPerDay": 2210000,
         "avgAnchorageWaitDays": 1.8,
-        "linkedSteelPlants": ["SAIL Bokaro (BSL)", "SAIL Rourkela (RSP)"]
+        "linkedSteelPlants": ["SAIL Bokaro (BSL)", "SAIL Rourkela (RSP)"],
+        "officialSource": "Adani Ports Dhamra DPCL Bulk Terminal Guidelines 2025"
     },
     "haldia": {
         "id": "haldia",
         "name": "Haldia Dock Complex (West Bengal)",
         "code": "INHAL",
+        "maxLOA": 230,
+        "maxBeam": 31.0,
         "draftLimitM": 8.5,
-        "maxDwt": 55000,
-        "berthNote": "8.0m Neap / 9.1m Max Spring Tide (SMPK Tidal Window)",
+        "maxDraftLaden": 8.5,
+        "maxDraftHighTide": 9.1,
+        "maxDwt": 35000,
+        "handlingRateTPD": 18000,
+        "berthNote": "8.0m Neap / 9.1m Max Spring Tide (Strict Lock Gate 31m Beam Limit)",
         "demurrageUSDPerDay": 18000,
         "demurrageINRPerDay": 1530000,
         "avgAnchorageWaitDays": 4.8,
-        "linkedSteelPlants": ["SAIL Durgapur (DSP)", "SAIL IISCO Burnpur"]
+        "linkedSteelPlants": ["SAIL Durgapur (DSP)", "SAIL IISCO Burnpur"],
+        "officialSource": "Syama Prasad Mookerjee Port Kolkata (HDC) Lock Channel Circular 2025"
     },
     "gopalpur": {
         "id": "gopalpur",
         "name": "Gopalpur Port (Odisha)",
         "code": "INGPR",
+        "maxLOA": 230,
+        "maxBeam": 32.2,
         "draftLimitM": 13.5,
-        "maxDwt": 80000,
+        "maxDraftLaden": 13.5,
+        "maxDraftHighTide": 14.0,
+        "maxDwt": 75000,
+        "handlingRateTPD": 25000,
         "berthNote": "13.5m Draft / Geared Panamax & Supramax Terminal",
         "demurrageUSDPerDay": 19000,
         "demurrageINRPerDay": 1615000,
         "avgAnchorageWaitDays": 1.2,
-        "linkedSteelPlants": ["SAIL Rourkela (RSP)", "Tata Steel Meramandali"]
+        "linkedSteelPlants": ["SAIL Rourkela (RSP)", "Tata Steel Meramandali"],
+        "officialSource": "Gopalpur Ports Limited Berth Capacity Notification 2024"
+    },
+    "ennore": {
+        "id": "ennore",
+        "name": "Kamarajar Port Ennore (Tamil Nadu)",
+        "code": "INKR",
+        "maxLOA": 260,
+        "maxBeam": 45.0,
+        "draftLimitM": 15.5,
+        "maxDraftLaden": 15.5,
+        "maxDraftHighTide": 16.0,
+        "maxDwt": 150000,
+        "handlingRateTPD": 48000,
+        "berthNote": "Dedicated Energy Port for TANGEDCO North Chennai / Capesize Part-Laden",
+        "demurrageUSDPerDay": 23000,
+        "demurrageINRPerDay": 1955000,
+        "avgAnchorageWaitDays": 1.6,
+        "linkedSteelPlants": ["TANGEDCO NCTPS", "SAIL Salem Steel"],
+        "officialSource": "Kamarajar Port Limited (KPL) Marine Operations Manual 2025"
+    },
+    "chennai": {
+        "id": "chennai",
+        "name": "Chennai Port (Tamil Nadu)",
+        "code": "INMAA",
+        "maxLOA": 280,
+        "maxBeam": 42.0,
+        "draftLimitM": 14.0,
+        "maxDraftLaden": 14.0,
+        "maxDraftHighTide": 14.6,
+        "maxDwt": 100000,
+        "handlingRateTPD": 35000,
+        "berthNote": "West Quay Mechanized Berths connecting via Southern Railway",
+        "demurrageUSDPerDay": 21000,
+        "demurrageINRPerDay": 1785000,
+        "avgAnchorageWaitDays": 2.3,
+        "linkedSteelPlants": ["SAIL Salem Steel Plant (SSP)"],
+        "officialSource": "Chennai Port Authority (ChPA) Harbour Circular 2025"
+    },
+    "krishnapatnam": {
+        "id": "krishnapatnam",
+        "name": "Krishnapatnam Port (Andhra Pradesh)",
+        "code": "INKRI",
+        "maxLOA": 310,
+        "maxBeam": 48.0,
+        "draftLimitM": 18.0,
+        "maxDraftLaden": 18.0,
+        "maxDraftHighTide": 18.5,
+        "maxDwt": 180000,
+        "handlingRateTPD": 55000,
+        "berthNote": "Deepwater Capesize berth with twin unloaders serving Rayalaseema power corridor",
+        "demurrageUSDPerDay": 25000,
+        "demurrageINRPerDay": 2125000,
+        "avgAnchorageWaitDays": 1.5,
+        "linkedSteelPlants": ["APGENCO", "SAIL Hinterland"],
+        "officialSource": "Adani Krishnapatnam Port Terminal Guide 2025"
+    },
+    "tuticorin": {
+        "id": "tuticorin",
+        "name": "V.O. Chidambaranar Port (VOCPA Tuticorin)",
+        "code": "INTUT",
+        "maxLOA": 260,
+        "maxBeam": 40.0,
+        "draftLimitM": 14.2,
+        "maxDraftLaden": 14.2,
+        "maxDraftHighTide": 14.7,
+        "maxDwt": 95000,
+        "handlingRateTPD": 32000,
+        "berthNote": "North Cargo Berth & Coal Jetty serving TTPS thermal power station",
+        "demurrageUSDPerDay": 20000,
+        "demurrageINRPerDay": 1700000,
+        "avgAnchorageWaitDays": 1.9,
+        "linkedSteelPlants": ["TANGEDCO TTPS"],
+        "officialSource": "VOC Port Authority Marine Department Circular 2025"
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Global Loading Ports Database (Australia, US, Mozambique, Indonesia, etc.)
+# ---------------------------------------------------------------------------
+ORIGIN_LOADING_PORTS_DATA = {
+    # 1. AUSTRALIA
+    "hay_point": {
+        "id": "hay_point",
+        "name": "Hay Point / DBCT (Australia)",
+        "country": "Australia",
+        "region": "Queensland",
+        "maxLOA": 343,
+        "maxBeam": 55.0,
+        "maxDraftLaden": 19.3,
+        "maxDWT": 220000,
+        "handlingRateTPD": 85000,
+        "shiploaderRateTPH": 7200,
+        "distanceToEastCoastNM": 5350,
+        "primaryCargo": "Premium Hard Coking Coal",
+        "officialSource": "Dalrymple Bay Coal Terminal (DBCT) Port Information Manual 2025 & NQBP Handbook"
+    },
+    "gladstone": {
+        "id": "gladstone",
+        "name": "Gladstone R.G. Tanna (Australia)",
+        "country": "Australia",
+        "region": "Queensland",
+        "maxLOA": 315,
+        "maxBeam": 50.0,
+        "maxDraftLaden": 17.8,
+        "maxDWT": 220000,
+        "handlingRateTPD": 75000,
+        "shiploaderRateTPH": 6000,
+        "distanceToEastCoastNM": 5420,
+        "primaryCargo": "Prime Coking Coal & Semi-Soft Coal",
+        "officialSource": "Gladstone Ports Corporation (GPC) Marine Operations Manual 2025"
+    },
+    "newcastle": {
+        "id": "newcastle",
+        "name": "Newcastle PWCS / NCIG (Australia)",
+        "country": "Australia",
+        "region": "New South Wales",
+        "maxLOA": 300,
+        "maxBeam": 50.0,
+        "maxDraftLaden": 16.2,
+        "maxDWT": 210000,
+        "handlingRateTPD": 80000,
+        "shiploaderRateTPH": 10500,
+        "distanceToEastCoastNM": 5650,
+        "primaryCargo": "Thermal & Semi-Soft Coking Coal",
+        "officialSource": "Port Authority of New South Wales (Newcastle) Marine Operations Guidelines 2025"
+    },
+    "abbot_point": {
+        "id": "abbot_point",
+        "name": "Abbot Point / NQXT (Australia)",
+        "country": "Australia",
+        "region": "Queensland",
+        "maxLOA": 330,
+        "maxBeam": 55.0,
+        "maxDraftLaden": 18.5,
+        "maxDWT": 220000,
+        "handlingRateTPD": 80000,
+        "shiploaderRateTPH": 7200,
+        "distanceToEastCoastNM": 5280,
+        "primaryCargo": "Bowen Basin Coking Coal",
+        "officialSource": "North Queensland Bulk Ports (NQBP) Abbot Point Marine Information Guide 2025"
+    },
+    "port_kembla": {
+        "id": "port_kembla",
+        "name": "Port Kembla Coal Terminal (Australia)",
+        "country": "Australia",
+        "region": "New South Wales",
+        "maxLOA": 315,
+        "maxBeam": 47.0,
+        "maxDraftLaden": 16.25,
+        "maxDWT": 180000,
+        "handlingRateTPD": 55000,
+        "shiploaderRateTPH": 5000,
+        "distanceToEastCoastNM": 5780,
+        "primaryCargo": "Illawarra Prime Hard Coking Coal",
+        "officialSource": "Port Authority of New South Wales (Port Kembla) Vessel Operating Limits 2025"
+    },
+
+    # 2. UNITED STATES
+    "hampton_roads": {
+        "id": "hampton_roads",
+        "name": "Hampton Roads / Norfolk Pier 6 (USA)",
+        "country": "United States",
+        "region": "Virginia",
+        "maxLOA": 305,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 15.5,
+        "maxDWT": 180000,
+        "handlingRateTPD": 65000,
+        "shiploaderRateTPH": 7000,
+        "distanceToEastCoastNM": 9800,
+        "primaryCargo": "Appalachian High-Vol / Low-Vol Met Coal",
+        "officialSource": "US Army Corps of Engineers (USACE) Norfolk Harbor Navigation Regulations & NS Guide 2025"
+    },
+    "baltimore": {
+        "id": "baltimore",
+        "name": "Baltimore Consol CNX / CSX (USA)",
+        "country": "United States",
+        "region": "Maryland",
+        "maxLOA": 305,
+        "maxBeam": 44.0,
+        "maxDraftLaden": 14.5,
+        "maxDWT": 150000,
+        "handlingRateTPD": 50000,
+        "shiploaderRateTPH": 6000,
+        "distanceToEastCoastNM": 9950,
+        "primaryCargo": "Northern Appalachian Met & Thermal Coal",
+        "officialSource": "Association of Maryland Pilots & Consol Energy CNX Marine Terminal Guide 2025"
+    },
+    "mobile": {
+        "id": "mobile",
+        "name": "Mobile McDuffie Coal Terminal (USA)",
+        "country": "United States",
+        "region": "Alabama",
+        "maxLOA": 290,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 13.8,
+        "maxDWT": 130000,
+        "handlingRateTPD": 45000,
+        "shiploaderRateTPH": 5000,
+        "distanceToEastCoastNM": 10400,
+        "primaryCargo": "Warrior Basin Blue Creek Hard Coking Coal",
+        "officialSource": "Alabama State Port Authority McDuffie Marine Operations Regulations 2025"
+    },
+    "new_orleans": {
+        "id": "new_orleans",
+        "name": "New Orleans / Convent CMT (USA)",
+        "country": "United States",
+        "region": "Louisiana",
+        "maxLOA": 300,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 14.6,
+        "maxDWT": 150000,
+        "handlingRateTPD": 50000,
+        "shiploaderRateTPH": 6000,
+        "distanceToEastCoastNM": 10350,
+        "primaryCargo": "Illinois Basin Met & High-Energy Coal",
+        "officialSource": "Crescent River Port Pilots Association & Convent Marine Terminal Guide 2025"
+    },
+
+    # 3. MOZAMBIQUE
+    "maputo": {
+        "id": "maputo",
+        "name": "Maputo / Matola TCM (Mozambique)",
+        "country": "Mozambique",
+        "region": "Maputo Bay",
+        "maxLOA": 275,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 15.4,
+        "maxDWT": 120000,
+        "handlingRateTPD": 40000,
+        "shiploaderRateTPH": 3000,
+        "distanceToEastCoastNM": 4150,
+        "primaryCargo": "Moatize Coking & Met Coal",
+        "officialSource": "Terminal de Carvão da Matola (TCM) Port Guidelines & MPDC 2025"
+    },
+    "beira": {
+        "id": "beira",
+        "name": "Port of Beira Coal Terminal (Mozambique)",
+        "country": "Mozambique",
+        "region": "Sofala",
+        "maxLOA": 200,
+        "maxBeam": 32.2,
+        "maxDraftLaden": 10.5,
+        "maxDWT": 55000,
+        "handlingRateTPD": 22000,
+        "shiploaderRateTPH": 1500,
+        "distanceToEastCoastNM": 3950,
+        "primaryCargo": "Moatize Met Coal (Sena Rail Corridor)",
+        "officialSource": "Cornelder de Moçambique Port Information Guide & CFM Marine Authority 2025"
+    },
+    "nacala": {
+        "id": "nacala",
+        "name": "Nacala-a-Velha Deepwater Coal Terminal (Mozambique)",
+        "country": "Mozambique",
+        "region": "Nampula",
+        "maxLOA": 340,
+        "maxBeam": 54.0,
+        "maxDraftLaden": 21.0,
+        "maxDWT": 220000,
+        "handlingRateTPD": 65000,
+        "shiploaderRateTPH": 4000,
+        "distanceToEastCoastNM": 3650,
+        "primaryCargo": "Moatize Prime Coking Coal (Nacala Rail)",
+        "officialSource": "Portos e Caminhos de Ferro de Moçambique (CFM) Nacala-a-Velha Operations Manual 2025"
+    },
+
+    # 4. INDONESIA
+    "samarinda": {
+        "id": "samarinda",
+        "name": "Muara Berau / Samarinda (Indonesia)",
+        "country": "Indonesia",
+        "region": "East Kalimantan",
+        "maxLOA": 280,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 14.5,
+        "maxDWT": 120000,
+        "handlingRateTPD": 35000,
+        "shiploaderRateTPH": 2500,
+        "distanceToEastCoastNM": 2450,
+        "primaryCargo": "East Kalimantan Sub-Bituminous Coal",
+        "officialSource": "Indonesian Directorate General of Sea Transportation (Hubla) & KSOP Samarinda 2025"
+    },
+    "taboneo": {
+        "id": "taboneo",
+        "name": "Taboneo Deepwater Anchorage (Indonesia)",
+        "country": "Indonesia",
+        "region": "South Kalimantan",
+        "maxLOA": 330,
+        "maxBeam": 50.0,
+        "maxDraftLaden": 18.0,
+        "maxDWT": 200000,
+        "handlingRateTPD": 50000,
+        "shiploaderRateTPH": 3500,
+        "distanceToEastCoastNM": 2380,
+        "primaryCargo": "South Kalimantan Thermal Coal (Adaro/Arutmin)",
+        "officialSource": "Banjarmasin Class I Port Authority (KSOP) Taboneo Anchorage Guide 2025"
+    },
+    "bunati": {
+        "id": "bunati",
+        "name": "Bunati Port & Anchorage (Indonesia)",
+        "country": "Indonesia",
+        "region": "South Kalimantan",
+        "maxLOA": 260,
+        "maxBeam": 40.0,
+        "maxDraftLaden": 13.5,
+        "maxDWT": 85000,
+        "handlingRateTPD": 32000,
+        "shiploaderRateTPH": 2200,
+        "distanceToEastCoastNM": 2410,
+        "primaryCargo": "Tanah Bumbu Low Ash Thermal Coal",
+        "officialSource": "KSOP Satui / Bunati Terminal Circular 2025"
+    },
+    "tanjung_bara": {
+        "id": "tanjung_bara",
+        "name": "Tanjung Bara TBCT / KPC (Indonesia)",
+        "country": "Indonesia",
+        "region": "East Kalimantan",
+        "maxLOA": 310,
+        "maxBeam": 48.0,
+        "maxDraftLaden": 17.5,
+        "maxDWT": 180000,
+        "handlingRateTPD": 60000,
+        "shiploaderRateTPH": 4700,
+        "distanceToEastCoastNM": 2520,
+        "primaryCargo": "Prima & Pinang High-CV Thermal Coal",
+        "officialSource": "PT Kaltim Prima Coal (KPC) Tanjung Bara Marine Terminal Handbook 2025"
+    },
+    "balikpapan": {
+        "id": "balikpapan",
+        "name": "Balikpapan Coal Terminal BCT (Indonesia)",
+        "country": "Indonesia",
+        "region": "East Kalimantan",
+        "maxLOA": 280,
+        "maxBeam": 45.0,
+        "maxDraftLaden": 15.5,
+        "maxDWT": 150000,
+        "handlingRateTPD": 45000,
+        "shiploaderRateTPH": 4000,
+        "distanceToEastCoastNM": 2480,
+        "primaryCargo": "Tabang Low Ash / Low Sulfur Sub-Bituminous Coal",
+        "officialSource": "Balikpapan Class I KSOP & PT Bayan Resources Marine Operations Guide 2025"
+    }
+}
+
+# Standard Vessel Profiles for Fit Calculations
+VESSEL_PROFILES = {
+    "capesize": {
+        "id": "capesize",
+        "name": "Capesize",
+        "dwt": 180000,
+        "capacityMT": 165000,
+        "ladenDraft": 18.2,
+        "loa": 292,
+        "beam": 45.0,
+        "dailyCharterUSD": 24500,
+        "scaleFactor": 0.72
+    },
+    "baby_cape": {
+        "id": "baby_cape",
+        "name": "Baby Cape / Post-Panamax",
+        "dwt": 115000,
+        "capacityMT": 105000,
+        "ladenDraft": 15.1,
+        "loa": 255,
+        "beam": 43.0,
+        "dailyCharterUSD": 19800,
+        "scaleFactor": 0.81
+    },
+    "kamsarmax": {
+        "id": "kamsarmax",
+        "name": "Kamsarmax",
+        "dwt": 82000,
+        "capacityMT": 82000,
+        "ladenDraft": 14.4,
+        "loa": 229,
+        "beam": 32.26,
+        "dailyCharterUSD": 14500,
+        "scaleFactor": 0.88
+    },
+    "panamax": {
+        "id": "panamax",
+        "name": "Panamax",
+        "dwt": 75000,
+        "capacityMT": 75000,
+        "ladenDraft": 14.2,
+        "loa": 225,
+        "beam": 32.20,
+        "dailyCharterUSD": 14200,
+        "scaleFactor": 0.92
+    },
+    "supramax": {
+        "id": "supramax",
+        "name": "Supramax",
+        "dwt": 58000,
+        "capacityMT": 55000,
+        "ladenDraft": 12.8,
+        "loa": 199,
+        "beam": 32.20,
+        "dailyCharterUSD": 11500,
+        "scaleFactor": 1.04
+    },
+    "handymax": {
+        "id": "handymax",
+        "name": "Handymax (HDC River Lock Class)",
+        "dwt": 35000,
+        "capacityMT": 33000,
+        "ladenDraft": 8.2,
+        "loa": 178,
+        "beam": 27.5,
+        "dailyCharterUSD": 10500,
+        "scaleFactor": 1.16
+    },
+    "handysize": {
+        "id": "handysize",
+        "name": "Handysize",
+        "dwt": 28000,
+        "capacityMT": 28000,
+        "ladenDraft": 7.8,
+        "loa": 165,
+        "beam": 26.0,
+        "dailyCharterUSD": 9500,
+        "scaleFactor": 1.25
     }
 }
 
@@ -659,13 +1117,194 @@ def get_vessels():
 # ---------------------------------------------------------------------------
 # Ports Information Endpoint
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Ports Information Endpoint
+# ---------------------------------------------------------------------------
 @app.route('/api/ports', methods=['GET'])
 def get_ports():
-    """Returns specifications for all Indian East Coast bulk ports."""
+    """Returns specifications for Indian East Coast discharge ports and global loading ports."""
     return jsonify({
-        "portsCount": len(PORTS_DATA),
-        "ports": PORTS_DATA
+        "status": "success",
+        "dischargePortsCount": len(PORTS_DATA),
+        "dischargePorts": PORTS_DATA,
+        "loadingPortsCount": len(ORIGIN_LOADING_PORTS_DATA),
+        "loadingPorts": ORIGIN_LOADING_PORTS_DATA,
+        "ports": PORTS_DATA,  # backwards compatibility
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }), 200
+
+# ---------------------------------------------------------------------------
+# Vessel & Port Fit Score Endpoint (Official Marine Constraints)
+# ---------------------------------------------------------------------------
+@app.route('/api/vessel-port-fit', methods=['GET', 'POST'])
+def calculate_vessel_port_fit():
+    """
+    Evaluates physical limits (LOA, Beam, Draft) and operational metrics (Cargo handling rate, Turnaround)
+    between candidate vessel, loading port (Australia, US, Mozambique, Indonesia), and Indian East Coast discharge port.
+    Returns composite Fit Score (0-100), clearance margins, and laytime/demurrage outcome based on official gazettes.
+    """
+    if request.method == 'POST':
+        body = request.get_json(silent=True) or {}
+    else:
+        body = request.args
+
+    origin_id = (body.get('origin') or body.get('originId') or 'hay_point').lower()
+    dest_id = (body.get('destination') or body.get('portId') or body.get('destinationId') or 'paradip').lower()
+    vessel_id = (body.get('vessel') or body.get('vesselClass') or body.get('vesselId') or 'capesize').lower()
+    try:
+        cargo_volume_mt = float(body.get('volumeMT') or body.get('cargoVolumeMT') or 150000)
+    except (ValueError, TypeError):
+        cargo_volume_mt = 150000.0
+
+    origin = ORIGIN_LOADING_PORTS_DATA.get(origin_id, ORIGIN_LOADING_PORTS_DATA['hay_point'])
+    dest = PORTS_DATA.get(dest_id, PORTS_DATA['paradip'])
+    vessel = VESSEL_PROFILES.get(vessel_id, VESSEL_PROFILES['capesize'])
+
+    # 1. Origin physical clearances
+    origin_loa_clear = vessel['loa'] <= origin['maxLOA']
+    origin_beam_clear = vessel['beam'] <= origin['maxBeam']
+    origin_draft_clear = vessel['ladenDraft'] <= origin['maxDraftLaden']
+    origin_loa_margin = round(origin['maxLOA'] - vessel['loa'], 1)
+    origin_beam_margin = round(origin['maxBeam'] - vessel['beam'], 1)
+    origin_draft_margin = round(origin['maxDraftLaden'] - vessel['ladenDraft'], 1)
+
+    # 2. Destination physical clearances
+    dest_effective_draft = dest.get('outerHarbourDraft', dest['maxDraftHighTide'])
+    dest_draft_standard_clear = vessel['ladenDraft'] <= dest['maxDraftLaden']
+    dest_draft_tide_clear = vessel['ladenDraft'] <= dest_effective_draft
+    dest_draft_clear = dest_draft_standard_clear or dest_draft_tide_clear
+    dest_loa_clear = vessel['loa'] <= dest['maxLOA']
+    dest_beam_clear = vessel['beam'] <= dest['maxBeam']
+
+    dest_draft_margin = round(dest['maxDraftLaden'] - vessel['ladenDraft'], 1)
+    dest_tide_draft_margin = round(dest_effective_draft - vessel['ladenDraft'], 1)
+    dest_loa_margin = round(dest['maxLOA'] - vessel['loa'], 1)
+    dest_beam_margin = round(dest['maxBeam'] - vessel['beam'], 1)
+
+    # 3. Hard block check (LOA, Beam, or Draft exceeded)
+    is_hard_blocked = not (origin_loa_clear and origin_beam_clear and origin_draft_clear and dest_loa_clear and dest_beam_clear and dest_draft_clear)
+
+    # 4. Turnaround & Cargo Handling Rates (Loading TPD at origin + Discharge TPD at dest)
+    voyages_needed = max(1, math.ceil(cargo_volume_mt / min(cargo_volume_mt, vessel['capacityMT'])))
+    loading_days = round(cargo_volume_mt / origin['handlingRateTPD'], 2)
+    discharge_days = round(cargo_volume_mt / dest['handlingRateTPD'], 2)
+    allowed_laytime_days = round(cargo_volume_mt / dest['handlingRateTPD'], 1)
+    extra_laytime_days = round(discharge_days - allowed_laytime_days, 1)
+
+    # Lighterage check (e.g. Paradip Capesize)
+    lighterage_required = False
+    if not is_hard_blocked and not dest_draft_standard_clear and dest_draft_tide_clear:
+        if dest['id'] == 'paradip' and vessel['id'] == 'capesize':
+            lighterage_required = True
+
+    # Idle wait & Turnaround days
+    base_wait_days = dest.get('avgAnchorageWaitDays', 2.0)
+    idle_days = round(base_wait_days * voyages_needed + (2.5 if lighterage_required else (10.0 if is_hard_blocked else 0.0)), 2)
+    total_port_turnaround_days = round(loading_days + discharge_days + idle_days + (1.0 * voyages_needed), 2)
+
+    # Demurrage vs Dispatch
+    demurrage_usd_day = dest.get('demurrageUSDPerDay', 25000)
+    demurrage_total_usd = round(idle_days * demurrage_usd_day)
+    demurrage_total_inr_cr = round((demurrage_total_usd * 86.0) / 10000000, 2)
+    is_dispatch_earned = not is_hard_blocked and not lighterage_required and idle_days <= 1.5 and voyages_needed == 1
+
+    # 5. Composite Fit Score (0-100)
+    if is_hard_blocked:
+        score = 0
+    else:
+        score = 100
+        if lighterage_required:
+            score -= 35
+        if not dest_draft_standard_clear and dest_draft_tide_clear:
+            score -= 15
+        if cargo_volume_mt > vessel['capacityMT']:
+            score -= 30
+        if voyages_needed > 1:
+            score -= (voyages_needed - 1) * 20
+        if vessel['capacityMT'] > cargo_volume_mt * 2.2:
+            score -= 20
+        cost_penalty = round((vessel['scaleFactor'] - 0.72) * 25)
+        score -= max(0, cost_penalty)
+        if dest_draft_margin >= 1.0 and cargo_volume_mt <= vessel['capacityMT'] * 1.1:
+            score += 5
+        if is_dispatch_earned:
+            score += 5
+        score = max(0, min(100, score))
+
+    # Traffic light verdict
+    if is_hard_blocked:
+        violations = []
+        if not dest_draft_clear:
+            violations.append(f"Destination draft {vessel['ladenDraft']}m > {dest['name']} limit {dest_effective_draft}m")
+        if not dest_loa_clear:
+            violations.append(f"LOA {vessel['loa']}m > {dest['name']} berth {dest['maxLOA']}m")
+        if not dest_beam_clear:
+            violations.append(f"Beam {vessel['beam']}m > {dest['name']} lock/berth {dest['maxBeam']}m")
+        if not origin_draft_clear:
+            violations.append(f"Origin draft {vessel['ladenDraft']}m > {origin['name']} limit {origin['maxDraftLaden']}m")
+        if not origin_loa_clear:
+            violations.append(f"Origin LOA {vessel['loa']}m > {origin['name']} limit {origin['maxLOA']}m")
+        if not origin_beam_clear:
+            violations.append(f"Origin beam {vessel['beam']}m > {origin['name']} limit {origin['maxBeam']}m")
+        verdict = f"🔴 DISQUALIFIED: Exceeds physical port constraints ({', '.join(violations)})"
+    elif lighterage_required:
+        verdict = f"🟡 RESTRICTED: Requires offshore lighterage at {dest['name']} to enter on spring high tide"
+    elif not dest_draft_standard_clear and dest_draft_tide_clear:
+        verdict = f"🟡 TIDE-DEPENDENT: Safe berthing dependent on spring tide (+{dest_tide_draft_margin}m tide margin)"
+    elif cargo_volume_mt > vessel['capacityMT']:
+        verdict = f"🟡 CAPACITY DEFICIT: Consignment requires {voyages_needed} voyages (consider larger vessel)"
+    else:
+        verdict = f"🟢 OPTIMAL FIT: 100% compliant at {origin['name']} and {dest['name']} with zero draft/LOA/beam restriction"
+
+    return jsonify({
+        "status": "success",
+        "fitScore": score,
+        "isFeasible": not is_hard_blocked,
+        "verdict": verdict,
+        "vessel": vessel,
+        "originLoadingPort": origin,
+        "destinationDischargePort": dest,
+        "cargoVolumeMT": cargo_volume_mt,
+        "voyagesNeeded": voyages_needed,
+        "physicalClearances": {
+            "origin": {
+                "loaClear": origin_loa_clear,
+                "loaMarginM": origin_loa_margin,
+                "beamClear": origin_beam_clear,
+                "beamMarginM": origin_beam_margin,
+                "draftClear": origin_draft_clear,
+                "draftMarginM": origin_draft_margin,
+                "handlingRateTPD": origin['handlingRateTPD'],
+                "shiploaderRateTPH": origin.get('shiploaderRateTPH', 6000),
+                "loadingDays": loading_days
+            },
+            "destination": {
+                "loaClear": dest_loa_clear,
+                "loaMarginM": dest_loa_margin,
+                "beamClear": dest_beam_clear,
+                "beamMarginM": dest_beam_margin,
+                "draftStandardClear": dest_draft_standard_clear,
+                "draftTideClear": dest_draft_tide_clear,
+                "draftMarginM": dest_draft_margin,
+                "tideDraftMarginM": dest_tide_draft_margin,
+                "handlingRateTPD": dest['handlingRateTPD'],
+                "dischargeDays": discharge_days
+            }
+        },
+        "operationalTurnaround": {
+            "totalPortDays": total_port_turnaround_days,
+            "idleAnchorageDays": idle_days,
+            "demurrageExposureUSD": demurrage_total_usd,
+            "demurrageExposureINR_Cr": demurrage_total_inr_cr,
+            "isDispatchEarned": is_dispatch_earned
+        },
+        "officialCitations": {
+            "originSource": origin['officialSource'],
+            "destinationSource": dest['officialSource']
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
+
 
 # ---------------------------------------------------------------------------
 # Probabilistic Freight Forecasting & CVaR Optimization Endpoint

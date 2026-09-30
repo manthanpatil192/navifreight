@@ -19,6 +19,7 @@ export function optimizeVesselType({
   const dest = INDIAN_EAST_COAST_PORTS[destinationId] || INDIAN_EAST_COAST_PORTS.paradip;
 
   // Candidate vessel profiles strictly aligned with PS Part (b)
+  // Candidate vessel profiles strictly aligned with PS Part (b) and standard bulk carrier dimensions
   const candidateVessels = [
     {
       id: 'capesize',
@@ -28,6 +29,8 @@ export function optimizeVesselType({
       capacityMT: 165000,
       ladenDraft: 18.2,
       loa: 292,
+      beam: 45.0,
+      geared: false,
       dailyCharterUSD: 24500,
       demurragePerDayUSD: 26000,
       fuelBurnMT: 42,
@@ -42,6 +45,8 @@ export function optimizeVesselType({
       capacityMT: 105000,
       ladenDraft: 15.1,
       loa: 255,
+      beam: 43.0,
+      geared: false,
       dailyCharterUSD: 19800,
       demurragePerDayUSD: 21000,
       fuelBurnMT: 33.5,
@@ -56,6 +61,8 @@ export function optimizeVesselType({
       capacityMT: 82000,
       ladenDraft: 14.4,
       loa: 229,
+      beam: 32.26,
+      geared: false,
       dailyCharterUSD: 14500,
       demurragePerDayUSD: 16500,
       fuelBurnMT: 29.5,
@@ -70,6 +77,8 @@ export function optimizeVesselType({
       capacityMT: 75000,
       ladenDraft: 14.2,
       loa: 225,
+      beam: 32.20,
+      geared: false,
       dailyCharterUSD: 14200,
       demurragePerDayUSD: 16000,
       fuelBurnMT: 28,
@@ -84,6 +93,8 @@ export function optimizeVesselType({
       capacityMT: 55000,
       ladenDraft: 12.8,
       loa: 199,
+      beam: 32.20,
+      geared: true,
       dailyCharterUSD: 11500,
       demurragePerDayUSD: 13000,
       fuelBurnMT: 25,
@@ -98,6 +109,8 @@ export function optimizeVesselType({
       capacityMT: 33000,
       ladenDraft: 8.2, // Fully compliant with Haldia 8.5m draft & 9.1m high tide
       loa: 178, // Fully compliant with Haldia lock 230m LOA
+      beam: 27.5, // Fully compliant with Haldia 31.0m lock gate limit
+      geared: true,
       dailyCharterUSD: 10500,
       demurragePerDayUSD: 11500,
       fuelBurnMT: 21,
@@ -112,6 +125,8 @@ export function optimizeVesselType({
       capacityMT: 28000,
       ladenDraft: 7.8, // Shallow draft for extreme river channels
       loa: 165,
+      beam: 26.0,
+      geared: true,
       dailyCharterUSD: 9500,
       demurragePerDayUSD: 10500,
       fuelBurnMT: 19,
@@ -122,9 +137,13 @@ export function optimizeVesselType({
 
   // Evaluate each vessel against physical engineering limits & Live AIS port telemetry
   const evaluations = candidateVessels.map(vessel => {
-    // 1. Origin loading port constraints
-    const originDraftClear = vessel.ladenDraft <= origin.maxDraftLaden;
-    const originLoaClear = vessel.loa <= origin.maxLOA;
+    // 1. Origin loading port constraints (Australia, US, Mozambique, Indonesia, etc.)
+    const originDraftClear = vessel.ladenDraft <= (origin.maxDraftLaden || origin.maxDraft || 18.0);
+    const originLoaClear = vessel.loa <= (origin.maxLOA || 330);
+    const originBeamClear = vessel.beam <= (origin.maxBeam || 55.0);
+    const originDraftMargin = Number(((origin.maxDraftLaden || origin.maxDraft || 18.0) - vessel.ladenDraft).toFixed(1));
+    const originLoaMargin = Number(((origin.maxLOA || 330) - vessel.loa).toFixed(1));
+    const originBeamMargin = Number(((origin.maxBeam || 55.0) - vessel.beam).toFixed(1));
 
     // 2. Destination Indian East Coast discharge port constraints
     const destDraftStandard = dest.maxDraftLaden;
@@ -136,13 +155,16 @@ export function optimizeVesselType({
     const destDraftTideClear = vessel.ladenDraft <= effectiveMaxDraft;
     const destDraftClear = destDraftStandardClear || destDraftTideClear;
     const destLoaClear = vessel.loa <= dest.maxLOA;
+    const destBeamClear = vessel.beam <= (dest.maxBeam || 50.0);
 
-    // Under-keel clearance margin
+    // Physical margins
     const draftMargin = Number((destDraftStandard - vessel.ladenDraft).toFixed(1));
     const tideDraftMargin = Number((effectiveMaxDraft - vessel.ladenDraft).toFixed(1));
+    const destLoaMargin = Number((dest.maxLOA - vessel.loa).toFixed(1));
+    const destBeamMargin = Number(((dest.maxBeam || 50.0) - vessel.beam).toFixed(1));
 
-    // Fully blocked check (e.g. Capesize 18.2m at Haldia 8.5m or LOA 292m > 230m)
-    const isHardBlocked = !destDraftClear || !destLoaClear || !originDraftClear || !originLoaClear;
+    // Hard-blocked check: LOA, Beam, or Draft exceeded at origin or destination
+    const isHardBlocked = !destDraftClear || !destLoaClear || !destBeamClear || !originDraftClear || !originLoaClear || !originBeamClear;
 
     // Real-Time AIS port telemetry cross-reference
     const aisMatches = LIVE_AIS_VESSELS.filter(v => 
@@ -172,24 +194,24 @@ export function optimizeVesselType({
       deadfreightPenaltyINR_Cr = Number(((deadfreightMT * 16.5 * 95.0) / 10000000).toFixed(2));
     }
 
-    // 3. Handling capability & turnaround time (Strictly sum of named components)
+    // 3. Dual-Port Handling Rates (Origin Loading TPD + Destination Discharge TPD)
     const voyagesNeeded = Math.max(1, Math.ceil(cargoVolumeMT / Math.min(cargoVolumeMT, vessel.capacityMT)));
-    const actualDischargeRateTPD = dest.handlingRateTPD || 45000;
-    // Net discharge is strictly cargo tonnage / daily discharge rate
-    const pureDischargeDays = Number((cargoVolumeMT / actualDischargeRateTPD).toFixed(2));
-    const portManeuverBufferDays = Number((1.00 * voyagesNeeded).toFixed(2)); // Pilotage inward/outward, tug assist & draft survey per voyage
+    const originLoadingRateTPD = origin.handlingRateTPD || 65000;
+    const destDischargeRateTPD = dest.handlingRateTPD || 45000;
+    
+    // Net loading and discharge turnaround days
+    const pureLoadingDays = Number((cargoVolumeMT / originLoadingRateTPD).toFixed(2));
+    const pureDischargeDays = Number((cargoVolumeMT / destDischargeRateTPD).toFixed(2));
+    const portManeuverBufferDays = Number((1.00 * voyagesNeeded).toFixed(2)); // Pilotage, tug assist & draft survey per voyage
     const berthOnlyTurnaroundDays = Number((pureDischargeDays + portManeuverBufferDays).toFixed(2));
 
     // 4. Queue Wait & Idle time calculation parameterized on cargo volume, discharge rate & vessel limits
-    // In queueing theory (M/M/c berth queues), berth service demand is proportional to (cargoVolumeMT / actualDischargeRateTPD)
-    // Standard baseline assumes a 100,000 MT parcel at 45,000 TPD (~2.22 days berth service)
     const berthServiceIntensity = (pureDischargeDays / voyagesNeeded) / 2.22;
     const baseWaitDays = (dest.avgWaitDays || 2.5) * Math.max(0.6, berthServiceIntensity);
     let idleDays = baseWaitDays * voyagesNeeded;
     
     let lighterageDelayDays = 0;
     if (lighterageRequired) {
-      // Lighterage volume depends on excess draft: ~11,500 MT per meter excess draft
       const excessDraftM = Math.max(0, vessel.ladenDraft - destDraftStandard);
       const lighterageMT = Math.min(cargoVolumeMT, Math.round(excessDraftM * 11500));
       lighterageDelayDays = Number((lighterageMT / 12000).toFixed(2)); // Offshore barge grab rate ~12,000 TPD
@@ -199,12 +221,16 @@ export function optimizeVesselType({
       idleDays += Number((0.8 * voyagesNeeded).toFixed(2)); // Waiting for spring high tide window
     }
     if (isHardBlocked) {
-      idleDays += Number((10.0 * voyagesNeeded).toFixed(2)); // Refused entry penalty / grounding detention
+      idleDays += Number((10.0 * voyagesNeeded).toFixed(2)); // Refused entry penalty / detention
     }
 
     const queueWaitDays = Number(idleDays.toFixed(2));
-    // Total turnaround is strictly defined as the explicit sum of its named components
     const totalTurnaroundDays = Number((pureDischargeDays + portManeuverBufferDays + queueWaitDays).toFixed(2));
+
+    // Laytime Economics: Demurrage vs Dispatch
+    const allowedLaytimeDays = Number((cargoVolumeMT / destDischargeRateTPD).toFixed(1));
+    const extraOverLaytime = Number((pureDischargeDays - allowedLaytimeDays).toFixed(1));
+    const isDispatchEarned = extraOverLaytime < 0 && queueWaitDays <= 1.5 && voyagesNeeded === 1;
 
     // Canonical charter party demurrage rate for this vessel
     const demurrageDailyUSD = vessel.demurragePerDayUSD || 25000;
@@ -224,38 +250,29 @@ export function optimizeVesselType({
     // 6. Multi-criteria optimization score (0–100)
     let score = 100;
     if (isHardBlocked) {
-      // Hard-blocked vessels receive score of 0 (strictly disqualified from recommendation)
       score = 0;
     } else {
-      // Penalty for lighterage and tide waiting
       if (lighterageRequired) score -= 35;
       if (isLightLoaded) score -= 20;
 
-      // Parcel size suitability penalty:
-      // A: Excessive capacity mismatch (massive vessel for tiny parcel)
       if (vessel.capacityMT > cargoVolumeMT * 2.2) score -= 25;
 
-      // B: CAPACITY DEFICIT (vessel is undersized for consignment)
-      // Standard commercial rule: an 80k parcel should not be put on a 55k Supramax
       if (cargoVolumeMT > vessel.capacityMT) {
         const capacityShortfallMT = cargoVolumeMT - vessel.capacityMT;
         const shortfallRatio = capacityShortfallMT / cargoVolumeMT;
-        score -= Math.round(35 + shortfallRatio * 30); // 35 to 65 pt severe penalty for undersized vessel
+        score -= Math.round(35 + shortfallRatio * 30);
       }
       if (voyagesNeeded > 1) {
-        score -= (voyagesNeeded - 1) * 20; // Additional 20 pts per extra voyage needed
+        score -= (voyagesNeeded - 1) * 20;
       }
 
-      // Economies of scale penalty (higher scaleFactor = higher $/MT freight cost)
       const costPenalty = Math.round((vessel.scaleFactor - 0.72) * 25);
       score -= Math.max(0, costPenalty);
 
-      // Demurrage penalty
       score -= Math.min(25, Math.round(idleDays * 2));
-      // Draft safety bonus (only applies if vessel has sufficient capacity)
       if (draftMargin >= 1.0 && cargoVolumeMT <= vessel.capacityMT * 1.1) score += 5;
-      // AIS operational confirmation bonus
       if (aisConfirmedCalls > 0) score += 5;
+      if (isDispatchEarned) score += 5;
     }
     score = Math.max(0, Math.min(100, score));
 
@@ -264,17 +281,23 @@ export function optimizeVesselType({
       label: 'RECOMMENDED',
       color: 'emerald',
       isRecommended: false,
-      text: `Optimal vessel with safe draft/LOA clearance (${draftMargin >= 0 ? `+${draftMargin.toFixed(1)}m under-keel margin` : 'Clear'}).`
+      text: `Optimal vessel with safe draft/LOA/beam clearance (${draftMargin >= 0 ? `+${draftMargin.toFixed(1)}m under-keel margin` : 'Clear'}).`
     };
 
     if (isHardBlocked) {
-      const draftViolation = !destDraftClear ? `Draft ${vessel.ladenDraft}m > Port Max ${effectiveMaxDraft}m (+${(vessel.ladenDraft - effectiveMaxDraft).toFixed(1)}m Excess Draft - Severe Grounding Hazard!)` : '';
-      const loaViolation = !destLoaClear ? `LOA ${vessel.loa}m > Berth Max ${dest.maxLOA}m (+${(vessel.loa - dest.maxLOA).toFixed(0)}m Excess Length - Lock Gate / Berth Refusal!)` : '';
+      const violations = [];
+      if (!destDraftClear) violations.push(`Draft ${vessel.ladenDraft}m > Port Max ${effectiveMaxDraft}m (+${(vessel.ladenDraft - effectiveMaxDraft).toFixed(1)}m Excess Draft)`);
+      if (!destLoaClear) violations.push(`LOA ${vessel.loa}m > Berth Max ${dest.maxLOA}m (+${(vessel.loa - dest.maxLOA).toFixed(0)}m Excess Length)`);
+      if (!destBeamClear) violations.push(`Beam ${vessel.beam}m > Berth/Lock Max ${dest.maxBeam || 50}m (+${(vessel.beam - (dest.maxBeam || 50)).toFixed(1)}m Excess Beam)`);
+      if (!originDraftClear) violations.push(`Origin Draft ${vessel.ladenDraft}m > ${origin.name} Max ${origin.maxDraftLaden}m`);
+      if (!originLoaClear) violations.push(`Origin LOA ${vessel.loa}m > ${origin.name} Max ${origin.maxLOA}m`);
+      if (!originBeamClear) violations.push(`Origin Beam ${vessel.beam}m > ${origin.name} Max ${origin.maxBeam}m`);
+      
       statusBadge = {
         label: 'DISQUALIFIED / BLOCKED',
         color: 'rose',
         isRecommended: false,
-        text: `EXCEEDS PHYSICAL PORT LIMITS: ${[draftViolation, loaViolation].filter(Boolean).join(' | ')} Cannot berth directly!`
+        text: `EXCEEDS PHYSICAL PORT LIMITS: ${violations.join(' | ')}. Cannot berth directly!`
       };
     } else if (lighterageRequired) {
       statusBadge = {
@@ -308,19 +331,35 @@ export function optimizeVesselType({
       capacityMT: vessel.capacityMT,
       ladenDraft: vessel.ladenDraft,
       loa: vessel.loa,
+      beam: vessel.beam,
+      geared: vessel.geared,
+      // Origin constraint checks & margins
       originDraftClear,
       originLoaClear,
+      originBeamClear,
+      originDraftMargin,
+      originLoaMargin,
+      originBeamMargin,
+      originLoadingRateTPD,
+      pureLoadingDays,
+      // Destination constraint checks & margins
       destDraftStandardClear,
       destDraftTideClear,
       destDraftClear,
       destLoaClear,
+      destBeamClear,
       draftMargin,
       tideDraftMargin,
+      destLoaMargin,
+      destBeamMargin,
+      destDischargeRateTPD,
+      pureDischargeDays,
+      // Status & Laytime decomposition
       isHardBlocked,
       lighterageRequired,
       isLightLoaded,
+      isDispatchEarned,
       voyagesNeeded,
-      pureDischargeDays,
       portManeuverBufferDays,
       idleDays,
       queueWaitDays,

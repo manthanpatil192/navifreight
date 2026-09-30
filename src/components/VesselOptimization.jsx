@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Ship, AlertTriangle, CheckCircle2, XCircle, TrendingDown,
-  Clock, Anchor, BarChart3, MapPin, RefreshCw, ChevronDown, ChevronUp, ArrowRight, Zap, Award, AlertCircle, Sparkles, DollarSign, Gift, Activity, Radio
+  Clock, Anchor, BarChart3, MapPin, RefreshCw, ChevronDown, ChevronUp, ArrowRight, Zap, Award, AlertCircle, Sparkles, DollarSign, Gift, Activity, Radio,
+  Globe, Ruler, Layers, ShieldCheck, Scale, Check, Filter
 } from 'lucide-react';
 import { INDIAN_EAST_COAST_PORTS, ORIGIN_LOADING_PORTS } from '../data/portsData';
 import { fetchLiveINCOISData } from '../api/incoisConnector';
@@ -10,37 +11,49 @@ import { PORT_CONGESTION_STATUS, IMD_WEATHER_ALERTS } from '../data/weatherConge
 import { optimizeVesselType } from '../utils/vesselOptimizationEngine';
 import InsightBulb from './InsightBulb';
 
-// Vessel classes with physical specs
+// Vessel classes with complete physical engineering specs (LOA, Beam, Draft, DWT, Handling)
 const VESSEL_CLASSES = [
   {
     id: 'capesize', name: 'Capesize', dwtRange: '160,000–180,000 DWT',
-    ladenDraft: 18.2, loaM: 295, dailyTCE: 22000, fuelMTPerDay: 58,
-    typicalParcel: 160000, costMultiplier: 0.72,
+    ladenDraft: 18.2, loaM: 292, beamM: 45.0, dailyTCE: 22000, fuelMTPerDay: 42,
+    typicalParcel: 160000, costMultiplier: 0.72, geared: false,
+    dwt: 175000, description: 'Premier deepwater large bulker. Best freight $/MT for Gangavaram, Dhamra, & Vizag Outer.'
   },
   {
     id: 'baby_cape', name: 'Baby Cape / Post-Panamax', dwtRange: '115,000 DWT',
-    ladenDraft: 15.1, loaM: 255, dailyTCE: 19800, fuelMTPerDay: 33.5,
-    typicalParcel: 105000, costMultiplier: 0.81,
+    ladenDraft: 15.1, loaM: 255, beamM: 43.0, dailyTCE: 19800, fuelMTPerDay: 33.5,
+    typicalParcel: 105000, costMultiplier: 0.81, geared: false,
+    dwt: 115000, description: 'Engineered specifically for draft-restricted high-tide berths (Paradip spring tide & Maputo TCM).'
   },
   {
     id: 'kamsarmax', name: 'Kamsarmax', dwtRange: '80,000–82,000 DWT',
-    ladenDraft: 14.4, loaM: 229, dailyTCE: 14500, fuelMTPerDay: 34,
-    typicalParcel: 80000, costMultiplier: 0.88,
+    ladenDraft: 14.4, loaM: 229, beamM: 32.26, dailyTCE: 14500, fuelMTPerDay: 29.5,
+    typicalParcel: 80000, costMultiplier: 0.88, geared: false,
+    dwt: 82000, description: 'The workhorse of Indian East Coast bulk trade. Standard 80,000 MT parcel capacity.'
   },
   {
     id: 'panamax', name: 'Panamax', dwtRange: '74,000–78,000 DWT',
-    ladenDraft: 13.8, loaM: 225, dailyTCE: 13800, fuelMTPerDay: 32,
-    typicalParcel: 75000, costMultiplier: 0.92,
+    ladenDraft: 14.2, loaM: 225, beamM: 32.20, dailyTCE: 13800, fuelMTPerDay: 28,
+    typicalParcel: 75000, costMultiplier: 0.92, geared: false,
+    dwt: 75000, description: 'Standard Panamax dimensions compatible with berths across Australia, US, and India.'
   },
   {
-    id: 'supramax', name: 'Supramax / Ultramax', dwtRange: '55,000–63,000 DWT',
-    ladenDraft: 12.2, loaM: 200, dailyTCE: 11200, fuelMTPerDay: 27,
-    typicalParcel: 58000, costMultiplier: 1.04,
+    id: 'supramax', name: 'Supramax / Ultramax', dwtRange: '55,000–64,000 DWT',
+    ladenDraft: 12.8, loaM: 199, beamM: 32.20, dailyTCE: 11500, fuelMTPerDay: 25,
+    typicalParcel: 55000, costMultiplier: 1.04, geared: true,
+    dwt: 58000, description: 'Self-discharging geared bulker equipped with 4 x 35T cranes for shallow ports/open anchorages.'
   },
   {
-    id: 'handysize', name: 'Handysize', dwtRange: '28,000–38,000 DWT',
-    ladenDraft: 10.1, loaM: 185, dailyTCE: 9500, fuelMTPerDay: 22,
-    typicalParcel: 35000, costMultiplier: 1.22,
+    id: 'handymax', name: 'Handymax (HDC River Lock Class)', dwtRange: '35,000 DWT',
+    ladenDraft: 8.2, loaM: 178, beamM: 27.5, dailyTCE: 10500, fuelMTPerDay: 21,
+    typicalParcel: 33000, costMultiplier: 1.16, geared: true,
+    dwt: 35000, description: 'Purpose-built river bulker fitting Haldia 8.5m draft & strict 31.0m lock gate limit.'
+  },
+  {
+    id: 'handysize', name: 'Handysize (Shallow Draft)', dwtRange: '28,000–38,000 DWT',
+    ladenDraft: 7.8, loaM: 165, beamM: 26.0, dailyTCE: 9500, fuelMTPerDay: 19,
+    typicalParcel: 28000, costMultiplier: 1.25, geared: true,
+    dwt: 28000, description: 'Shallow-draft bulk carrier capable of navigating river locks at neap tide without lightening.'
   },
 ];
 
@@ -53,32 +66,52 @@ const PORT_LIVE_CONDITIONS = {
   gopalpur:   { actualTPD: 20000, ratedTPD: 25000, queueVessels: 9,  waitDays: 3.8, conveyorStatus: 'TUG SHORTAGE — 20% SLOW',            berthAvailDays: 5  },
   haldia:     { actualTPD: 14000, ratedTPD: 18000, queueVessels: 11, waitDays: 5.2, conveyorStatus: 'LOCK TIDE-LOCKED (6h/day)',           berthAvailDays: 3  },
   sandheads:  { actualTPD: 20000, ratedTPD: 22000, queueVessels: 6,  waitDays: 3.5, conveyorStatus: 'BARGE FLEET NORMAL',                 berthAvailDays: 12 },
+  ennore:     { actualTPD: 42000, ratedTPD: 48000, queueVessels: 4,  waitDays: 1.6, conveyorStatus: 'FULL CAPACITY (Coal Berths 1-2)',    berthAvailDays: 16 },
+  chennai:    { actualTPD: 30000, ratedTPD: 35000, queueVessels: 6,  waitDays: 2.3, conveyorStatus: 'NORMAL (West Quay Berths)',          berthAvailDays: 10 },
+  krishnapatnam:{actualTPD: 50000,ratedTPD: 55000, queueVessels: 5,  waitDays: 1.5, conveyorStatus: 'FULL CAPACITY',                      berthAvailDays: 15 },
+  tuticorin:  { actualTPD: 28000, ratedTPD: 32000, queueVessels: 5,  waitDays: 1.9, conveyorStatus: 'NORMAL (NCB Berths)',                berthAvailDays: 12 },
 };
 
-const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads'];
+const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads', 'ennore', 'chennai', 'krishnapatnam', 'tuticorin'];
 
 const DEMURRAGE_RATE_INR_PER_DAY = 6500000; // ₹65L/day ($75k/day)
 const DISPATCH_RATE_INR_PER_DAY = 3250000;  // ₹32.5L/day (Standard 50% Dispatch Reward)
 
 function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   const port = INDIAN_EAST_COAST_PORTS[portId];
-  const origin = ORIGIN_LOADING_PORTS[originId];
-  const live = PORT_LIVE_CONDITIONS[portId];
-  if (!port || !origin || !live) return null;
+  const origin = ORIGIN_LOADING_PORTS[originId] || ORIGIN_LOADING_PORTS.hay_point;
+  const live = PORT_LIVE_CONDITIONS[portId] || { actualTPD: 35000, ratedTPD: 40000, queueVessels: 5, waitDays: 2.0, conveyorStatus: 'NORMAL', berthAvailDays: 10 };
+  if (!port || !origin) return null;
 
-  // Origin checks
-  const originDraftClear = vessel.ladenDraft <= origin.maxDraftLaden;
-  const originLoaClear = vessel.loaM <= origin.maxLOA;
+  // Origin checks (Australia, US, Mozambique, Indonesia)
+  const originDraft = origin.maxDraftLaden || origin.maxDraft || 18.0;
+  const originLoa = origin.maxLOA || 330;
+  const originBeam = origin.maxBeam || 55.0;
 
-  // Destination Draft check
+  const originDraftClear = vessel.ladenDraft <= originDraft;
+  const originLoaClear = vessel.loaM <= originLoa;
+  const originBeamClear = vessel.beamM <= originBeam;
+
+  // Destination checks (Indian East Coast Discharge Ports)
   const destDraftClear = vessel.ladenDraft <= port.maxDraftLaden;
-  const destMaxDraft = incoisData ? incoisData.oceanographic.livePermissibleDraft : port.maxDraftHighTide;
-  const destDraftTide  = vessel.ladenDraft <= destMaxDraft;
-  const destDraftOk    = destDraftClear || destDraftTide;
+  const destMaxDraft = incoisData ? incoisData.oceanographic.livePermissibleDraft : (port.outerHarbourDraft ? Math.max(port.maxDraftHighTide, port.outerHarbourDraft) : port.maxDraftHighTide);
+  const destDraftTide = vessel.ladenDraft <= destMaxDraft;
+  const destDraftOk = destDraftClear || destDraftTide;
   const destLoaClear = vessel.loaM <= port.maxLOA;
-  
+  const destBeamClear = vessel.beamM <= (port.maxBeam || 50.0);
+
   const loaClear = originLoaClear && destLoaClear;
-  const blocked = !destDraftOk || !loaClear;
+  const beamClear = originBeamClear && destBeamClear;
+  const blocked = !destDraftOk || !loaClear || !beamClear || !originDraftClear;
+
+  // Exact clearance margins
+  const originDraftMargin = +(originDraft - vessel.ladenDraft).toFixed(1);
+  const originLoaMargin = +(originLoa - vessel.loaM).toFixed(1);
+  const originBeamMargin = +(originBeam - vessel.beamM).toFixed(1);
+  const destDraftMargin = +(port.maxDraftLaden - vessel.ladenDraft).toFixed(1);
+  const destTideDraftMargin = +(destMaxDraft - vessel.ladenDraft).toFixed(1);
+  const destLoaMargin = +(port.maxLOA - vessel.loaM).toFixed(1);
+  const destBeamMargin = +((port.maxBeam || 50.0) - vessel.beamM).toFixed(1);
 
   let isLightLoaded = false;
   let lightLoadingCapMT = vessel.typicalParcel;
@@ -86,7 +119,7 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   let bindingConstraint = 'None';
 
   if (!blocked) {
-    const availableOriginDraft = origin.maxDraftLaden;
+    const availableOriginDraft = originDraft;
     const availableDestDraft = destDraftClear ? port.maxDraftLaden : destMaxDraft;
     const maxAllowableDraft = Math.min(availableOriginDraft, availableDestDraft);
     
@@ -107,11 +140,16 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   // Trips required
   const tripsRequired = Math.ceil(cargoMT / lightLoadingCapMT);
 
-  // Actual discharge days using live TPD (net pumping/grabbing time)
-  const dischargeDays = +(cargoMT / live.actualTPD).toFixed(1);
+  // Turnaround & Cargo Handling Rates (Loading at origin + Discharge at destination)
+  const originLoadingRateTPD = origin.handlingRateTPD || 65000;
+  const destDischargeRateTPD = live.actualTPD || port.handlingRateTPD || 45000;
+  const ratedDischargeTPD = port.handlingRateTPD || 45000;
+
+  const loadingDays = +(cargoMT / originLoadingRateTPD).toFixed(1);
+  const dischargeDays = +(cargoMT / destDischargeRateTPD).toFixed(1);
 
   // Laytime allowance calculation (standard laytime = cargoMT / rated TPD)
-  const allowedLaytimeDays = +(cargoMT / port.handlingRateTPD).toFixed(1);
+  const allowedLaytimeDays = +(cargoMT / ratedDischargeTPD).toFixed(1);
   const extraOverLaytime = +(dischargeDays - allowedLaytimeDays).toFixed(1);
   
   // Demurrage vs Dispatch Calculation (Two-Way Laytime Equation)
@@ -121,7 +159,6 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   let dispatchBonusUSD = 0;
   let isDispatchEarned = false;
 
-  // Extra voyages add additional anchorage queue waits and maneuvering buffers
   const voyageMultiplierWaitDays = (tripsRequired - 1) * (live.waitDays + 1.0);
 
   if (extraOverLaytime > 0 || live.waitDays > 1.5 || tripsRequired > 1) {
@@ -129,7 +166,6 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
     demurrageINRCr = +((demurrageDays * DEMURRAGE_RATE_INR_PER_DAY) / 10000000).toFixed(2);
     demurrageUSD = Math.round((demurrageINRCr * 10000000) / 95.0);
   } else if (extraOverLaytime < 0 && live.waitDays <= 1.5 && tripsRequired === 1) {
-    // Unloaded ahead of laytime schedule on a single voyage -> Dispatch Bonus Earned!
     isDispatchEarned = true;
     const earlyDays = Math.abs(extraOverLaytime);
     dispatchBonusINRLakhs = +((earlyDays * DISPATCH_RATE_INR_PER_DAY) / 100000).toFixed(1);
@@ -138,16 +174,31 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
 
   // Traffic Light Verdict Generation
   let verdictBadge = { text: '', cls: '', icon: CheckCircle2 };
-  if (!loaClear) {
-    const blocker = !originLoaClear ? `Origin (${origin.name} max LOA ${origin.maxLOA}m)` : `Destination (${port.name} max LOA ${port.maxLOA}m)`;
+  if (!beamClear) {
+    const blocker = !destBeamClear
+      ? `Destination (${port.name} max Beam ${port.maxBeam}m — e.g. Lock Gate Width)`
+      : `Origin (${origin.name} max Beam ${originBeam}m)`;
     verdictBadge = {
-      text: `❌ LOA Exceeded at ${blocker} — Switch to smaller vessel`,
+      text: `❌ Beam Exceeded at ${blocker} (${vessel.beamM}m) — Physical Lock / Berth Refusal`,
+      cls: 'bg-red-50 text-red-800 border-red-200',
+      icon: XCircle
+    };
+  } else if (!loaClear) {
+    const blocker = !originLoaClear ? `Origin (${origin.name} max LOA ${originLoa}m)` : `Destination (${port.name} max LOA ${port.maxLOA}m)`;
+    verdictBadge = {
+      text: `❌ LOA Exceeded at ${blocker} (${vessel.loaM}m) — Switch to smaller vessel`,
       cls: 'bg-red-50 text-red-800 border-red-200',
       icon: XCircle
     };
   } else if (!destDraftOk) {
     verdictBadge = {
-      text: `❌ Destination Draft Insufficient (${vessel.ladenDraft}m vs ${port.maxDraftLaden}m) — Switch to smaller vessel`,
+      text: `❌ Destination Draft Insufficient (${vessel.ladenDraft}m vs ${port.maxDraftLaden}m standard / ${destMaxDraft}m high tide) — Switch to smaller vessel`,
+      cls: 'bg-red-50 text-red-800 border-red-200',
+      icon: XCircle
+    };
+  } else if (!originDraftClear) {
+    verdictBadge = {
+      text: `❌ Origin Draft Insufficient (${vessel.ladenDraft}m vs ${originDraft}m at ${origin.name}) — Cannot load full parcel`,
       cls: 'bg-red-50 text-red-800 border-red-200',
       icon: XCircle
     };
@@ -174,49 +225,51 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   // TPD → Dollars, Demurrage & Dispatch Translation
   let tpdTranslationSentence = '';
   if (isDispatchEarned) {
-    tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ Finished ${Math.abs(extraOverLaytime)}d ahead of laytime! 🎉 Dispatch Reward: +₹${dispatchBonusINRLakhs} Lakhs (+$${Math.round(dispatchBonusUSD / 1000)}k USD) cash credit from shipowner.`;
+    tpdTranslationSentence = `Loading: ${loadingDays}d @ ${originLoadingRateTPD.toLocaleString()} TPD | Discharge: ${dischargeDays}d @ ${destDischargeRateTPD.toLocaleString()} TPD ➔ Finished ${Math.abs(extraOverLaytime)}d ahead of laytime! 🎉 Dispatch Reward: +₹${dispatchBonusINRLakhs} Lakhs (+$${Math.round(dispatchBonusUSD / 1000)}k USD) cash credit from shipowner.`;
   } else if (extraOverLaytime > 0 || tripsRequired > 1) {
-    tpdTranslationSentence = `Discharge time: ${dischargeDays} days (${tripsRequired > 1 ? `${tripsRequired} voyages required` : 'single voyage'}) ➔ ₹${demurrageINRCr} Cr ($${Math.round(demurrageUSD / 1000)}k USD) demurrage & turnaround cost.`;
+    tpdTranslationSentence = `Loading: ${loadingDays}d @ ${originLoadingRateTPD.toLocaleString()} TPD | Discharge: ${dischargeDays}d (${tripsRequired > 1 ? `${tripsRequired} voyages` : 'single voyage'}) ➔ ₹${demurrageINRCr} Cr ($${Math.round(demurrageUSD / 1000)}k USD) demurrage & turnaround cost.`;
   } else {
-    tpdTranslationSentence = `Discharge time: ${dischargeDays} days ➔ On schedule within free laytime (${allowedLaytimeDays} days). Zero demurrage.`;
+    tpdTranslationSentence = `Loading: ${loadingDays}d @ ${originLoadingRateTPD.toLocaleString()} TPD | Discharge: ${dischargeDays}d ➔ On schedule within free laytime (${allowedLaytimeDays}d). Zero demurrage.`;
   }
 
   // Compute composite score /100
   let score = 100;
-  if (isLightLoaded) score -= 20;   // light loading penalty
-  if (blocked) score -= 60;         // blocked completely
+  if (isLightLoaded) score -= 20;
+  if (blocked) score -= 60;
 
-  // Capacity deficit penalty (critical: cannot fit consignment in single voyage)
   if (cargoMT > lightLoadingCapMT) {
     const capacityDeficitMT = cargoMT - lightLoadingCapMT;
     const deficitRatio = capacityDeficitMT / cargoMT;
-    score -= Math.round(35 + deficitRatio * 30); // 35 to 65 pt penalty
+    score -= Math.round(35 + deficitRatio * 30);
   }
   if (tripsRequired > 1) {
-    score -= (tripsRequired - 1) * 20; // 20 pts per extra voyage
+    score -= (tripsRequired - 1) * 20;
   }
   if (vessel.typicalParcel > cargoMT * 2.2) {
-    score -= 25; // Oversized vessel penalty
+    score -= 25;
   }
 
-  // Freight rate scale economics (Kamsarmax 0.88 vs Supramax 1.04)
   const costPenalty = Math.round((vessel.costMultiplier - 0.72) * 20);
   score -= Math.max(0, costPenalty);
 
   if (live.waitDays > 3) score -= 10;
   if (extraOverLaytime > 1.0) score -= 15;
   if (live.berthAvailDays < 7) score -= 12;
-  if (isDispatchEarned) score += 5;             // Bonus for fast single-voyage dispatch
+  if (isDispatchEarned) score += 5;
   score = Math.max(0, Math.min(100, score));
 
   const costPremium = +(vessel.costMultiplier - 0.72).toFixed(2);
 
   return {
-    originId, portId, port, live,
+    originId, portId, port, origin, live,
     vessel,
-    originDraftClear, destDraftClear, destDraftTide, destDraftOk,
-    originLoaClear, destLoaClear, loaClear, blocked,
-    tripsRequired, dischargeDays, allowedLaytimeDays, extraOverLaytime,
+    originDraftClear, originLoaClear, originBeamClear,
+    destDraftClear, destDraftTide, destDraftOk, destLoaClear, destBeamClear,
+    loaClear, beamClear, blocked,
+    originDraftMargin, originLoaMargin, originBeamMargin,
+    destDraftMargin, destTideDraftMargin, destLoaMargin, destBeamMargin,
+    originLoadingRateTPD, destDischargeRateTPD, loadingDays, dischargeDays,
+    tripsRequired, allowedLaytimeDays, extraOverLaytime,
     demurrageINRCr, demurrageUSD,
     isDispatchEarned, dispatchBonusINRLakhs, dispatchBonusUSD,
     isLightLoaded, lightLoadingCapMT, deadFreightPenaltyINRCr, bindingConstraint,
@@ -225,9 +278,19 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
   };
 }
 
-export default function VesselOptimization({ selectedOrigin, selectedDestination, cargoVolumeMT, currency, onSelectVessel, currentVesselId, onSelectPort }) {
+export default function VesselOptimization({
+  selectedOrigin,
+  selectedDestination,
+  cargoVolumeMT,
+  currency,
+  onSelectVessel,
+  currentVesselId,
+  onSelectPort,
+  onSelectOrigin
+}) {
   const isINR = currency === 'INR';
-  const [activeTab, setActiveTab] = useState('optimizer'); // 'optimizer' | 'portswitcher'
+  const [activeTab, setActiveTab] = useState('optimizer'); // 'optimizer' | 'constraints' | 'loading_ports' | 'portswitcher'
+  const [selectedLoadingRegion, setSelectedLoadingRegion] = useState('ALL'); // 'ALL' | 'AUSTRALIA' | 'USA' | 'MOZAMBIQUE' | 'INDONESIA' | 'GLOBAL'
   const [incoisData, setIncoisData] = useState(null);
   const [isLoadingIncois, setIsLoadingIncois] = useState(true);
 
@@ -283,8 +346,20 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
     };
   }, [selectedDestination]);
 
-  const currentPort = INDIAN_EAST_COAST_PORTS[selectedDestination];
-  const liveCurrent = PORT_LIVE_CONDITIONS[selectedDestination];
+  const currentPort = INDIAN_EAST_COAST_PORTS[selectedDestination] || INDIAN_EAST_COAST_PORTS.paradip;
+  const currentOrigin = ORIGIN_LOADING_PORTS[selectedOrigin] || ORIGIN_LOADING_PORTS.hay_point;
+  const liveCurrent = PORT_LIVE_CONDITIONS[selectedDestination] || { actualTPD: 35000, ratedTPD: 40000, queueVessels: 5, waitDays: 2.0, conveyorStatus: 'NORMAL', berthAvailDays: 10 };
+
+  const filteredLoadingPorts = useMemo(() => {
+    const allPorts = Object.values(ORIGIN_LOADING_PORTS);
+    if (selectedLoadingRegion === 'ALL') return allPorts;
+    if (selectedLoadingRegion === 'AUSTRALIA') return allPorts.filter(p => p.country === 'Australia');
+    if (selectedLoadingRegion === 'USA') return allPorts.filter(p => p.country === 'United States');
+    if (selectedLoadingRegion === 'MOZAMBIQUE') return allPorts.filter(p => p.country === 'Mozambique');
+    if (selectedLoadingRegion === 'INDONESIA') return allPorts.filter(p => p.country === 'Indonesia');
+    if (selectedLoadingRegion === 'GLOBAL') return allPorts.filter(p => !['Australia', 'United States', 'Mozambique', 'Indonesia'].includes(p.country));
+    return allPorts;
+  }, [selectedLoadingRegion]);
 
   // Evaluate all vessels for the selected port
   const vesselEvals = useMemo(() => {
@@ -394,18 +469,34 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex rounded-md border border-slate-200 overflow-hidden text-xs shrink-0">
+        <div className="flex flex-wrap rounded-md border border-slate-200 overflow-hidden text-xs shrink-0 shadow-xs">
           <button
             onClick={() => setActiveTab('optimizer')}
-            className={`px-3 py-1.5 font-semibold transition-colors ${activeTab === 'optimizer' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            className={`px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5 ${activeTab === 'optimizer' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
           >
-            Vessel Recommender
+            <Ship className="w-3.5 h-3.5" />
+            <span>Vessel Recommender</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('constraints')}
+            className={`px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5 ${activeTab === 'constraints' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Ruler className="w-3.5 h-3.5" />
+            <span>Dual-Port Fit & Official Limits</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('loading_ports')}
+            className={`px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5 ${activeTab === 'loading_ports' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Loading Ports Hub (Aus • US • Moz • Indo)</span>
           </button>
           <button
             onClick={() => setActiveTab('portswitcher')}
-            className={`px-3 py-1.5 font-semibold transition-colors ${activeTab === 'portswitcher' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            className={`px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5 ${activeTab === 'portswitcher' ? 'bg-maritime-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
           >
-            Port Switch Advisor
+            <Layers className="w-3.5 h-3.5" />
+            <span>Port Switch Advisor</span>
           </button>
         </div>
       </div>
@@ -583,6 +674,35 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
                             {card.loa}m &gt; {currentPort.maxLOA}m [LOCK REFUSAL]
                           </span>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Beam & Lock Chamber Fit */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Beam & Lock Gate:</span>
+                      <div className="text-right font-mono text-[11px]">
+                        {(card.beam || 32.2) <= (currentPort.maxBeam || 50.0) ? (
+                          <span className="text-emerald-700 font-semibold">
+                            {(card.beam || 32.2).toFixed(1)}m &le; {(currentPort.maxBeam || 50.0)}m [CLEAR: +{((currentPort.maxBeam || 50.0) - (card.beam || 32.2)).toFixed(1)}m]
+                          </span>
+                        ) : (
+                          <span className="text-rose-700 font-semibold">
+                            {(card.beam || 32.2).toFixed(1)}m &gt; {currentPort.maxBeam}m [LOCK REFUSAL]
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dual-Port Handling Velocity */}
+                    <div className="flex items-baseline justify-between pb-2 border-b border-slate-100">
+                      <span className="text-slate-500 text-[11px]">Dual-Port Handling:</span>
+                      <div className="text-right text-[11px]">
+                        <span className="font-semibold text-slate-800">
+                          {currentOrigin.handlingRateTPD.toLocaleString()} Load / {currentPort.handlingRateTPD.toLocaleString()} Disch TPD
+                        </span>
+                        <span className="text-[10px] text-slate-400 block font-mono">
+                          {card.pureLoadingDays ? `${card.pureLoadingDays}d load` : `${(activeCargoVolume / currentOrigin.handlingRateTPD).toFixed(1)}d load`} + {card.pureDischargeDays ? `${card.pureDischargeDays}d disch` : `${(activeCargoVolume / currentPort.handlingRateTPD).toFixed(1)}d disch`}
+                        </span>
                       </div>
                     </div>
 
@@ -1249,6 +1369,22 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
                         <div className="mt-1 text-xs text-slate-600 font-semibold bg-slate-100/70 rounded p-1.5 border border-slate-200/60">
                           {item.tpdTranslationSentence}
                         </div>
+
+                        {/* Physical Engineering Specs & Official Limits Strip */}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10.5px]">
+                          <span className={`px-2 py-0.5 rounded font-mono font-semibold ${item.loaClear ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                            LOA: {item.vessel.loaM}m (Port Max: {currentPort.maxLOA}m)
+                          </span>
+                          <span className={`px-2 py-0.5 rounded font-mono font-semibold ${item.beamClear ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                            Beam: {item.vessel.beamM}m (Port Max: {currentPort.maxBeam}m)
+                          </span>
+                          <span className={`px-2 py-0.5 rounded font-mono font-semibold ${item.destDraftOk ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                            Draft: {item.vessel.ladenDraft}m (Origin: {currentOrigin.maxDraftLaden}m | Dest: {currentPort.maxDraftLaden}m)
+                          </span>
+                          <span className="px-2 py-0.5 rounded font-mono text-slate-700 bg-slate-100 border border-slate-200">
+                            Handling: {item.originLoadingRateTPD.toLocaleString()} Load ({item.loadingDays}d) + {item.destDischargeRateTPD.toLocaleString()} Disch ({item.dischargeDays}d)
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -1267,7 +1403,657 @@ export default function VesselOptimization({ selectedOrigin, selectedDestination
         </div>
       )}
 
-      {/* === TAB 2: PORT SWITCH ADVISOR === */}
+      {/* === TAB 2: DUAL-PORT FIT & OFFICIAL LIMITS (ENGINEERING GAUGES & COMPLETE MATRIX) === */}
+      {activeTab === 'constraints' && (
+        <div className="space-y-6">
+          {/* Top Control Bar: Select Origin, Vessel, and Destination */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5 uppercase tracking-wide">
+                  <Ruler className="w-4 h-4 text-maritime-800" />
+                  <span>Dual-Port Engineering Limits & Clearance Gauges</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold">
+                    Official Port Authority Data
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Real official maximum LOA, beam, draft limits, and cargo handling rates across Australian, US, Mozambique, Indonesian origins and Indian East Coast discharge terminals.
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] font-mono text-slate-500 block">Active Parcel: {activeCargoVolume.toLocaleString()} MT</span>
+                <span className="text-xs font-bold text-emerald-700">Fit Score: {activeVesselEval.score}/100</span>
+              </div>
+            </div>
+
+            {/* Selector Dropdowns */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  1. Loading Origin Port ({currentOrigin.country})
+                </label>
+                <select
+                  value={selectedOrigin}
+                  onChange={(e) => onSelectOrigin && onSelectOrigin(e.target.value)}
+                  className="w-full text-xs font-semibold p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-maritime-500 outline-none"
+                >
+                  <optgroup label="Australia">
+                    <option value="hay_point">Hay Point / DBCT (QLD) — LOA 343m, 85k TPD</option>
+                    <option value="gladstone">Gladstone RGCT (QLD) — LOA 315m, 75k TPD</option>
+                    <option value="newcastle">Newcastle PWCS/NCIG (NSW) — LOA 300m, 80k TPD</option>
+                    <option value="abbot_point">Abbot Point / NQXT (QLD) — LOA 330m, 80k TPD</option>
+                    <option value="port_kembla">Port Kembla PKCT (NSW) — LOA 315m, 55k TPD</option>
+                  </optgroup>
+                  <optgroup label="United States">
+                    <option value="hampton_roads">Hampton Roads / Norfolk (VA) — LOA 305m, 65k TPD</option>
+                    <option value="baltimore">Baltimore Consol CNX (MD) — LOA 305m, 50k TPD</option>
+                    <option value="mobile">Mobile McDuffie (AL) — LOA 290m, 45k TPD</option>
+                    <option value="new_orleans">New Orleans Convent (LA) — LOA 300m, 50k TPD</option>
+                  </optgroup>
+                  <optgroup label="Mozambique">
+                    <option value="maputo">Maputo / Matola TCM — LOA 275m, 40k TPD</option>
+                    <option value="beira">Beira Coal Terminal — LOA 200m, 22k TPD</option>
+                    <option value="nacala">Nacala-a-Velha Deepwater — LOA 340m, 65k TPD</option>
+                  </optgroup>
+                  <optgroup label="Indonesia">
+                    <option value="samarinda">Muara Berau / Samarinda — LOA 280m, 35k TPD</option>
+                    <option value="taboneo">Taboneo Anchorage — LOA 330m, 50k TPD</option>
+                    <option value="bunati">Bunati Port & Anchorage — LOA 260m, 32k TPD</option>
+                    <option value="tanjung_bara">Tanjung Bara TBCT / KPC — LOA 310m, 60k TPD</option>
+                    <option value="balikpapan">Balikpapan BCT — LOA 280m, 45k TPD</option>
+                  </optgroup>
+                  <optgroup label="Global Hubs">
+                    <option value="vostochny">Port of Vostochny (Russia) — LOA 300m, 70k TPD</option>
+                    <option value="tubarao">Tubarao (Brazil) — LOA 350m, 90k TPD</option>
+                    <option value="richards_bay">Richards Bay (South Africa) — LOA 350m, 85k TPD</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  2. Candidate Vessel Class
+                </label>
+                <select
+                  value={currentVesselId}
+                  onChange={(e) => onSelectVessel && onSelectVessel(e.target.value)}
+                  className="w-full text-xs font-semibold p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-maritime-500 outline-none"
+                >
+                  {VESSEL_CLASSES.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({v.dwtRange}) — Draft {v.ladenDraft}m, Beam {v.beamM}m
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  3. Indian East Coast Discharge Port
+                </label>
+                <select
+                  value={selectedDestination}
+                  onChange={(e) => onSelectPort && onSelectPort(e.target.value)}
+                  className="w-full text-xs font-semibold p-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:ring-2 focus:ring-maritime-500 outline-none"
+                >
+                  {ALL_CANDIDATE_PORTS.map(pid => {
+                    const p = INDIAN_EAST_COAST_PORTS[pid];
+                    return (
+                      <option key={pid} value={pid}>
+                        {p.name} — Draft {p.maxDraftLaden}m, Beam {p.maxBeam}m, {p.handlingRateTPD.toLocaleString()} TPD
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Three-Card Architecture: Origin vs Vessel vs Destination */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Origin Card */}
+            <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+                    Loading Origin Port
+                  </span>
+                  <span className="text-xs font-bold text-slate-600">{currentOrigin.country}</span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-900">{currentOrigin.name}</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">{currentOrigin.region}</p>
+
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Max LOA:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentOrigin.maxLOA} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Max Beam:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentOrigin.maxBeam} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Max Laden Draft:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentOrigin.maxDraftLaden} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Handling Speed:</span>
+                    <span className="font-mono font-bold text-blue-700">{currentOrigin.handlingRateTPD.toLocaleString()} TPD</span>
+                  </div>
+                  {currentOrigin.shiploaderRateTPH && (
+                    <div className="flex justify-between py-1 border-b border-slate-200">
+                      <span className="text-slate-500">Shiploader Rate:</span>
+                      <span className="font-mono font-bold text-slate-700">{currentOrigin.shiploaderRateTPH.toLocaleString()} TPH</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Sea Distance:</span>
+                    <span className="font-mono font-bold text-slate-700">{currentOrigin.distanceToEastCoastNM.toLocaleString()} NM (~{currentOrigin.transitDaysAverage}d)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 pt-2 text-[10px] text-slate-400 italic">
+                {currentOrigin.officialSource}
+              </div>
+            </div>
+
+            {/* Vessel Card */}
+            <div className="bg-gradient-to-b from-maritime-900 to-slate-900 text-white rounded-xl p-4 flex flex-col justify-between shadow-sm">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-400/40">
+                    Vessel In-Transit
+                  </span>
+                  <span className="text-xs font-mono font-bold text-emerald-300">{activeVesselEval.score}/100 Fit</span>
+                </div>
+                <h4 className="text-sm font-bold text-white">{activeVesselEval.vessel.name}</h4>
+                <p className="text-[11px] text-slate-300 mt-0.5">{activeVesselEval.vessel.dwtRange}</p>
+
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">LOA:</span>
+                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.loaM} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">Beam:</span>
+                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.beamM} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">Laden Draft:</span>
+                    <span className="font-mono font-bold text-white">{activeVesselEval.vessel.ladenDraft} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">Typical Parcel:</span>
+                    <span className="font-mono font-bold text-emerald-400">{activeVesselEval.vessel.typicalParcel.toLocaleString()} MT</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">Origin Loading Days:</span>
+                    <span className="font-mono font-bold text-cyan-300">{activeVesselEval.loadingDays} days</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-700">
+                    <span className="text-slate-300">Dest Discharge Days:</span>
+                    <span className="font-mono font-bold text-cyan-300">{activeVesselEval.dischargeDays} days</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 pt-2 text-[10px] text-slate-300">
+                {activeVesselEval.verdictBadge.text}
+              </div>
+            </div>
+
+            {/* Destination Card */}
+            <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 px-2 py-0.5 rounded border border-purple-200">
+                    Discharge Destination Port
+                  </span>
+                  <span className="text-xs font-bold text-slate-600">{currentPort.state}</span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-900">{currentPort.name}</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">Indian East Coast Maritime Gateway</p>
+
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Max LOA:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentPort.maxLOA} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Max Beam:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentPort.maxBeam} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Standard Draft:</span>
+                    <span className="font-mono font-bold text-slate-800">{currentPort.maxDraftLaden} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">High Tide Spring Draft:</span>
+                    <span className="font-mono font-bold text-purple-700">{currentPort.maxDraftHighTide} meters</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Discharge Speed:</span>
+                    <span className="font-mono font-bold text-purple-700">{currentPort.handlingRateTPD.toLocaleString()} TPD</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span className="text-slate-500">Avg Berth Queue:</span>
+                    <span className="font-mono font-bold text-slate-700">{liveCurrent.waitDays} days ({liveCurrent.queueVessels} vessels)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 pt-2 text-[10px] text-slate-400 italic">
+                {currentPort.officialSource}
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Physical Clearance Gauges & Engineering Margins */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. LOA Clearance Gauge */}
+            <div className="bg-white border rounded-xl p-4 shadow-2xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">1. LOA Clearance</span>
+                <Ruler className="w-4 h-4 text-maritime-700" />
+              </div>
+              <div className="text-lg font-black text-slate-900">
+                {activeVesselEval.vessel.loaM}m LOA
+              </div>
+              <div className="mt-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Origin Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.originLoaMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.originLoaMargin >= 0 ? `+${activeVesselEval.originLoaMargin}m` : `${activeVesselEval.originLoaMargin}m`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Dest Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.destLoaMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.destLoaMargin >= 0 ? `+${activeVesselEval.destLoaMargin}m` : `${activeVesselEval.destLoaMargin}m`}
+                  </span>
+                </div>
+              </div>
+              <div className={`mt-3 text-[11px] p-1.5 rounded font-semibold text-center border ${
+                activeVesselEval.loaClear ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'
+              }`}>
+                {activeVesselEval.loaClear ? '✅ Berth Length Cleared' : '❌ LOA Exceeded Berth Pocket'}
+              </div>
+            </div>
+
+            {/* 2. Beam Clearance Gauge */}
+            <div className="bg-white border rounded-xl p-4 shadow-2xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">2. Beam & Lock Gate</span>
+                <Layers className="w-4 h-4 text-maritime-700" />
+              </div>
+              <div className="text-lg font-black text-slate-900">
+                {activeVesselEval.vessel.beamM}m Beam
+              </div>
+              <div className="mt-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Origin Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.originBeamMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.originBeamMargin >= 0 ? `+${activeVesselEval.originBeamMargin}m` : `${activeVesselEval.originBeamMargin}m`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Dest Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.destBeamMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.destBeamMargin >= 0 ? `+${activeVesselEval.destBeamMargin}m` : `${activeVesselEval.destBeamMargin}m`}
+                  </span>
+                </div>
+              </div>
+              <div className={`mt-3 text-[11px] p-1.5 rounded font-semibold text-center border ${
+                activeVesselEval.beamClear ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'
+              }`}>
+                {activeVesselEval.beamClear ? '✅ Lock & Berth Passed' : '❌ Beam Exceeds Lock / Berth'}
+              </div>
+            </div>
+
+            {/* 3. Draft & UKC Clearance */}
+            <div className="bg-white border rounded-xl p-4 shadow-2xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">3. Draft & Under-Keel</span>
+                <Anchor className="w-4 h-4 text-maritime-700" />
+              </div>
+              <div className="text-lg font-black text-slate-900">
+                {activeVesselEval.vessel.ladenDraft}m Laden
+              </div>
+              <div className="mt-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Origin UKC Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.originDraftMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.originDraftMargin >= 0 ? `+${activeVesselEval.originDraftMargin}m` : `${activeVesselEval.originDraftMargin}m`}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Dest Tide Margin:</span>
+                  <span className={`font-mono font-bold ${activeVesselEval.destTideDraftMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    {activeVesselEval.destTideDraftMargin >= 0 ? `+${activeVesselEval.destTideDraftMargin}m` : `${activeVesselEval.destTideDraftMargin}m`}
+                  </span>
+                </div>
+              </div>
+              <div className={`mt-3 text-[11px] p-1.5 rounded font-semibold text-center border ${
+                activeVesselEval.destDraftClear ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                activeVesselEval.destDraftTide ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-50 text-red-800 border-red-200'
+              }`}>
+                {activeVesselEval.destDraftClear ? '✅ 100% Direct Berth' :
+                 activeVesselEval.destDraftTide ? '⚠️ High-Tide Window Only' : '❌ Draft Restricted / Grounding'}
+              </div>
+            </div>
+
+            {/* 4. Handling & Laytime Economics */}
+            <div className="bg-white border rounded-xl p-4 shadow-2xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">4. Laytime & Handling</span>
+                <Clock className="w-4 h-4 text-maritime-700" />
+              </div>
+              <div className="text-lg font-black text-slate-900">
+                {activeVesselEval.loadingDays + activeVesselEval.dischargeDays}d Port Time
+              </div>
+              <div className="mt-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Origin Loading:</span>
+                  <span className="font-mono font-bold text-slate-800">{activeVesselEval.loadingDays}d ({currentOrigin.handlingRateTPD.toLocaleString()} TPD)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Dest Discharge:</span>
+                  <span className="font-mono font-bold text-slate-800">{activeVesselEval.dischargeDays}d ({currentPort.handlingRateTPD.toLocaleString()} TPD)</span>
+                </div>
+              </div>
+              <div className={`mt-3 text-[11px] p-1.5 rounded font-semibold text-center border ${
+                activeVesselEval.isDispatchEarned ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                activeVesselEval.demurrageINRCr === 0 ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-amber-50 text-amber-800 border-amber-200'
+              }`}>
+                {activeVesselEval.isDispatchEarned ? `🎉 +₹${activeVesselEval.dispatchBonusINRLakhs}L Dispatch Credit` :
+                 activeVesselEval.demurrageINRCr === 0 ? '✅ Within Laytime Allowance' : `⚠️ ₹${activeVesselEval.demurrageINRCr} Cr Demurrage`}
+              </div>
+            </div>
+          </div>
+
+          {/* Complete 7-Class Candidate Vessel Engineering Matrix Table */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Ship className="w-4 h-4 text-maritime-800" />
+                  <span>Full 7-Class Vessel Technical Comparison for {currentOrigin.name} ➔ {currentPort.name}</span>
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Comprehensive clearance evaluation across LOA, beam, draft limits, and two-way turnaround economics.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-slate-500">
+                Parcel Size: {activeCargoVolume.toLocaleString()} MT
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-100 text-slate-700 uppercase font-mono text-[10px] tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="p-3">Vessel Class</th>
+                    <th className="p-3">DWT Range</th>
+                    <th className="p-3">LOA & Fit</th>
+                    <th className="p-3">Beam & Lock</th>
+                    <th className="p-3">Laden Draft & Clearance</th>
+                    <th className="p-3">Origin Load (@ TPD)</th>
+                    <th className="p-3">Dest Disch (@ TPD)</th>
+                    <th className="p-3">Economic Outcome</th>
+                    <th className="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-sans">
+                  {vesselEvals.map((item) => {
+                    const isSelected = currentVesselId === item.vessel.id;
+                    const isRec = recommendedVesselEval.vessel.id === item.vessel.id;
+                    return (
+                      <tr key={item.vessel.id} className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-maritime-50/40' : ''}`}>
+                        <td className="p-3 font-bold text-slate-900 flex items-center gap-1.5">
+                          {isRec && <span className="text-emerald-600 font-black">⭐</span>}
+                          <span>{item.vessel.name}</span>
+                        </td>
+                        <td className="p-3 font-mono text-slate-600 text-[11px]">{item.vessel.dwtRange}</td>
+                        <td className="p-3 font-mono text-[11px]">
+                          <span className={item.loaClear ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}>
+                            {item.vessel.loaM}m {item.loaClear ? '✓' : `✗ (> ${Math.min(currentOrigin.maxLOA, currentPort.maxLOA)}m)`}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-[11px]">
+                          <span className={item.beamClear ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}>
+                            {item.vessel.beamM}m {item.beamClear ? '✓' : `✗ (> ${Math.min(currentOrigin.maxBeam, currentPort.maxBeam)}m)`}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-[11px]">
+                          <span className={item.destDraftOk && item.originDraftClear ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold'}>
+                            {item.vessel.ladenDraft}m {item.destDraftOk && item.originDraftClear ? '✓ Safe' : '✗ Exceeds Draft'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-[11px] font-mono text-slate-700">
+                          {item.loadingDays}d ({currentOrigin.handlingRateTPD.toLocaleString()} TPD)
+                        </td>
+                        <td className="p-3 text-[11px] font-mono text-slate-700">
+                          {item.dischargeDays}d ({currentPort.handlingRateTPD.toLocaleString()} TPD)
+                        </td>
+                        <td className="p-3 text-[11px]">
+                          {item.isDispatchEarned ? (
+                            <span className="font-bold text-emerald-600">+₹{item.dispatchBonusINRLakhs}L Dispatch</span>
+                          ) : item.demurrageINRCr > 0 ? (
+                            <span className="font-bold text-rose-700">₹{item.demurrageINRCr} Cr Demurrage</span>
+                          ) : (
+                            <span className="font-semibold text-slate-600">Laytime Matched</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => onSelectVessel && onSelectVessel(item.vessel.id)}
+                            className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${
+                              isSelected
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {isSelected ? 'Selected' : 'Select'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Legal Gazette Citations Banner */}
+          <div className="bg-slate-900 text-white rounded-xl p-4 text-xs space-y-2 border border-slate-700/80">
+            <div className="flex items-center space-x-2 font-bold uppercase tracking-wider text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Official Regulatory & Gazette Authority Citations</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px] text-slate-300">
+              <div className="p-2.5 rounded bg-slate-800/80 border border-slate-700">
+                <span className="font-bold text-white block mb-0.5">Loading Origin Gazette:</span>
+                <p className="italic text-slate-300">{currentOrigin.officialSource}</p>
+                <div className="mt-1 text-[10px] text-slate-400">
+                  Berth Pocket: {currentOrigin.berthDetails}
+                </div>
+              </div>
+              <div className="p-2.5 rounded bg-slate-800/80 border border-slate-700">
+                <span className="font-bold text-white block mb-0.5">Discharge Destination Gazette:</span>
+                <p className="italic text-slate-300">{currentPort.officialSource}</p>
+                <div className="mt-1 text-[10px] text-slate-400">
+                  Infrastructure: Standard draft {currentPort.maxDraftLaden}m, Spring tide {currentPort.maxDraftHighTide}m, LOA {currentPort.maxLOA}m, Beam {currentPort.maxBeam}m.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === TAB 3: LOADING PORTS HUB (AUSTRALIA • USA • MOZAMBIQUE • INDONESIA • GLOBAL) === */}
+      {activeTab === 'loading_ports' && (
+        <div className="space-y-5">
+          {/* Header & Region Filter Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 uppercase tracking-wide">
+                <Globe className="w-4 h-4 text-maritime-800" />
+                <span>Global Loading Ports Hub: Official Marine Specifications</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Authentic technical limits (LOA, Beam, Draft, TPD, TPH) for bulk coal loading terminals in Australia, United States, Mozambique, Indonesia, and global hubs.
+              </p>
+            </div>
+
+            {/* Region Filter Buttons */}
+            <div className="flex flex-wrap gap-1.5 text-xs">
+              {[
+                { id: 'ALL', label: 'All Origins' },
+                { id: 'AUSTRALIA', label: '🇦🇺 Australia (5)' },
+                { id: 'USA', label: '🇺🇸 United States (4)' },
+                { id: 'MOZAMBIQUE', label: '🇲🇿 Mozambique (3)' },
+                { id: 'INDONESIA', label: '🇮🇩 Indonesia (5)' },
+                { id: 'GLOBAL', label: '🌐 Global (3)' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedLoadingRegion(tab.id)}
+                  className={`px-2.5 py-1 rounded-md font-semibold text-xs transition-colors ${
+                    selectedLoadingRegion === tab.id
+                      ? 'bg-maritime-800 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Active Loading Port Quick Indicator */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
+              <span>
+                Currently Selected Loading Origin: <strong className="font-bold">{currentOrigin.name}</strong> ({currentOrigin.country}) — Max LOA {currentOrigin.maxLOA}m, Beam {currentOrigin.maxBeam}m, Draft {currentOrigin.maxDraftLaden}m, Handling {currentOrigin.handlingRateTPD.toLocaleString()} TPD.
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-blue-800 font-bold shrink-0">
+              Voyage: {currentOrigin.distanceToEastCoastNM.toLocaleString()} NM (~{currentOrigin.transitDaysAverage} days)
+            </span>
+          </div>
+
+          {/* Grid of Loading Port Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredLoadingPorts.map((port) => {
+              const isSelected = selectedOrigin === port.id;
+              return (
+                <div
+                  key={port.id}
+                  className={`rounded-xl border-2 transition-all p-4 flex flex-col justify-between shadow-xs hover:shadow-md ${
+                    isSelected ? 'border-maritime-700 bg-white ring-2 ring-maritime-600/20' : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  <div>
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        {port.country}
+                      </span>
+                      {isSelected && (
+                        <span className="bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+                          ACTIVE ORIGIN
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="text-sm font-bold text-slate-900">{port.name}</h4>
+                    <p className="text-[11px] text-slate-500 mb-3">{port.region}</p>
+
+                    {/* Technical Limits 4-Cell Matrix */}
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                      <div className="bg-slate-50 p-2 rounded border border-slate-200/70">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold block">Max LOA</span>
+                        <span className="font-mono font-bold text-slate-900">{port.maxLOA} meters</span>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded border border-slate-200/70">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold block">Max Beam</span>
+                        <span className="font-mono font-bold text-slate-900">{port.maxBeam} meters</span>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded border border-slate-200/70">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold block">Laden Draft</span>
+                        <span className="font-mono font-bold text-emerald-700">{port.maxDraftLaden} meters</span>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded border border-slate-200/70">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold block">Max DWT</span>
+                        <span className="font-mono font-bold text-slate-900">{port.maxDWT.toLocaleString()} DWT</span>
+                      </div>
+                    </div>
+
+                    {/* Handling Velocity & Shiploader */}
+                    <div className="space-y-1.5 text-xs bg-slate-50/60 p-2.5 rounded-lg border border-slate-200/80 mb-3 font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-sans text-[11px]">Loading Rate (TPD):</span>
+                        <span className="font-bold text-blue-700">{port.handlingRateTPD.toLocaleString()} TPD</span>
+                      </div>
+                      {port.shiploaderRateTPH && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-sans text-[11px]">Shiploader Speed:</span>
+                          <span className="font-bold text-slate-800">{port.shiploaderRateTPH.toLocaleString()} TPH</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-sans text-[11px]">Transit to East Coast:</span>
+                        <span className="font-bold text-slate-800">{port.distanceToEastCoastNM.toLocaleString()} NM (~{port.transitDaysAverage}d)</span>
+                      </div>
+                    </div>
+
+                    {/* Primary Cargoes */}
+                    <div className="mb-3">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Exported Cargoes:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {(port.primaryCargoes || [port.primaryCargo]).map((cargo, idx) => (
+                          <span key={idx} className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                            {cargo}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Berth Details */}
+                    <p className="text-[10.5px] text-slate-600 leading-tight mb-2">
+                      {port.berthDetails}
+                    </p>
+
+                    {/* Official Gazette Reference */}
+                    <div className="text-[10px] text-slate-400 italic border-t border-slate-100 pt-2 mb-3">
+                      📜 Source: {port.officialSource}
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSelectOrigin) onSelectOrigin(port.id);
+                    }}
+                    className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-maritime-800 hover:bg-maritime-900 text-white shadow-xs'
+                    }`}
+                  >
+                    <span>{isSelected ? '✓ Current Loading Origin' : 'Select as Loading Origin'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* === TAB 4: PORT SWITCH ADVISOR === */}
       {activeTab === 'portswitcher' && (
         <div className="space-y-3">
           <div className="bg-maritime-50 border border-maritime-200 rounded-md p-3 text-xs text-maritime-900">
