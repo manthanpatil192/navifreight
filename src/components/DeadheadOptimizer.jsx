@@ -6,11 +6,9 @@ import {
 } from 'lucide-react';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
 import InsightBulb from './InsightBulb';
-import VesselBunchingTerminal from './VesselBunchingTerminal';
 import CargoToHoldMatcher from './CargoToHoldMatcher';
 
 export default function DeadheadOptimizer({ selectedDestination, currency, forecast, terminalMetrics = null, activeNewsSignal = null, onSelectPort = null }) {
-  const [activeSubTab, setActiveSubTab] = useState('matcher'); // 'matcher', 'bunching', 'all'
   const [selectedLivePort, setSelectedLivePort] = useState(selectedDestination || 'paradip');
   const [selectedBerthedShipMmsi, setSelectedBerthedShipMmsi] = useState('563112000'); // MV OLYMPIC GLORY (Default)
   
@@ -86,76 +84,19 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
           </span>
         </div>
 
-        {/* Sub-Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('matcher')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'matcher'
-                ? 'bg-emerald-700 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-emerald-300" />
-            <span>1. Cargo-to-Hold Matcher & Coastal Triangulation Engine</span>
-            <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-extrabold ml-1">LIVE DATA</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('bunching')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'bunching'
-                ? 'bg-rose-900 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>2. Vessel Bunching & Anti-Congestion Dispatch Terminal</span>
-            <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.2 rounded font-extrabold ml-1">LIVE COLLISION RADAR</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('all')}
-            className={`py-2 px-3 rounded-md transition-all flex items-center space-x-1.5 cursor-pointer ${
-              activeSubTab === 'all'
-                ? 'bg-purple-900 text-white shadow-xs font-bold'
-                : 'text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>View All Modules</span>
-          </button>
-        </div>
       </div>
 
-      {/* MODULE 1: Interactive Cargo-to-Hold Matcher (Coastal Triangulation) */}
-      {(activeSubTab === 'matcher' || activeSubTab === 'all') && (
-        <CargoToHoldMatcher 
-          currency={currency} 
-          selectedMmsi={selectedBerthedShipMmsi}
-          onSelectShip={(ship) => {
-            setSelectedBerthedShipMmsi(ship.mmsi);
-            if (ship.destinationId) {
-              setSelectedLivePort(ship.destinationId);
-            }
-          }}
-        />
-      )}
-
-      {/* MODULE 2: Vessel Bunching & Anti-Congestion Dispatch Terminal */}
-      {(activeSubTab === 'bunching' || activeSubTab === 'all') && (
-        <VesselBunchingTerminal 
-          selectedDestination={selectedLivePort} 
-          vessels={LIVE_AIS_VESSELS}
-          onSelectPort={(portKey) => {
-            setSelectedLivePort(portKey);
-            if (onSelectPort) onSelectPort(portKey);
-          }}
-        />
-      )}
+      {/* Interactive Cargo-to-Hold Matcher (Coastal Triangulation Engine) */}
+      <CargoToHoldMatcher 
+        currency={currency} 
+        selectedMmsi={selectedBerthedShipMmsi}
+        onSelectShip={(ship) => {
+          setSelectedBerthedShipMmsi(ship.mmsi);
+          if (ship.destinationId) {
+            setSelectedLivePort(ship.destinationId);
+          }
+        }}
+      />
 
       {/* MODULE 4: Strategic Fuel & ESG Directives */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-subtle">

@@ -34,7 +34,6 @@ export default function CargoToHoldMatcher({
   const [lockedFixture, setLockedFixture] = useState(null);
   const [showDataProvenance, setShowDataProvenance] = useState(false);
   const [repositionTargetKey, setRepositionTargetKey] = useState('hay_point');
-  const [activeSpeedMode, setActiveSpeedMode] = useState('eco'); // 'eco' or 'full'
 
   // Active Ship Object
   const activeShip = useMemo(() => {
@@ -509,26 +508,11 @@ export default function CargoToHoldMatcher({
                       </div>
                     </div>
 
-                    {/* 3-Leg Architecture Flow */}
+                    {/* 3-Leg Architecture Flow with Hopping Leg */}
                     {(() => {
                       const originPort = GLOBAL_ORIGIN_PORT_CONGESTION[repositionTargetKey] || GLOBAL_ORIGIN_PORT_CONGESTION.hay_point;
                       const destPortName = opp.primaryDestinationPort || opp.destinationRegion || 'Qingdao, China';
                       const repositionDistNM = originPort.repositionDistanceNMFromChina || 3850;
-                      
-                      // Eco speed vs Full speed calculations
-                      const ecoKnots = originPort.recommendedSpeedKnots || 11.6;
-                      const fullKnots = 13.0;
-                      const ecoTransitDays = Number((repositionDistNM / (ecoKnots * 24)).toFixed(1));
-                      const fullTransitDays = Number((repositionDistNM / (fullKnots * 24)).toFixed(1));
-                      
-                      // Daily fuel burn: Eco ~24.5 MT/day, Full ~38.0 MT/day
-                      const ecoFuelTotalMT = Math.round(ecoTransitDays * 24.5);
-                      const fullFuelTotalMT = Math.round(fullTransitDays * 38.0);
-                      const fuelSavedMT = Math.max(0, fullFuelTotalMT - ecoFuelTotalMT);
-                      const fuelSavingsUSD = Math.round(fuelSavedMT * 620); // $620/MT VLSFO bunker
-                      const demurrageAvoidedUSD = 45000; // 1.8 days * $25,000/day avoided idle wait
-                      const totalBenefitUSD = fuelSavingsUSD + demurrageAvoidedUSD;
-                      const totalBenefitINR_Cr = Number(((totalBenefitUSD * fxRate) / 10000000).toFixed(2));
 
                       return (
                         <div className="space-y-2.5">
@@ -539,7 +523,7 @@ export default function CargoToHoldMatcher({
                             <div className="p-2.5 rounded-lg border border-slate-200 bg-white shadow-2xs">
                               <div className="flex items-center justify-between text-slate-500 font-bold text-[10px] uppercase mb-1">
                                 <span>Leg 1: Discharge Inbound Coal</span>
-                                <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">Discharging</span>
+                                <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 font-semibold">Discharging</span>
                               </div>
                               <div className="font-bold text-slate-900 truncate">
                                 {activeShip.destinationPort?.split('(')[0] || 'Paradip Port'}
@@ -552,10 +536,15 @@ export default function CargoToHoldMatcher({
                               </div>
                             </div>
 
-                            {/* Leg 2: Loaded Export Backhaul */}
-                            <div className="p-2.5 rounded-lg border border-emerald-300 bg-emerald-50/50 shadow-2xs">
+                            {/* Leg 2: Coastal Hopping & Loaded Export Backhaul Leg */}
+                            <div className="p-2.5 rounded-lg border border-emerald-300 bg-emerald-50/70 shadow-2xs">
                               <div className="flex items-center justify-between text-emerald-800 font-bold text-[10px] uppercase mb-1">
-                                <span>Leg 2: Loaded Export Backhaul</span>
+                                <span className="flex items-center gap-1">
+                                  <span>Leg 2:</span>
+                                  <span className="text-emerald-950 font-extrabold underline decoration-emerald-500">
+                                    {opp.hopDistanceNM > 0 ? `🌊 ${opp.hopDistanceNM} NM Coastal Hopping Leg` : '⚓ Direct Berth Loading'}
+                                  </span>
+                                </span>
                                 <span className="text-emerald-800 bg-emerald-100 font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">
                                   +{isINR ? `₹${opp.netArbitrageINR_Cr} Cr` : `$${(opp.netArbitrageUSD / 1000).toFixed(0)}k`}
                                 </span>
@@ -566,12 +555,13 @@ export default function CargoToHoldMatcher({
                               <div className="text-[10px] text-slate-600 mt-0.5">
                                 {opp.intakeMT.toLocaleString()} MT {opp.exportCargo?.split('(')[0]} ({opp.distanceNM || 3950} NM)
                               </div>
-                              <div className="text-[9.5px] font-semibold text-emerald-700 mt-1">
-                                🌱 Zero Ballast Waste • Saves {opp.co2SavingsTons} MT CO2
+                              <div className="text-[9.5px] font-semibold text-emerald-700 mt-1 flex items-center justify-between">
+                                <span>{opp.hopDistanceNM > 0 ? `Underway: ${opp.steamingHours || `${opp.hopDistanceNM} NM hop`}` : 'Direct at current berth'}</span>
+                                <span>🌱 Saves {opp.co2SavingsTons} MT CO2</span>
                               </div>
                             </div>
 
-                            {/* Leg 3: Ballast Repositioning to Coal Origin */}
+                            {/* Leg 3: Ballast Repositioning to Coal Load Origin */}
                             <div className="p-2.5 rounded-lg border border-blue-300 bg-blue-50/50 shadow-2xs">
                               <div className="flex items-center justify-between text-blue-900 font-bold text-[10px] uppercase mb-1">
                                 <span>Leg 3: Repositioning to Origin</span>
@@ -580,132 +570,16 @@ export default function CargoToHoldMatcher({
                                 </span>
                               </div>
                               <div className="font-bold text-slate-900 truncate">
-                                {destPortName.split('/')[0]} ➔ {originPort.name.split('/')[0]}
+                                {destPortName.split('/')[0]} ➔ {originPort.name.split('/')[0]} ({repositionDistNM.toLocaleString()} NM)
                               </div>
                               <div className="text-[10px] text-slate-600 mt-0.5">
-                                {repositionDistNM.toLocaleString()} NM • Load: {originPort.handlingRateTPD?.toLocaleString()} TPD
+                                Queue: <strong>{originPort.anchoredQueueShips} ships</strong> ({originPort.avgWaitHours}h avg) • Load Rate: <strong>{((originPort.handlingRateTPD || 75000) / 1000).toFixed(0)}k TPD</strong>
                               </div>
                               <div className="text-[9.5px] font-bold text-blue-800 mt-1">
                                 ⚓ Next Empty Slot: {originPort.nextEmptyBerthSlotETA}
                               </div>
                             </div>
 
-                          </div>
-
-                          {/* Real JIT Speed & Empty Port Arrival Prediction Box */}
-                          <div className="bg-white p-3 rounded-lg border border-slate-200">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-100 mb-2 gap-2">
-                              <div className="flex items-center space-x-2">
-                                <Clock className="w-3.5 h-3.5 text-blue-600" />
-                                <span className="text-xs font-bold text-slate-800">
-                                  Real Berth Arrival Prediction: JIT Speed vs Uncoordinated Full Speed
-                                </span>
-                              </div>
-                              
-                              {/* Speed Mode Toggle */}
-                              <div className="flex items-center bg-slate-100 p-0.5 rounded text-[10.5px]">
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveSpeedMode('eco')}
-                                  className={`px-2 py-0.5 rounded font-bold transition-all cursor-pointer ${
-                                    activeSpeedMode === 'eco'
-                                      ? 'bg-emerald-600 text-white shadow-xs'
-                                      : 'text-slate-600 hover:text-slate-900'
-                                  }`}
-                                >
-                                  JIT Eco-Speed ({ecoKnots} kts)
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveSpeedMode('full')}
-                                  className={`px-2 py-0.5 rounded font-bold transition-all cursor-pointer ${
-                                    activeSpeedMode === 'full'
-                                      ? 'bg-rose-600 text-white shadow-xs'
-                                      : 'text-slate-600 hover:text-slate-900'
-                                  }`}
-                                >
-                                  Full Speed ({fullKnots} kts)
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
-                              
-                              {/* Eco Mode Metrics */}
-                              <div className={`p-2.5 rounded-lg border transition-all ${
-                                activeSpeedMode === 'eco' 
-                                  ? 'bg-emerald-50/80 border-emerald-400 ring-2 ring-emerald-200' 
-                                  : 'bg-slate-50 border-slate-200 opacity-75'
-                              }`}>
-                                <div className="flex items-center justify-between font-bold text-emerald-900 mb-1">
-                                  <span className="flex items-center gap-1">
-                                    <span>✨ Recommended: JIT Eco-Speed ({ecoKnots} kts)</span>
-                                  </span>
-                                  <span className="bg-emerald-600 text-white text-[9px] px-1.5 py-0.2 rounded font-extrabold">
-                                    ZERO QUEUE WAIT
-                                  </span>
-                                </div>
-                                <p className="text-[10px] text-slate-600 mb-2">
-                                  Steams at calculated JIT speed so vessel arrives precisely when <strong>{originPort.name.split('/')[0]}</strong> berth becomes 100% empty.
-                                </p>
-                                <div className="grid grid-cols-3 gap-1.5 font-mono text-[10px]">
-                                  <div className="bg-white p-1 rounded border border-emerald-100">
-                                    <span className="text-slate-400 block text-[9px]">Transit Time:</span>
-                                    <strong className="text-slate-800">{ecoTransitDays} Days</strong>
-                                  </div>
-                                  <div className="bg-white p-1 rounded border border-emerald-100">
-                                    <span className="text-slate-400 block text-[9px]">Anchor Queue:</span>
-                                    <strong className="text-emerald-700">0.0h (Direct Berth)</strong>
-                                  </div>
-                                  <div className="bg-white p-1 rounded border border-emerald-100">
-                                    <span className="text-slate-400 block text-[9px]">Demurrage Cost:</span>
-                                    <strong className="text-emerald-700">$0.00</strong>
-                                  </div>
-                                </div>
-                                <div className="mt-2 text-[10px] font-semibold text-emerald-800 flex items-center justify-between">
-                                  <span>⚡ Fuel Saved: {fuelSavedMT} MT VLSFO (${fuelSavingsUSD.toLocaleString()})</span>
-                                  <span className="font-bold">+{isINR ? `₹${totalBenefitINR_Cr} Cr` : `$${totalBenefitUSD.toLocaleString()}`} Benefit</span>
-                                </div>
-                              </div>
-
-                              {/* Full Speed Mode Metrics */}
-                              <div className={`p-2.5 rounded-lg border transition-all ${
-                                activeSpeedMode === 'full' 
-                                  ? 'bg-rose-50/80 border-rose-400 ring-2 ring-rose-200' 
-                                  : 'bg-slate-50 border-slate-200 opacity-75'
-                              }`}>
-                                <div className="flex items-center justify-between font-bold text-rose-900 mb-1">
-                                  <span className="flex items-center gap-1">
-                                    <span>⚠️ Uncoordinated Full Speed ({fullKnots} kts)</span>
-                                  </span>
-                                  <span className="bg-rose-600 text-white text-[9px] px-1.5 py-0.2 rounded font-extrabold">
-                                    CONGESTED
-                                  </span>
-                                </div>
-                                <p className="text-[10px] text-slate-600 mb-2">
-                                  Arrives early while previous vessel is still loading. Drops anchor outside port roads in queue.
-                                </p>
-                                <div className="grid grid-cols-3 gap-1.5 font-mono text-[10px]">
-                                  <div className="bg-white p-1 rounded border border-rose-100">
-                                    <span className="text-slate-400 block text-[9px]">Transit Time:</span>
-                                    <strong className="text-slate-800">{fullTransitDays} Days</strong>
-                                  </div>
-                                  <div className="bg-white p-1 rounded border border-rose-100">
-                                    <span className="text-slate-400 block text-[9px]">Anchor Queue:</span>
-                                    <strong className="text-rose-700">1.8 Days Wait</strong>
-                                  </div>
-                                  <div className="bg-white p-1 rounded border border-rose-100">
-                                    <span className="text-slate-400 block text-[9px]">Demurrage Penalty:</span>
-                                    <strong className="text-rose-700">-$45,000 USD</strong>
-                                  </div>
-                                </div>
-                                <div className="mt-2 text-[10px] font-semibold text-rose-800 flex items-center justify-between">
-                                  <span>❌ Fuel Wasted: +{fuelSavedMT} MT VLSFO</span>
-                                  <span className="font-bold">Unproductive Anchor Burning</span>
-                                </div>
-                              </div>
-
-                            </div>
                           </div>
                         </div>
                       );
