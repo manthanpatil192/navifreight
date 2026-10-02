@@ -12,7 +12,6 @@ import WebTerminalModelTrainer from './components/WebTerminalModelTrainer';
 import CharterTimingDecisionMatrix from './components/CharterTimingDecisionMatrix';
 import DetailedRouteScenarioAnalysis from './components/DetailedRouteScenarioAnalysis';
 import ForecastChart from './components/ForecastChart';
-import SpotVsCoaPlanner from './components/SpotVsCoaPlanner';
 import MarketIntelligenceRadar from './components/MarketIntelligenceRadar';
 import VesselOptimization from './components/VesselOptimization';
 import VesselBunchingTerminal from './components/VesselBunchingTerminal';
@@ -327,17 +326,7 @@ export default function App() {
                 onSelectVessel={setSelectedVessel}
               />
 
-              {/* 3. Spot vs COA Portfolio Planner (Smart Cargo Splitter & Unhedged Loss Protection) */}
-              <SpotVsCoaPlanner
-                forecast={forecast}
-                cargoVolumeMT={cargoVolumeMT}
-                contractHorizonMonths={contractHorizonMonths}
-                currency={currency}
-                coaSplitPercent={coaSplitPercent}
-                onCoaSplitChange={setCoaSplitPercent}
-              />
-
-              {/* 4. Fourth: Charter Timing Decision Matrix */}
+              {/* 3. Charter Timing Decision Matrix */}
               <CharterTimingDecisionMatrix
                 selectedOrigin={selectedOrigin}
                 selectedDestination={selectedDestination}
