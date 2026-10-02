@@ -24,9 +24,10 @@ export default function SpotVsCoaPlanner({
   const isINR = currency === 'INR';
   const baseInrRate = marketData.usdInrSpot || 95.93;
 
-  // 1. Volume Hedging Split State (Controlled or Local State)
-  const [internalSplit, setInternalSplit] = useState(70);
-  const coaSplitPercent = controlledSplit !== undefined ? controlledSplit : internalSplit;
+  // 1. Volume Hedging Split State (Controlled or Local State, defaults to dynamic market-state derived optimum)
+  const defaultMarketSplit = forecast.optimalCoaSplitPercent || 65;
+  const [internalSplit, setInternalSplit] = useState(defaultMarketSplit);
+  const coaSplitPercent = (controlledSplit !== undefined && controlledSplit !== null) ? controlledSplit : (internalSplit || defaultMarketSplit);
   const setCoaSplitPercent = (val) => {
     if (onCoaSplitChange) onCoaSplitChange(val);
     setInternalSplit(val);
@@ -81,7 +82,7 @@ export default function SpotVsCoaPlanner({
   // Simple, Non-Jargon Verdicts
   let simpleVerdict = {
     title: '✅ Sweet Spot: Best of Both Worlds (Recommended)',
-    summary: `70% of your coal is locked at a cheap rate to keep the steel plant running, and 30% is left open to catch cheap daily prices. You save ₹${blendedSavingsINR.toFixed(2)} Cr vs unhedged spot!`,
+    summary: `${coaSplitPercent}% of your coal is locked at a cheap rate to keep the steel plant running, and ${spotSplitPercent}% is left open to catch cheap daily prices. You save ₹${blendedSavingsINR.toFixed(2)} Cr vs unhedged spot!`,
     badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     color: 'emerald'
   };
@@ -150,12 +151,12 @@ export default function SpotVsCoaPlanner({
             🎰 100% Spot
           </button>
           <button
-            onClick={() => setCoaSplitPercent(forecast.optimalCoaSplitPercent || 70)}
+            onClick={() => setCoaSplitPercent(forecast.optimalCoaSplitPercent || 65)}
             className={`text-[11px] font-bold px-2.5 py-1 rounded transition-all ${
-              coaSplitPercent === (forecast.optimalCoaSplitPercent || 70) ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              coaSplitPercent === (forecast.optimalCoaSplitPercent || 65) ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            ⭐ {forecast.optimalCoaSplitPercent || 70}/{100 - (forecast.optimalCoaSplitPercent || 70)} CVaR Optimum
+            ⭐ {forecast.optimalCoaSplitPercent || 65}/{100 - (forecast.optimalCoaSplitPercent || 65)} Market State Optimum
           </button>
           <button
             onClick={() => setCoaSplitPercent(100)}
@@ -382,7 +383,7 @@ export default function SpotVsCoaPlanner({
 
         <div className="flex justify-between text-[11px] text-slate-500 font-semibold pt-1">
           <span className="text-rose-700">◀ 0% (All Daily Spot - Risky)</span>
-          <span className="text-emerald-800 font-bold">70% Split (Sweet Spot)</span>
+          <span className="text-emerald-800 font-bold">{forecast.optimalCoaSplitPercent || 65}% Market State Optimum</span>
           <span className="text-blue-700">100% (All Fixed - No Risk) ▶</span>
         </div>
 

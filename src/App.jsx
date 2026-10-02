@@ -53,7 +53,7 @@ export default function App() {
   const [volatilityIndex, setVolatilityIndex] = useState(1.0);
   const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
   const [activeNewsSignal, setActiveNewsSignal] = useState(MARKET_NEWS_SIGNALS[0]);
-  const [coaSplitPercent, setCoaSplitPercent] = useState(70);
+  const [coaSplitPercent, setCoaSplitPercent] = useState(undefined);
   const [terminalMetrics, setTerminalMetrics] = useState(null);
   const [isDatasetModalOpen, setIsDatasetModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);

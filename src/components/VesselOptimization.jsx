@@ -213,7 +213,7 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
     };
   } else if (isOptimalCoaParcel) {
     verdictBadge = {
-      text: `✅ Optimal Loading Port Fit (70/30 COA) — Standard ${tripsRequired}-Voyage COA Schedule (${vessel.typicalParcel.toLocaleString()} MT/voyage) • 100% Berth Clearance at ${origin.name}`,
+      text: `✅ Optimal Loading Port Fit (Market COA Program) — Standard ${tripsRequired}-Voyage COA Schedule (${vessel.typicalParcel.toLocaleString()} MT/voyage) • 100% Berth Clearance at ${origin.name}`,
       cls: 'bg-emerald-50 text-emerald-900 border-emerald-300',
       icon: CheckCircle2
     };

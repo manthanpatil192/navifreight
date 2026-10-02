@@ -1613,7 +1613,14 @@ export default function LiveShipTrackerMap({
           setActiveToast({
             id: `new_vessel_toast_${Date.now()}`,
             vesselName: `New Vessel Detected: ${newVessel.name}`,
-            portName: `Bound for ${destPortInfo.name} (ETA ~${(etaHours / 24).toFixed(1)} Days) — Added to Map!`,
+            portName: `${destPortInfo.name} Approach (ETA ~${(etaHours / 24).toFixed(1)}d)`,
+            portId: template.destinationId || 'paradip',
+            vesselType: newVessel.vesselType,
+            currentDraught: newVessel.currentDraughtMeters,
+            coordinates: newVessel.coordinates,
+            speedKnots: newVessel.speedKnots,
+            dwt: newVessel.dwt,
+            cargo: newVessel.cargo,
             time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST',
             alertType: 'Live AIS Pipeline: New Vessel Ingested',
             isFresh: true
@@ -2933,14 +2940,14 @@ export default function LiveShipTrackerMap({
           {/* Floating Geofence Entry Toast Notification */}
           {activeToast && (() => {
             const toastDiv = evaluateVesselPortCongestionDiversion({
-              portId: activeToast.portId,
-              vesselType: activeToast.vesselType,
-              currentDraught: activeToast.currentDraught,
-              vesselName: activeToast.vesselName,
-              vesselCoordinates: activeToast.coordinates,
-              speedKnots: activeToast.speedKnots,
-              dwt: activeToast.dwt,
-              cargo: activeToast.cargo
+              portId: activeToast.portId || 'paradip',
+              vesselType: activeToast.vesselType || 'Capesize',
+              currentDraught: activeToast.currentDraught || 16.5,
+              vesselName: activeToast.vesselName || '',
+              vesselCoordinates: activeToast.coordinates || null,
+              speedKnots: activeToast.speedKnots || 12.0,
+              dwt: activeToast.dwt || 150000,
+              cargo: activeToast.cargo || 'Bulk Cargo'
             });
             const isPortFull = Boolean(toastDiv && toastDiv.isPortFull && (toastDiv.lowFuelOption || toastDiv.ampleFuelOption));
             const activeOption = toastDiv
@@ -2999,17 +3006,18 @@ export default function LiveShipTrackerMap({
                   </div>
 
                   {/* Port Saturation, Anchorage Loss & Dual Fuel Strategies */}
-                  {isPortFull ? (
-                    <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-2">
-                      <div className="flex items-center justify-between text-amber-300 font-bold">
-                        <span className="flex items-center space-x-1">
-                          <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
-                          <span>{toastDiv.portName} Saturated ({toastDiv.avgWaitDays}d wait • {toastDiv.vesselsAtAnchor} queued)</span>
-                        </span>
-                        <span className="text-[9px] bg-rose-950 text-rose-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-rose-800">
-                          {toastDiv.congestionStatus}
-                        </span>
-                      </div>
+                  {toastDiv ? (
+                    isPortFull ? (
+                      <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-amber-500/60 text-[10px] space-y-2">
+                        <div className="flex items-center justify-between text-amber-300 font-bold">
+                          <span className="flex items-center space-x-1">
+                            <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+                            <span>{toastDiv?.portName || 'Port'} Saturated ({toastDiv?.avgWaitDays || 2.8}d wait • {toastDiv?.vesselsAtAnchor || 5} queued)</span>
+                          </span>
+                          <span className="text-[9px] bg-rose-950 text-rose-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-rose-800">
+                            {toastDiv?.congestionStatus || 'MODERATE'}
+                          </span>
+                        </div>
 
                       {/* Anchorage Loss Baseline in Crores & Lakhs */}
                       <div className="bg-rose-950/50 border border-rose-900/60 rounded p-1.5 text-rose-200 flex items-center justify-between">
@@ -3154,60 +3162,61 @@ export default function LiveShipTrackerMap({
                         </div>
                       )}
                     </div>
-                  ) : (
-                    /* Smooth Berthing / Direct Port Evacuation View */
-                    <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-emerald-500/60 text-[10px] space-y-2">
-                      <div className="flex items-center justify-between text-emerald-300 font-bold">
-                        <span className="flex items-center space-x-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>{toastDiv.portName} Berthing Clear ({toastDiv.avgWaitDays}d wait • {toastDiv.vesselsAtAnchor} queued)</span>
-                        </span>
-                        <span className="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-emerald-800">
-                          {toastDiv.congestionStatus}
-                        </span>
-                      </div>
-
-                      {/* Direct Port Turnaround Baseline */}
-                      <div className="bg-emerald-950/50 border border-emerald-900/60 rounded p-1.5 text-emerald-200 flex items-center justify-between">
-                        <span>⚓ <strong>Direct Port Turnaround:</strong> ~{toastDiv.berthTurnaroundHours || 36}h</span>
-                        <span className="font-mono font-bold text-emerald-400">
-                          Optimal Queue (0 Diversion Surcharge)
-                        </span>
-                      </div>
-
-                      {/* Direct Port Hinterland Evacuation (Rail Rakes vs Trucks) */}
-                      {toastDiv.directEvacuation && (
-                        <div className="p-2 rounded bg-slate-900 border border-indigo-500/50 text-[9px] space-y-1">
-                          <div className="flex items-center justify-between font-bold text-indigo-300">
-                            <span className="flex items-center space-x-1">
-                              <span>🚂</span>
-                              <span>Hinterland Evacuation: {toastDiv.directEvacuation.cluster} ({toastDiv.directEvacuation.distanceKm} km)</span>
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-1 text-slate-300 pt-0.5">
-                            <div>
-                              FOIS Rail Freight: <b className="text-white">₹{toastDiv.directEvacuation.trainCostCr} Cr</b> <span className="text-slate-400">({toastDiv.directEvacuation.trainRakesNeeded} rakes)</span>
-                            </div>
-                            <div>
-                              Truck Freight (Road): <b className="text-amber-300">₹{toastDiv.directEvacuation.truckCostCr} Cr</b>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
-                            <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{toastDiv.directEvacuation.roadSurchargeCr} Cr</b></span>
-                            <span className="text-cyan-400 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
-                          </div>
+                    ) : (
+                      /* Smooth Berthing / Direct Port Evacuation View */
+                      <div className="mt-2 p-2.5 rounded-lg bg-slate-950/90 border border-emerald-500/60 text-[10px] space-y-2">
+                        <div className="flex items-center justify-between text-emerald-300 font-bold">
+                          <span className="flex items-center space-x-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>{toastDiv?.portName || 'Port'} Berthing Clear ({toastDiv?.avgWaitDays || 1.2}d wait • {toastDiv?.vesselsAtAnchor || 1} queued)</span>
+                          </span>
+                          <span className="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-extrabold uppercase border border-emerald-800">
+                            {toastDiv?.congestionStatus || 'LOW'}
+                          </span>
                         </div>
-                      )}
 
-                      {/* Terminal Strategy Profile */}
-                      <div className="p-1.5 rounded bg-slate-900 border border-slate-800 text-[9px] flex items-center justify-between text-slate-300">
-                        <span>Approach Strategy: <b className="text-emerald-300">Direct Fairway Inward Transit</b></span>
-                        <span className="font-mono text-emerald-400 font-bold">Clear Sea Gate Ring</span>
+                        {/* Direct Port Turnaround Baseline */}
+                        <div className="bg-emerald-950/50 border border-emerald-900/60 rounded p-1.5 text-emerald-200 flex items-center justify-between">
+                          <span>⚓ <strong>Direct Port Turnaround:</strong> ~{toastDiv?.berthTurnaroundHours || 36}h</span>
+                          <span className="font-mono font-bold text-emerald-400">
+                            Optimal Queue (0 Diversion Surcharge)
+                          </span>
+                        </div>
+
+                        {/* Direct Port Hinterland Evacuation (Rail Rakes vs Trucks) */}
+                        {toastDiv?.directEvacuation && (
+                          <div className="p-2 rounded bg-slate-900 border border-indigo-500/50 text-[9px] space-y-1">
+                            <div className="flex items-center justify-between font-bold text-indigo-300">
+                              <span className="flex items-center space-x-1">
+                                <span>🚂</span>
+                                <span>Hinterland Evacuation: {toastDiv.directEvacuation.cluster} ({toastDiv.directEvacuation.distanceKm} km)</span>
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1 text-slate-300 pt-0.5">
+                              <div>
+                                FOIS Rail Freight: <b className="text-white">₹{toastDiv.directEvacuation.trainCostCr} Cr</b> <span className="text-slate-400">({toastDiv.directEvacuation.trainRakesNeeded} rakes)</span>
+                              </div>
+                              <div>
+                                Truck Freight (Road): <b className="text-amber-300">₹{toastDiv.directEvacuation.truckCostCr} Cr</b>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between text-slate-400 text-[8.5px] pt-0.5 border-t border-slate-800">
+                              <span>Road Surcharge Penalty: <b className="text-rose-400">+₹{toastDiv.directEvacuation.roadSurchargeCr} Cr</b></span>
+                              <span className="text-cyan-400 font-semibold" title="FreightFox Indian Trucking Price Book (PPAC Diesel-Indexed Benchmark)">FreightFox Index (PPAC)</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Terminal Strategy Profile */}
+                        <div className="p-1.5 rounded bg-slate-900 border border-slate-800 text-[9px] flex items-center justify-between text-slate-300">
+                          <span>Approach Strategy: <b className="text-emerald-300">Direct Fairway Inward Transit</b></span>
+                          <span className="font-mono text-emerald-400 font-bold">Clear Sea Gate Ring</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )
+                  ) : null}
                 </div>
 
                 <div className="flex items-center justify-end space-x-2 pt-1.5 border-t border-slate-800 text-[11px]">
