@@ -314,37 +314,6 @@ export const INDIAN_EAST_COAST_PORTS = {
       truckPayloadMT: 32,
       railCongestionRisk: 'LOW'
     }
-  },
-  tuticorin: {
-    id: 'tuticorin',
-    name: 'V.O. Chidambaranar Port (VOCPA - Tuticorin)',
-    state: 'Tamil Nadu',
-    coordinates: [8.7500, 78.1800],
-    maxDraftLaden: 14.2,
-    maxDraftHighTide: 14.7,
-    maxLOA: 260,
-    maxBeam: 40.0,
-    maxDWT: 95000,
-    recommendedVessels: ['Panamax', 'Supramax', 'Handymax'],
-    handlingRateTPD: 32000,
-    primaryCargoes: ['Thermal Coal (TTPS)', 'Rock Phosphate', 'Industrial Bulk'],
-    demurragePerDayINR: 5400000,
-    avgWaitDays: 1.9,
-    congestionLevel: 'LOW',
-    tidalRangeMeters: 0.9,
-    transshipmentRequiredFor: ['Capesize'],
-    officialSource: 'VOC Port Authority Marine Department Circular 2025',
-    description: 'Southern tip major port; captive maritime coal conduit for TANGEDCO Tuticorin Thermal Power Station.',
-    hinterlandEvacuation: {
-      primaryCluster: 'TANGEDCO Tuticorin Thermal Power Station (TTPS)',
-      distanceKm: 6,
-      railRakesAvailablePerDay: 5.0,
-      railTariffPerNTKM: 1.80,
-      rakeCapacityMT: 3900,
-      truckFreightTariffPerTKM: 4.20,
-      truckPayloadMT: 28,
-      railCongestionRisk: 'LOW'
-    }
   }
 };
 

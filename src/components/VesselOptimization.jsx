@@ -68,11 +68,10 @@ const PORT_LIVE_CONDITIONS = {
   sandheads:  { actualTPD: 20000, ratedTPD: 22000, queueVessels: 6,  waitDays: 3.5, conveyorStatus: 'BARGE FLEET NORMAL',                 berthAvailDays: 12 },
   ennore:     { actualTPD: 42000, ratedTPD: 48000, queueVessels: 4,  waitDays: 1.6, conveyorStatus: 'FULL CAPACITY (Coal Berths 1-2)',    berthAvailDays: 16 },
   chennai:    { actualTPD: 30000, ratedTPD: 35000, queueVessels: 6,  waitDays: 2.3, conveyorStatus: 'NORMAL (West Quay Berths)',          berthAvailDays: 10 },
-  krishnapatnam:{actualTPD: 50000,ratedTPD: 55000, queueVessels: 5,  waitDays: 1.5, conveyorStatus: 'FULL CAPACITY',                      berthAvailDays: 15 },
-  tuticorin:  { actualTPD: 28000, ratedTPD: 32000, queueVessels: 5,  waitDays: 1.9, conveyorStatus: 'NORMAL (NCB Berths)',                berthAvailDays: 12 },
+  krishnapatnam:{actualTPD: 50000,ratedTPD: 55000, queueVessels: 5,  waitDays: 1.5, conveyorStatus: 'FULL CAPACITY',                      berthAvailDays: 15 }
 };
 
-const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads', 'ennore', 'chennai', 'krishnapatnam', 'tuticorin'];
+const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads', 'ennore', 'chennai', 'krishnapatnam'];
 
 const DEMURRAGE_RATE_INR_PER_DAY = 6500000; // ₹65L/day ($75k/day)
 const DISPATCH_RATE_INR_PER_DAY = 3250000;  // ₹32.5L/day (Standard 50% Dispatch Reward)
@@ -172,6 +171,10 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
     dispatchBonusUSD = Math.round((dispatchBonusINRLakhs * 100000) / 95.0);
   }
 
+  // 70-30 Cargo Allocation & Loading Port Point of View (POV) Engine
+  const isCoaStandardClass = (vessel.id === 'kamsarmax' || vessel.id === 'panamax');
+  const isOptimalCoaParcel = tripsRequired <= 2 && isCoaStandardClass;
+
   // Traffic Light Verdict Generation
   let verdictBadge = { text: '', cls: '', icon: CheckCircle2 };
   if (!beamClear) {
@@ -208,6 +211,12 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
       cls: 'bg-amber-50 text-amber-900 border-amber-200',
       icon: AlertTriangle
     };
+  } else if (isOptimalCoaParcel) {
+    verdictBadge = {
+      text: `✅ Optimal Loading Port Fit (70/30 COA) — Standard ${tripsRequired}-Voyage COA Schedule (${vessel.typicalParcel.toLocaleString()} MT/voyage) • 100% Berth Clearance at ${origin.name}`,
+      cls: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+      icon: CheckCircle2
+    };
   } else if (tripsRequired > 1) {
     verdictBadge = {
       text: `⚠️ Capacity Deficit: Requires ${tripsRequired} voyages (${cargoMT.toLocaleString()} MT > ${vessel.typicalParcel.toLocaleString()} MT) — Switch to Kamsarmax/Panamax`,
@@ -232,29 +241,39 @@ function computePortScore(originId, portId, vessel, cargoMT, incoisData) {
     tpdTranslationSentence = `Loading: ${loadingDays}d @ ${originLoadingRateTPD.toLocaleString()} TPD | Discharge: ${dischargeDays}d ➔ On schedule within free laytime (${allowedLaytimeDays}d). Zero demurrage.`;
   }
 
-  // Compute composite score /100
+  // Compute composite score /100 (Incorporating Loading Port POV & 70-30 COA Allocation)
   let score = 100;
   if (isLightLoaded) score -= 20;
-  if (blocked) score -= 60;
+  if (blocked) score -= 85; // Hard block for draft/LOA violations (e.g. Capesize cannot enter port)
 
-  if (cargoMT > lightLoadingCapMT) {
-    const capacityDeficitMT = cargoMT - lightLoadingCapMT;
-    const deficitRatio = capacityDeficitMT / cargoMT;
-    score -= Math.round(35 + deficitRatio * 30);
+  // Loading Port POV: If vessel fits standard 70/30 COA multi-voyage program (Kamsarmax/Panamax),
+  // do not penalize for multi-trip allocation since it matches loading port berth mechanics
+  if (!isOptimalCoaParcel) {
+    if (cargoMT > lightLoadingCapMT) {
+      const capacityDeficitMT = cargoMT - lightLoadingCapMT;
+      const deficitRatio = capacityDeficitMT / cargoMT;
+      score -= Math.round(35 + deficitRatio * 30);
+    }
+    if (tripsRequired > 1) {
+      score -= (tripsRequired - 1) * 20;
+    }
   }
-  if (tripsRequired > 1) {
-    score -= (tripsRequired - 1) * 20;
-  }
+
   if (vessel.typicalParcel > cargoMT * 2.2) {
     score -= 25;
   }
 
-  const costPenalty = Math.round((vessel.costMultiplier - 0.72) * 20);
+  // Loading Port POV bonus: fast loader and 100% physical clearance at origin adds operational efficiency
+  if (originDraftClear && originLoaClear && originBeamClear) {
+    score += 5; // Loading Port bonus (Hay Point / Gladstone / Abbot Point / Balikpapan)
+  }
+
+  const costPenalty = Math.round((vessel.costMultiplier - 0.72) * 10);
   score -= Math.max(0, costPenalty);
 
-  if (live.waitDays > 3) score -= 10;
-  if (extraOverLaytime > 1.0) score -= 15;
-  if (live.berthAvailDays < 7) score -= 12;
+  if (live.waitDays > 3) score -= 8;
+  if (extraOverLaytime > 1.0) score -= 10;
+  if (live.berthAvailDays < 7) score -= 8;
   if (isDispatchEarned) score += 5;
   score = Math.max(0, Math.min(100, score));
 

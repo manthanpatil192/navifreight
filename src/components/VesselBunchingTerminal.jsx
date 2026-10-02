@@ -3,7 +3,8 @@ import {
   AlertTriangle, Ship, CheckCircle2, ArrowRight,
   Anchor, Compass, Copy, Check, ChevronRight, Gauge,
   Clock, RefreshCw, ShieldAlert,
-  ArrowUpRight, ExternalLink, Zap, Flame, Share2, Database
+  ArrowUpRight, ExternalLink, Zap, Flame, Share2, Database,
+  Scale, DollarSign, Sliders, Train, Fuel, TrendingDown, ArrowDownRight
 } from 'lucide-react';
 import { INDIAN_EAST_COAST_PORTS } from '../data/portsData';
 import { LIVE_AIS_VESSELS } from '../data/liveAisVessels';
@@ -14,9 +15,10 @@ export default function VesselBunchingTerminal({
   vessels = [],
   onUpdateVesselSpeed
 }) {
-  const [activeTab, setActiveTab] = useState('radar'); // 'radar' or 'actions'
+  const [activeTab, setActiveTab] = useState('radar'); // 'radar', 'actions', or 'hold_divert'
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [activePortKey, setActivePortKey] = useState(selectedDestination || 'paradip');
+  const [simulatedWaitDays, setSimulatedWaitDays] = useState(3.5);
 
   // Keep internal active port in sync if selectedDestination prop changes from outside
   useEffect(() => {
@@ -208,28 +210,6 @@ export default function VesselBunchingTerminal({
           liveDatasetBadge: 'APGENCO Daily Fuel Ingest + KPCL Guide',
           datasetProvenance: 'Andhra Pradesh Power Generation Corporation (APGENCO) Fuel Logistics'
         };
-      case 'tuticorin':
-        return {
-          consignee1: 'TANGEDCO Tuticorin Thermal (TTPS)',
-          inventoryDays1: 4.3,
-          alertLevel1: 'Critical Power Reserve (<5d Stock)',
-          stockpile1: '68,800 MT (16,000 MT/Day Burn)',
-          safetyNorm1: '21.0 Days CEA Norm',
-          consignee2: 'SAIL Salem Steel Plant (SSP)',
-          inventoryDays2: 7.8,
-          alertLevel2: 'High Alert Demand (7.8d)',
-          stockpile2: '32,000 MT (4,100 MT/Day Burn)',
-          safetyNorm2: '15.0 Days Safety Norm',
-          waitWindow: '0h CJ-02 Berth Window',
-          candidatePort: 'Chennai Port (ChPA - 14.0m)',
-          candidateKey: 'chennai',
-          deviationNM: 320,
-          deviationHours: 24.0,
-          berthName: 'VOCPA Coal Jetty CJ-02',
-          savedAmtCr: 7.9,
-          liveDatasetBadge: 'CEA Thermal Portal • Section 28',
-          datasetProvenance: 'Central Electricity Authority (CEA) TTPS Coal Stock Position & VOCPA Marine circular'
-        };
       case 'sandheads':
         return {
           consignee1: 'SAIL IISCO Steel Plant Burnpur (ISP)',
@@ -363,6 +343,136 @@ export default function VesselBunchingTerminal({
     ];
   }, [activePortKey, portConfig, targetPort, vessels]);
 
+  // Comprehensive Hold vs Divert Cost Engine (Phase 3 of PPT System Architecture)
+  const holdVsDivertAnalysis = useMemo(() => {
+    const waitDays = Number(simulatedWaitDays) || targetPort.avgWaitDays || 3.5;
+    const demurrageDailyINR = targetPort.demurragePerDayINR || 4500000;
+    const demurrageDailyUSD = Math.round(demurrageDailyINR / 86.5);
+
+    // 1. COST OF HOLDING (WAIT AT CURRENT ANCHORAGE)
+    // a. Demurrage exposure
+    const demurrageCostINR = Math.round(waitDays * demurrageDailyINR);
+    const demurrageCostUSD = Math.round(waitDays * demurrageDailyUSD);
+
+    // b. Auxiliary Bunker & Idling Fuel Burn (generators & boiler while waiting at anchor)
+    // Capesize burns ~2.8 MT/day VLSFO at anchor (~$852/MT)
+    const idlingFuelDailyUSD = Math.round(2.8 * 852);
+    const idlingFuelDailyINR = Math.round(idlingFuelDailyUSD * 86.5);
+    const auxFuelCostINR = Math.round(waitDays * idlingFuelDailyINR);
+    const auxFuelCostUSD = Math.round(waitDays * idlingFuelDailyUSD);
+
+    // c. In-Transit Cargo Inventory Carrying / Working Capital Holding Cost
+    // 155,000 MT Coking Coal @ $180/MT = $27.9M CIF value (~₹241 Cr).
+    // WACC at 10.0% annual / 365 = ~0.0274% per day
+    const cargoValueUSD = 155000 * 180;
+    const cargoValueINR = cargoValueUSD * 86.5;
+    const dailyCarryingCostINR = Math.round((cargoValueINR * 0.10) / 365);
+    const dailyCarryingCostUSD = Math.round((cargoValueUSD * 0.10) / 365);
+    const capitalHoldingCostINR = Math.round(waitDays * dailyCarryingCostINR);
+    const capitalHoldingCostUSD = Math.round(waitDays * dailyCarryingCostUSD);
+
+    // d. Steel Plant Buffer Deficit / Stockout Vulnerability Risk
+    // Sourced from portConfig consignee inventory days
+    const inventoryDays = portConfig.inventoryDays2 || 10;
+    let plantRiskINR = 0;
+    let plantRiskLevel = 'Safe Stockpile';
+    if (inventoryDays < 7.0) {
+      plantRiskINR = 8500000; // ₹85 Lakhs emergency buffer risk
+      plantRiskLevel = 'Critical Stockout Threat (<7d)';
+    } else if (inventoryDays < 15.0) {
+      plantRiskINR = 3000000; // ₹30 Lakhs moderate buffer risk
+      plantRiskLevel = 'Amber Depletion Alert';
+    } else {
+      plantRiskINR = 500000;
+      plantRiskLevel = 'Nominal Inventory';
+    }
+    const plantRiskUSD = Math.round(plantRiskINR / 86.5);
+
+    // TOTAL HOLDING COST
+    const totalHoldingCostINR = demurrageCostINR + auxFuelCostINR + capitalHoldingCostINR + plantRiskINR;
+    const totalHoldingCostUSD = demurrageCostUSD + auxFuelCostUSD + capitalHoldingCostUSD + plantRiskUSD;
+    const totalHoldingCostCr = Number((totalHoldingCostINR / 10000000).toFixed(2));
+
+    // 2. COST OF DIVERTING (SMART MULTI-PORT DIVERSION & MULTIMODAL RAIL)
+    // a. Sea Deviation Bunker Fuel Cost
+    const devNM = portConfig.deviationNM || 62;
+    const devHours = portConfig.deviationHours || 5.0;
+    // Capesize main engine eco-burn: ~40 MT / 24h = ~1.67 MT/hr
+    const devFuelBurnMT = Number(((devHours / 24) * 40.0).toFixed(2));
+    const devFuelCostUSD = Math.round(devFuelBurnMT * 852);
+    const devFuelCostINR = Math.round(devFuelCostUSD * 86.5);
+
+    // b. Port Entry, Pilotage & Alternate Berthing Dues Differential
+    const portDuesINR = 1850000; // ₹18.5 Lakhs differential
+    const portDuesUSD = Math.round(portDuesINR / 86.5);
+
+    // c. Multimodal Inland Evacuation: Indian Railways FOIS Rakes vs Emergency Road Trucking
+    const railFreightINR = 5500000; // ₹55 Lakhs direct FOIS rake transport
+    const railFreightUSD = Math.round(railFreightINR / 86.5);
+    const emergencyRoadTruckingAvoidedINR = 28000000; // ₹2.8 Cr avoided road surcharge
+
+    // TOTAL DIVERT COST
+    const totalDivertCostINR = devFuelCostINR + portDuesINR + railFreightINR;
+    const totalDivertCostUSD = devFuelCostUSD + portDuesUSD + railFreightUSD;
+    const totalDivertCostCr = Number((totalDivertCostINR / 10000000).toFixed(2));
+
+    // 3. DECISION GATE & NET ARBITRAGE
+    const netSavingsINR = totalHoldingCostINR - totalDivertCostINR;
+    const netSavingsUSD = totalHoldingCostUSD - totalDivertCostUSD;
+    const netSavingsCr = Number((netSavingsINR / 10000000).toFixed(2));
+    const shouldDivert = netSavingsINR > 0;
+
+    return {
+      waitDays,
+      holding: {
+        totalINR: totalHoldingCostINR,
+        totalUSD: totalHoldingCostUSD,
+        totalCr: totalHoldingCostCr,
+        demurrageINR: demurrageCostINR,
+        demurrageUSD: demurrageCostUSD,
+        demurrageDailyINR,
+        auxFuelINR: auxFuelCostINR,
+        auxFuelUSD: auxFuelCostUSD,
+        capitalHoldingINR: capitalHoldingCostINR,
+        capitalHoldingUSD: capitalHoldingCostUSD,
+        dailyCarryingCostINR,
+        plantRiskINR,
+        plantRiskUSD,
+        plantRiskLevel,
+      },
+      divert: {
+        totalINR: totalDivertCostINR,
+        totalUSD: totalDivertCostUSD,
+        totalCr: totalDivertCostCr,
+        devFuelBurnMT,
+        devFuelCostINR,
+        devFuelCostUSD,
+        portDuesINR,
+        portDuesUSD,
+        railFreightINR,
+        railFreightUSD,
+        roadAvoidedINR: emergencyRoadTruckingAvoidedINR,
+        candidatePort: portConfig.candidatePort,
+        candidateKey: portConfig.candidateKey,
+        deviationNM: devNM,
+        deviationHours: devHours,
+        consignee: portConfig.consignee2,
+      },
+      verdict: {
+        shouldDivert,
+        netSavingsINR,
+        netSavingsUSD,
+        netSavingsCr: Math.abs(netSavingsCr),
+        recommendation: shouldDivert 
+          ? `EXECUTE MULTIMODAL DIVERSION TO ${portConfig.candidatePort.split(' ')[0].toUpperCase()}`
+          : `PROCEED TO CURRENT ANCHORAGE (${targetPort.name.split(' ')[0].toUpperCase()})`,
+        summary: shouldDivert
+          ? `Holding at ${targetPort.name} costs ₹${totalHoldingCostCr} Cr in demurrage and idle capital. Diverting to ${portConfig.candidatePort} costs only ₹${totalDivertCostCr} Cr, unlocking +₹${Math.abs(netSavingsCr)} Cr in direct net corporate savings!`
+          : `Queue wait is low (${waitDays}d). Total holding cost is only ₹${totalHoldingCostCr} Cr, making it cheaper to hold at anchorage than paying ₹${totalDivertCostCr} Cr in diversion fuel and alternate rail transit. Virtual arrival eco-speed recommended.`
+      }
+    };
+  }, [simulatedWaitDays, targetPort, portConfig]);
+
   const handleCopyDirective = (text, index) => {
     try {
       navigator.clipboard.writeText(text);
@@ -373,6 +483,10 @@ export default function VesselBunchingTerminal({
 
   const handleSelectPort = (portKey) => {
     setActivePortKey(portKey);
+    const p = INDIAN_EAST_COAST_PORTS[portKey];
+    if (p && p.avgWaitDays) {
+      setSimulatedWaitDays(p.avgWaitDays);
+    }
     if (onSelectPort) {
       onSelectPort(portKey);
     }
@@ -416,47 +530,6 @@ export default function VesselBunchingTerminal({
         </div>
       </div>
 
-      {/* ALL PORTS SELECTOR BAR */}
-      <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center space-x-2 overflow-x-auto text-xs">
-        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0 flex items-center space-x-1 mr-1">
-          <Anchor className="w-3.5 h-3.5 text-sky-600" />
-          <span>Select Port:</span>
-        </span>
-        <div className="flex items-center space-x-1.5 overflow-x-auto py-0.5">
-          {Object.entries(INDIAN_EAST_COAST_PORTS).map(([key, p]) => {
-            const isSelected = key === activePortKey;
-            const isHighWait = p.avgWaitDays >= 3.5;
-            const isMedWait = p.avgWaitDays >= 2.0 && p.avgWaitDays < 3.5;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => handleSelectPort(key)}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
-                  isSelected
-                    ? 'bg-sky-600 text-white font-extrabold shadow-sm scale-[1.02]'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
-                }`}
-                title={`${p.name} • Wait: ${p.avgWaitDays}d • Draft: ${p.maxDraftLaden}m • Rate: ${p.handlingRateTPD.toLocaleString()} TPD`}
-              >
-                <span>{p.name.split(' ')[0]}</span>
-                <span className={`text-[9.5px] px-1 py-0.2 rounded font-mono ${
-                  isSelected 
-                    ? 'bg-white text-sky-800 font-bold' 
-                    : isHighWait 
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200' 
-                    : isMedWait 
-                    ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                }`}>
-                  {p.avgWaitDays}d
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Navigation Tabs */}
       <div className="bg-slate-50 border-b border-slate-200 px-4 flex space-x-2 text-xs overflow-x-auto">
         <button
@@ -483,6 +556,22 @@ export default function VesselBunchingTerminal({
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>2. Anti-Bunching Action Plan (Berthing & Diversion)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('hold_divert')}
+          className={`py-2.5 px-4 font-bold border-b-2 flex items-center space-x-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'hold_divert'
+              ? 'border-purple-600 text-purple-800 bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Scale className="w-3.5 h-3.5 text-purple-600" />
+          <span>3. Hold vs. Divert Cost Analysis (Phase 3 Optimization Gate)</span>
+          <span className="text-[9.5px] px-1.5 py-0.2 rounded font-mono font-bold bg-purple-100 text-purple-800 border border-purple-200">
+            {holdVsDivertAnalysis.verdict.shouldDivert ? `Divert Saves ₹${holdVsDivertAnalysis.verdict.netSavingsCr} Cr` : `Hold Saves ₹${holdVsDivertAnalysis.verdict.netSavingsCr} Cr`}
+          </span>
         </button>
       </div>
 
@@ -561,6 +650,11 @@ export default function VesselBunchingTerminal({
                         }`}>
                           {v.role}
                         </span>
+                        {i === 1 && (
+                          <div className="text-[9.5px] font-mono mt-1 text-slate-600">
+                            Hold: <span className="text-rose-600 font-bold">₹{holdVsDivertAnalysis.holding.totalCr}Cr</span> vs Divert: <span className="text-emerald-700 font-bold">₹{holdVsDivertAnalysis.divert.totalCr}Cr</span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -819,6 +913,85 @@ export default function VesselBunchingTerminal({
                     </div>
                   </div>
 
+                  {/* HOLD COST VS DIVERT COST DYNAMIC TRADE-OFF (PPT PHASE 3) */}
+                  <div className="mt-3 p-3 bg-slate-900 text-white rounded-lg border border-slate-700 space-y-2 text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-700/80 pb-1.5">
+                      <span className="font-bold text-[11px] text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Scale className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Hold vs. Divert Cost Trade-Off (Phase 3 Gate)</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('hold_divert')}
+                        className="text-[10px] text-sky-400 hover:text-sky-300 font-bold underline cursor-pointer flex items-center gap-1"
+                      >
+                        <span>Full Calculator</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      {/* Option A: Holding Cost */}
+                      <div className="bg-rose-950/40 border border-rose-800/60 rounded p-2 text-slate-300 space-y-1">
+                        <div className="font-bold text-rose-300 flex items-center justify-between text-[10px] uppercase">
+                          <span>Option A: Hold (Wait)</span>
+                          <span className="font-mono text-rose-400 font-bold">₹{holdVsDivertAnalysis.holding.totalCr} Cr</span>
+                        </div>
+                        <div className="text-[9.5px] text-slate-400 space-y-0.5 pt-0.5">
+                          <div className="flex justify-between">
+                            <span>Demurrage ({holdVsDivertAnalysis.waitDays}d):</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.holding.demurrageINR / 10000000).toFixed(2)} Cr</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Idling Bunker:</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.holding.auxFuelINR / 100000).toFixed(1)} L</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Cargo Capital:</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.holding.capitalHoldingINR / 100000).toFixed(1)} L</span>
+                          </div>
+                          <div className="flex justify-between text-rose-300 font-semibold">
+                            <span>Plant Risk:</span>
+                            <span className="font-mono">₹{(holdVsDivertAnalysis.holding.plantRiskINR / 100000).toFixed(1)} L</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Option B: Divert Cost */}
+                      <div className="bg-emerald-950/40 border border-emerald-800/60 rounded p-2 text-slate-300 space-y-1">
+                        <div className="font-bold text-emerald-300 flex items-center justify-between text-[10px] uppercase">
+                          <span>Option B: Divert</span>
+                          <span className="font-mono text-emerald-400 font-bold">₹{holdVsDivertAnalysis.divert.totalCr} Cr</span>
+                        </div>
+                        <div className="text-[9.5px] text-slate-400 space-y-0.5 pt-0.5">
+                          <div className="flex justify-between">
+                            <span>Deviation Fuel:</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.divert.devFuelCostINR / 100000).toFixed(1)} L</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Port / Berth Dues:</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.divert.portDuesINR / 100000).toFixed(1)} L</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>FOIS Rail Rakes:</span>
+                            <span className="font-mono text-slate-200">₹{(holdVsDivertAnalysis.divert.railFreightINR / 100000).toFixed(1)} L</span>
+                          </div>
+                          <div className="flex justify-between text-emerald-300 font-semibold">
+                            <span>Road Avoided:</span>
+                            <span className="font-mono">+₹{(holdVsDivertAnalysis.divert.roadAvoidedINR / 10000000).toFixed(1)} Cr</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-800/80 px-2 py-1.5 rounded flex items-center justify-between text-[10.5px]">
+                      <span className="text-slate-300 font-medium">Net Arbitrage (Hold vs Divert):</span>
+                      <span className="text-emerald-400 font-bold font-mono">
+                        +₹{holdVsDivertAnalysis.verdict.netSavingsCr} Cr Saved by Diverting
+                      </span>
+                    </div>
+                  </div>
+
                   <p className="text-xs text-sky-900 bg-sky-50/70 p-2.5 rounded-lg border border-sky-200 mt-3 leading-relaxed">
                     Pre-booking <b>{portConfig.candidatePort}</b> clears cargo directly via dedicated FOIS rail trains, completely bypassing the {targetPort.avgWaitDays}-day anchorage queue at {targetPort.name.split(' ')[0]}.
                   </p>
@@ -841,6 +1014,382 @@ export default function VesselBunchingTerminal({
               </div>
 
             </div>
+          </div>
+        )}
+
+        {/* PART 3: HOLD VS. DIVERT COST ANALYSIS & MULTIMODAL ARBITRAGE (PPT PHASE 3) */}
+        {activeTab === 'hold_divert' && (
+          <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+            
+            {/* Phase 3 Architecture Banner */}
+            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-xl border border-indigo-800 shadow-md">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+                    <Scale className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-700/60">
+                        Phase 3 System Architecture
+                      </span>
+                      <span className="text-[11px] text-slate-300 font-medium">
+                        Target Gateway: <strong className="text-white">{targetPort.name}</strong>
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-white mt-1">
+                      Decision Gate & Multimodal Diversion: 3-Way Optimization Equation
+                    </h3>
+                    <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      Solves the exact trade-off: <code className="text-amber-300 bg-slate-800/80 px-1 py-0.5 rounded font-mono text-[10px]">Cost A (Anchorage Holding) vs Cost B (Bunker Fuel) + Cost C (FOIS Rail vs Road)</code> to minimize landed procurement expenditure.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 bg-slate-800/90 border border-slate-700 rounded-lg p-2.5 text-right font-mono">
+                  <div className="text-[9.5px] text-slate-400 uppercase">Simulated Overlap Vessel</div>
+                  <div className="text-xs font-bold text-sky-400">{bunchedVessels[1]?.name || 'MV CAPE ASIA'}</div>
+                  <div className="text-[10px] text-slate-300">{bunchedVessels[1]?.cargo || '155,000 MT Coking Coal'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Anchorage Queue Duration Slider & Presets */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <Sliders className="w-4 h-4 text-purple-600" />
+                  <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                    Simulate Anchorage Queue Duration (Waiting at {targetPort.name.split(' ')[0]}):
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 font-mono">
+                  <span className="text-[11px] text-slate-500">Queue Time:</span>
+                  <span className="text-sm font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                    {simulatedWaitDays} Days ({Math.round(simulatedWaitDays * 24)} Hours)
+                  </span>
+                </div>
+              </div>
+
+              {/* Range Slider */}
+              <input
+                type="range"
+                min="0.5"
+                max="10.0"
+                step="0.5"
+                value={simulatedWaitDays}
+                onChange={(e) => setSimulatedWaitDays(parseFloat(e.target.value))}
+                className="w-full accent-purple-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
+              />
+
+              {/* Quick Queue Scenario Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+                <span className="text-slate-500 font-semibold text-[10px] uppercase">Quick Queue Scenarios:</span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedWaitDays(0.8)}
+                    className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors cursor-pointer ${
+                      simulatedWaitDays === 0.8 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    0.8d Express Clear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedWaitDays(2.0)}
+                    className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors cursor-pointer ${
+                      simulatedWaitDays === 2.0 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    2.0d Light Queue
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedWaitDays(targetPort.avgWaitDays || 3.5)}
+                    className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors cursor-pointer ${
+                      simulatedWaitDays === (targetPort.avgWaitDays || 3.5) ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {targetPort.avgWaitDays || 3.5}d Port Standard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedWaitDays(5.0)}
+                    className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors cursor-pointer ${
+                      simulatedWaitDays === 5.0 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    5.0d Cyclone Delay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedWaitDays(8.0)}
+                    className={`px-2 py-0.5 rounded font-mono text-[10px] transition-colors cursor-pointer ${
+                      simulatedWaitDays === 8.0 ? 'bg-purple-600 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    8.0d Peak Overlap Crisis
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Optimization Decision Gate Verdict Banner */}
+            <div className={`p-4 rounded-xl border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs ${
+              holdVsDivertAnalysis.verdict.shouldDivert 
+                ? 'bg-emerald-50/90 border-emerald-400 text-emerald-950' 
+                : 'bg-sky-50/90 border-sky-400 text-sky-950'
+            }`}>
+              <div className="flex items-start space-x-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                  holdVsDivertAnalysis.verdict.shouldDivert ? 'bg-emerald-600 text-white' : 'bg-sky-600 text-white'
+                }`}>
+                  {holdVsDivertAnalysis.verdict.shouldDivert ? <Train className="w-5 h-5" /> : <Anchor className="w-5 h-5" />}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                      holdVsDivertAnalysis.verdict.shouldDivert ? 'bg-emerald-200/90 text-emerald-900' : 'bg-sky-200/90 text-sky-900'
+                    }`}>
+                      Optimization Verdict (Decision Gate)
+                    </span>
+                    <span className="font-bold text-xs uppercase tracking-wide">
+                      {holdVsDivertAnalysis.verdict.recommendation}
+                    </span>
+                  </div>
+                  <p className="text-xs mt-1 leading-relaxed font-medium">
+                    {holdVsDivertAnalysis.verdict.summary}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0 bg-white border border-slate-200 rounded-lg p-2.5 text-right shadow-2xs">
+                <div className="text-[9.5px] text-slate-500 font-bold uppercase">
+                  {holdVsDivertAnalysis.verdict.shouldDivert ? 'Net Arbitrage Savings' : 'Net Holding Advantage'}
+                </div>
+                <div className={`text-lg font-black font-mono ${
+                  holdVsDivertAnalysis.verdict.shouldDivert ? 'text-emerald-700' : 'text-sky-700'
+                }`}>
+                  +₹{holdVsDivertAnalysis.verdict.netSavingsCr} Cr
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono">
+                  (${Math.abs(Math.round(holdVsDivertAnalysis.verdict.netSavingsUSD)).toLocaleString()} USD)
+                </div>
+              </div>
+            </div>
+
+            {/* Side-by-Side Detailed Comparative Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Card 1: Option A - Holding Cost (Proceed to Current Anchorage) */}
+              <div className={`rounded-xl border-2 p-4 flex flex-col justify-between shadow-2xs ${
+                holdVsDivertAnalysis.verdict.shouldDivert ? 'bg-white border-slate-200' : 'bg-sky-50/40 border-sky-300'
+              }`}>
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center">
+                        <Anchor className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
+                          Option A: Hold (Anchorage Wait)
+                        </h4>
+                        <span className="text-[10px] text-slate-500 font-mono">Target: {targetPort.name}</span>
+                      </div>
+                    </div>
+                    <div className="text-right font-mono">
+                      <div className="text-base font-extrabold text-rose-700">₹{holdVsDivertAnalysis.holding.totalCr} Cr</div>
+                      <div className="text-[9.5px] text-slate-500">${(holdVsDivertAnalysis.holding.totalUSD / 1000000).toFixed(2)}M USD</div>
+                    </div>
+                  </div>
+
+                  {/* Line Item Breakdown */}
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">1. Anchorage Demurrage Penalty</span>
+                        <span className="text-[10px] text-slate-500">
+                          {simulatedWaitDays} days wait × ₹{(holdVsDivertAnalysis.holding.demurrageDailyINR / 100000).toFixed(0)} Lakhs/day
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-rose-700 block">₹{(holdVsDivertAnalysis.holding.demurrageINR / 10000000).toFixed(2)} Cr</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.holding.demurrageUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">2. Auxiliary Generator Bunker Burn</span>
+                        <span className="text-[10px] text-slate-500">
+                          2.8 MT/day VLSFO at anchor (power & boiler)
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-slate-800 block">₹{(holdVsDivertAnalysis.holding.auxFuelINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.holding.auxFuelUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">3. Cargo Working Capital Carrying Cost</span>
+                        <span className="text-[10px] text-slate-500">
+                          10.0% WACC interest on ₹240+ Cr coal cargo
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-slate-800 block">₹{(holdVsDivertAnalysis.holding.capitalHoldingINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.holding.capitalHoldingUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">4. Factory Stockyard Vulnerability</span>
+                        <span className="text-[10px] text-amber-800 font-semibold">
+                          {holdVsDivertAnalysis.holding.plantRiskLevel} ({portConfig.consignee2})
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-amber-700 block">₹{(holdVsDivertAnalysis.holding.plantRiskINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.holding.plantRiskUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 bg-slate-100/70 p-2.5 rounded-lg border border-slate-200 mt-3 leading-relaxed">
+                    ⚓ <strong>Hold Directive:</strong> If proceeding to current anchorage, throttle engine to eco-speed (Virtual Arrival) to docking right as berth clears, avoiding anchor idling penalties.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCopyDirective(`HOLD_DIRECTIVE: ${bunchedVessels[1]?.name || 'MV CAPE ASIA'} assigned to anchor at ${targetPort.name}. Speed optimized for Virtual Arrival.`, 4);
+                    if (onUpdateVesselSpeed) {
+                      onUpdateVesselSpeed(bunchedVessels[1]?.mmsi, 8.5, `Underway - Virtual Arrival Eco-Speed ${targetPort.name.split(' ')[0]}`);
+                    }
+                  }}
+                  className="w-full mt-3 py-2 px-3 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
+                >
+                  {copiedIndex === 4 ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedIndex === 4 ? 'Hold Directive Copied!' : `Issue Hold & Virtual Arrival Directive (${targetPort.name.split(' ')[0]})`}</span>
+                </button>
+              </div>
+
+              {/* Card 2: Option B - Divert Cost (Smart Multi-Port Diversion & FOIS Rail) */}
+              <div className={`rounded-xl border-2 p-4 flex flex-col justify-between shadow-2xs ${
+                holdVsDivertAnalysis.verdict.shouldDivert ? 'bg-emerald-50/40 border-emerald-300' : 'bg-white border-slate-200'
+              }`}>
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <Train className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide">
+                          Option B: Divert (Multimodal Reroute)
+                        </h4>
+                        <span className="text-[10px] text-slate-500 font-mono">Candidate: {portConfig.candidatePort}</span>
+                      </div>
+                    </div>
+                    <div className="text-right font-mono">
+                      <div className="text-base font-extrabold text-emerald-700">₹{holdVsDivertAnalysis.divert.totalCr} Cr</div>
+                      <div className="text-[9.5px] text-slate-500">${(holdVsDivertAnalysis.divert.totalUSD / 1000000).toFixed(2)}M USD</div>
+                    </div>
+                  </div>
+
+                  {/* Line Item Breakdown */}
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">1. Sea Deviation Bunker Fuel (Cost B)</span>
+                        <span className="text-[10px] text-slate-500">
+                          {portConfig.deviationNM} NM deviation (~{portConfig.deviationHours}h = {holdVsDivertAnalysis.divert.devFuelBurnMT} MT VLSFO)
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-slate-800 block">₹{(holdVsDivertAnalysis.divert.devFuelCostINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.divert.devFuelCostUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">2. Port Entry, Pilotage & Berthing Dues</span>
+                        <span className="text-[10px] text-slate-500">
+                          Berth hire & harbor pilotage differential
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-slate-800 block">₹{(holdVsDivertAnalysis.divert.portDuesINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.divert.portDuesUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-800 block">3. Multimodal FOIS Rail Rakes (Cost C)</span>
+                        <span className="text-[10px] text-slate-500">
+                          Pre-booked 48h FOIS rakes directly to {portConfig.consignee2}
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-slate-800 block">₹{(holdVsDivertAnalysis.divert.railFreightINR / 100000).toFixed(1)} L</span>
+                        <span className="text-[10px] text-slate-500">${holdVsDivertAnalysis.divert.railFreightUSD.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-emerald-50/80 p-2.5 rounded-lg border border-emerald-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-emerald-900 block">4. Emergency Road Trucking Avoided</span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">
+                          Direct Railway Freight Advantage over Road
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="font-bold text-emerald-700 block">+₹{(holdVsDivertAnalysis.divert.roadAvoidedINR / 10000000).toFixed(1)} Cr</span>
+                        <span className="text-[10px] text-emerald-600 font-semibold">Avoided Cost</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-emerald-950 bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200 mt-3 leading-relaxed">
+                    🚂 <strong>Divert Directive:</strong> Divert vessel to {portConfig.candidatePort} and indent direct FOIS rake evacuation trains. Saves ₹{holdVsDivertAnalysis.verdict.netSavingsCr} Cr in anchorage penalties.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectPort(portConfig.candidateKey);
+                    handleCopyDirective(`EXECUTE_DIVERSION: ${bunchedVessels[1]?.name || 'MV CAPE ASIA'} diverted to ${portConfig.candidatePort}. Priority FOIS rakes for ${portConfig.consignee2}.`, 5);
+                    if (onUpdateVesselSpeed) {
+                      onUpdateVesselSpeed(bunchedVessels[1]?.mmsi, bunchedVessels[1]?.speedKnots, `Underway - Diverted to ${portConfig.candidatePort.split(' ')[0]}`);
+                    }
+                  }}
+                  className="w-full mt-3 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
+                >
+                  {copiedIndex === 5 ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedIndex === 5 ? 'Diversion Dispatched!' : `Execute Multimodal Diversion (${portConfig.candidatePort.split(' ')[0]})`}</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Scientific Architecture Reference Note */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5">
+                <Database className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span><strong>Institutional Telemetry Sources:</strong> CEA Section 28 Daily Coal Reports • FOIS Rail Freight Ingest • DGCIS Customs Feeds • VLSFO Bunker 20-Ports</span>
+              </span>
+              <span className="font-mono text-[10px] text-slate-500">SIH 26006 Operational Workflow v4.5</span>
+            </div>
+
           </div>
         )}
 

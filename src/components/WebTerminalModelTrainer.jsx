@@ -218,6 +218,17 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $14.85 /MT  (₹1,411 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
+
+----------------------------------------------------------------------
+[4] SPOT VS COA PORTFOLIO PLANNER (UNHEDGED SPOT VS COA HEDGE):
+  * Unhedged 100% Spot Cost: $2,598,000 | ₹24.84 Crore (Buying on Spot at P50: $17.32/MT)
+    ↳ [Penalty If Unhedged: Vulnerable to stress surge P90 ($21.18/MT), risking ₹5.53 Cr in excess spike penalties]
+  * 100% COA Fixed Baseline: $2,227,500 | ₹21.37 Crore (Locked wholesale rate: $14.85/MT)
+    ↳ [Safety: Complete price ceiling insulation, 0% budget variance, blast furnace feed protected]
+  * NaviFreight Blended Portfolio: 35% COA / 65% Spot (Prices Stable Regime)
+    - Landed Blended Cost:   $2,357,250 | ₹22.61 Crore (Blended Rate: $15.72/MT / ₹1,508/MT)
+  * Net Direct Freight Savings: $240,750 | ₹2.23 Crore (+9.3% vs Unhedged Spot)
+    ↳ [Executive Verdict: Pre-negotiated COA protects core basestock while leaving 65% spot buffer to capture P10 dips]
 ======================================================================
 [GRAPH UPDATED] Initial benchmark directive initialized successfully!`
       }
@@ -786,6 +797,17 @@ export default function WebTerminalModelTrainer({
     ↳ [Meaning: Worst-case surge price during crises or shocks (90th percentile ceiling)]
   * COA Fixed Lock:   $${coaFixed.toFixed(2)} /MT  (₹${coaFixedINR.toLocaleString()} /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
+
+----------------------------------------------------------------------
+[4] SPOT VS COA PORTFOLIO PLANNER (UNHEDGED SPOT VS COA HEDGE):
+  * Unhedged 100% Spot Cost: $${unhedgedUSD.toLocaleString()} | ₹${unhedgedINR_Cr} Crore (Buying on Spot at P50: $${estSpot.toFixed(2)}/MT)
+    ↳ [Penalty If Unhedged: Vulnerable to stress surge P90 ($${estP90.toFixed(2)}/MT = ₹${estP90INR}/MT), adding up to ₹${((manualVolume * (estP90 - estSpot) * forwardFxRate)/10000000).toFixed(2)} Cr in peak exposure]
+  * 100% COA Fixed Baseline: $${(manualVolume * coaFixed).toLocaleString()} | ₹${((manualVolume * coaFixed * baseFxRate)/10000000).toFixed(2)} Crore (Locked wholesale rate: $${coaFixed.toFixed(2)}/MT)
+    ↳ [Safety: Complete price ceiling insulation, 0% budget variance, blast furnace feed protected]
+  * NaviFreight Blended Allocation: ${coaSplit}% COA / ${100-coaSplit}% Spot
+    - Landed Blended Cost:   $${optUSD.toLocaleString()} | ₹${optINR_Cr} Crore (Blended Rate: $${blended.toFixed(2)}/MT / ₹${blendedINR}/MT)
+  * Net Direct Freight Savings: $${savingsUSD.toLocaleString()} | ₹${savingsINR_Cr} Crore (+${((savingsUSD / unhedgedUSD) * 100).toFixed(1)}% vs Unhedged Spot)
+    ↳ [Executive Verdict: Locking ${coaSplit}% on forward COA shields ₹${savingsINR_Cr} Cr from spot shocks while retaining ${100-coaSplit}% to snipe P10 spot dips]
 ======================================================================
 [APP SYNCED] Terminal results coupled with Part A Decision Matrix, Buy/Hold suggestion boxes, and PSU Tender Planning!`
         }
@@ -906,9 +928,15 @@ export default function WebTerminalModelTrainer({
   * COA Fixed Lock:   $14.85 /MT  (₹1,411 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
-[2] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA:  35% (Base Contract Volume & Stability)
-  * Recommended Spot: 65% (Captures P10 Dip Windows & Daily Spot Bargains)
+[2] SPOT VS COA PORTFOLIO PLANNER (UNHEDGED SPOT VS COA HEDGE):
+  * Unhedged 100% Spot Cost: $2,598,000 | ₹24.84 Crore (Spot P50: $17.32/MT)
+    ↳ [Unhedged Peak Exposure: P90 surge ($21.18/MT) risks -₹5.53 Cr in excess losses]
+  * 100% COA Fixed Baseline: $2,227,500 | ₹21.37 Crore (Wholesale lock: $14.85/MT)
+    ↳ [Safety: Complete price insulation, 0% budget variance, blast furnace feed protected]
+  * NaviFreight Blended Allocation: 35% COA / 65% Spot (Prices Stable Regime)
+    - Landed Blended Cost:   $2,357,250 | ₹22.61 Crore (Blended Rate: $15.72/MT / ₹1,508/MT)
+  * Net Direct Freight Savings: $240,750 | ₹2.23 Crore (+9.3% vs Unhedged Spot)
+    ↳ [Executive Verdict: Pre-negotiated COA protects core basestock while leaving 65% spot buffer to capture P10 dips]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test1TenderPlan.promptLaycanWindow}
@@ -1060,9 +1088,15 @@ export default function WebTerminalModelTrainer({
   * COA Fixed Lock:   $15.42 /MT  (₹1,465 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
-[4] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA:  85% (Protects Blast Furnace against Peak Spike)
-  * Recommended Spot: 15% (Strictly Limited Spot Exposure)
+[4] SPOT VS COA PORTFOLIO PLANNER (UNHEDGED SPOT VS COA HEDGE):
+  * Unhedged 100% Spot Cost: $1,473,750 | ₹14.09 Crore (Spot P50: $19.65/MT)
+    ↳ [Unhedged Peak Exposure: P90 surge ($25.88/MT) risks -₹4.46 Cr in catastrophic spot losses!]
+  * 100% COA Fixed Baseline: $1,156,500 | ₹11.06 Crore (Wholesale lock: $15.42/MT)
+    ↳ [Safety: Complete price insulation, 0% budget variance, blast furnace feed protected]
+  * NaviFreight Blended Allocation: 85% COA / 15% Spot (High Surge Risk Regime)
+    - Landed Blended Cost:   $1,167,750 | ₹11.17 Crore (Blended Rate: $15.57/MT / ₹1,479/MT)
+  * Net Direct Freight Savings: $306,000 | ₹2.92 Crore (+20.8% vs Unhedged Spot)
+    ↳ [Executive Verdict: 85% COA hedge eliminates severe cyclone freight shock while 15% spot covers prompt gap]
 ----------------------------------------------------------------------
 [5] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test2TenderPlan.promptLaycanWindow}
@@ -1186,9 +1220,15 @@ export default function WebTerminalModelTrainer({
   * COA Fixed Lock:   $13.35 /MT  (₹1,268 /MT)
     ↳ [Meaning: Pre-negotiated fixed wholesale contract rate (locks in cheap stability)]
 ----------------------------------------------------------------------
-[2] ALGORITHMIC CVaR CARGO ALLOCATION:
-  * Recommended COA:  80% (Locks Long-Term Capacity Before Squeeze)
-  * Recommended Spot: 20% (Strictly Limited Spot Exposure)
+[2] SPOT VS COA PORTFOLIO PLANNER (UNHEDGED SPOT VS COA HEDGE):
+  * Unhedged 100% Spot Cost: $3,798,000 | ₹36.53 Crore (Spot P50: $21.10/MT)
+    ↳ [Unhedged Peak Exposure: P90 surge ($27.05/MT) risks -₹10.31 Cr in Cape routing squeeze!]
+  * 100% COA Fixed Baseline: $2,403,000 | ₹22.83 Crore (Wholesale lock: $13.35/MT)
+    ↳ [Safety: Complete price insulation, 0% budget variance, blast furnace feed protected]
+  * NaviFreight Blended Allocation: 80% COA / 20% Spot (Geopolitical Squeeze Regime)
+    - Landed Blended Cost:   $2,682,000 | ₹25.68 Crore (Blended Rate: $14.90/MT / ₹1,427/MT)
+  * Net Direct Freight Savings: $1,116,000 | ₹10.85 Crore (+29.4% vs Unhedged Spot)
+    ↳ [Executive Verdict: 80% long-term COA locks cheap capacity before Cape of Good Hope rerouting spreads]
 ----------------------------------------------------------------------
 [3] OPERATIONAL TIMING & VESSEL FIT:
   * Earliest Legal Laycan (Tendered Today): ${test3TenderPlan.promptLaycanWindow}
@@ -1208,9 +1248,9 @@ export default function WebTerminalModelTrainer({
     setIsExecuting(false);
   };
 
-  const handleCommandSubmit = (e) => {
-    e.preventDefault();
-    const cmd = commandInput.trim().toLowerCase();
+  const handleCommandSubmit = (e, explicitCmd = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const cmd = (explicitCmd || commandInput).trim().toLowerCase();
     setCommandInput('');
     if (!cmd) return;
 
@@ -1231,6 +1271,7 @@ export default function WebTerminalModelTrainer({
           type: 'info', 
           text: `Universal Ingested Data Terminal Commands:
   - train / fit               : Re-trains GBDT quantile model across 66 walk-forward folds.
+  - spot / coa / planner      : Evaluates Spot vs COA Portfolio & Unhedged Loss Risk exposure.
   - news <any headline>       : Ingests ANY global news/shock and predicts forward P10/P50/P90 quantiles.
   - weather / imd             : Fetches live real-time Bay of Bengal IMD weather & cyclone radar.
   - case2023 / cyclone jasper : Evaluates the Dec 2023 - Jan 2024 Queensland Cyclone Case Study.
@@ -1241,6 +1282,71 @@ export default function WebTerminalModelTrainer({
   - market / forex / bunker   : Syncs live daily RBI USD/INR reference rate & Global 20-Ports VLSFO index.
   - Natural Language Queries  : You can enter ANY natural text (e.g. "paradip 160000 tons", "Panama Canal drought").
   - clear / cls               : Clears the terminal screen.`
+        }
+      ]);
+      return;
+    }
+
+    // 2.3 Spot vs COA Planner & Unhedged Loss Risk Trigger
+    if (cmd === 'spot' || cmd === 'coa' || cmd === 'planner' || cmd === 'unhedged' || cmd === 'split' || cmd === 'hedge') {
+      const vol = manualVolume || 150000;
+      const spotRate = currentForecast?.spotRateUSD || 15.80;
+      const p50Rate = currentForecast?.projectedSpotRateUSD || 17.32;
+      const p90Rate = currentForecast?.p90USD || 21.18;
+      const coaRate = currentForecast?.coaRateUSD || 14.85;
+      const fx = marketData?.usdInrSpot || 95.93;
+      const coaPct = typeof coaSplitPercent === 'number' ? coaSplitPercent : 70;
+      const spotPct = 100 - coaPct;
+
+      const unhedgedUSD = Math.round(p50Rate * vol);
+      const unhedgedTodayUSD = Math.round(spotRate * vol);
+      const peakSurgeUSD = Math.round(p90Rate * vol);
+      const coaUSD = Math.round(coaRate * vol);
+      const blendedRate = Number(((coaRate * (coaPct / 100)) + (p50Rate * (spotPct / 100))).toFixed(2));
+      const blendedUSD = Math.round(blendedRate * vol);
+      const savingsUSD = unhedgedUSD - blendedUSD;
+      const peakLossUSD = peakSurgeUSD - coaUSD;
+
+      const unhedgedINR_Cr = ((unhedgedUSD * fx) / 10000000).toFixed(2);
+      const unhedgedTodayINR_Cr = ((unhedgedTodayUSD * fx) / 10000000).toFixed(2);
+      const peakLossINR_Cr = ((peakLossUSD * fx) / 10000000).toFixed(2);
+      const coaINR_Cr = ((coaUSD * fx) / 10000000).toFixed(2);
+      const blendedINR_Cr = ((blendedUSD * fx) / 10000000).toFixed(2);
+      const savingsINR_Cr = ((savingsUSD * fx) / 10000000).toFixed(2);
+
+      setTerminalHistory(prev => [
+        ...prev,
+        { type: 'prompt', text: `PS C:\\navifreight\\ml> python scripts/spot_vs_coa_planner.py --volume ${vol} --split ${coaPct}` },
+        {
+          type: 'success',
+          text: `======================================================================
+      NAVIFREIGHT SPOT VS COA FINANCIAL PLANNER: UNHEDGED RISK AUDIT      
+======================================================================
+Consignment Volume:  ${vol.toLocaleString()} MT | Active Split: ${coaPct}% COA / ${spotPct}% Spot
+Forex Benchmark:     1 USD = ₹${fx.toFixed(2)} (Live RBI Daily Reference Rate)
+----------------------------------------------------------------------
+[1] BUY SPOT TODAY (100% UNHEDGED OPEN MARKET):
+  * Today's Spot Rate:   $${spotRate.toFixed(2)} /MT  (₹${Math.round(spotRate * fx).toLocaleString()}/MT)
+  * Today's Total Cost:  $${unhedgedTodayUSD.toLocaleString()}  |  ₹${unhedgedTodayINR_Cr} Crore
+  * Expected P50 Cost:   $${unhedgedUSD.toLocaleString()}  |  ₹${unhedgedINR_Cr} Crore
+  * Risk Exposure:       100% Floating. Vulnerable to monsoon delays & price spikes.
+
+[2] PEAK SURGE LOSS EXPOSURE (IF LEFT UNHEDGED):
+  * Stress P90 Surge:    $${p90Rate.toFixed(2)} /MT  (₹${Math.round(p90Rate * fx).toLocaleString()}/MT)
+  * Worst-Case Bill:     $${peakSurgeUSD.toLocaleString()}  |  ₹${((peakSurgeUSD * fx) / 10000000).toFixed(2)} Crore
+  * POTENTIAL LOSS:      -$${peakLossUSD.toLocaleString()}  |  -₹${peakLossINR_Cr} Crore excess penalty!
+
+[3] 100% FIXED COA CONTRACT (MAXIMUM SAFETY HEDGE):
+  * Pre-Negotiated COA:  $${coaRate.toFixed(2)} /MT  (₹${Math.round(coaRate * fx).toLocaleString()}/MT)
+  * Total Fixed Bill:    $${coaUSD.toLocaleString()}  |  ₹${coaINR_Cr} Crore
+  * Budget Variance:     0.0% (Complete insulation from freight market shocks)
+
+[4] NAVIFREIGHT OPTIMAL PORTFOLIO (${coaPct}% COA / ${spotPct}% SPOT):
+  * Landed Blended Rate: $${blendedRate.toFixed(2)} /MT  (₹${Math.round(blendedRate * fx).toLocaleString()}/MT)
+  * Total Shipping Bill: $${blendedUSD.toLocaleString()}  |  ₹${blendedINR_Cr} Crore
+  * DIRECT NET SAVINGS:  +$${savingsUSD.toLocaleString()}  |  +₹${savingsINR_Cr} Crore (+${((savingsUSD / unhedgedUSD) * 100).toFixed(1)}%)
+======================================================================
+[ACTION] Slide the Smart Cargo Splitter below to dynamically rebalance COA/Spot weights!`
         }
       ]);
       return;
@@ -2311,6 +2417,14 @@ PART V:   CHARTERING DIRECTIVE & DEMURRAGE PROTECTION:
                   className="px-2 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition-colors cursor-pointer shadow-2xs font-medium"
                 >
                   Indonesia → Vizag (75k Panamax)
+                </button>
+                <button 
+                  onClick={() => handleCommandSubmit(null, 'spot')}
+                  className="px-2 py-0.5 bg-purple-50 hover:bg-purple-100 text-purple-800 rounded border border-purple-300 transition-colors cursor-pointer shadow-2xs font-semibold flex items-center gap-1 text-[11px]"
+                  title="Run Spot vs COA Unhedged Risk Planner in Terminal"
+                >
+                  <Sliders className="w-3 h-3 text-purple-600" />
+                  <span>Spot vs COA Planner</span>
                 </button>
               </div>
 

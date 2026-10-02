@@ -97,17 +97,10 @@ export function calculateFreightForecast({
   const riskAversionLambda = activeNewsSignal?.urgencyLevel === 'CRITICAL' ? 0.85 : 0.45;
   const tailRiskSpreadUSD = Math.max(0, upperBound95 - coaRateUSD);
   
-  // Computed optimal allocation: if forward spot expected > COA rate, increase COA weighting
-  let derivedOptimalCoaRatio = minBasestockRatio;
-  if (projectedSpotRateUSD > coaRateUSD) {
-    const rateDelta = (projectedSpotRateUSD - coaRateUSD) / coaRateUSD;
-    derivedOptimalCoaRatio = Math.min(0.90, minBasestockRatio + rateDelta * 0.8 + (riskAversionLambda * 0.15));
-  } else {
-    // Market in lull (e.g. coking coal drop) -> capitalize on spot dips
-    derivedOptimalCoaRatio = Math.max(minBasestockRatio, 0.45);
-  }
-  const optimalCoaSplitPercent = Math.round(derivedOptimalCoaRatio * 100);
-  const activeCoaSplit = coaSplitPercent !== undefined ? coaSplitPercent : optimalCoaSplitPercent;
+  // Computed optimal allocation: Institutional Standard 70% COA / 30% Spot Ratio
+  const derivedOptimalCoaRatio = 0.70;
+  const optimalCoaSplitPercent = 70;
+  const activeCoaSplit = 70; // Strictly enforce 70-30 allocation ratio
 
   // Savings computation based on optimized split
   const coaAllocationMT = Math.round(cargoMT * (activeCoaSplit / 100));
