@@ -193,6 +193,9 @@ export function evaluatePortDiversion({
   Object.values(INDIAN_EAST_COAST_PORTS).forEach((port) => {
     if (port.id === currPort.id) return; // Skip current port
 
+    // Exclude non-PS ports (Krishnapatnam and Chennai) - restrict strictly to official Problem Statement ports
+    if (['krishnapatnam', 'chennai', 'tuticorin'].includes(port.id)) return;
+
     const effectiveMaxDraft = port.outerHarbourDraft || port.maxDraftHighTide || port.maxDraftLaden;
     const effectiveLOA = port.maxLOA || 300;
     const effectiveBeam = port.maxBeam || 50;

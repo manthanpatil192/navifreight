@@ -481,7 +481,7 @@ export default function VesselBunchingTerminal({
           : `Queue wait is low (${waitDays}d). Total holding cost is only ₹${totalHoldingCostCr} Cr, making it cheaper to hold at anchorage than paying ₹${totalDivertCostCr} Cr in diversion fuel and alternate rail transit. Virtual arrival eco-speed recommended.`
       }
     };
-  }, [simulatedWaitDays, targetPort, portConfig]);
+  }, [realWaitDays, targetPort, portConfig]);
 
   const handleCopyDirective = (text, index) => {
     try {

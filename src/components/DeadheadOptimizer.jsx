@@ -79,7 +79,12 @@ export default function DeadheadOptimizer({ selectedDestination, currency, forec
       {/* Interactive Cargo-to-Hold Matcher (Coastal Triangulation Engine) */}
       <CargoToHoldMatcher 
         currency={currency} 
+        selectedDestination={selectedLivePort}
         selectedMmsi={selectedBerthedShipMmsi}
+        onSelectPort={(portId) => {
+          setSelectedLivePort(portId);
+          if (onSelectPort) onSelectPort(portId);
+        }}
         onSelectShip={(ship) => {
           setSelectedBerthedShipMmsi(ship.mmsi);
           if (ship.destinationId) {

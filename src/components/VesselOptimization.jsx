@@ -71,7 +71,7 @@ const PORT_LIVE_CONDITIONS = {
   krishnapatnam:{actualTPD: 50000,ratedTPD: 55000, queueVessels: 5,  waitDays: 1.5, conveyorStatus: 'FULL CAPACITY',                      berthAvailDays: 15 }
 };
 
-const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads', 'ennore', 'chennai', 'krishnapatnam'];
+const ALL_CANDIDATE_PORTS = ['paradip', 'vizag', 'gangavaram', 'dhamra', 'gopalpur', 'haldia', 'sandheads', 'ennore'];
 
 const DEMURRAGE_RATE_INR_PER_DAY = 6500000; // ₹65L/day ($75k/day)
 const DISPATCH_RATE_INR_PER_DAY = 3250000;  // ₹32.5L/day (Standard 50% Dispatch Reward)
