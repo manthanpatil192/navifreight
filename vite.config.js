@@ -23,6 +23,8 @@ function navifreightApiPlugin() {
           res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
           res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept')
 
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+
           if (req.method === 'OPTIONS') {
             res.statusCode = 204
             res.end()
@@ -34,9 +36,17 @@ function navifreightApiPlugin() {
               const scriptPath = path.resolve(__dirname, 'scripts', 'fetch_live_news_rss.py')
               if (fs.existsSync(scriptPath)) {
                 await new Promise((resolve) => {
-                  const py = spawn('python', [scriptPath], { timeout: 12000 })
+                  const py = spawn('python', [scriptPath], { shell: true, timeout: 30000 })
+                  py.on('error', () => {
+                    try {
+                      const pyFallback = spawn('py', [scriptPath], { shell: true, timeout: 30000 })
+                      pyFallback.on('close', () => resolve(true))
+                      pyFallback.on('error', () => resolve(false))
+                    } catch (_) {
+                      resolve(false)
+                    }
+                  })
                   py.on('close', () => resolve(true))
-                  py.on('error', () => resolve(false))
                 })
               }
             } catch (err) {
